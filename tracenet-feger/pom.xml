@@ -17,11 +17,6 @@
         <java.version>1.8</java.version>
     </properties>
 
-    <modules>
-        <module>feger-database-parent</module>
-        <module>feger-bigdata-parent</module>
-        <module>feger-service-parent</module>
-    </modules>
 
     <dependencyManagement>
         <dependencies>
@@ -42,4 +37,12 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    <modules>
+        
+        
+        
+        <module>database</module>
+        <module>bigdata</module>
+        <module>service</module>
+    </modules>
 </project>
