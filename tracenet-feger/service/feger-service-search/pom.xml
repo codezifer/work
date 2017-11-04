@@ -4,6 +4,12 @@
     <artifactId>feger-service-search</artifactId>
     <packaging>war</packaging>
 
+    <parent>
+        <groupId>com.bmw.bigdata.tracenet</groupId>
+        <artifactId>feger-service-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
     <dependencies>
         <!-- environment -->
@@ -12,8 +18,8 @@
 
         <!-- server -->
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
         </dependency>
 
         <!-- marshalling -->
@@ -25,16 +31,40 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>${maven-download-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>swagger-ui</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v${swagger-ui.version}.tar.gz</url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>${maven-war-plugin.version}</version>
                 <configuration>
                     <warSourceDirectory>WebContent</warSourceDirectory>
+                    <webResources>
+                        <webResource>
+                            <directory>${project.build.directory}/swagger-ui-${swagger-ui.version}/dist</directory>
+                            <targetPath>swagger-ui</targetPath>
+                        </webResource>
+                    </webResources>
                 </configuration>
             </plugin>
             <plugin>
@@ -47,11 +77,13 @@
             </plugin>
         </plugins>
     </build>
-
-    <parent>
-        <groupId>com.bmw.bigdata.tracenet</groupId>
-        <artifactId>feger-service-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>20.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

@@ -7,14 +7,15 @@
     <packaging>pom</packaging>
 
     <properties>
-        <junit.version>4.12</junit.version>
-        <javaee.version>7.0</javaee.version>
         <asm.version>6.0</asm.version>
-        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <maven-war-plugin.version>3.2.0</maven-war-plugin.version>
-        <maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
-        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
         <java.version>1.8</java.version>
+        <javaee.version>7.0</javaee.version>
+        <junit.version>4.12</junit.version>
+        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
+        <maven-war-plugin.version>3.2.0</maven-war-plugin.version>
+        <reflections.version>0.9.11</reflections.version>
     </properties>
 
 
@@ -36,11 +37,16 @@
             <version>${javaee.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
+        </dependency>
     </dependencies>
     <modules>
-        
-        
-        
+
+
+
         <module>database</module>
         <module>bigdata</module>
         <module>service</module>
