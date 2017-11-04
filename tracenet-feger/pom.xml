@@ -15,7 +15,6 @@
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
         <maven-war-plugin.version>3.2.0</maven-war-plugin.version>
-        <reflections.version>0.9.11</reflections.version>
     </properties>
 
 
@@ -36,11 +35,6 @@
             <artifactId>javaee-api</artifactId>
             <version>${javaee.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
         </dependency>
     </dependencies>
     <modules>
