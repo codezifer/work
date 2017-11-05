@@ -7,6 +7,8 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 
 @ApplicationPath("/service")
 public class ServiceConfig extends Application {
@@ -18,12 +20,14 @@ public class ServiceConfig extends Application {
 	@Override
 	public Set<Class<?>> getClasses() {
 		Set<Class<?>> resources = new HashSet<>();
+		resources.add(ApiListingResource.class);
+		resources.add(SwaggerSerializers.class);
 		return resources;
 	}
 
 	private void configureSwagger() {
 		BeanConfig beanConfig = new BeanConfig();
-		beanConfig.setBasePath("/api/search");
+		beanConfig.setBasePath("/api");
 		beanConfig.setTitle("Feger Service Search API");
 		beanConfig.setVersion("1.0.0");
 		beanConfig.setResourcePackage(FegerServiceSearch.class.getPackage().getName());
