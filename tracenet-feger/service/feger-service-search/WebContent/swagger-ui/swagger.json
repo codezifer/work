@@ -1,0 +1,36 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "version" : "1.0.0-SNAPSHOT",
+    "title" : "Feger Service Search API"
+  },
+  "basePath" : "/api",
+  "tags" : [ {
+    "name" : "search"
+  } ],
+  "paths" : {
+    "/search/request" : {
+      "post" : {
+        "tags" : [ "search" ],
+        "summary" : "Search traces by request",
+        "description" : "Search traces by request",
+        "operationId" : "search",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "responses" : {
+          "200" : {
+            "description" : "Search request was triggered",
+            "schema" : {
+              "$ref" : "#/definitions/SearchResponseDTO"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "SearchResponseDTO" : {
+      "type" : "object"
+    }
+  }
+}
