@@ -13,6 +13,7 @@
 
     <properties>
         <resource.package>com.bmw.bigdata.tracenet</resource.package>
+        <resource.name>feger-service-search</resource.name>
     </properties>
 
     <dependencies>
@@ -68,7 +69,7 @@
                             <locations>
                                 <location>${resource.package}</location>
                             </locations>
-                            <basePath>/api</basePath>
+                            <basePath>/${resource.name}/api</basePath>
                             <info>
                                 <title>Feger Service Search API</title>
                                 <version>${project.version}</version>
@@ -131,14 +132,6 @@
                 <version>${maven-war-plugin.version}</version>
                 <configuration>
                     <warSourceDirectory>WebContent</warSourceDirectory>
-                    <!--
-                    <webResources>
-                        <webResource>
-                            <directory>${project.build.directory}/swagger-ui-${swagger-ui.version}/dist</directory>
-                            <targetPath>swagger-ui</targetPath>
-                        </webResource>
-                    </webResources>
-                    -->
                 </configuration>
             </plugin>
             <plugin>

@@ -4,7 +4,7 @@
     "version" : "1.0.0-SNAPSHOT",
     "title" : "Feger Service Search API"
   },
-  "basePath" : "/api",
+  "basePath" : "/feger-service-search/api",
   "tags" : [ {
     "name" : "search"
   } ],
