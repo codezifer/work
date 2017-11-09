@@ -1,3 +1,5 @@
+@import "~sass/styles";
+
 .hamburger {
   display: block;
   position: relative;
@@ -21,7 +23,7 @@
   left: 18px;
   right: 18px;
   height: 8px;
-  background: #1a2580;
+  background: $menu-color;
 }
 
 .hamburger span::after,
@@ -31,7 +33,7 @@
   left: 0;
   width: 100%;
   height: 8px;
-  background-color: #1a2580;
+  background-color: $menu-color;
   content: "";
 }
 

@@ -1,6 +1,8 @@
+@import "~sass/styles";
+
 :host {
-  background: #1a2580;
-  color: #fff;
+  background: $menu-color;
+  color: $font-color;
   position: fixed;
   left: auto;
   top: 0;
