@@ -1,6 +1,8 @@
 <!-- Navbar container + content -->
-<button class="hamburger" (click)="toggleMenu()">
-    <span>toggle menu</span>
-</button>
+<nav class="navbar navbar-light bg-faded">
+    <button class="navbar-toggler" type="button" (click)="toggleMenu()">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</nav>
 
 <app-menu [@slideOut]="menuState"></app-menu>
