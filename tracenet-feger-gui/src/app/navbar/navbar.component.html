@@ -1,8 +1,10 @@
 <!-- Navbar container + content -->
-<nav class="navbar navbar-light bg-faded">
-    <button class="navbar-toggler" type="button" (click)="toggleMenu()">
+<nav class="navbar navbar-light fixed-top bg-faded">
+    <button class="navbar-toggler navbar-toggler-right" type="button" (click)="toggleMenu()">
         <span class="navbar-toggler-icon"></span>
     </button>
+    <a class="navbar-brand" href="#">
+        <h5>Tracenet Feger-Analytics</h5>
+    </a>
+    <app-menu [@slideOut]="menuState"></app-menu>
 </nav>
-
-<app-menu [@slideOut]="menuState"></app-menu>

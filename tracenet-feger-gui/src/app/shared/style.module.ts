@@ -15,6 +15,6 @@ export class StyleModule {
       return {
         ngModule: StyleModule,
         providers: []
-      }
+      };
     }
 }

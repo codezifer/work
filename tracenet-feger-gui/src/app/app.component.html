@@ -1,11 +1,21 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div class="container-fluid">
-    <div class="row align-items-start">
-        <div class="col-sm-1">
-            <app-navbar></app-navbar>
+<app-navbar></app-navbar>
+<div class="container-fluid" id="main">
+
+    <div class="row row-offcanvas">
+        <div class="col-md-3 col-lg-2">
+
         </div>
-        <div class="col-sm-11">
-            <h1>Tracenet Feger GUI</h1>
+        <div class="col-md-9 col-lg-10 main">
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <router-outlet></router-outlet>
         </div>
     </div>
 </div>
+<footer class="">
+    <p class="text-right small">©2017-2018 T-Systems International GmbH</p>
+</footer>

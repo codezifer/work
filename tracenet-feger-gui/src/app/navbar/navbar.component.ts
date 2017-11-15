@@ -20,7 +20,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 })
 export class NavbarComponent {
 
-  menuState: string = 'out';
+  menuState = 'out';
 
   private toggleMenu() {
     this.menuState = this.menuState === 'out' ? 'in' : 'out';
