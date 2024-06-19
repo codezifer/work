@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: spring-react
+
+  profiles:
+    default: dev
+    active: dev
+
+  flyway:
+    default-schema: tutorials
+    validate-on-migrate: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tutorialsdevdb
+    username: postgres
+    password: postgres
+
+  docker:
+    compose:
+      enabled: true
+      file: docker-compose.yaml
+
+  devtools:
+    restart:
+      poll-interval: 4s
+      quiet-period: 2s
+    livereload:
+      enabled: true
