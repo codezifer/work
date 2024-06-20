@@ -1,3 +1,16 @@
+app:
+  database:
+    name: tutorialsdb
+    schema: tutorials
+    port: 5432
+    username: postgres
+    password: postgres
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
 spring:
   application:
     name: spring-react
@@ -7,19 +20,25 @@ spring:
     active: dev
 
   flyway:
-    default-schema: tutorials
+    default-schema: ${app.database.schema}
     validate-on-migrate: true
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/tutorialsdevdb
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:${app.database.port}/${app.database.name}
+    username: ${app.database.username}
+    password: ${app.database.password}
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:${app.database.port}/${app.database.name}
+    username: ${app.database.username}
+    password: ${app.database.password}
 
   docker:
     compose:
       enabled: true
       file: docker-compose.yaml
+      lifecycle-management: start_only
 
   devtools:
     restart:
@@ -27,3 +46,6 @@ spring:
       quiet-period: 2s
     livereload:
       enabled: true
+
+springdoc:
+  show-actuator: true
