@@ -1,11 +1,10 @@
 package de.carsten.spring_react.model.dao;
 
-import de.carsten.spring_react.model.dto.TutorialDto;
+import de.carsten.spring_react.model.jooq.tables.records.TutorialRecord;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.jooq.DSLContext;
-import org.jooq.Record1;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -18,8 +17,7 @@ public class TutorialDao {
 
     DSLContext dslCtx;
 
-
-    public Flux<Record1<TutorialDto>> getAllTutorials() {
-        return Flux.from(dslCtx.select(TUTORIAL.convertFrom(TutorialDto::from)).from(TUTORIAL));
+    public Flux<TutorialRecord> getAllTutorials() {
+        return Flux.from(dslCtx.selectFrom(TUTORIAL));
     }
 }

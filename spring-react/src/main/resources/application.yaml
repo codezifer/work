@@ -49,3 +49,8 @@ spring:
 
 springdoc:
   show-actuator: true
+  swagger-ui:
+    path: /swagger-ui
+    tags-sorter: alpha
+  api-docs:
+    path: /openapi

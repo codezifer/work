@@ -1,23 +1,24 @@
-package de.carsten.spring_react.controller;
+package de.carsten.spring_react.service;
 
+import de.carsten.spring_react.model.dao.TutorialDao;
 import de.carsten.spring_react.model.dto.TutorialDto;
-import de.carsten.spring_react.service.TutorialService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-@RestController
-@RequestMapping("/api")
+@Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class TutorialController {
+public class TutorialService {
 
-    TutorialService tutorialService;
+    TutorialDao tutorialDao;
 
-    @GetMapping("/tutorials")
     public Flux<TutorialDto> getTutorials() {
-        return tutorialService.getTutorials();
+        return tutorialDao
+                .getAllTutorials()
+                .map(TutorialDto::from);
     }
+
 }
