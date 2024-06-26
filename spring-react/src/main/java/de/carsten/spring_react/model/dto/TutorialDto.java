@@ -18,4 +18,15 @@ public record TutorialDto(Long id, String title, String description, boolean pub
                 utc(t.getModified())
         );
     }
+
+    public TutorialRecord to() {
+        return new TutorialRecord(
+                this.id(),
+                this.title(),
+                this.description(),
+                this.published(),
+                utc(this.created()),
+                utc(this.modified())
+        );
+    }
 }

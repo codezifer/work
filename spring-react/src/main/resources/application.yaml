@@ -54,3 +54,7 @@ springdoc:
     tags-sorter: alpha
   api-docs:
     path: /openapi
+
+logging:
+  level:
+    org.jooq.Constants: WARN
