@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api")
@@ -25,6 +26,14 @@ public class TutorialController {
     )
     public Flux<TutorialDto> getTutorials() {
         return tutorialService.getTutorials();
+    }
+
+    @GetMapping(
+        value = "/tutorials/{id}",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public Mono<TutorialDto> getTutorial(@NotNull @PathVariable String id) {
+        return tutorialService.getTutorial(Long.valueOf(id));
     }
 
     @PostMapping(

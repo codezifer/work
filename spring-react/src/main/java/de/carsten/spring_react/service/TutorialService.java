@@ -32,4 +32,10 @@ public class TutorialService {
                 .insertTutorial(dto)
                 .then(Mono.fromSupplier(() -> dto));
     }
+
+    public Mono<TutorialDto> getTutorial(long id) {
+        return tutorialDao
+                .findById(id)
+                .map(TutorialDto::from);
+    }
 }

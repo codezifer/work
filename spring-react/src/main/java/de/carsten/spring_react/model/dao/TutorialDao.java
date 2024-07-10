@@ -23,6 +23,10 @@ public class TutorialDao {
         return Flux.from(dslCtx.selectFrom(TUTORIAL));
     }
 
+    public Mono<TutorialRecord> findById(long id) {
+        return Mono.from(dslCtx.selectFrom(TUTORIAL).where(TUTORIAL.ID.eq(id)));
+    }
+
     public Mono<Integer> insertTutorial(TutorialDto dto) {
         return Mono.fromCompletionStage(dslCtx.insertInto(TUTORIAL)
                 .set(dto.to())
