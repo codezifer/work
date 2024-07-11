@@ -5,11 +5,13 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import {Component, MouseEvent} from 'react';
+import {NavigateFunction} from 'react-router-dom';
 import {nullable} from '../shared/types/common.type.ts';
 
 type Props = {
     pages: string[],
     settings: string[]
+    navigate: NavigateFunction
 };
 type State = {
     anchorElNav: nullable<HTMLElement>;
@@ -31,10 +33,15 @@ export class NavBar extends Component<Props, State> {
         });
     }
 
-    handleCloseNavMenu = () => {
+    handleCloseNavMenu = (page: string) => {
         this.setState({
             anchorElNav: null
         });
+        if(page.toLowerCase() === 'tutorials') {
+            this.props.navigate('/tutorials')
+        } else if(page.toLowerCase() === 'add tutorial') {
+            this.props.navigate('/tutorials/add')
+        }
     }
 
     handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
@@ -43,13 +50,16 @@ export class NavBar extends Component<Props, State> {
         });
     }
 
-    handleCloseUserMenu = () => {
+    handleCloseUserMenu = (setting: string) => {
         this.setState({
             anchorElUser: null
         });
+        if(setting.toLowerCase() === 'about') {
+            this.props.navigate('/about');
+        }
     }
 
-    render() {
+    override render() {
         return (
             <AppBar position='relative'>
                 <Container maxWidth='xl'>
@@ -103,7 +113,7 @@ export class NavBar extends Component<Props, State> {
                                 }}
                             >
                                 {this.props.pages.map((page) => (
-                                    <MenuItem key={page} onClick={this.handleCloseNavMenu}>
+                                    <MenuItem key={page} onClick={() => this.handleCloseNavMenu(page)}>
                                         <Typography textAlign="center">{page}</Typography>
                                     </MenuItem>
                                 ))}
@@ -132,7 +142,7 @@ export class NavBar extends Component<Props, State> {
                             {this.props.pages.map((page) => (
                                 <Button
                                     key={page}
-                                    onClick={this.handleCloseNavMenu}
+                                    onClick={() => this.handleCloseNavMenu(page)}
                                     sx={{ my: 2, color: 'white', display: 'block' }}
                                 >
                                     {page}
@@ -163,7 +173,7 @@ export class NavBar extends Component<Props, State> {
                                 onClose={this.handleCloseUserMenu}
                             >
                                 {this.props.settings.map((setting) => (
-                                    <MenuItem key={setting} onClick={this.handleCloseUserMenu}>
+                                    <MenuItem key={setting} onClick={() => this.handleCloseUserMenu(setting)}>
                                         <Typography textAlign="center">{setting}</Typography>
                                     </MenuItem>
                                 ))}

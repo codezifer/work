@@ -20,7 +20,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    /* Code sugar */
+    "noImplicitOverride": true,
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src"
