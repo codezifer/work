@@ -5,49 +5,53 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import {Component, MouseEvent} from 'react';
+import {nullable} from '../shared/types/common.type.ts';
 
 type Props = {
     pages: string[],
     settings: string[]
 };
 type State = {
-    anchorElNav?: HTMLElement;
-    anchorElUser?: HTMLElement;
+    anchorElNav: nullable<HTMLElement>;
+    anchorElUser: nullable<HTMLElement>;
 };
 
 export class NavBar extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
-        this.state = {};
+        this.state = {
+            anchorElNav: null,
+            anchorElUser: null
+        };
     }
 
-    private handleOpenNavMenu(event: MouseEvent<HTMLElement>): void {
+    handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
         this.setState({
             anchorElNav: event.currentTarget
         });
     }
 
-    private handleCloseNavMenu(): void {
+    handleCloseNavMenu = () => {
         this.setState({
-            anchorElNav: undefined
+            anchorElNav: null
         });
     }
 
-    private handleOpenUserMenu(event: MouseEvent<HTMLElement>): void {
+    handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
         this.setState({
             anchorElUser: event.currentTarget
         });
     }
 
-    private handleCloseUserMenu(): void {
+    handleCloseUserMenu = () => {
         this.setState({
-            anchorElUser: undefined
+            anchorElUser: null
         });
     }
 
     render() {
         return (
-            <AppBar position='static'>
+            <AppBar position='relative'>
                 <Container maxWidth='xl'>
                     <Toolbar disableGutters>
                         <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
