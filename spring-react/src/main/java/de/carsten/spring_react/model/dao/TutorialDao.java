@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,6 +26,10 @@ public class TutorialDao {
 
     public Mono<TutorialRecord> findById(long id) {
         return Mono.from(dslCtx.selectFrom(TUTORIAL).where(TUTORIAL.ID.eq(id)));
+    }
+
+    public Mono<TutorialRecord> findByTitle(String title) {
+        return Mono.from(dslCtx.selectFrom(TUTORIAL).where(DSL.lower(TUTORIAL.TITLE).eq(title.toLowerCase())));
     }
 
     public Mono<Integer> insertTutorial(TutorialDto dto) {

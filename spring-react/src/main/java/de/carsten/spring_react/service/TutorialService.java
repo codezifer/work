@@ -38,4 +38,10 @@ public class TutorialService {
                 .findById(id)
                 .map(TutorialDto::from);
     }
+
+    public Mono<TutorialDto> getTutorialByTitle(String title) {
+        return tutorialDao
+                .findByTitle(title)
+                .map(TutorialDto::from);
+    }
 }
