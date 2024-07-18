@@ -1,106 +1,84 @@
 import { Box, Snackbar, TextField } from '@mui/material';
 import Button from '@mui/material/Button';
-import { Component } from 'react';
-import { DataService } from '../shared/services/data.service.ts';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addTutorials } from '../shared/slices/tutorials.slice.ts';
+import { AppDispatch } from '../store.ts';
 
-type Props = {
-    dataService: DataService
-};
+export const TutorialAdd = () => {
 
-type State = {
-    title: string
-    description: string,
-    isOpen: boolean,
-    message: string
-};
+    const EMPTY_VALUE = '---';
 
-export class TutorialAdd extends Component<Props, State> {
+    const [title, setTitle] = useState(EMPTY_VALUE);
+    const [description, setDescription] = useState(EMPTY_VALUE);
+    const [isOpen, setIsOpen] = useState(false);
+    const [message, setMessage] = useState(EMPTY_VALUE);
+    const dispatch = useDispatch<AppDispatch>();
 
-    private EMPTY_VALUE = '---';
-
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            title: this.EMPTY_VALUE,
-            description: this.EMPTY_VALUE,
-            isOpen: false,
-            message: this.EMPTY_VALUE
-        };
-    }
-
-    onSubmit = (target: string) => {
+    const onSubmit = (target: string) => {
         console.log(`... on submit ${target} ...`);
     };
 
-    onTitleChange = (title?: string) => {
-        if (!title) return;
-        this.setState({title});
+    const onTitleChange = (title?: string) => {
+        setTitle(title ?? EMPTY_VALUE);
     };
 
-    onDescriptionChange = (desc?: string) => {
-        if (!desc) return;
-        this.setState({description: desc});
+    const onDescriptionChange = (desc?: string) => {
+        setDescription(desc ?? EMPTY_VALUE);
     };
 
-    private checkValue(value?: string): boolean {
-        return !!value && value.length > 0 && value !== this.EMPTY_VALUE;
-    }
+    const checkValue = (value?: string) => {
+        return !!value && value.length > 0 && value !== EMPTY_VALUE;
+    };
 
-    onPublish = () => {
-        if (this.checkValue(this.state.title) && this.checkValue(this.state.description)) {
-            this.props.dataService.postTutorial(this.state.title, this.state.description).then(() => {
-                const msg = '... published ...';
-                console.log(msg);
-                this.setState({isOpen: true, message: msg});
+    const onPublish = () => {
+        if (checkValue(title) && checkValue(description)) {
+            dispatch(addTutorials({title, description})).then(() => {
+                setIsOpen(true);
+                setMessage(`Tutorial ${title} published!`);
             });
         } else {
             console.warn('... no title or description ...');
         }
     };
 
-    onClose = () => {
-        this.setState(prevState => {
-            return {
-                isOpen: !prevState.isOpen
-            };
-        });
+    const onClose = () => {
+        setIsOpen(prevState => !prevState);
     };
 
-    override render() {
-        const padding = '8px';
-        return (
-            <Box sx={{
-                minWidth: 120,
-                margin: padding
-            }}>
-                <form autoComplete="off" onSubmit={e => this.onSubmit(e.currentTarget.target)}>
-                    <h4>Add Tutorial</h4>
-                    <TextField
-                        fullWidth
-                        type="text"
-                        label="Title"
-                        margin="dense"
-                        component="form"
-                        onChange={e => this.onTitleChange(e.target.value)}
-                    />
+    const padding = '8px';
+    return (
+        <Box sx={{
+            minWidth: 120,
+            margin: padding
+        }}>
+            <form autoComplete="off" onSubmit={e => onSubmit(e.currentTarget.target)}>
+                <h4>Add Tutorial</h4>
+                <TextField
+                    fullWidth
+                    type="text"
+                    label="Title"
+                    margin="dense"
+                    component="form"
+                    onChange={e => onTitleChange(e.target.value)}
+                />
 
-                    <TextField
-                        fullWidth
-                        type="text"
-                        label="Description"
-                        margin="dense"
-                        component="form"
-                        onChange={e => this.onDescriptionChange(e.target.value)}
-                    />
-                    <Button variant="contained" sx={{margin: padding}} onClick={this.onPublish}>PUBLISH</Button>
-                    <Snackbar
-                        open={this.state.isOpen}
-                        autoHideDuration={5000}
-                        onClose={this.onClose}
-                        message={this.state.message}
-                    />
-                </form>
-            </Box>
-        );
-    }
-}
+                <TextField
+                    fullWidth
+                    type="text"
+                    label="Description"
+                    margin="dense"
+                    component="form"
+                    onChange={e => onDescriptionChange(e.target.value)}
+                />
+                <Button variant="contained" sx={{margin: padding}} onClick={onPublish}>PUBLISH</Button>
+                <Snackbar
+                    open={isOpen}
+                    autoHideDuration={5000}
+                    onClose={onClose}
+                    message={message}
+                />
+            </form>
+        </Box>
+    );
+};
