@@ -1,10 +1,14 @@
 app:
   database:
+    host: localhost
     name: tutorialsdb
     schema: tutorials
     port: 5432
     username: postgres
     password: postgres
+
+server:
+  port: 8080
 
 management:
   endpoint:
@@ -15,17 +19,13 @@ spring:
   application:
     name: spring-react
 
-  profiles:
-    default: dev
-    active: dev
-
   flyway:
     default-schema: ${app.database.schema}
     validate-on-migrate: true
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:${app.database.port}/${app.database.name}
+    url: jdbc:postgresql://${app.database.host}:${app.database.port}/${app.database.name}
     username: ${app.database.username}
     password: ${app.database.password}
 
