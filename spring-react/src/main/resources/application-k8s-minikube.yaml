@@ -1,0 +1,8 @@
+app:
+  database:
+    host: postgres
+    name: tutorialsdb
+    schema: tutorials
+    port: 5432
+    username: postgres
+    password: postgres

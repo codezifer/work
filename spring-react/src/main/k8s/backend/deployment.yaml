@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  strategy: { }
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      volumes:
+        - name: postgresdata
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+      containers:
+        - image: postgres:16
+          imagePullPolicy: IfNotPresent
+          name: postgres
+          envFrom:
+            - configMapRef:
+                name: postgres
+            - secretRef:
+                name: postgres
+          volumeMounts:
+            - name: postgresdata
+              mountPath: /var/lib/postgresql/data
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  strategy: { }
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - image: de.carsten.spring-react:1.0.0-SNAPSHOT
+          imagePullPolicy: Never
+          name: backend
+          resources: { }
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s-minikube

@@ -30,7 +30,7 @@ spring:
     password: ${app.database.password}
 
   r2dbc:
-    url: r2dbc:postgresql://localhost:${app.database.port}/${app.database.name}
+    url: r2dbc:postgresql://${app.database.host}:${app.database.port}/${app.database.name}
     username: ${app.database.username}
     password: ${app.database.password}
 
