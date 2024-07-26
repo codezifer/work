@@ -51,7 +51,7 @@ spec:
         app: backend
     spec:
       containers:
-        - image: de.carsten.spring-react:1.0.0-SNAPSHOT
+        - image: de.carsten.spring-react.backend:1.0.0-SNAPSHOT
           imagePullPolicy: Never
           name: backend
           resources: { }

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  strategy: { }
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - image: de.carsten.spring-react.frontend:1.0.0-SNAPSHOT
+          imagePullPolicy: Never
+          name: frontend
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: 100Mi
+      automountServiceAccountToken: false

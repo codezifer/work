@@ -7,6 +7,9 @@ app:
     username: postgres
     password: postgres
 
+  frontend:
+    index-html-path: "/index.html"
+
 server:
   port: 8080
 

@@ -9,23 +9,6 @@ services:
       POSTGRES_DB: tutorialsdb
     volumes:
       - spring_react_db:/var/lib/postgresql/data
-    networks:
-      - spring_react_network
-
-  backend:
-    image: de.carsten.spring-react:1.0.0-SNAPSHOT
-    ports:
-      - 8081:8080
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-    networks:
-      - spring_react_network
-    depends_on:
-      - postgres
 
 volumes:
   spring_react_db:
-
-networks:
-  spring_react_network:
-    driver: bridge
