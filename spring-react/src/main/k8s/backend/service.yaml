@@ -35,7 +35,6 @@ kind: Ingress
 metadata:
   name: backend
   annotations:
-    nginx.ingress.kubernetes.io/add-base-url: "true"
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:

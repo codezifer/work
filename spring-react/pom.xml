@@ -31,6 +31,7 @@
         <springdoc.version>2.5.0</springdoc.version>
         <yaml-properties-plugin.version>1.1.3</yaml-properties-plugin.version>
         <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
+        <docker.rmi.skip>true</docker.rmi.skip>
         <docker.tag.backend>${project.groupId}.${project.artifactId}.backend:${project.version}</docker.tag.backend>
         <docker.tag.frontend>${project.groupId}.${project.artifactId}.frontend:${project.version}</docker.tag.frontend>
     </properties>
@@ -168,6 +169,39 @@
             </plugin>
 
             <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <configuration>
+                    <driver>${spring.datasource.driverClassName}</driver>
+                    <url>${spring.datasource.url}</url>
+                    <user>${spring.datasource.username}</user>
+                    <password>${spring.datasource.password}</password>
+                    <schemas>
+                        <schema>${app.database.schema}</schema>
+                    </schemas>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration/100</location>
+                    </locations>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>flyway-migrate</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
                 <executions>
@@ -219,6 +253,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${docker.rmi.skip}</skip>
                             <executable>docker</executable>
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <arguments>
@@ -250,27 +285,13 @@
                     </execution>
                     <!-- frontend -->
                     <execution>
-                        <id>frontend-build-prod</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>npm</executable>
-                            <workingDirectory>src/main/app</workingDirectory>
-                            <arguments>
-                                <argument>run</argument>
-                                <argument>build:prod</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>docker-clean-frontend</id>
                         <phase>install</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${docker.rmi.skip}</skip>
                             <executable>docker</executable>
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <arguments>
@@ -291,7 +312,7 @@
                             <arguments>
                                 <argument>build</argument>
                                 <argument>--build-arg</argument>
-                                <argument>APP_DIST=src/main/app/dist</argument>
+                                <argument>APP_DIR=src/main/app</argument>
                                 <argument>-t</argument>
                                 <argument>${docker.tag.frontend}</argument>
                                 <argument>-f</argument>
