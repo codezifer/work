@@ -4,5 +4,6 @@ metadata:
   name: postgres
   labels:
     app: backend
+    tier: backend
 data:
   POSTGRES_DB: "tutorialsdb"
