@@ -2,23 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: frontend
-  name: frontend
+    app: react
+    tier: frontend
+  name: react-frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: frontend
+      app: react
+      tier: frontend
   strategy: { }
   template:
     metadata:
       labels:
-        app: frontend
+        app: react
+        tier: frontend
     spec:
       containers:
         - image: de.carsten.spring-react.frontend:1.0.0-SNAPSHOT
           imagePullPolicy: Never
-          name: frontend
+          name: react-frontend
           ports:
             - containerPort: 80
           resources:

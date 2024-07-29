@@ -2,18 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: backend
+    app: postgres
+    tier: backend
   name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: postgres
+      tier: backend
   strategy: { }
   template:
     metadata:
       labels:
-        app: backend
+        app: postgres
+        tier: backend
     spec:
       volumes:
         - name: postgresdata
@@ -31,13 +34,13 @@ spec:
           volumeMounts:
             - name: postgresdata
               mountPath: /var/lib/postgresql/data
-
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: backend
+    tier: backend
   name: backend
 spec:
   replicas: 1
@@ -49,6 +52,7 @@ spec:
     metadata:
       labels:
         app: backend
+        tier: backend
     spec:
       containers:
         - image: de.carsten.spring-react.backend:1.0.0-SNAPSHOT
