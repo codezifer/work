@@ -3,6 +3,7 @@ package de.carsten.spring_react.config;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
@@ -12,8 +13,9 @@ import org.springframework.web.servlet.config.annotation.*;
 @Configuration
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@Log4j2
 public class AppConfig implements WebMvcConfigurer {
-    
+
     Environment environment;
 
     @Override
@@ -34,6 +36,8 @@ public class AppConfig implements WebMvcConfigurer {
         String[] pathPatterns = path.endsWith("/")
                 ? new String[]{path.substring(0, path.length() - 1), path, path + "*"}
                 : new String[]{path, path + "/", path + "**"};
+
+        log.info("Recognized path patterns = [%s]".formatted(String.join(",", pathPatterns)));
 
         registry.addResourceHandler(pathPatterns)
                 .addResourceLocations(location.endsWith("/") ? location : location + "/")
