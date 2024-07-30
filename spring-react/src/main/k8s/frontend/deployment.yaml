@@ -22,6 +22,9 @@ spec:
         - image: de.carsten.spring-react.frontend:1.0.0-SNAPSHOT
           imagePullPolicy: Never
           name: react-frontend
+          envFrom:
+            - configMapRef:
+                name: frontend
           ports:
             - containerPort: 80
           resources:
