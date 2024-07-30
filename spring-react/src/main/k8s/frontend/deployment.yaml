@@ -22,9 +22,6 @@ spec:
         - image: de.carsten.spring-react.frontend:1.0.0-SNAPSHOT
           imagePullPolicy: Never
           name: react-frontend
-          env:
-            - name: BACKEND_PATH
-              value: "http://localhost/backend/api"
           ports:
             - containerPort: 80
           resources:
