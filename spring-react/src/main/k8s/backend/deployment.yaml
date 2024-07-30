@@ -61,4 +61,10 @@ spec:
           resources: { }
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: k8s-minikube
+              value: "k8s-minikube"
+            - name: SPRINGDOC_SWAGGER_UI_URL
+              value: "/backend/openapi"
+            - name: SWAGGER_SERVER_URL
+              value: "http://localhost/backend"
+            - name: SWAGGER_SERVER_DESC
+              value: "K8s backend API"

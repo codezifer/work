@@ -10,6 +10,19 @@ app:
   frontend:
     index-html-path: "/index.html"
 
+  web:
+    cors:
+      mappings: "/api/**,/backend/**,/backend/api/**"
+      patterns: "*"
+
+  swagger:
+    title: "Tutorials API"
+    version: 1.0.0
+    description: "A small demo API based on Spring-Boot"
+    server:
+      url: ${SWAGGER_SERVER_URL:http://localhost:8080}
+      description: ${SWAGGER_SERVER_DESC:Local backend api}
+
 server:
   port: 8080
 
@@ -50,13 +63,17 @@ spring:
     livereload:
       enabled: true
 
+
 springdoc:
   show-actuator: true
+  api-docs:
+    path: /openapi
   swagger-ui:
     path: /swagger-ui
     tags-sorter: alpha
-  api-docs:
-    path: /openapi
+    url: ${SPRINGDOC_SWAGGER_UI_URL:/openapi}
+    disable-swagger-default-url: true
+    config-url: ${springdoc.swagger-ui.url}/swagger-config
 
 logging:
   level:

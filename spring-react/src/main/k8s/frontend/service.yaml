@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     app: frontend-svc
+    tier: frontend
   name: frontend
 spec:
   ports:
@@ -22,7 +23,6 @@ kind: Ingress
 metadata:
   name: frontend
   annotations:
-    nginx.ingress.kubernetes.io/add-base-url: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx

@@ -7,7 +7,7 @@ export class DataService {
 
     constructor() {
         this.client = axios.create({
-            baseURL: environment.API_BASE_URL,
+            baseURL: process.env.BACKEND_PATH ?? environment.API_BASE_URL,
             headers: {
                 'Content-Type': 'application/json'
             }

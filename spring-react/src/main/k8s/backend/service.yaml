@@ -48,11 +48,10 @@ spec:
   rules:
     - http:
         paths:
-          - path: /backend(/|$)(.*)
+          - path: /backend(\/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
                 name: backend
                 port:
                   number: 8081
-
