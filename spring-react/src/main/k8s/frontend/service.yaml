@@ -7,8 +7,8 @@ metadata:
   name: frontend
 spec:
   ports:
-    - name: 80-80
-      port: 80
+    - name: 8082-80
+      port: 8082
       protocol: TCP
       targetPort: 80
   selector:
@@ -25,8 +25,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: frontend.localhost.net
-      http:
+    - http:
         paths:
           - pathType: Prefix
             path: /
@@ -34,4 +33,4 @@ spec:
               service:
                 name: frontend
                 port:
-                  number: 80
+                  number: 8082
