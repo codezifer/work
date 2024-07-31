@@ -23,6 +23,9 @@ app:
       url: ${SWAGGER_SERVER_URL:http://localhost:8080}
       description: ${SWAGGER_SERVER_DESC:Local backend api}
 
+  users:
+    tutorialUser: "tutorial_user"
+
 server:
   port: 8080
 
@@ -62,6 +65,23 @@ spring:
       quiet-period: 2s
     livereload:
       enabled: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: backend_client
+            client-secret: ${SPRING_BACKEND_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope: openid
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8090/realms/tutorials_realm
+            user-name-attribute: tutorial_user
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/tutorials_realm
 
 
 springdoc:

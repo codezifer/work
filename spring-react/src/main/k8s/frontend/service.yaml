@@ -15,8 +15,6 @@ spec:
     app: react
     tier: frontend
   type: LoadBalancer
-  externalIPs:
-    - 192.168.49.2
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -27,7 +25,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - http:
+    - host: frontend.localhost.net
+      http:
         paths:
           - pathType: Prefix
             path: /

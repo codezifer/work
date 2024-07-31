@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        tier: backend
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:latest
+          imagePullPolicy: IfNotPresent
+          args: [ "start" ]
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: "admin"
+            - name: KC_PROXY
+              value: "edge"
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+            - name: KC_HOSTNAME
+              value: "keycloak.localhost.nip.io"
+            - name: KC_HOSTNAME_STRICT
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_LOG_LEVEL
+              value: INFO
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://postgres:5432/keycloak"
+          envFrom:
+            - secretRef:
+                name: keycloak
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: 8080
+          resources:
+            requests:
+              memory: 800Mi
+              cpu: 500m
+            limits:
+              memory: 1000Mi
+              cpu: 1000m
+      automountServiceAccountToken: false

@@ -47,6 +47,7 @@ spec:
   selector:
     matchLabels:
       app: backend
+      tier: backend
   strategy: { }
   template:
     metadata:
@@ -68,3 +69,6 @@ spec:
               value: "http://localhost/backend"
             - name: SWAGGER_SERVER_DESC
               value: "K8s backend API"
+          envFrom:
+            - secretRef:
+                name: backend

@@ -17,11 +17,12 @@ import jakarta.validation.constraints.NotNull;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class TutorialController {
+    public static final String TUTORIALS = "/tutorials";
 
     TutorialService tutorialService;
 
     @GetMapping(
-            value = "/tutorials",
+            value = TUTORIALS,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Flux<TutorialDto> getTutorials() {
@@ -29,7 +30,7 @@ public class TutorialController {
     }
 
     @GetMapping(
-            value = "/tutorials/{id}",
+            value = TUTORIALS + "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<TutorialDto> getTutorial(@NotNull @PathVariable String id) {
@@ -37,7 +38,7 @@ public class TutorialController {
     }
 
     @GetMapping(
-            value = "/tutorial/title/{title}",
+            value =  TUTORIALS + "/title/{title}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<TutorialDto> getTutorialByTitle(@NotNull @PathVariable String title) {
@@ -45,7 +46,7 @@ public class TutorialController {
     }
 
     @PostMapping(
-            value = "/add/tutorial",
+            value = TUTORIALS + "/add/tutorial",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )

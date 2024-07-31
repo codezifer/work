@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.lang.NonNull;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.*;
 
 import java.util.List;
@@ -61,6 +62,11 @@ public class AppConfig implements WebMvcConfigurer {
                     .description(environment.getProperty("app.swagger.description"))
             );
         };
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     private String[] properties(String propertyName) {

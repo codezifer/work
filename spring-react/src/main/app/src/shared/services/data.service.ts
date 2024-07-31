@@ -3,6 +3,7 @@ import { environment } from '../environment.ts';
 import { TutorialType } from '../types/tutorial.type.ts';
 
 export class DataService {
+    private TUTORIALS = "/tutorials";
     private readonly client?: Axios;
 
     constructor() {
@@ -16,21 +17,21 @@ export class DataService {
     }
 
     async getTutorials(): Promise<TutorialType[]> {
-        return this.getHttpData<TutorialType[]>('/tutorials').catch(error => {
+        return this.getHttpData<TutorialType[]>(this.TUTORIALS).catch(error => {
             console.error(error);
             return Promise.resolve([]);
         });
     }
 
     async getTutorial(id: string): Promise<TutorialType> {
-        return this.getHttpData<TutorialType>('/tutorials/' + id).catch(error => {
+        return this.getHttpData<TutorialType>(this.TUTORIALS + '/' + id).catch(error => {
             console.error(error);
             return Promise.resolve({});
         });
     }
 
     async getTutorialByTitle(title: string): Promise<TutorialType> {
-        return this.getHttpData<TutorialType>('/tutorial/title/' + title).catch(error => {
+        return this.getHttpData<TutorialType>(this.TUTORIALS + '/title/' + title).catch(error => {
             console.error(error);
             return Promise.resolve({});
         });
@@ -38,7 +39,7 @@ export class DataService {
 
     async postTutorial(title: string, description: string): Promise<void> {
         const http = await this.checkClient();
-        return http.post('/add/tutorial', {
+        return http.post(this.TUTORIALS + '/add/tutorial', {
             title,
             description
         });

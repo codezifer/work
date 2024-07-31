@@ -12,7 +12,9 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /mnt/data
+    # C:/tmp/spring-react-data
+    path: /run/desktop/mnt/host/c/tmp/spring-react-data
+    type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
