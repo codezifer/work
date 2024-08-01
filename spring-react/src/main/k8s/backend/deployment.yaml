@@ -69,6 +69,10 @@ spec:
               value: "http://localhost/backend"
             - name: SWAGGER_SERVER_DESC
               value: "K8s backend API"
-          envFrom:
-            - secretRef:
-                name: backend
+            - name: SPRING_SECURITY_KEYCLOAK_HOSTNAME
+              value: "http://keycloak.localhost.nip.io"
+            - name: SPRING_BACKEND_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend
+                  key: client_secret

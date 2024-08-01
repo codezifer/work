@@ -34,6 +34,7 @@
         <docker.rmi.skip>false</docker.rmi.skip>
         <docker.tag.backend>${project.groupId}.${project.artifactId}.backend:${project.version}</docker.tag.backend>
         <docker.tag.frontend>${project.groupId}.${project.artifactId}.frontend:${project.version}</docker.tag.frontend>
+        <keycloak-spring.version>24.0.5</keycloak-spring.version>
     </properties>
     <dependencies>
         <dependency>

@@ -11,6 +11,9 @@ app:
     index-html-path: "/index.html"
 
   web:
+    security:
+      keycloak-hostname: "${SPRING_SECURITY_KEYCLOAK_HOSTNAME:http://localhost:8090}"
+      issuer-uri: "${app.web.security.keycloak-hostname}/realms/tutorials_realm"
     cors:
       mappings: "/api/**,/backend/**,/backend/api/**"
       patterns: "*"
@@ -77,11 +80,11 @@ spring:
             scope: openid
         provider:
           keycloak:
-            issuer-uri: http://localhost:8090/realms/tutorials_realm
-            user-name-attribute: tutorial_user
+            issuer-uri: ${app.web.security.issuer-uri}
+            user-name-attribute: preferred_username
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8090/realms/tutorials_realm
+          issuer-uri: ${app.web.security.issuer-uri}
 
 
 springdoc:
@@ -92,7 +95,6 @@ springdoc:
     path: /swagger-ui
     tags-sorter: alpha
     url: ${SPRINGDOC_SWAGGER_UI_URL:/openapi}
-    disable-swagger-default-url: true
     config-url: ${springdoc.swagger-ui.url}/swagger-config
 
 logging:

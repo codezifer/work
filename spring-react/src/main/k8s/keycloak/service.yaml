@@ -18,6 +18,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: keycloak
+  labels:
+    app: keycloak
+    tier: backend
 spec:
   rules:
     - host: keycloak.localhost.nip.io

@@ -10,5 +10,28 @@ services:
     volumes:
       - spring_react_db:/var/lib/postgresql/data
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: [ "start" ]
+    ports:
+      - 8090:8090
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_PROXY: edge
+      PROXY_ADDRESS_FORWARDING: true
+      KC_HOSTNAME_STRICT: false
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KC_LOG_LEVEL: INFO
+      KC_HTTP_PORT: 8090
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    depends_on:
+      - postgres
+
+
 volumes:
   spring_react_db:

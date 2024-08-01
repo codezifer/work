@@ -62,7 +62,9 @@ public class SecurityConfig {
         return http.authorizeHttpRequests(auth -> auth
                         .requestMatchers(new AntPathRequestMatcher("%s**".formatted(TutorialController.TUTORIALS)))
                         .hasRole(environment.getProperty("app.users.tutorialUser"))
-                        .requestMatchers(new AntPathRequestMatcher("/api/"))
+                        .requestMatchers(new AntPathRequestMatcher("/api/*"))
+                        .permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/"))
                         .permitAll()
                         .anyRequest()
                         .authenticated()

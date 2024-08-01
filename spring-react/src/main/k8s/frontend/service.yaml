@@ -20,6 +20,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: frontend
+  labels:
+    app: react
+    tier: frontend
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
