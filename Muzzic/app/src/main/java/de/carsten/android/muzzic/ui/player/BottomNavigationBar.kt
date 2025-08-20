@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui.player
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.PlayArrow
@@ -20,7 +21,7 @@ import de.carsten.android.muzzic.ui.primaryColor
 val tabs = listOf(
     "Player" to Icons.Default.PlayArrow,
     "Library" to Icons.Default.LibraryMusic,
-    "Playlists" to Icons.Default.PlaylistPlay,
+    "Playlists" to Icons.AutoMirrored.Filled.PlaylistPlay,
     "Statistics" to Icons.Default.BarChart
 )
 

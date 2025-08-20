@@ -5,11 +5,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import de.carsten.android.muzzic.ui.backgroundColor
 import de.carsten.android.muzzic.ui.primaryColor
+import de.carsten.android.muzzic.ui.screens.LibraryScreen
+import de.carsten.android.muzzic.ui.screens.PlayerScreen
+import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
+import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 import de.carsten.android.muzzic.ui.surfaceColor
 
 @Composable
