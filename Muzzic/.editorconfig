@@ -1,0 +1,21 @@
+# This is the root of the project, so EditorConfig settings stop here.
+root = true
+
+# General settings for all file types
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Settings for Kotlin files (.kt and .kts)
+[*.{kt,kts}]
+# Specifies the official Kotlin code style guide maintained by JetBrains.
+# Alternatively, you can use 'android_studio' for the Android Kotlin Style Guide.
+ktlint_code_style = kotlin_official
+# Enables experimental rules. Set to 'disabled' if you prefer stability.
+ktlint_experimental = enabled
+# Disables specific rules if needed, e.g., ktlint_standard_no-wildcard-imports
+ktlint_disabled_rules = no-wildcard-imports
