@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">Muzzic</string>
+
+    <!-- Navigation -->
+    <string name="nav_player">Player</string>
+    <string name="nav_library">Bibliothek</string>
+    <string name="nav_playlists">Playlists</string>
+    <string name="nav_stats">Statistiken</string>
+
+    <!-- Player -->
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Weiter</string>
+    <string name="previous">Zurück</string>
+    <string name="shuffle">Zufallswiedergabe</string>
+    <string name="repeat">Wiederholen</string>
+    <string name="no_song_selected">Kein Song ausgewählt</string>
+    <string name="unknown_artist">Unbekannter Künstler</string>
+    <string name="unknown_album">Unbekanntes Album</string>
+
+    <!-- Library -->
+    <string name="artists">Künstler</string>
+    <string name="albums">Alben</string>
+    <string name="songs">Songs</string>
+    <string name="genres">Genres</string>
+    <string name="playlists">Playlists</string>
+    <string name="scan_library">Bibliothek scannen</string>
+
+    <!-- Playlists -->
+    <string name="auto_playlists">Automatische Genre-Playlists</string>
+    <string name="my_playlists">Meine Playlists</string>
+    <string name="create_playlist">Playlist erstellen</string>
+    <string name="top_100_format">%s - Top 100</string>
+
+    <!-- Stats -->
+    <string name="monthly_plays">Monatliche Wiedergaben</string>
+    <string name="genre_distribution">Genre-Verteilung</string>
+    <string name="top_songs_month">Top Songs diesen Monat</string>
+    <string name="plays_format">%d Plays</string>
+
+    <!-- Permissions -->
+    <string name="permission_title">Musikbibliothek-Zugriff erforderlich</string>
+    <string name="permission_message">Diese App benötigt Zugriff auf Ihre Musikdateien, um Ihre lokale Sammlung zu verwalten.</string>
+    <string name="grant_permission">Berechtigung erteilen</string>
+
+    <!-- Common -->
+    <string name="search">Suchen</string>
+    <string name="settings">Einstellungen</string>
+    <string name="loading">Lädt…</string>
+    <string name="error">Fehler</string>
 </resources>

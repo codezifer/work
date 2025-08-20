@@ -6,6 +6,7 @@ charts = "v3.1.0"
 coil = "2.7.0"
 composeBom = "2025.08.00"
 coreKtx = "1.17.0"
+coreSplash = "1.0.1"
 espressoCore = "3.7.0"
 exoPlayer = "1.8.0"
 foundationLayout = "1.9.0"
@@ -26,6 +27,7 @@ runtimeLivedata = "1.9.0"
 [libraries]
 # android core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplash" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleKtx" }
 androidx-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

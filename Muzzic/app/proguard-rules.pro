@@ -19,3 +19,28 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Add project specific ProGuard rules here.
+
+# Koin
+-keep class org.koin.** { *; }
+-keep class * extends org.koin.core.module.Module
+-dontwarn org.koin.**
+
+# Room
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-keep @androidx.room.Dao class *
+
+# ExoPlayer
+-keep class com.google.android.exoplayer2.** { *; }
+-dontwarn com.google.android.exoplayer2.**
+
+# MP3Agic
+-keep class com.mpatric.mp3agic.** { *; }
+-dontwarn com.mpatric.mp3agic.**
+
+# Coil
+-keep class coil.** { *; }
+-keep interface coil.** { *; }
+-dontwarn coil.**
