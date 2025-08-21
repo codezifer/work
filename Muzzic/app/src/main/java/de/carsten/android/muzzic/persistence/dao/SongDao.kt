@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.persistence.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -9,8 +10,29 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SongDao {
-    @Query("SELECT * FROM songs ORDER BY title ASC")
+    @Query("SELECT * FROM songs ORDER BY artist ASC")
     fun getAllSongs(): Flow<List<Song>>
+
+    @Query("SELECT * FROM songs ORDER BY artist ASC")
+    fun getAllSongsPagingSource(): PagingSource<Int, Song>
+
+    @Query("SELECT DISTINCT UPPER(SUBSTR(artist, 1, 1)) FROM (SELECT DISTINCT artist FROM songs ORDER BY artist ASC) ORDER BY 1")
+    suspend fun getArtistAlphabet(): List<Char>
+
+    @Query("SELECT COUNT(*) FROM songs WHERE artist < (SELECT MIN(artist) FROM songs WHERE artist LIKE :letter || '%')")
+    suspend fun getArtistLetterPositon(letter: String): Int
+
+    @Query("SELECT DISTINCT UPPER(SUBSTR(album, 1, 1)) FROM (SELECT DISTINCT album FROM songs ORDER BY album ASC) ORDER BY 1")
+    suspend fun getAlbumAlphabet(): List<Char>
+
+    @Query("SELECT COUNT(*) FROM songs WHERE album < (SELECT MIN(album) FROM songs WHERE album LIKE :letter || '%')")
+    suspend fun getAlbumLetterPositon(letter: String): Int
+
+    @Query("SELECT DISTINCT UPPER(SUBSTR(title, 1, 1)) FROM songs ORDER BY 1")
+    suspend fun getSongAlphabet(): List<Char>
+
+    @Query("SELECT COUNT(*) FROM songs WHERE title < (SELECT MIN(title) FROM songs WHERE title LIKE :letter || '%')")
+    suspend fun getSongLetterPositon(letter: String): Int
 
     @Query("SELECT * FROM songs WHERE genre = :genre ORDER BY rating DESC, playCount DESC LIMIT :limit")
     suspend fun getTopSongsByGenre(genre: String, limit: Int = 100): List<Song>

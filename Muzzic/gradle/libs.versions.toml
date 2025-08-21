@@ -20,9 +20,9 @@ lifecycleKtx = "2.9.2"
 material = "1.12.0"
 mp3agic = "0.9.1"
 navigation = "2.9.3"
+paging = "3.3.6"
 permissions = "0.37.3"
 room = "2.7.2"
-runtimeLivedata = "1.9.0"
 
 [libraries]
 # android core
@@ -38,8 +38,9 @@ androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material-icons-ext = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
-androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleKtx" }
 
@@ -51,7 +52,6 @@ media3-exoplayer-common = { group = "androidx.media3", name = "media3-common-ktx
 # room
 androidx-room = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 # ui
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -71,6 +71,10 @@ charts = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = 
 
 # id3
 mp3agic = { group = "com.mpatric", name = "mp3agic", version.ref = "mp3agic" }
+
+# paging
+androidx-paging = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

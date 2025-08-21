@@ -97,6 +97,10 @@ dependencies {
     // mp3agic
     implementation(libs.mp3agic)
 
+    // paging
+    implementation(libs.androidx.paging)
+    implementation(libs.androidx.paging.compose)
+
     // permissions
     implementation(libs.permissions)
 
@@ -106,4 +110,5 @@ dependencies {
     androidTestImplementation(composeBomPlatform)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    debugImplementation(libs.androidx.ui.tooling)
 }

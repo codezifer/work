@@ -1,7 +1,10 @@
 package de.carsten.android.muzzic.persistence
 
 import androidx.room.Room
+import de.carsten.android.muzzic.persistence.repo.AlbumRepository
+import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.SongRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -28,4 +31,7 @@ val repoModule = module {
             context = androidContext()
         )
     }
+    single { ArtistRepository(get()) }
+    single { AlbumRepository(get()) }
+    single { SongRepository(get()) }
 }
