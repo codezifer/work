@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.media)
 
     // jestpack compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)
