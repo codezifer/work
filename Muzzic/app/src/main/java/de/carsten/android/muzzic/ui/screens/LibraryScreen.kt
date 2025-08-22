@@ -25,24 +25,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.AppDestinations.ALBUM
+import de.carsten.android.muzzic.ui.AppDestinations.ARTIST
+import de.carsten.android.muzzic.ui.AppDestinations.GENRE
+import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST
+import de.carsten.android.muzzic.ui.AppDestinations.SONG
 import de.carsten.android.muzzic.ui.backgroundColor
 import de.carsten.android.muzzic.ui.containerColor
 import de.carsten.android.muzzic.ui.primaryColor
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
+import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
+import de.carsten.android.muzzic.ui.screens.grids.PlaylistGrid
+import de.carsten.android.muzzic.ui.screens.grids.SongList
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LibraryScreen(modifier: Modifier = Modifier) {
     val viewModel: LibraryViewModel = koinViewModel()
-    var selectedFilter by remember { mutableStateOf("artist") }
+    var selectedFilter by remember { mutableStateOf(ARTIST) }
+
     val filters = listOf(
-        "artist" to stringResource(R.string.artists),
-        "album" to stringResource(R.string.albums),
-        "song" to stringResource(R.string.songs),
-        "genre" to stringResource(R.string.genres),
-        "playlist" to stringResource(R.string.playlists)
+        ARTIST to stringResource(R.string.artists),
+        ALBUM to stringResource(R.string.albums),
+        SONG to stringResource(R.string.songs),
+        GENRE to stringResource(R.string.genres),
+        PLAYLIST to stringResource(R.string.playlists)
     )
 
     Column(
@@ -88,7 +97,7 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
         "album" -> AlbumGrid(viewModel)
         "song" -> SongList(viewModel)
         "genre" -> GenreGrid(viewModel)
-        "playlist" -> PlaylisttGrid(viewModel)
+        "playlist" -> PlaylistGrid(viewModel)
     }
 }
 
