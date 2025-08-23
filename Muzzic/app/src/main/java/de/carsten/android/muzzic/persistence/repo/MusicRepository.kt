@@ -105,7 +105,7 @@ class MusicRepository(
                         ?: unknownGenre,
                     duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                         ?.toLongOrNull() ?: 0L,
-                    filePath = file.absolutePath
+                    filePath = file.absolutePath,
                 )
             }
         } catch (e: Exception) {

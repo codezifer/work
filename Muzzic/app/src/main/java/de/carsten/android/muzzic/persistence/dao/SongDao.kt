@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
 import de.carsten.android.muzzic.persistence.entity.Song
 import kotlinx.coroutines.flow.Flow
 
@@ -46,8 +47,8 @@ interface SongDao {
     @Query("SELECT * FROM songs WHERE artist = :artist ORDER BY album, title")
     suspend fun getSongsByArtist(artist: String): List<Song>
 
-    @Query("SELECT DISTINCT album, artist FROM songs ORDER BY album ASC")
-    suspend fun getAllAlbums(): List<Song>
+    @Query("SELECT DISTINCT album, artist, albumArt FROM songs ORDER BY album ASC")
+    suspend fun getAllAlbums(): List<ArtistAlbum>
 
     @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY title")
     suspend fun getSongsByAlbum(album: String, artist: String): List<Song>

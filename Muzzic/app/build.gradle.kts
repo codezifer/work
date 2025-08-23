@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.android.room)
     alias(libs.plugins.ksp)
 }
 
@@ -52,6 +53,10 @@ kotlin {
     }
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
     // core
     implementation(libs.androidx.core.ktx)
@@ -84,6 +89,8 @@ dependencies {
     // room
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
+    ksp(libs.androidx.room.compiler)
 
     // koin
     implementation(libs.koin.android)

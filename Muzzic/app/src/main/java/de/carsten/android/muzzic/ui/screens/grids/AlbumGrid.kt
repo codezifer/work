@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 
 @Composable

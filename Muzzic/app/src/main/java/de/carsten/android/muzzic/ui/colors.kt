@@ -11,3 +11,5 @@ val borderColor = containerColor
 val gradient1Color = Color(0xFF581C87)
 val gradient2Color = Color(0xFF1E40AF)
 val gradient3Color = Color(0xFF4338CA)
+
+val starColor = Color(0xFFFBBF24)

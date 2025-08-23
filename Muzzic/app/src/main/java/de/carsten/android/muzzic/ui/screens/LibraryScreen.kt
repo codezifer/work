@@ -93,11 +93,11 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 
     // Content based on filters
     when (selectedFilter) {
-        "artist" -> ArtistGrid(viewModel)
-        "album" -> AlbumGrid(viewModel)
-        "song" -> SongList(viewModel)
-        "genre" -> GenreGrid(viewModel)
-        "playlist" -> PlaylistGrid(viewModel)
+        ARTIST -> ArtistGrid(viewModel)
+        ALBUM -> AlbumGrid(viewModel)
+        SONG -> SongList(viewModel)
+        GENRE -> GenreGrid(viewModel)
+        PLAYLIST -> PlaylistGrid(viewModel)
     }
 }
 
