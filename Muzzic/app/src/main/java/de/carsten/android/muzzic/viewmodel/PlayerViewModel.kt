@@ -11,6 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MusicPlayerService
@@ -18,13 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.koin.android.logger.AndroidLogger
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 class PlayerViewModel(private val repository: MusicRepository, application: Application) :
     AndroidViewModel(application), KoinComponent {
-    private val logger: AndroidLogger by inject()
+    private val logger = this.logger()
 
     private val _musicService = MutableStateFlow<MusicPlayerService?>(null)
     val musicService: StateFlow<MusicPlayerService?> = _musicService.asStateFlow()

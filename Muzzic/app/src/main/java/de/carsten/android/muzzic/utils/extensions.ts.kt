@@ -1,0 +1,45 @@
+package de.carsten.android.muzzic.utils
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import android.util.Log
+import androidx.core.net.toUri
+import java.io.IOException
+
+private const val TAG = "EXTENSIONS"
+
+/**
+ * extracts album art from music file
+ *
+ * @param context android context
+ * @param audioFilePath absolute audio file path
+ * @return opt. Bitmap
+ */
+fun extractAlbumArt(context: Context, audioFilePath: String): Bitmap? {
+    val retriever = MediaMetadataRetriever()
+    try {
+        retriever.setDataSource(context, audioFilePath.toUri())
+        val albumArtBytes = retriever.embeddedPicture
+        if (albumArtBytes != null) {
+            return BitmapFactory.decodeByteArray(albumArtBytes, 0, albumArtBytes.size)
+        }
+    } catch (e: IllegalArgumentException) {
+        Log.e(TAG, e.message ?: "An unknown illegal argument exception occurred!")
+    } catch (e: RuntimeException) {
+        Log.e(TAG, e.message ?: "An unknown runtime exception occurred!")
+    } catch (e: IOException) {
+        Log.e(TAG, e.message ?: "An unknown IO exception occurred!")
+    } finally {
+        try {
+            retriever.release()
+        } catch (e: IOException) {
+            Log.e(
+                TAG,
+                e.message ?: "An unknown IO exception occurred while releasing media meta data!"
+            )
+        }
+    }
+    return null
+}
