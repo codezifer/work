@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,9 +39,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.backgroundColor
 import de.carsten.android.muzzic.ui.primaryColor
+import de.carsten.android.muzzic.utils.uiEmpty
 
 
 // Assuming you have these colors defined, or replace with your actual colors
@@ -51,16 +56,67 @@ val PlayerAccentColor = primaryColor
 @Composable
 fun PlayerScreenContent(
     albumArtPainter: Painter,
-    songTitle: String,
-    artistName: String,
+    songTitle: String?,
+    artistName: String?,
     isPlaying: Boolean,
-    progress: Float, // Value between 0f and 1f
+    progress: Float?, // Value between 0f and 1f
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
     onProgressChanged: (Float) -> Unit // Callback for when user scrubs the progress bar
 
 ) {
+    val discResource = painterResource(R.drawable.disc)
+    val imageModifier = Modifier
+        .fillMaxWidth(0.8f)
+        .aspectRatio(1f)
+        .clip(RoundedCornerShape(12.dp))
+        .background(Color.DarkGray)
+
+    val getDiscImage = @Composable {
+        Image(
+            painter = discResource,
+            contentDescription = "On Error or Empty state, disc image",
+            modifier = imageModifier,
+            contentScale = ContentScale.Crop
+        )
+    }
+    val getStateImage = @Composable {
+        when (albumArtPainter) {
+            is AsyncImagePainter -> {
+                when (albumArtPainter.state) {
+                    is AsyncImagePainter.State.Loading -> CircularProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(100)),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 22.dp
+                    )
+                    is AsyncImagePainter.State.Empty,
+                    is AsyncImagePainter.State.Error -> getDiscImage()
+
+                    is AsyncImagePainter.State.Success -> {
+                        AsyncImage(
+                            model = albumArtPainter,
+                            contentDescription = "Album Art",
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .aspectRatio(1.0f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.DarkGray),
+                            contentScale = ContentScale.Crop,
+                            placeholder = discResource,
+                            error = discResource
+                        )
+                    }
+                }
+            }
+
+            else -> getDiscImage()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,23 +126,13 @@ fun PlayerScreenContent(
         verticalArrangement = Arrangement.Center
     ) {
         // Album Cover
-        Image(
-            painter = albumArtPainter,
-            contentDescription = "Album Art",
-            modifier = Modifier
-                .fillMaxWidth(0.8f) // Take 80% of width
-                .aspectRatio(1f) // Square
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.DarkGray), // Placeholder background if image is transparent
-            contentScale = ContentScale.Crop
-        )
-
+        getStateImage()
         Spacer(modifier = Modifier.height(24.dp))
 
         // Song Info
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = songTitle,
+                text = songTitle ?: uiEmpty,
                 color = LightPlayerText,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -94,7 +140,7 @@ fun PlayerScreenContent(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = artistName,
+                text = artistName ?: uiEmpty,
                 color = LightPlayerText.copy(alpha = 0.7f),
                 fontSize = 16.sp,
                 maxLines = 1,
@@ -107,7 +153,7 @@ fun PlayerScreenContent(
         // Progress Bar
         Column(modifier = Modifier.fillMaxWidth()) {
             Slider(
-                value = progress,
+                value = progress ?: 0f,
                 onValueChange = onProgressChanged,
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
@@ -203,6 +249,29 @@ fun PlayerScreenPreview_Paused() {
     MaterialTheme {
         PlayerScreenContent(
             albumArtPainter = albumArtPainter,
+            songTitle = "Bohemian Rhapsody (Remastered 2011)",
+            artistName = "Queen",
+            isPlaying = false,
+            progress = 0.15f,
+            onPlayPauseClicked = {},
+            onNextClicked = {},
+            onPreviousClicked = {},
+            onProgressChanged = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Composable
+fun PlayerScreenPreview_Loading() {
+    val loadingPainter = rememberAsyncImagePainter(
+        model = null,
+        onState = { AsyncImagePainter.State.Loading(null) }
+    )
+
+    MaterialTheme {
+        PlayerScreenContent(
+            albumArtPainter = loadingPainter,
             songTitle = "Bohemian Rhapsody (Remastered 2011)",
             artistName = "Queen",
             isPlaying = false,

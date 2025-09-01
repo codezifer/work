@@ -2,16 +2,26 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3118c75775ec802de2fc9c8d05136e0c",
+    "identityHash": "34d52486fdf4e39bb5d5756f5a71107e",
     "entities": [
       {
         "tableName": "songs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `artist` TEXT, `album` TEXT, `genre` TEXT, `duration` INTEGER, `filePath` TEXT, `albumArt` TEXT, `rating` INTEGER, `playCount` INTEGER, `lastPlayed` INTEGER, `dateAdded` INTEGER, `id` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `trackNumber` INTEGER, `totalTracks` INTEGER, `artist` TEXT, `album` TEXT, `genre` TEXT, `duration` INTEGER, `filePath` TEXT, `albumArt` TEXT, `rating` INTEGER, `playCount` INTEGER, `lastPlayed` INTEGER, `dateAdded` INTEGER, `id` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "title",
             "columnName": "title",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "trackNumber",
+            "columnName": "trackNumber",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "totalTracks",
+            "columnName": "totalTracks",
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "artist",
@@ -250,7 +260,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3118c75775ec802de2fc9c8d05136e0c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '34d52486fdf4e39bb5d5756f5a71107e')"
     ]
   }
 }

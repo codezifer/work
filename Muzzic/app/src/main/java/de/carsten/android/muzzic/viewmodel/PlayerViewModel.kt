@@ -30,6 +30,7 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
 
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+
     private val _currentSong = MutableLiveData<Song?>()
     val currentSong: LiveData<Song?> = _currentSong
 
@@ -75,7 +76,7 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
         )
     }
 
-    val songs = repository.getAllSongs().asLiveData()
+    val songs: LiveData<List<Song>> = repository.getAllSongs().asLiveData()
 
     fun playSong(song: Song) {
         _currentSong.value = song
@@ -88,6 +89,36 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
 
     fun togglePlayPause() {
         _isPlaying.value = !(_isPlaying.value ?: false)
+        val isPlaying = _isPlaying.value ?: false
+        if (isPlaying) {
+            viewModelScope.launch {
+                // pause on currently playing
+                _musicService.value?.pause()
+            }
+        } else {
+            viewModelScope.launch {
+                // play on currently pausing
+                _musicService.value?.play()
+            }
+        }
+    }
+
+    fun onPrevClicked() {
+        viewModelScope.launch {
+            _musicService.value?.previous()
+        }
+    }
+
+    fun onNextClicked() {
+        viewModelScope.launch {
+            _musicService.value?.next()
+        }
+    }
+
+    fun onProgressChanged(progress: Float) {
+        viewModelScope.launch {
+            _musicService.value?.changeProgress(progress)
+        }
     }
 
     fun updateRating(rating: Int) {

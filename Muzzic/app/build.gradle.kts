@@ -80,6 +80,7 @@ dependencies {
 
     // ui
     implementation(libs.material)
+    implementation(libs.googlefonts)
 
     // media3-exoplayer
     implementation(libs.media3.exoplayer)

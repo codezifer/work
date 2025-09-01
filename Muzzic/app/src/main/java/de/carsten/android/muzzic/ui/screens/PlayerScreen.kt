@@ -18,29 +18,35 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
+import de.carsten.android.muzzic.utils.extractAlbumArt
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
+import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PlayerScreen(modifier: Modifier = Modifier) {
     val viewModel: PlayerViewModel = koinViewModel()
     val currentSong by viewModel.currentSong.observeAsState()
-    val isPlaying by viewModel.isPlaying.observeAsState(false)
+    val isPlaying by viewModel.musicService.map { it?.isPlaying() }.collectAsState(false)
 
     val appName = stringResource(R.string.app_name)
     val volume = stringResource(R.string.volume)
@@ -89,6 +95,21 @@ fun PlayerScreen(modifier: Modifier = Modifier) {
             }
 
             // Context
+            PlayerScreenContent(
+                albumArtPainter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(extractAlbumArt(LocalContext.current, currentSong?.filePath ?: ""))
+                        .build()
+                ),
+                songTitle = currentSong?.title,
+                artistName = currentSong?.artist,
+                isPlaying = isPlaying ?: false,
+                progress = 0f,
+                onPreviousClicked = viewModel::onPrevClicked,
+                onPlayPauseClicked = viewModel::togglePlayPause,
+                onNextClicked = viewModel::onNextClicked,
+                onProgressChanged = viewModel::onProgressChanged
+            )
 
             // Volume control
             Row(
