@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Environment
 import com.mpatric.mp3agic.Mp3File
+import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.dao.PlayHistoryDao
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
@@ -24,9 +25,6 @@ import de.carsten.android.muzzic.utils.unknownAlbum
 import de.carsten.android.muzzic.utils.unknownArtist
 import de.carsten.android.muzzic.utils.unknownGenre
 import kotlinx.coroutines.flow.first
-import org.koin.android.logger.AndroidLogger
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.File
 
 class MusicRepository(
@@ -34,8 +32,8 @@ class MusicRepository(
     val playlistDao: PlaylistDao,
     val playHistoryDao: PlayHistoryDao,
     val context: Context
-) : KoinComponent {
-    private val logger: AndroidLogger by inject()
+) {
+    private val logger = this.logger()
 
     companion object {
         private val TAG = MusicRepository::class.toString()
