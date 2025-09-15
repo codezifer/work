@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.util.Log
 import androidx.core.net.toUri
+import androidx.media3.common.Player
 import java.io.IOException
 
 private const val TAG = "EXTENSIONS"
@@ -42,4 +43,20 @@ fun extractAlbumArt(context: Context, audioFilePath: String): Bitmap? {
         }
     }
     return null
+}
+
+/**
+ * Playback state to string
+ *
+ * @param state player state as [Int]
+ * @return state name as [String]
+ */
+fun playbackStateToString(state: Int): String {
+    return when (state) {
+        Player.STATE_IDLE -> "IDLE"
+        Player.STATE_BUFFERING -> "BUFFERING"
+        Player.STATE_READY -> "READY"
+        Player.STATE_ENDED -> "ENDED"
+        else -> "UNKNOWN$state"
+    }
 }

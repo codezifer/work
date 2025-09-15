@@ -93,6 +93,7 @@ fun PlayerScreenContent(
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 22.dp
                     )
+
                     is AsyncImagePainter.State.Empty,
                     is AsyncImagePainter.State.Error -> getDiscImage()
 
@@ -183,6 +184,7 @@ fun PlayerScreenContent(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // prev-button
             IconButton(onClick = onPreviousClicked) {
                 Icon(
                     imageVector = Icons.Filled.SkipPrevious,
@@ -192,6 +194,7 @@ fun PlayerScreenContent(
                 )
             }
 
+            // play-pause-button
             IconButton(
                 onClick = onPlayPauseClicked,
                 modifier = Modifier
@@ -206,6 +209,7 @@ fun PlayerScreenContent(
                 )
             }
 
+            // next-button
             IconButton(onClick = onNextClicked) {
                 Icon(
                     imageVector = Icons.Filled.SkipNext,
