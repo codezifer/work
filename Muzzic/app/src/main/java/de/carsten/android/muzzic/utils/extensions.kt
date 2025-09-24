@@ -6,8 +6,10 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.util.Log
 import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import java.io.IOException
+import java.time.Instant
 
 private const val TAG = "EXTENSIONS"
 
@@ -59,4 +61,15 @@ fun playbackStateToString(state: Int): String {
         Player.STATE_ENDED -> "ENDED"
         else -> "UNKNOWN$state"
     }
+}
+
+/**
+ * Gets datetime from media item metadata extras
+ *
+ * @param key key of the datetime
+ * @return [Instant]
+ */
+fun MediaItem.mediaItemInstant(key: String): Instant = this.mediaMetadata.extras?.getLong(key).let { time ->
+    if (time == null) Instant.now()
+    else Instant.ofEpochMilli(time)
 }

@@ -8,6 +8,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.room.Entity
 import de.carsten.android.muzzic.utils.maxStars
+import de.carsten.android.muzzic.utils.mediaItemInstant
+import java.time.Instant
 
 @Entity(tableName = "songs")
 data class Song(
@@ -22,20 +24,29 @@ data class Song(
     val albumArt: String? = null,
     val rating: Int? = 0, // 0-5 stars
     val playCount: Int? = 0,
-    val lastPlayed: Long? = 0L,
-    val dateAdded: Long? = 0L
+    val lastPlayed: Instant? = Instant.ofEpochMilli(0L),
 ) : AbstractEntity() {
 
     companion object {
         fun fromMediaItem(mediaItem: MediaItem): Song {
             val metadata = mediaItem.mediaMetadata
             return Song(
+                trackNumber = metadata.trackNumber,
+                totalTracks = metadata.totalTrackCount,
                 title = metadata.title?.toString(),
                 artist = metadata.artist?.toString(),
                 album = metadata.albumTitle?.toString(),
                 filePath = metadata.artworkUri?.toString(),
-                albumArt = metadata.artworkUri?.toString()
-            )
+                albumArt = metadata.artworkUri?.toString(),
+                rating = getWmpRating(metadata.userRating as StarRating),
+                genre = metadata.genre?.toString(),
+                duration = metadata.durationMs,
+                lastPlayed = mediaItem.mediaItemInstant("lastPlayed")
+            ).apply {
+                id = mediaItem.mediaId
+                createdAt = mediaItem.mediaItemInstant("createdAt")
+                updatedAt = mediaItem.mediaItemInstant("updatedAt")
+            }
         }
 
         /**
@@ -86,7 +97,7 @@ data class Song(
         }
     }
 
-    fun mediaItem(): MediaItem = MediaItem.Builder()
+    fun toMediaItem(): MediaItem = MediaItem.Builder()
         .setMediaId(this.id)
         .setUri(this.filePath)
         .setMediaMetadata(
@@ -109,8 +120,9 @@ data class Song(
     private fun getExtras(): Bundle {
         return bundleOf(
             Pair("playCount", this.playCount ?: 0),
-            Pair("lastPlayed", this.lastPlayed ?: 0L),
-            Pair("dateAdded", this.dateAdded ?: 0L)
+            Pair("lastPlayed", this.lastPlayed?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair("createdAt", this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair("updatedAt", this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli())
         )
     }
 }

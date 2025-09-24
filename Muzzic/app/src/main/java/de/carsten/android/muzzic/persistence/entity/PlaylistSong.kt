@@ -20,4 +20,4 @@ data class PlaylistSong(
     val playlistId: String,
     val songId: String,
     val position: Int = 0
-)
+) : AbstractTimestampEntity()
