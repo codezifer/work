@@ -7,4 +7,5 @@ val viewModelModule = module {
     viewModelOf(::PlayerViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::StatisticsViewModel)
+    viewModelOf(::PlayingQueueViewModel)
 }
