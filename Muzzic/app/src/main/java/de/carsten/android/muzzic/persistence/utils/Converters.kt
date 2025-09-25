@@ -1,12 +1,12 @@
 package de.carsten.android.muzzic.persistence.utils
 
 import androidx.room.TypeConverter
-import java.util.Date
+import java.time.Instant
 
 class Converters {
     @TypeConverter
-    fun fromTimestamp(value: Long?): Date? = value?.let { Date(it) }
+    fun fromTimestamp(value: Long?): Instant? = value?.let { Instant.ofEpochMilli(it) }
 
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? = date?.time
+    fun dateToTimestamp(instant: Instant?): Long? = instant?.toEpochMilli()
 }
