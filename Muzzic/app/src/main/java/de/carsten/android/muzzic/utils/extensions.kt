@@ -20,10 +20,10 @@ private const val TAG = "EXTENSIONS"
  * @param audioFilePath absolute audio file path
  * @return opt. Bitmap
  */
-fun extractAlbumArt(context: Context, audioFilePath: String): Bitmap? {
+fun extractAlbumArt(context: Context, audioFilePath: String?): Bitmap? {
     val retriever = MediaMetadataRetriever()
     try {
-        retriever.setDataSource(context, audioFilePath.toUri())
+        retriever.setDataSource(context, audioFilePath?.toUri())
         val albumArtBytes = retriever.embeddedPicture
         if (albumArtBytes != null) {
             return BitmapFactory.decodeByteArray(albumArtBytes, 0, albumArtBytes.size)

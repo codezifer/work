@@ -21,7 +21,6 @@ import de.carsten.android.muzzic.ui.surfaceColor
 @Composable
 fun MusicPlayerApp() {
     var currentTab by remember { mutableIntStateOf(0) }
-
     MaterialTheme(
         colorScheme = darkColorScheme(
             primary = primaryColor,

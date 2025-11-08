@@ -21,8 +21,7 @@ import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun StatisticsScreen(modifier: Modifier = Modifier) {
-    val viewModel: StatisticsViewModel = koinViewModel()
+fun StatisticsScreen(modifier: Modifier = Modifier, viewModel: StatisticsViewModel = koinViewModel()) {
 
     LazyColumn(
         modifier = modifier

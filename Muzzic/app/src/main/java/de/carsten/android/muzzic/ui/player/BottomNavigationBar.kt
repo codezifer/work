@@ -51,5 +51,5 @@ fun BottomNavigationBar(
 @Preview
 @Composable
 fun BottomNavigationBarPreview() {
-    BottomNavigationBar(0) { tab -> }
+    BottomNavigationBar(1) { tab -> }
 }

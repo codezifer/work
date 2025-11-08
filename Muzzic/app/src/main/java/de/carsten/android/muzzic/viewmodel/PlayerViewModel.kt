@@ -7,21 +7,20 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MusicPlayerService
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
-class PlayerViewModel(private val repository: MusicRepository, application: Application) :
+open class PlayerViewModel(private val repository: MusicRepository, application: Application) :
     AndroidViewModel(application), KoinComponent {
     private val logger = this.logger()
 
@@ -31,14 +30,20 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    private val _currentSong = MutableLiveData<Song?>()
-    val currentSong: LiveData<Song?> = _currentSong
+    private val _currentSong = MutableStateFlow<Song?>(null)
+    val currentSong: StateFlow<Song?> = _currentSong
 
-    private val _isPlaying = MutableLiveData(false)
-    val isPlaying: LiveData<Boolean> = _isPlaying
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying
 
-    private val _currentPosition = MutableLiveData(0L)
-    val currentPosition: LiveData<Long> = _currentPosition
+    private val _currentPosition = MutableStateFlow(0L)
+    val currentPosition: StateFlow<Long> = _currentPosition
+
+    val songs = repository.getAllSongs().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -76,8 +81,6 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
         )
     }
 
-    val songs: LiveData<List<Song>> = repository.getAllSongs().asLiveData()
-
     fun playSong(song: Song) {
         _currentSong.value = song
         _isPlaying.value = true
@@ -88,8 +91,8 @@ class PlayerViewModel(private val repository: MusicRepository, application: Appl
     }
 
     fun togglePlayPause() {
-        _isPlaying.value = !(_isPlaying.value ?: false)
-        val isPlaying = _isPlaying.value ?: false
+        _isPlaying.value = !_isPlaying.value
+        val isPlaying = _isPlaying.value
         if (isPlaying) {
             viewModelScope.launch {
                 // pause on currently playing

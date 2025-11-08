@@ -7,16 +7,22 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun ArtistGrid(viewModel: LibraryViewModel) {
-    val artists by viewModel.artists.observeAsState(emptyList())
+fun ArtistGrid(viewModel: LibraryViewModel = koinViewModel()) {
+    val artists by viewModel.artists.collectAsStateWithLifecycle()
+    ArtistGridContent(artists)
+}
 
+@Composable
+fun ArtistGridContent(artists: List<String>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -24,7 +30,13 @@ fun ArtistGrid(viewModel: LibraryViewModel) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(artists) { artist ->
-            ArtistCard(artist = artist)
+            ArtistCard(artist)
         }
     }
+}
+
+@Preview
+@Composable
+fun ArtistGridPreview() {
+    ArtistGridContent(listOf("Cradle Of Filth", "Dimmu Borgir", "Interpol", "Jimmy Eat World"))
 }

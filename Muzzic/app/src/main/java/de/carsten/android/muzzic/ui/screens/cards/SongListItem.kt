@@ -23,12 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.containerColor
 import de.carsten.android.muzzic.ui.utils.EMPTY
 import de.carsten.android.muzzic.ui.utils.formatDuration
+import java.time.Instant
 
 @Composable
 fun SongListItem(song: Song) {
@@ -108,4 +110,23 @@ fun SongListItem(song: Song) {
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun SongListItemPreview() {
+    SongListItem(
+        Song(
+            title = "This is just a Test",
+            album = "Test-Album",
+            artist = "Test-Artist",
+            duration = 3 * 60 * 1000,
+            genre = "Alternative",
+            lastPlayed = Instant.now(),
+            playCount = 3,
+            rating = 3,
+            totalTracks = 10,
+            trackNumber = 3,
+        )
+    )
 }

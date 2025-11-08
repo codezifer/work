@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.ui.screens.grids
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -11,21 +12,28 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlaylistGrid(viewModel: LibraryViewModel) {
-    val playlists by viewModel.playlists.observeAsState(emptyList())
+fun PlaylistGrid(viewModel: LibraryViewModel = koinViewModel()) {
+    val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    PlaylistGridContent(playlists)
+}
 
+@Composable
+fun PlaylistGridContent(playlists: List<Playlist>) {
     LazyColumn(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
@@ -42,7 +50,7 @@ fun PlaylistGrid(viewModel: LibraryViewModel) {
         item {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.height(400.dp),
+                modifier = Modifier.heightIn(100.dp, 400.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -54,7 +62,9 @@ fun PlaylistGrid(viewModel: LibraryViewModel) {
 
         item {
             Spacer(modifier = Modifier.height(24.dp))
+        }
 
+        item {
             Text(
                 text = stringResource(R.string.my_playlists),
                 color = Color(0xFF10B981),
@@ -67,7 +77,7 @@ fun PlaylistGrid(viewModel: LibraryViewModel) {
         item {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.height(300.dp),
+                modifier = Modifier.heightIn(100.dp, 400.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -77,4 +87,16 @@ fun PlaylistGrid(viewModel: LibraryViewModel) {
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun PlaylistGridPreview() {
+    PlaylistGridContent(
+        listOf(
+            Playlist("TopAlternative", true, "Alternative"),
+            Playlist("TopBlackMetal", true, "BlackMetal"),
+            Playlist("Jogging")
+        )
+    )
 }

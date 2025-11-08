@@ -49,8 +49,7 @@ import de.carsten.android.muzzic.utils.uiEmpty
 
 
 // Assuming you have these colors defined, or replace with your actual colors
-val DarkPlayerBackground = backgroundColor
-val LightPlayerText = Color.White
+val textColor = Color.White
 val PlayerAccentColor = primaryColor
 
 @Composable
@@ -121,7 +120,7 @@ fun PlayerScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkPlayerBackground)
+            .background(backgroundColor)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -134,7 +133,7 @@ fun PlayerScreenContent(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = songTitle ?: uiEmpty,
-                color = LightPlayerText,
+                color = textColor,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -142,7 +141,7 @@ fun PlayerScreenContent(
             )
             Text(
                 text = artistName ?: uiEmpty,
-                color = LightPlayerText.copy(alpha = 0.7f),
+                color = textColor.copy(alpha = 0.7f),
                 fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -158,9 +157,9 @@ fun PlayerScreenContent(
                 onValueChange = onProgressChanged,
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
-                    thumbColor = LightPlayerText,
+                    thumbColor = textColor,
                     activeTrackColor = PlayerAccentColor,
-                    inactiveTrackColor = LightPlayerText.copy(alpha = 0.3f)
+                    inactiveTrackColor = textColor.copy(alpha = 0.3f)
                 )
             )
             Row(
@@ -170,8 +169,8 @@ fun PlayerScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // You'd replace these with actual formatted time
-                Text("0:00", color = LightPlayerText.copy(alpha = 0.7f), fontSize = 12.sp)
-                Text("3:45", color = LightPlayerText.copy(alpha = 0.7f), fontSize = 12.sp)
+                Text("0:00", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp)
+                Text("3:45", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp)
             }
         }
 
@@ -189,7 +188,7 @@ fun PlayerScreenContent(
                 Icon(
                     imageVector = Icons.Filled.SkipPrevious,
                     contentDescription = "Previous Track",
-                    tint = LightPlayerText,
+                    tint = textColor,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -204,7 +203,7 @@ fun PlayerScreenContent(
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = DarkPlayerBackground, // Icon color contrasts with accent background
+                    tint = backgroundColor, // Icon color contrasts with accent background
                     modifier = Modifier.size(44.dp)
                 )
             }
@@ -214,7 +213,7 @@ fun PlayerScreenContent(
                 Icon(
                     imageVector = Icons.Filled.SkipNext,
                     contentDescription = "Next Track",
-                    tint = LightPlayerText,
+                    tint = textColor,
                     modifier = Modifier.size(40.dp)
                 )
             }

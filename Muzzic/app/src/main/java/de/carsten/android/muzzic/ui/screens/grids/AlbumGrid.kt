@@ -7,16 +7,23 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AlbumGrid(viewModel: LibraryViewModel) {
-    val albums by viewModel.albums.observeAsState(emptyList())
+fun AlbumGrid(viewModel: LibraryViewModel = koinViewModel()) {
+    val albums by viewModel.albums.collectAsStateWithLifecycle()
+    AlbumGridContent(albums)
+}
 
+@Composable
+fun AlbumGridContent(albums: List<ArtistAlbum>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -24,7 +31,16 @@ fun AlbumGrid(viewModel: LibraryViewModel) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(albums) { album ->
-            AlbumCard(album = album)
+            AlbumCard(album)
         }
     }
+}
+
+@Preview
+@Composable
+fun AlbumGridPreview() {
+    AlbumGridContent(listOf(
+        ArtistAlbum("Dimmu Borgir", "Enthrone Darkness Triumphant"),
+        ArtistAlbum("Jimmy Eat World", "Bleed American")
+    ))
 }

@@ -38,14 +38,9 @@ import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
 import de.carsten.android.muzzic.ui.screens.grids.PlaylistGrid
 import de.carsten.android.muzzic.ui.screens.grids.SongList
-import de.carsten.android.muzzic.viewmodel.LibraryViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LibraryScreen(modifier: Modifier = Modifier) {
-    val viewModel: LibraryViewModel = koinViewModel()
-    var selectedFilter by remember { mutableStateOf(ARTIST) }
-
     val filters = listOf(
         ARTIST to stringResource(R.string.artists),
         ALBUM to stringResource(R.string.albums),
@@ -53,6 +48,8 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
         GENRE to stringResource(R.string.genres),
         PLAYLIST to stringResource(R.string.playlists)
     )
+
+    var selectedFilter by remember { mutableStateOf(ARTIST) }
 
     Column(
         modifier = modifier
@@ -93,11 +90,11 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 
     // Content based on filters
     when (selectedFilter) {
-        ARTIST -> ArtistGrid(viewModel)
-        ALBUM -> AlbumGrid(viewModel)
-        SONG -> SongList(viewModel)
-        GENRE -> GenreGrid(viewModel)
-        PLAYLIST -> PlaylistGrid(viewModel)
+        ARTIST -> ArtistGrid()
+        ALBUM -> AlbumGrid()
+        SONG -> SongList()
+        GENRE -> GenreGrid()
+        PLAYLIST -> PlaylistGrid()
     }
 }
 

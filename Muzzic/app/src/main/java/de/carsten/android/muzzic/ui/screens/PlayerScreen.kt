@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import de.carsten.android.muzzic.R
@@ -43,10 +43,9 @@ import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayerScreen(modifier: Modifier = Modifier) {
-    val viewModel: PlayerViewModel = koinViewModel()
-    val currentSong by viewModel.currentSong.observeAsState()
-    val isPlaying by viewModel.musicService.map { it?.isPlaying() }.collectAsState(false)
+fun PlayerScreen(modifier: Modifier = Modifier, viewModel: PlayerViewModel = koinViewModel()) {
+    val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()
+    val isPlaying by viewModel.musicService.map { it?.isPlaying() ?: false }.collectAsState(false)
 
     val appName = stringResource(R.string.app_name)
     val volume = stringResource(R.string.volume)
@@ -103,7 +102,7 @@ fun PlayerScreen(modifier: Modifier = Modifier) {
                 ),
                 songTitle = currentSong?.title,
                 artistName = currentSong?.artist,
-                isPlaying = isPlaying ?: false,
+                isPlaying = isPlaying,
                 progress = 0f,
                 onPreviousClicked = viewModel::onPrevClicked,
                 onPlayPauseClicked = viewModel::togglePlayPause,

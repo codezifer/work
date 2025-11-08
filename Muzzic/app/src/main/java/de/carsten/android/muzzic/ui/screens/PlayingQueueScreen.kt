@@ -27,8 +27,7 @@ import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayingQueueScreen(modifier: Modifier) {
-    val viewModel: PlayingQueueViewModel = koinViewModel()
+fun PlayingQueueScreen(modifier: Modifier, viewModel: PlayingQueueViewModel = koinViewModel()) {
     val playingQueue by viewModel.currentPlayingQueue.collectAsState()
 
     Column(
