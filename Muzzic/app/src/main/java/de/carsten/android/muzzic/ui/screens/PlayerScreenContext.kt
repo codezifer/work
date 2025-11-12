@@ -53,12 +53,13 @@ val textColor = Color.White
 val PlayerAccentColor = primaryColor
 
 @Composable
-fun PlayerScreenContent(
+fun PlayerScreenContext(
     albumArtPainter: Painter,
     songTitle: String?,
     artistName: String?,
     isPlaying: Boolean,
-    progress: Float?, // Value between 0f and 1f
+    progress: Float, // Value between 0f and 1f
+    duration: Long,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
@@ -153,7 +154,7 @@ fun PlayerScreenContent(
         // Progress Bar
         Column(modifier = Modifier.fillMaxWidth()) {
             Slider(
-                value = progress ?: 0f,
+                value = progress,
                 onValueChange = onProgressChanged,
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
@@ -169,8 +170,14 @@ fun PlayerScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // You'd replace these with actual formatted time
-                Text("0:00", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp)
-                Text("3:45", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp)
+                Text(
+                    "0:00", // TODO: calc from position of duration
+                    color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
+                )
+                Text(
+                    "3:45", // TODO: calc from duration - position
+                    color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
+                )
             }
         }
 
@@ -230,12 +237,13 @@ fun PlayerScreenPreview_Playing() {
         painterResource(id = R.drawable.disc) // Replace with your actual placeholder
 
     MaterialTheme { // Ensure MaterialTheme is applied for default styles
-        PlayerScreenContent(
+        PlayerScreenContext(
             albumArtPainter = albumArtPainter,
             songTitle = "The Greatest Show",
             artistName = "Panic! At The Disco",
             isPlaying = true,
             progress = 0.45f,
+            duration = 3 * 60 + 45,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},
@@ -250,12 +258,13 @@ fun PlayerScreenPreview_Paused() {
     val albumArtPainter = painterResource(id = R.drawable.disc)
 
     MaterialTheme {
-        PlayerScreenContent(
+        PlayerScreenContext(
             albumArtPainter = albumArtPainter,
             songTitle = "Bohemian Rhapsody (Remastered 2011)",
             artistName = "Queen",
             isPlaying = false,
             progress = 0.15f,
+            duration = 3 * 60 + 45,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},
@@ -273,12 +282,13 @@ fun PlayerScreenPreview_Loading() {
     )
 
     MaterialTheme {
-        PlayerScreenContent(
+        PlayerScreenContext(
             albumArtPainter = loadingPainter,
             songTitle = "Bohemian Rhapsody (Remastered 2011)",
             artistName = "Queen",
             isPlaying = false,
             progress = 0.15f,
+            duration = 3 * 60 + 45,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},

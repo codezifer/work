@@ -39,6 +39,13 @@ open class PlayerViewModel(private val repository: MusicRepository, application:
     private val _currentPosition = MutableStateFlow(0L)
     val currentPosition: StateFlow<Long> = _currentPosition
 
+    private val _duration = MutableStateFlow(0L)
+    val duration: StateFlow<Long> = _duration
+
+    private val _progress = MutableStateFlow(0F)
+    val progress: StateFlow<Float> = _progress
+
+
     val songs = repository.getAllSongs().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -50,6 +57,10 @@ open class PlayerViewModel(private val repository: MusicRepository, application:
             val binder = service as? MusicPlayerService.MusicPlayerBinder
             _musicService.value = binder?.getService()
             _isConnected.value = true
+            _currentPosition.value = _musicService.value?.getCurrentPosition() ?: 0L
+            _isPlaying.value = _musicService.value?.isPlaying() ?: false
+            _duration.value = _musicService.value?.getDuration() ?: 0L
+            _progress.value = (_currentPosition.value / _duration.value).toFloat()
             logger.debug("MusicPlayerService connected")
         }
 

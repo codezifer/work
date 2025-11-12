@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
@@ -46,7 +47,35 @@ import org.koin.androidx.compose.koinViewModel
 fun PlayerScreen(modifier: Modifier = Modifier, viewModel: PlayerViewModel = koinViewModel()) {
     val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()
     val isPlaying by viewModel.musicService.map { it?.isPlaying() ?: false }.collectAsState(false)
+    val progress by viewModel.progress.collectAsState()
+    val duration by viewModel.duration.collectAsState()
 
+
+    PlayerScreenContent(
+        modifier = modifier,
+        currentSong = currentSong,
+        isPlaying = isPlaying,
+        progress = progress,
+        duration = duration,
+        onPrevClicked = viewModel::onPrevClicked,
+        onNextClicked = viewModel::onNextClicked,
+        onPlayPauseClicked = viewModel::togglePlayPause,
+        onProgressChanged = viewModel::onProgressChanged,
+    )
+}
+
+@Composable
+fun PlayerScreenContent(
+    modifier: Modifier,
+    currentSong: Song?,
+    isPlaying: Boolean,
+    progress: Float,
+    duration: Long,
+    onPrevClicked: () -> Unit,
+    onPlayPauseClicked: () -> Unit,
+    onNextClicked: () -> Unit,
+    onProgressChanged: (Float) -> Unit,
+) {
     val appName = stringResource(R.string.app_name)
     val volume = stringResource(R.string.volume)
 
@@ -94,20 +123,26 @@ fun PlayerScreen(modifier: Modifier = Modifier, viewModel: PlayerViewModel = koi
             }
 
             // Context
-            PlayerScreenContent(
+            PlayerScreenContext(
                 albumArtPainter = rememberAsyncImagePainter(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(extractAlbumArt(LocalContext.current, currentSong?.filePath ?: ""))
+                        .data(
+                            extractAlbumArt(
+                                LocalContext.current,
+                                currentSong?.filePath ?: ""
+                            )
+                        )
                         .build()
                 ),
                 songTitle = currentSong?.title,
                 artistName = currentSong?.artist,
                 isPlaying = isPlaying,
-                progress = 0f,
-                onPreviousClicked = viewModel::onPrevClicked,
-                onPlayPauseClicked = viewModel::togglePlayPause,
-                onNextClicked = viewModel::onNextClicked,
-                onProgressChanged = viewModel::onProgressChanged
+                progress = progress,
+                duration = duration,
+                onPreviousClicked = onPrevClicked,
+                onPlayPauseClicked = onPlayPauseClicked,
+                onNextClicked = onNextClicked,
+                onProgressChanged = onProgressChanged
             )
 
             // Volume control
@@ -140,9 +175,20 @@ fun PlayerScreen(modifier: Modifier = Modifier, viewModel: PlayerViewModel = koi
     }
 }
 
-
-@Preview
 @Composable
+@Preview
 fun PlayerScreenPreview() {
-    PlayerScreen(Modifier.padding(2.dp))
+    PlayerScreenContent(
+        Modifier.padding(2.dp),
+        Song(
+            title = "This is a test song",
+            artist = "Test-Artist",
+            album = "Test-Album",
+        ),
+        isPlaying = true,
+        onPrevClicked = {},
+        onPlayPauseClicked = {},
+        onNextClicked = {},
+        onProgressChanged = {}
+    )
 }
