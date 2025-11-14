@@ -5,8 +5,8 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.containerColor
-import de.carsten.android.muzzic.ui.primaryColor
 
 val tabs = listOf(
     "Player" to Icons.Default.PlayArrow,
@@ -38,8 +37,8 @@ fun BottomNavigationBar(
                 icon = { Icon(icon, contentDescription = label) },
                 label = { Text(label, fontSize = 10.sp) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = primaryColor,
-                    selectedTextColor = primaryColor,
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = Color.Gray,
                     unselectedTextColor = Color.Gray
                 )

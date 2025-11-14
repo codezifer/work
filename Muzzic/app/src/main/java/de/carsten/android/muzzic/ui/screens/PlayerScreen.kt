@@ -186,9 +186,11 @@ fun PlayerScreenPreview() {
             album = "Test-Album",
         ),
         isPlaying = true,
+        progress = 0.45f,
+        duration = 225000L,
         onPrevClicked = {},
         onPlayPauseClicked = {},
         onNextClicked = {},
-        onProgressChanged = {}
+        onProgressChanged = { value -> },
     )
 }

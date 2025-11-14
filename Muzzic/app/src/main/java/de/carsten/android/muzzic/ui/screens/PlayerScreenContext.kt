@@ -45,12 +45,15 @@ import coil.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.backgroundColor
 import de.carsten.android.muzzic.ui.primaryColor
+import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.utils.uiEmpty
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.round
 
 
 // Assuming you have these colors defined, or replace with your actual colors
 val textColor = Color.White
-val PlayerAccentColor = primaryColor
 
 @Composable
 fun PlayerScreenContext(
@@ -118,6 +121,10 @@ fun PlayerScreenContext(
         }
     }
 
+    val leftDuration: String = formatDuration((duration * progress).toLong())
+    val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -159,7 +166,7 @@ fun PlayerScreenContext(
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
                     thumbColor = textColor,
-                    activeTrackColor = PlayerAccentColor,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
                     inactiveTrackColor = textColor.copy(alpha = 0.3f)
                 )
             )
@@ -171,11 +178,11 @@ fun PlayerScreenContext(
             ) {
                 // You'd replace these with actual formatted time
                 Text(
-                    "0:00", // TODO: calc from position of duration
+                    text = leftDuration,
                     color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
                 )
                 Text(
-                    "3:45", // TODO: calc from duration - position
+                    rightDuration,
                     color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
                 )
             }
@@ -205,7 +212,10 @@ fun PlayerScreenContext(
                 onClick = onPlayPauseClicked,
                 modifier = Modifier
                     .size(72.dp) // Larger play/pause button
-                    .background(PlayerAccentColor, CircleShape)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        CircleShape
+                    )
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -220,7 +230,7 @@ fun PlayerScreenContext(
                 Icon(
                     imageVector = Icons.Filled.SkipNext,
                     contentDescription = "Next Track",
-                    tint = textColor,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -228,6 +238,7 @@ fun PlayerScreenContext(
     }
 }
 
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, showBackground = true, backgroundColor = 0xFF000000)
 @Preview(showBackground = true, backgroundColor = 0xFF000000 /* Black for preview */)
 @Composable
 fun PlayerScreenPreview_Playing() {
@@ -243,7 +254,7 @@ fun PlayerScreenPreview_Playing() {
             artistName = "Panic! At The Disco",
             isPlaying = true,
             progress = 0.45f,
-            duration = 3 * 60 + 45,
+            duration = 225000,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},
@@ -264,7 +275,7 @@ fun PlayerScreenPreview_Paused() {
             artistName = "Queen",
             isPlaying = false,
             progress = 0.15f,
-            duration = 3 * 60 + 45,
+            duration = 225000,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},
@@ -288,7 +299,7 @@ fun PlayerScreenPreview_Loading() {
             artistName = "Queen",
             isPlaying = false,
             progress = 0.15f,
-            duration = 3 * 60 + 45,
+            duration = 225000,
             onPlayPauseClicked = {},
             onNextClicked = {},
             onPreviousClicked = {},
