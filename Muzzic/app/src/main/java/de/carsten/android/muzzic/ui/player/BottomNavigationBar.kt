@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import de.carsten.android.muzzic.ui.containerColor
 
 val tabs = listOf(
     "Player" to Icons.Default.PlayArrow,
@@ -29,7 +28,7 @@ fun BottomNavigationBar(
     currentTab: Int,
     onTabSelected: (Int) -> Unit
 ) {
-    NavigationBar(containerColor = containerColor) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
         tabs.forEachIndexed { idx, (label, icon) ->
             NavigationBarItem(
                 selected = currentTab == idx,
@@ -38,7 +37,7 @@ fun BottomNavigationBar(
                 label = { Text(label, fontSize = 10.sp) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     unselectedIconColor = Color.Gray,
                     unselectedTextColor = Color.Gray
                 )
@@ -48,6 +47,7 @@ fun BottomNavigationBar(
 }
 
 @Preview
+@Preview(name = "DarkMode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun BottomNavigationBarPreview() {
     BottomNavigationBar(1) { tab -> }

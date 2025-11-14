@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,9 +31,6 @@ import de.carsten.android.muzzic.ui.AppDestinations.ARTIST
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST
 import de.carsten.android.muzzic.ui.AppDestinations.SONG
-import de.carsten.android.muzzic.ui.backgroundColor
-import de.carsten.android.muzzic.ui.containerColor
-import de.carsten.android.muzzic.ui.primaryColor
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
@@ -54,7 +52,7 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(MaterialTheme.colorScheme.background)
     ) {
 
         // Header
@@ -76,9 +74,9 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
                     onClick = { selectedFilter = key },
                     label = { Text(text = label) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = primaryColor,
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = Color.White,
-                        containerColor = containerColor,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
                         labelColor = Color.Gray
                     )
                 )

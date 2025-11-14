@@ -43,17 +43,9 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.ui.backgroundColor
-import de.carsten.android.muzzic.ui.primaryColor
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.utils.uiEmpty
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.round
-
-
-// Assuming you have these colors defined, or replace with your actual colors
-val textColor = Color.White
 
 @Composable
 fun PlayerScreenContext(
@@ -69,178 +61,181 @@ fun PlayerScreenContext(
     onProgressChanged: (Float) -> Unit // Callback for when user scrubs the progress bar
 
 ) {
-    val discResource = painterResource(R.drawable.disc)
-    val imageModifier = Modifier
-        .fillMaxWidth(0.8f)
-        .aspectRatio(1f)
-        .clip(RoundedCornerShape(12.dp))
-        .background(Color.DarkGray)
+    AppTheme {
+        val discResource = painterResource(R.drawable.disc)
+        val imageModifier = Modifier
+            .fillMaxWidth(0.8f)
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.DarkGray)
 
-    val getDiscImage = @Composable {
-        Image(
-            painter = discResource,
-            contentDescription = "On Error or Empty state, disc image",
-            modifier = imageModifier,
-            contentScale = ContentScale.Crop
-        )
-    }
-    val getStateImage = @Composable {
-        when (albumArtPainter) {
-            is AsyncImagePainter -> {
-                when (albumArtPainter.state) {
-                    is AsyncImagePainter.State.Loading -> CircularProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(100)),
-                        color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 22.dp
-                    )
+        val textColor = MaterialTheme.colorScheme.onSurface
 
-                    is AsyncImagePainter.State.Empty,
-                    is AsyncImagePainter.State.Error -> getDiscImage()
-
-                    is AsyncImagePainter.State.Success -> {
-                        AsyncImage(
-                            model = albumArtPainter,
-                            contentDescription = "Album Art",
+        val getDiscImage = @Composable {
+            Image(
+                painter = discResource,
+                contentDescription = "On Error or Empty state, disc image",
+                modifier = imageModifier,
+                contentScale = ContentScale.Crop
+            )
+        }
+        val getStateImage = @Composable {
+            when (albumArtPainter) {
+                is AsyncImagePainter -> {
+                    when (albumArtPainter.state) {
+                        is AsyncImagePainter.State.Loading -> CircularProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth(0.8f)
-                                .aspectRatio(1.0f)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.DarkGray),
-                            contentScale = ContentScale.Crop,
-                            placeholder = discResource,
-                            error = discResource
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(100)),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 22.dp
                         )
+
+                        is AsyncImagePainter.State.Empty,
+                        is AsyncImagePainter.State.Error -> getDiscImage()
+
+                        is AsyncImagePainter.State.Success -> {
+                            AsyncImage(
+                                model = albumArtPainter,
+                                contentDescription = "Album Art",
+                                modifier = Modifier
+                                    .fillMaxWidth(0.8f)
+                                    .aspectRatio(1.0f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.DarkGray),
+                                contentScale = ContentScale.Crop,
+                                placeholder = discResource,
+                                error = discResource
+                            )
+                        }
                     }
+                }
+
+                else -> getDiscImage()
+            }
+        }
+
+        val leftDuration: String = formatDuration((duration * progress).toLong())
+        val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Album Cover
+            getStateImage()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Song Info
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = songTitle ?: uiEmpty,
+                    color = textColor,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = artistName ?: uiEmpty,
+                    color = textColor.copy(alpha = 0.7f),
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Progress Bar
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Slider(
+                    value = progress,
+                    onValueChange = onProgressChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = textColor,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = textColor.copy(alpha = 0.3f)
+                    )
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp), // Align with slider padding
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // You'd replace these with actual formatted time
+                    Text(
+                        text = leftDuration,
+                        color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
+                    )
+                    Text(
+                        rightDuration,
+                        color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
+                    )
                 }
             }
 
-            else -> getDiscImage()
-        }
-    }
 
-    val leftDuration: String = formatDuration((duration * progress).toLong())
-    val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
+            Spacer(modifier = Modifier.height(24.dp))
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Album Cover
-        getStateImage()
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Song Info
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = songTitle ?: uiEmpty,
-                color = textColor,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = artistName ?: uiEmpty,
-                color = textColor.copy(alpha = 0.7f),
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Progress Bar
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Slider(
-                value = progress,
-                onValueChange = onProgressChanged,
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = textColor,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = textColor.copy(alpha = 0.3f)
-                )
-            )
+            // Controls
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp), // Align with slider padding
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // You'd replace these with actual formatted time
-                Text(
-                    text = leftDuration,
-                    color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
-                )
-                Text(
-                    rightDuration,
-                    color = textColor.copy(alpha = 0.7f), fontSize = 12.sp
-                )
-            }
-        }
-
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Controls
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // prev-button
-            IconButton(onClick = onPreviousClicked) {
-                Icon(
-                    imageVector = Icons.Filled.SkipPrevious,
-                    contentDescription = "Previous Track",
-                    tint = textColor,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            // play-pause-button
-            IconButton(
-                onClick = onPlayPauseClicked,
-                modifier = Modifier
-                    .size(72.dp) // Larger play/pause button
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        CircleShape
+                // prev-button
+                IconButton(onClick = onPreviousClicked) {
+                    Icon(
+                        imageVector = Icons.Filled.SkipPrevious,
+                        contentDescription = "Previous Track",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(40.dp)
                     )
-            ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = backgroundColor, // Icon color contrasts with accent background
-                    modifier = Modifier.size(44.dp)
-                )
-            }
+                }
 
-            // next-button
-            IconButton(onClick = onNextClicked) {
-                Icon(
-                    imageVector = Icons.Filled.SkipNext,
-                    contentDescription = "Next Track",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(40.dp)
-                )
+                // play-pause-button
+                IconButton(
+                    onClick = onPlayPauseClicked,
+                    modifier = Modifier
+                        .size(72.dp) // Larger play/pause button
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+
+                // next-button
+                IconButton(onClick = onNextClicked) {
+                    Icon(
+                        imageVector = Icons.Filled.SkipNext,
+                        contentDescription = "Next Track",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
         }
     }
 }
 
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, showBackground = true, backgroundColor = 0xFF000000)
-@Preview(showBackground = true, backgroundColor = 0xFF000000 /* Black for preview */)
 @Composable
+@Preview
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 fun PlayerScreenPreview_Playing() {
     // In a real app, you'd get this from a ViewModel or Coil/Glide
     // For preview, using a placeholder icon if you don't have R.drawable.album_art_placeholder
@@ -263,8 +258,9 @@ fun PlayerScreenPreview_Playing() {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
 @Composable
+@Preview
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 fun PlayerScreenPreview_Paused() {
     val albumArtPainter = painterResource(id = R.drawable.disc)
 
@@ -284,8 +280,9 @@ fun PlayerScreenPreview_Paused() {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
 @Composable
+@Preview
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 fun PlayerScreenPreview_Loading() {
     val loadingPainter = rememberAsyncImagePainter(
         model = null,

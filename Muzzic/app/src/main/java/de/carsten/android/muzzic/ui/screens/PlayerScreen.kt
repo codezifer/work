@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.utils.extractAlbumArt
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import kotlinx.coroutines.flow.map
@@ -79,97 +81,99 @@ fun PlayerScreenContent(
     val appName = stringResource(R.string.app_name)
     val volume = stringResource(R.string.volume)
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        gradient1Color,
-                        gradient2Color,
-                        gradient3Color
+    AppTheme {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            gradient1Color,
+                            gradient2Color,
+                            gradient3Color
+                        )
                     )
                 )
-            )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // HEADER
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // HEADER
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.MusicNote,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = appName,
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+
+                // Context
+                PlayerScreenContext(
+                    albumArtPainter = rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(
+                                extractAlbumArt(
+                                    LocalContext.current,
+                                    currentSong?.filePath ?: ""
+                                )
+                            )
+                            .build()
+                    ),
+                    songTitle = currentSong?.title,
+                    artistName = currentSong?.artist,
+                    isPlaying = isPlaying,
+                    progress = progress,
+                    duration = duration,
+                    onPreviousClicked = onPrevClicked,
+                    onPlayPauseClicked = onPlayPauseClicked,
+                    onNextClicked = onNextClicked,
+                    onProgressChanged = onProgressChanged
+                )
+
+                // Volume control
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = volume,
+                        tint = Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.size(20.dp)
                     )
-                    Text(
-                        text = appName,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 8.dp)
+
+                    Slider(
+                        value = 0.75f,
+                        onValueChange = { /* Handle volume change */ },
+                        modifier = Modifier
+                            .width(120.dp)
+                            .padding(horizontal = 8.dp),
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
                     )
                 }
-            }
-
-            // Context
-            PlayerScreenContext(
-                albumArtPainter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(
-                            extractAlbumArt(
-                                LocalContext.current,
-                                currentSong?.filePath ?: ""
-                            )
-                        )
-                        .build()
-                ),
-                songTitle = currentSong?.title,
-                artistName = currentSong?.artist,
-                isPlaying = isPlaying,
-                progress = progress,
-                duration = duration,
-                onPreviousClicked = onPrevClicked,
-                onPlayPauseClicked = onPlayPauseClicked,
-                onNextClicked = onNextClicked,
-                onProgressChanged = onProgressChanged
-            )
-
-            // Volume control
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = volume,
-                    tint = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.size(20.dp)
-                )
-
-                Slider(
-                    value = 0.75f,
-                    onValueChange = { /* Handle volume change */ },
-                    modifier = Modifier
-                        .width(120.dp)
-                        .padding(horizontal = 8.dp),
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White,
-                        inactiveTrackColor = Color.White.copy(alpha = 0.3f)
-                    )
-                )
             }
         }
     }
@@ -177,6 +181,7 @@ fun PlayerScreenContent(
 
 @Composable
 @Preview
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 fun PlayerScreenPreview() {
     PlayerScreenContent(
         Modifier.padding(2.dp),
