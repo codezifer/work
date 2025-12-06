@@ -6,6 +6,7 @@ import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import de.carsten.android.muzzic.utils.maxStars
 import de.carsten.android.muzzic.utils.mediaItemInstant
@@ -13,17 +14,31 @@ import java.time.Instant
 
 @Entity(tableName = "songs")
 data class Song(
+    @ColumnInfo
     val title: String? = null,
-    val trackNumber: Int? = null,
-    val totalTracks: Int? = null,
+    @ColumnInfo(defaultValue = "0")
+    val trackNumber: Int? = 0,
+    @ColumnInfo(defaultValue = "0")
+    val totalTracks: Int? = 0,
+    @ColumnInfo(index = true)
     val artist: String? = null,
+    @ColumnInfo(index = true)
     val album: String? = null,
+    @ColumnInfo(index = true)
     val genre: String? = null,
-    val duration: Long? = null, // in milliseconds
+    @ColumnInfo(defaultValue = "0")
+    val duration: Long? = 0L, // in milliseconds
+    @ColumnInfo
     val filePath: String? = null,
+    @ColumnInfo
     val albumArt: String? = null,
+    @ColumnInfo(defaultValue = "-1")
+    val albumYear: Int? = -1,
+    @ColumnInfo(defaultValue = "3")
     val rating: Int? = 0, // 0-5 stars
+    @ColumnInfo(defaultValue = "0")
     val playCount: Int? = 0,
+    @ColumnInfo(defaultValue = "0")
     val lastPlayed: Instant? = Instant.ofEpochMilli(0L),
 ) : AbstractEntity() {
 
@@ -38,6 +53,7 @@ data class Song(
                 album = metadata.albumTitle?.toString(),
                 filePath = metadata.artworkUri?.toString(),
                 albumArt = metadata.artworkUri?.toString(),
+                albumYear = metadata.releaseYear,
                 rating = getWmpRating(metadata.userRating as StarRating),
                 genre = metadata.genre?.toString(),
                 duration = metadata.durationMs,
@@ -107,6 +123,7 @@ data class Song(
                 .setTotalTrackCount(this.totalTracks)
                 .setArtist(this.artist)
                 .setAlbumTitle(this.album)
+                .setReleaseYear(this.albumYear)
                 .setAlbumArtist(this.artist)
                 .setArtworkUri(this.filePath?.toUri())
                 .setGenre(this.genre)

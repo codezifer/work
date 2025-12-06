@@ -25,10 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
+import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun AlbumCard(album: ArtistAlbum) {
+fun AlbumCard(album: AlbumDto) {
     AppTheme {
         Card(
             modifier = Modifier
@@ -56,8 +57,8 @@ fun AlbumCard(album: ArtistAlbum) {
                         contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
-                            model = album.albumArt,
-                            contentDescription = album.album,
+                            model = album.lastAlbumArt,
+                            contentDescription = "AlbumArt",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                         )
@@ -67,7 +68,7 @@ fun AlbumCard(album: ArtistAlbum) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = album.album,
+                    text = album.albumName,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -77,7 +78,7 @@ fun AlbumCard(album: ArtistAlbum) {
                 )
 
                 Text(
-                    text = album.artist,
+                    text = album.artistName,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center,
@@ -86,7 +87,7 @@ fun AlbumCard(album: ArtistAlbum) {
                 )
 
                 Text(
-                    text = "1975 • 12 Songs",
+                    text = "${album.albumYear} • ${album.songCount} Songs",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     textAlign = TextAlign.Center
@@ -98,13 +99,15 @@ fun AlbumCard(album: ArtistAlbum) {
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "DarkMode")
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "AlbumCardPreview_Dark")
 fun AlbumCardPreview() {
     AlbumCard(
-        ArtistAlbum(
-            album = "Album Name",
-            artist = "Artist Name",
-            albumArt = "",
+        AlbumDto(
+            albumName = "Album Name",
+            albumYear = 2025,
+            artistName = "Artist Name",
+            songCount = 12,
+            albumDuration = 50 * 60 * 1000L,
         )
     )
 }

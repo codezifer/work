@@ -1,8 +1,9 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,35 +19,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.containerColor
+import de.carsten.android.muzzic.ui.model.ArtistDto
 
 @Composable
-fun ArtistCard(artist: String) {
+fun ArtistCard(artist: ArtistDto) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Album Cover Collage (3x3 grid)
             AlbumCoverCollage(
-                covers = listOf("🎸", "⚡", "🔥", "🏔️", "👑", "🧱", "⚫", "🌊", "🎭"),
+                covers = if (artist.lastAlbumArt == null) emptyList() else listOf(artist.lastAlbumArt),
                 modifier = Modifier.size(120.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = artist,
+                text = artist.artistName,
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -55,19 +56,36 @@ fun ArtistCard(artist: String) {
                 overflow = TextOverflow.Ellipsis
             )
 
-            Text(
-                text = "15 Alben",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center
-            )
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "178 Songs",
-                color = Color.Gray,
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "${artist.albumCount} Alben",
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                )
+
+                Text(
+                    text = "${artist.songCount} Songs",
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                )
+            }
         }
     }
+}
+
+@Composable
+@Preview
+fun ArtistCardPreview() {
+    ArtistCard(
+        ArtistDto(
+            artistName = "Dimmu Borgir",
+            albumCount = 10,
+            songCount = 123,
+            lastAlbumArt = null,
+        )
+    )
 }

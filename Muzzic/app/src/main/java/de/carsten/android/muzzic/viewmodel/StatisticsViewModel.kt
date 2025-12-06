@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.carsten.android.muzzic.persistence.entity.GenrePlayCount
-import de.carsten.android.muzzic.persistence.entity.MonthlyPlayCount
-import de.carsten.android.muzzic.persistence.entity.SongPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import kotlinx.coroutines.launch
 

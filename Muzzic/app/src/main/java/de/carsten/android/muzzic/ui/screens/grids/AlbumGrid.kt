@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
+import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -23,7 +24,7 @@ fun AlbumGrid(viewModel: LibraryViewModel = koinViewModel()) {
 }
 
 @Composable
-fun AlbumGridContent(albums: List<ArtistAlbum>) {
+fun AlbumGridContent(albums: List<AlbumDto>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -40,7 +41,19 @@ fun AlbumGridContent(albums: List<ArtistAlbum>) {
 @Composable
 fun AlbumGridPreview() {
     AlbumGridContent(listOf(
-        ArtistAlbum("Dimmu Borgir", "Enthrone Darkness Triumphant"),
-        ArtistAlbum("Jimmy Eat World", "Bleed American")
+        AlbumDto(
+            artistName = "Dimmu Borgir",
+            albumName = "Enthrone Darkness Triumphant",
+            albumYear = 1997,
+            songCount = 21,
+            albumDuration = 90 * 60 * 1000L,
+        ),
+        AlbumDto(
+            artistName = "Jimmy Eat World",
+            albumName = "Bleed American",
+            albumYear = 2001,
+            songCount = 12,
+            albumDuration = 45 * 60 * 1000L,
+        )
     ))
 }

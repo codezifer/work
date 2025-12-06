@@ -70,7 +70,7 @@ fun AlbumCoverCollage(
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "AlbumCoverCollagePreview_Dark")
 fun AlbumCoverCollagePreview() {
     AlbumCoverCollage(
         covers = listOf(
@@ -88,7 +88,7 @@ fun AlbumCoverCollagePreview() {
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "AlbumCoverCollagePreview4_Dark")
 fun AlbumCoverCollagePreview4() {
     AlbumCoverCollage(
         covers = listOf(

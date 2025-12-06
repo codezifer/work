@@ -3,10 +3,10 @@ package de.carsten.android.muzzic.persistence.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import de.carsten.android.muzzic.persistence.entity.GenrePlayCount
-import de.carsten.android.muzzic.persistence.entity.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
-import de.carsten.android.muzzic.persistence.entity.SongPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 
 @Dao
 interface PlayHistoryDao {

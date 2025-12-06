@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "33adc601761f83d950fc2e33a9aac85b",
+    "identityHash": "e47fc3e183ede0aa360996cc323e1d00",
     "entities": [
       {
         "tableName": "songs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `trackNumber` INTEGER, `totalTracks` INTEGER, `artist` TEXT, `album` TEXT, `genre` TEXT, `duration` INTEGER, `filePath` TEXT, `albumArt` TEXT, `rating` INTEGER, `playCount` INTEGER, `lastPlayed` INTEGER, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `trackNumber` INTEGER DEFAULT 0, `totalTracks` INTEGER DEFAULT 0, `artist` TEXT, `album` TEXT, `genre` TEXT, `duration` INTEGER DEFAULT 0, `filePath` TEXT, `albumArt` TEXT, `albumYear` INTEGER DEFAULT -1, `rating` INTEGER DEFAULT 3, `playCount` INTEGER DEFAULT 0, `lastPlayed` INTEGER DEFAULT 0, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "title",
@@ -16,12 +16,14 @@
           {
             "fieldPath": "trackNumber",
             "columnName": "trackNumber",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "0"
           },
           {
             "fieldPath": "totalTracks",
             "columnName": "totalTracks",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "0"
           },
           {
             "fieldPath": "artist",
@@ -41,7 +43,8 @@
           {
             "fieldPath": "duration",
             "columnName": "duration",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "0"
           },
           {
             "fieldPath": "filePath",
@@ -54,19 +57,28 @@
             "affinity": "TEXT"
           },
           {
+            "fieldPath": "albumYear",
+            "columnName": "albumYear",
+            "affinity": "INTEGER",
+            "defaultValue": "-1"
+          },
+          {
             "fieldPath": "rating",
             "columnName": "rating",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "3"
           },
           {
             "fieldPath": "playCount",
             "columnName": "playCount",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "0"
           },
           {
             "fieldPath": "lastPlayed",
             "columnName": "lastPlayed",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "defaultValue": "0"
           },
           {
             "fieldPath": "id",
@@ -92,7 +104,36 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_songs_artist",
+            "unique": false,
+            "columnNames": [
+              "artist"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_artist` ON `${TABLE_NAME}` (`artist`)"
+          },
+          {
+            "name": "index_songs_album",
+            "unique": false,
+            "columnNames": [
+              "album"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_album` ON `${TABLE_NAME}` (`album`)"
+          },
+          {
+            "name": "index_songs_genre",
+            "unique": false,
+            "columnNames": [
+              "genre"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_genre` ON `${TABLE_NAME}` (`genre`)"
+          }
+        ]
       },
       {
         "tableName": "playlists",
@@ -373,7 +414,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '33adc601761f83d950fc2e33a9aac85b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e47fc3e183ede0aa360996cc323e1d00')"
     ]
   }
 }

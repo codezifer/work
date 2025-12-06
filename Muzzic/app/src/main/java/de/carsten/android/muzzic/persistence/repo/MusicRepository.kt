@@ -4,17 +4,20 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Environment
 import com.mpatric.mp3agic.Mp3File
-import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.persistence.dao.AlbumDao
+import de.carsten.android.muzzic.persistence.dao.ArtistDao
+import de.carsten.android.muzzic.persistence.dao.GenreDao
 import de.carsten.android.muzzic.persistence.dao.PlayHistoryDao
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
-import de.carsten.android.muzzic.persistence.entity.GenrePlayCount
-import de.carsten.android.muzzic.persistence.entity.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
-import de.carsten.android.muzzic.persistence.entity.SongPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
+import de.carsten.android.muzzic.ui.utils.parseId3Year
 import de.carsten.android.muzzic.utils.flac
 import de.carsten.android.muzzic.utils.m4a
 import de.carsten.android.muzzic.utils.mp3
@@ -29,16 +32,13 @@ import java.io.File
 
 class MusicRepository(
     val songDao: SongDao,
+    val artistDao: ArtistDao,
+    val albumDao: AlbumDao,
+    val genreDao: GenreDao,
     val playlistDao: PlaylistDao,
     val playHistoryDao: PlayHistoryDao,
     val context: Context
 ) {
-    private val logger = this.logger()
-
-    companion object {
-        private val TAG = MusicRepository::class.toString()
-    }
-
     fun getAllSongs() = songDao.getAllSongs()
     fun getAllPlaylists() = playlistDao.getAllPlaylists()
 
@@ -85,6 +85,7 @@ class MusicRepository(
                     albumArt = id3v2Tag?.albumImage?.let {
                         saveAlbumArt(it, file.nameWithoutExtension)
                     },
+                    albumYear = parseId3Year(id3v2Tag.year),
                     rating = id3v2Tag.wmpRating
                 )
             } else {
@@ -133,7 +134,7 @@ class MusicRepository(
     }
 
     private suspend fun generateAutomaticPlaylists() {
-        val genres = songDao.getAllGenres()
+        val genres = genreDao.getAllGenres()
 
         genres.forEach { genre ->
             val existingPlaylist = playlistDao.getAllPlaylists().first()
@@ -147,7 +148,7 @@ class MusicRepository(
                 )
                 val playlistId = playlistDao.insertPlaylist(playlist).toString()
 
-                val topSongs = songDao.getTopSongsByGenre(genre, 100)
+                val topSongs = genreDao.getTopSongsByGenre(genre, 100)
                 topSongs.forEachIndexed { index, song ->
                     playlistDao.insertPlaylistSong(
                         PlaylistSong(playlistId, song.id, index)

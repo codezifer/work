@@ -5,6 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import de.carsten.android.muzzic.persistence.dao.AlbumDao
+import de.carsten.android.muzzic.persistence.dao.ArtistDao
+import de.carsten.android.muzzic.persistence.dao.GenreDao
 import de.carsten.android.muzzic.persistence.dao.PlayHistoryDao
 import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
@@ -40,6 +43,9 @@ abstract class MuzzicDatabase : RoomDatabase() {
     }
 
     abstract fun songDao(): SongDao
+    abstract fun artistDao(): ArtistDao
+    abstract fun albumDao(): AlbumDao
+    abstract fun genreDao(): GenreDao
     abstract fun playlistDao(): PlaylistDao
     abstract fun playHistoryDao(): PlayHistoryDao
 
