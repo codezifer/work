@@ -13,12 +13,12 @@ import de.carsten.android.muzzic.ui.screens.LibraryScreen
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = LIBRARY
+    startDestination: String = LIBRARY,
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
     ) {
         composable(LIBRARY) {
             LibraryScreen(modifier)

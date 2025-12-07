@@ -28,7 +28,7 @@ fun ArtistGridContent(artists: List<ArtistDto>) {
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(artists) { artist ->
             ArtistCard(artist)
@@ -44,7 +44,7 @@ fun ArtistGridPreview() {
             ArtistDto("Cradle Of Filth", 2, 13),
             ArtistDto("Dimmu Borgir", 1, 10),
             ArtistDto("Interpol", 1, 7),
-            ArtistDto("Jimmy Eat World", 1, 10)
-        )
+            ArtistDto("Jimmy Eat World", 1, 10),
+        ),
     )
 }

@@ -35,35 +35,38 @@ import java.time.Instant
 @Composable
 fun SongListItem(song: Song) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Play song */ },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { /* Play song */ },
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Song Icon
             Card(
                 modifier = Modifier.size(40.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = containerColor
-                ),
-                shape = RoundedCornerShape(8.dp)
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = containerColor,
+                    ),
+                shape = RoundedCornerShape(8.dp),
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Default.MusicNote,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
@@ -72,7 +75,7 @@ fun SongListItem(song: Song) {
 
             // Song Info
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = song.title ?: EMPTY,
@@ -80,7 +83,7 @@ fun SongListItem(song: Song) {
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
@@ -88,24 +91,24 @@ fun SongListItem(song: Song) {
                     color = Color.Gray,
                     fontSize = 12.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
             // Rating and Duration
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
             ) {
                 StarRating(
                     rating = song.rating ?: 0,
                     onRatingChanged = { /* Update rating */ },
-                    size = 12.dp
+                    size = 12.dp,
                 )
 
                 Text(
                     text = formatDuration(song.duration ?: 0),
                     color = Color.Gray,
-                    fontSize = 10.sp
+                    fontSize = 10.sp,
                 )
             }
         }
@@ -127,6 +130,6 @@ fun SongListItemPreview() {
             rating = 3,
             totalTracks = 10,
             trackNumber = 3,
-        )
+        ),
     )
 }

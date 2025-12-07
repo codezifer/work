@@ -20,7 +20,10 @@ private const val TAG = "EXTENSIONS"
  * @param audioFilePath absolute audio file path
  * @return opt. Bitmap
  */
-fun extractAlbumArt(context: Context, audioFilePath: String?): Bitmap? {
+fun extractAlbumArt(
+    context: Context,
+    audioFilePath: String?,
+): Bitmap? {
     val retriever = MediaMetadataRetriever()
     try {
         retriever.setDataSource(context, audioFilePath?.toUri())
@@ -40,7 +43,7 @@ fun extractAlbumArt(context: Context, audioFilePath: String?): Bitmap? {
         } catch (e: IOException) {
             Log.e(
                 TAG,
-                e.message ?: "An unknown IO exception occurred while releasing media meta data!"
+                e.message ?: "An unknown IO exception occurred while releasing media meta data!",
             )
         }
     }
@@ -53,15 +56,14 @@ fun extractAlbumArt(context: Context, audioFilePath: String?): Bitmap? {
  * @param state player state as [Int]
  * @return state name as [String]
  */
-fun playbackStateToString(state: Int): String {
-    return when (state) {
+fun playbackStateToString(state: Int): String =
+    when (state) {
         Player.STATE_IDLE -> "IDLE"
         Player.STATE_BUFFERING -> "BUFFERING"
         Player.STATE_READY -> "READY"
         Player.STATE_ENDED -> "ENDED"
         else -> "UNKNOWN$state"
     }
-}
 
 /**
  * Gets datetime from media item metadata extras
@@ -69,7 +71,11 @@ fun playbackStateToString(state: Int): String {
  * @param key key of the datetime
  * @return [Instant]
  */
-fun MediaItem.mediaItemInstant(key: String): Instant = this.mediaMetadata.extras?.getLong(key).let { time ->
-    if (time == null) Instant.now()
-    else Instant.ofEpochMilli(time)
-}
+fun MediaItem.mediaItemInstant(key: String): Instant =
+    this.mediaMetadata.extras?.getLong(key).let { time ->
+        if (time == null) {
+            Instant.now()
+        } else {
+            Instant.ofEpochMilli(time)
+        }
+    }

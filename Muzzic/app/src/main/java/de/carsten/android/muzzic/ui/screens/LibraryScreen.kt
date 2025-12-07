@@ -39,46 +39,48 @@ import de.carsten.android.muzzic.ui.screens.grids.SongList
 
 @Composable
 fun LibraryScreen(modifier: Modifier = Modifier) {
-    val filters = listOf(
-        ARTIST to stringResource(R.string.artists),
-        ALBUM to stringResource(R.string.albums),
-        SONG to stringResource(R.string.songs),
-        GENRE to stringResource(R.string.genres),
-        PLAYLIST to stringResource(R.string.playlists)
-    )
+    val filters =
+        listOf(
+            ARTIST to stringResource(R.string.artists),
+            ALBUM to stringResource(R.string.albums),
+            SONG to stringResource(R.string.songs),
+            GENRE to stringResource(R.string.genres),
+            PLAYLIST to stringResource(R.string.playlists),
+        )
 
     var selectedFilter by remember { mutableStateOf(ARTIST) }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
     ) {
-
         // Header
         Text(
             text = stringResource(R.string.library),
             color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
 
         LazyRow(
             modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(filters) { (key, label) ->
                 FilterChip(
                     selected = selectedFilter == key,
                     onClick = { selectedFilter = key },
                     label = { Text(text = label) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = Color.White,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor = Color.Gray
-                    )
+                    colors =
+                        FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = Color.White,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = Color.Gray,
+                        ),
                 )
             }
         }

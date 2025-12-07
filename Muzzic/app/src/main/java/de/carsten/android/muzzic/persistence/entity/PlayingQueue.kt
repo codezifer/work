@@ -16,11 +16,11 @@ data class PlayingQueue(
     val albumArt: String? = null,
     val genre: String? = null,
     val duration: Long? = null, // in milliseconds
-    val queuePosition: Int = 0
+    val queuePosition: Int = 0,
 ) : AbstractEntity() {
     companion object {
-        fun fromMediaItem(mediaItem: MediaItem): PlayingQueue {
-            return PlayingQueue(
+        fun fromMediaItem(mediaItem: MediaItem): PlayingQueue =
+            PlayingQueue(
                 title = mediaItem.mediaMetadata.title?.toString(),
                 trackNumber = mediaItem.mediaMetadata.trackNumber,
                 totalTracks = mediaItem.mediaMetadata.totalTrackCount,
@@ -29,14 +29,15 @@ data class PlayingQueue(
                 albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
                 genre = mediaItem.mediaMetadata.genre?.toString(),
             )
-        }
     }
 
-    fun toMediaItem(): MediaItem {
-        return MediaItem.Builder()
+    fun toMediaItem(): MediaItem =
+        MediaItem
+            .Builder()
             .setMediaId(id)
             .setMediaMetadata(
-                MediaMetadata.Builder()
+                MediaMetadata
+                    .Builder()
                     .setTitle(title)
                     .setTrackNumber(trackNumber)
                     .setTotalTrackCount(totalTracks)
@@ -45,16 +46,13 @@ data class PlayingQueue(
                     .setArtworkUri(albumArt?.toUri())
                     .setDurationMs(duration)
                     .setExtras(getExtras())
-                    .build()
-            )
-            .build()
-    }
+                    .build(),
+            ).build()
 
-    private fun getExtras(): Bundle {
-        return Bundle().apply {
+    private fun getExtras(): Bundle =
+        Bundle().apply {
             putInt("queuePosition", queuePosition)
             putLong("createdAt", createdAt?.toEpochMilli() ?: 0L)
             putLong("updatedAt", updatedAt?.toEpochMilli() ?: 0L)
         }
-    }
 }

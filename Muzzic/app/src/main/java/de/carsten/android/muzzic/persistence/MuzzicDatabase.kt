@@ -35,18 +35,23 @@ import de.carsten.android.muzzic.persistence.utils.Converters
 @TypeConverters(Converters::class)
 abstract class MuzzicDatabase : RoomDatabase() {
     companion object {
-        fun database(context: Context): MuzzicDatabase {
-            return Room.databaseBuilder(context, MuzzicDatabase::class.java, "muzzic.db")
+        fun database(context: Context): MuzzicDatabase =
+            Room
+                .databaseBuilder(context, MuzzicDatabase::class.java, "muzzic.db")
                 .addMigrations(*Migrations.supply())
                 .build()
-        }
     }
 
     abstract fun songDao(): SongDao
+
     abstract fun artistDao(): ArtistDao
+
     abstract fun albumDao(): AlbumDao
+
     abstract fun genreDao(): GenreDao
+
     abstract fun playlistDao(): PlaylistDao
+
     abstract fun playHistoryDao(): PlayHistoryDao
 
     abstract fun playingQueueDao(): PlayingQueueDao

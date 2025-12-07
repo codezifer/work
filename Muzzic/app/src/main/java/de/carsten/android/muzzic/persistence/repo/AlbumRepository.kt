@@ -6,9 +6,8 @@ import de.carsten.android.muzzic.ui.model.toDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class AlbumRepository(val albumDao: AlbumDao) {
-
-    fun getAlbumInformation(): Flow<List<AlbumDto>> {
-        return albumDao.getAlbumAggregation().map { it.toDto() }
-    }
+class AlbumRepository(
+    val albumDao: AlbumDao,
+) {
+    fun getAlbumInformation(): Flow<List<AlbumDto>> = albumDao.getAlbumAggregation().map { it.toDto() }
 }

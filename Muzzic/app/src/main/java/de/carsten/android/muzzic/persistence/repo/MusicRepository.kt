@@ -37,31 +37,35 @@ class MusicRepository(
     val genreDao: GenreDao,
     val playlistDao: PlaylistDao,
     val playHistoryDao: PlayHistoryDao,
-    val context: Context
+    val context: Context,
 ) {
     fun getAllSongs() = songDao.getAllSongs()
+
     fun getAllPlaylists() = playlistDao.getAllPlaylists()
 
     suspend fun scanMusicLibrary() {
         val musicFiles = scanForMusicFiles()
-        val songs = musicFiles.map { file ->
-            extractSongMetadata(file)
-        }
+        val songs =
+            musicFiles.map { file ->
+                extractSongMetadata(file)
+            }
         songDao.insertSongs(songs)
         generateAutomaticPlaylists()
     }
 
     private fun scanForMusicFiles(): List<File> {
-        val musicFolders = listOf(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        )
+        val musicFolders =
+            listOf(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            )
 
         val supportedFormats = setOf(mp3, ogg, flac, mp4, m4a)
         val musicFiles = mutableListOf<File>()
 
         musicFolders.forEach { folder ->
-            folder.walkTopDown()
+            folder
+                .walkTopDown()
                 .filter { it.isFile && it.extension.lowercase() in supportedFormats }
                 .forEach { musicFiles.add(it) }
         }
@@ -69,8 +73,8 @@ class MusicRepository(
         return musicFiles
     }
 
-    private fun extractSongMetadata(file: File): Song {
-        return try {
+    private fun extractSongMetadata(file: File): Song =
+        try {
             if (file.extension.lowercase() == mp3) {
                 val mp3file = Mp3File(file)
                 val id3v2Tag = mp3file.id3v2Tag
@@ -82,11 +86,12 @@ class MusicRepository(
                     genre = id3v2Tag?.genreDescription ?: unknownGenre,
                     duration = mp3file.lengthInMilliseconds,
                     filePath = file.absolutePath,
-                    albumArt = id3v2Tag?.albumImage?.let {
-                        saveAlbumArt(it, file.nameWithoutExtension)
-                    },
+                    albumArt =
+                        id3v2Tag?.albumImage?.let {
+                            saveAlbumArt(it, file.nameWithoutExtension)
+                        },
                     albumYear = parseId3Year(id3v2Tag.year),
-                    rating = id3v2Tag.wmpRating
+                    rating = id3v2Tag.wmpRating,
                 )
             } else {
                 // For other formats, use MediaMetadataRetriever
@@ -94,16 +99,22 @@ class MusicRepository(
                 retriever.setDataSource(file.absolutePath)
 
                 Song(
-                    title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                        ?: file.nameWithoutExtension,
-                    artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
-                        ?: unknownArtist,
-                    album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
-                        ?: unknownAlbum,
-                    genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
-                        ?: unknownGenre,
-                    duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull() ?: 0L,
+                    title =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                            ?: file.nameWithoutExtension,
+                    artist =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                            ?: unknownArtist,
+                    album =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                            ?: unknownAlbum,
+                    genre =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
+                            ?: unknownGenre,
+                    duration =
+                        retriever
+                            .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                            ?.toLongOrNull() ?: 0L,
                     filePath = file.absolutePath,
                 )
             }
@@ -115,13 +126,15 @@ class MusicRepository(
                 album = unknownAlbum,
                 genre = unknownGenre,
                 duration = 0L,
-                filePath = file.absolutePath
+                filePath = file.absolutePath,
             )
         }
-    }
 
-    private fun saveAlbumArt(imageData: ByteArray, fileName: String): String? {
-        return try {
+    private fun saveAlbumArt(
+        imageData: ByteArray,
+        fileName: String,
+    ): String? =
+        try {
             val albumArtDir = File(context.filesDir, "album_art")
             if (!albumArtDir.exists()) albumArtDir.mkdirs()
 
@@ -131,27 +144,30 @@ class MusicRepository(
         } catch (e: Exception) {
             null
         }
-    }
 
     private suspend fun generateAutomaticPlaylists() {
         val genres = genreDao.getAllGenres()
 
         genres.forEach { genre ->
-            val existingPlaylist = playlistDao.getAllPlaylists().first()
-                .find { it.name == "$genre - $top100" && it.isAutoGenerated }
+            val existingPlaylist =
+                playlistDao
+                    .getAllPlaylists()
+                    .first()
+                    .find { it.name == "$genre - $top100" && it.isAutoGenerated }
 
             if (existingPlaylist == null) {
-                val playlist = Playlist(
-                    name = "$genre - $top100",
-                    isAutoGenerated = true,
-                    genre = genre
-                )
+                val playlist =
+                    Playlist(
+                        name = "$genre - $top100",
+                        isAutoGenerated = true,
+                        genre = genre,
+                    )
                 val playlistId = playlistDao.insertPlaylist(playlist).toString()
 
                 val topSongs = genreDao.getTopSongsByGenre(genre, 100)
                 topSongs.forEachIndexed { index, song ->
                     playlistDao.insertPlaylistSong(
-                        PlaylistSong(playlistId, song.id, index)
+                        PlaylistSong(playlistId, song.id, index),
                     )
                 }
             }
@@ -163,7 +179,10 @@ class MusicRepository(
         playHistoryDao.insertPlayHistory(PlayHistory(songId = songId))
     }
 
-    suspend fun updateSongRating(songId: String, rating: Int) {
+    suspend fun updateSongRating(
+        songId: String,
+        rating: Int,
+    ) {
         songDao.updateRating(songId, rating)
     }
 

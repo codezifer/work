@@ -10,13 +10,14 @@ data class ArtistDto(
     val albumCount: Int,
     val songCount: Int,
     override val lastAlbumArt: String? = null,
-): AlbumArt
+) : AlbumArt
 
-fun ArtistAggregation.toDto() = ArtistDto(
-    artistName = this.artistName,
-    albumCount = this.albumCount,
-    songCount = this.songCount,
-    lastAlbumArt = this.lastAlbumArt,
-)
+fun ArtistAggregation.toDto() =
+    ArtistDto(
+        artistName = this.artistName,
+        albumCount = this.albumCount,
+        songCount = this.songCount,
+        lastAlbumArt = this.lastAlbumArt,
+    )
 
 fun List<ArtistAggregation>.toDto() = map { it.toDto() }

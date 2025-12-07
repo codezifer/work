@@ -6,9 +6,8 @@ import de.carsten.android.muzzic.ui.model.toDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class GenreRepository(val genreDao: GenreDao) {
-
-    fun getGenreInformation(): Flow<List<GenreDto>> {
-        return genreDao.getGenreAggregations().map { it.toDto() }
-    }
+class GenreRepository(
+    val genreDao: GenreDao,
+) {
+    fun getGenreInformation(): Flow<List<GenreDto>> = genreDao.getGenreAggregations().map { it.toDto() }
 }

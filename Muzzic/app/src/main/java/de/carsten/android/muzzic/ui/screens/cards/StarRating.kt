@@ -20,20 +20,21 @@ fun StarRating(
     rating: Int,
     onRatingChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = 16.dp
+    size: Dp = 16.dp,
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         repeat(5) { index ->
             Icon(
                 imageVector = if (index < rating) Icons.Default.Star else Icons.Default.StarBorder,
                 contentDescription = null,
                 tint = if (index < rating) starColor else Color.Gray,
-                modifier = Modifier
-                    .size(size)
-                    .clickable { onRatingChanged(index + 1) }
+                modifier =
+                    Modifier
+                        .size(size)
+                        .clickable { onRatingChanged(index + 1) },
             )
         }
     }

@@ -20,9 +20,9 @@ fun MusicPlayerApp() {
         bottomBar = {
             BottomNavigationBar(
                 currentTab = currentTab,
-                onTabSelected = { currentTab = it }
+                onTabSelected = { currentTab = it },
             )
-        }
+        },
     ) { paddingValues ->
         val paddingMod = Modifier.padding(paddingValues)
         when (currentTab) {

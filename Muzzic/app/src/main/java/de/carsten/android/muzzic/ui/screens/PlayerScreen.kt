@@ -46,12 +46,14 @@ import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayerScreen(modifier: Modifier = Modifier, viewModel: PlayerViewModel = koinViewModel()) {
+fun PlayerScreen(
+    modifier: Modifier = Modifier,
+    viewModel: PlayerViewModel = koinViewModel(),
+) {
     val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()
     val isPlaying by viewModel.musicService.map { it?.isPlaying() ?: false }.collectAsState(false)
     val progress by viewModel.progress.collectAsState()
     val duration by viewModel.duration.collectAsState()
-
 
     PlayerScreenContent(
         modifier = modifier,
@@ -83,60 +85,65 @@ fun PlayerScreenContent(
 
     AppTheme {
         Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            gradient1Color,
-                            gradient2Color,
-                            gradient3Color
-                        )
-                    )
-                )
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    gradient1Color,
+                                    gradient2Color,
+                                    gradient3Color,
+                                ),
+                        ),
+                    ),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // HEADER
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             Icons.Default.MusicNote,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                         Text(
                             text = appName,
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier.padding(start = 8.dp),
                         )
                     }
                 }
 
                 // Context
                 PlayerScreenContext(
-                    albumArtPainter = rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(
-                                extractAlbumArt(
-                                    LocalContext.current,
-                                    currentSong?.filePath ?: ""
-                                )
-                            )
-                            .build()
-                    ),
+                    albumArtPainter =
+                        rememberAsyncImagePainter(
+                            model =
+                                ImageRequest
+                                    .Builder(LocalContext.current)
+                                    .data(
+                                        extractAlbumArt(
+                                            LocalContext.current,
+                                            currentSong?.filePath ?: "",
+                                        ),
+                                    ).build(),
+                        ),
                     songTitle = currentSong?.title,
                     artistName = currentSong?.artist,
                     isPlaying = isPlaying,
@@ -145,33 +152,35 @@ fun PlayerScreenContent(
                     onPreviousClicked = onPrevClicked,
                     onPlayPauseClicked = onPlayPauseClicked,
                     onNextClicked = onNextClicked,
-                    onProgressChanged = onProgressChanged
+                    onProgressChanged = onProgressChanged,
                 )
 
                 // Volume control
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = volume,
                         tint = Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
 
                     Slider(
                         value = 0.75f,
                         onValueChange = { /* Handle volume change */ },
-                        modifier = Modifier
-                            .width(120.dp)
-                            .padding(horizontal = 8.dp),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                        )
+                        modifier =
+                            Modifier
+                                .width(120.dp)
+                                .padding(horizontal = 8.dp),
+                        colors =
+                            SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                            ),
                     )
                 }
             }

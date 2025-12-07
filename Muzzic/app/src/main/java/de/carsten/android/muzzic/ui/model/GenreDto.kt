@@ -12,15 +12,16 @@ data class GenreDto(
     val songCount: Int,
     val genreDuration: Long,
     override val lastAlbumArt: String? = null,
-): AlbumArt
+) : AlbumArt
 
-fun GenreAggregation.toDto() = GenreDto(
-    genreName = this.genreName,
-    artistCount = this.artistCount,
-    albumCount = this.albumCount,
-    songCount = this.songCount,
-    genreDuration = this.genreDuration,
-    lastAlbumArt = this.lastAlbumArt,
-)
+fun GenreAggregation.toDto() =
+    GenreDto(
+        genreName = this.genreName,
+        artistCount = this.artistCount,
+        albumCount = this.albumCount,
+        songCount = this.songCount,
+        genreDuration = this.genreDuration,
+        lastAlbumArt = this.lastAlbumArt,
+    )
 
 fun List<GenreAggregation>.toDto() = map { it.toDto() }

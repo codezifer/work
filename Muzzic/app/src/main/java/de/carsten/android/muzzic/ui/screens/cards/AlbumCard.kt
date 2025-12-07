@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -22,9 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
+import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
@@ -32,29 +36,32 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 fun AlbumCard(album: AlbumDto) {
     AppTheme {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // Album Cover
                 Card(
                     modifier = Modifier.size(120.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    shape = RoundedCornerShape(8.dp)
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
+                    shape = RoundedCornerShape(8.dp),
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         AsyncImage(
                             model = album.lastAlbumArt,
@@ -70,27 +77,20 @@ fun AlbumCard(album: AlbumDto) {
                 Text(
                     text = album.albumName,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
+                    fontSize = MAINTITLE_FONTSIZE,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
-                Text(
-                    text = album.artistName,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "${album.albumYear} • ${album.songCount} Songs",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
-                    textAlign = TextAlign.Center
+                SubtitleInformation(
+                    listOf(
+                        Pair(Icons.Default.Person, album.artistName),
+                        Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                        Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
+                    ),
+                    fontColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
@@ -99,7 +99,7 @@ fun AlbumCard(album: AlbumDto) {
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "AlbumCardPreview_Dark")
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCardPreview_Dark")
 fun AlbumCardPreview() {
     AlbumCard(
         AlbumDto(
@@ -108,6 +108,6 @@ fun AlbumCardPreview() {
             artistName = "Artist Name",
             songCount = 12,
             albumDuration = 50 * 60 * 1000L,
-        )
+        ),
     )
 }

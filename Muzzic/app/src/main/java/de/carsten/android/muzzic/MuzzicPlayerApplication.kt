@@ -20,7 +20,7 @@ class MuzzicPlayerApplication : Application() {
                 databaseModule,
                 repoModule,
                 viewModelModule,
-                uiModule
+                uiModule,
             )
         }
     }

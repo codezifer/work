@@ -12,7 +12,7 @@ enum class PlaybackStateTransition {
     BUFFERING_IDLE, // e.g., buffering failed, went back to idle
 
     READY_READY, // State is ready, but not necessarily playing/paused (e.g., seeking)
-    READY_IDLE,    // Stopped from ready state
+    READY_IDLE, // Stopped from ready state
     PLAYING_PLAYING, // still playing
     PLAYING_PAUSED,
     PLAYING_ENDED,
@@ -25,8 +25,8 @@ enum class PlaybackStateTransition {
 
     ENDED_ENDED,
     ENDED_BUFFERING, // Preparing next track after one ended
-    ENDED_IDLE,      // Playlist ended, player is now idle
-    ENDED_PLAYING,   // e.g. repeat current song
+    ENDED_IDLE, // Playlist ended, player is now idle
+    ENDED_PLAYING, // e.g. repeat current song
 
-    UNKNOWN
+    UNKNOWN,
 }

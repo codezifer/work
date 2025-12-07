@@ -16,17 +16,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 
-val tabs = listOf(
-    "Player" to Icons.Default.PlayArrow,
-    "Library" to Icons.Default.LibraryMusic,
-    "Playlists" to Icons.AutoMirrored.Filled.PlaylistPlay,
-    "Statistics" to Icons.Default.BarChart
-)
+val tabs =
+    listOf(
+        "Player" to Icons.Default.PlayArrow,
+        "Library" to Icons.Default.LibraryMusic,
+        "Playlists" to Icons.AutoMirrored.Filled.PlaylistPlay,
+        "Statistics" to Icons.Default.BarChart,
+    )
 
 @Composable
 fun BottomNavigationBar(
     currentTab: Int,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
 ) {
     NavigationBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
         tabs.forEachIndexed { idx, (label, icon) ->
@@ -35,12 +36,13 @@ fun BottomNavigationBar(
                 onClick = { onTabSelected(idx) },
                 icon = { Icon(icon, contentDescription = label) },
                 label = { Text(label, fontSize = 10.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
-                )
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.Gray,
+                    ),
             )
         }
     }

@@ -31,7 +31,7 @@ fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2937)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -39,7 +39,7 @@ fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
             )
 
             // simple row chart
@@ -49,18 +49,19 @@ fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
 
             months.forEachIndexed { index, month ->
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     val barHeight = (plays[index].toFloat() / maxPlays * 80).dp
 
                     Box(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .height(barHeight)
-                            .background(
-                                Color(0xFF8B5CF6),
-                                RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                            )
+                        modifier =
+                            Modifier
+                                .width(24.dp)
+                                .height(barHeight)
+                                .background(
+                                    Color(0xFF8B5CF6),
+                                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp),
+                                ),
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -68,7 +69,7 @@ fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
                     Text(
                         text = month,
                         color = Color.Gray,
-                        fontSize = 10.sp
+                        fontSize = 10.sp,
                     )
                 }
             }

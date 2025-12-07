@@ -7,4 +7,4 @@ data class ArtistAggregation(
     val albumCount: Int,
     val songCount: Int,
     override val lastAlbumArt: String? = null,
-): AlbumArt
+) : AlbumArt

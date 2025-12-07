@@ -20,8 +20,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
-open class PlayerViewModel(private val repository: MusicRepository, application: Application) :
-    AndroidViewModel(application), KoinComponent {
+open class PlayerViewModel(
+    private val repository: MusicRepository,
+    application: Application,
+) : AndroidViewModel(application),
+    KoinComponent {
     private val logger = this.logger()
 
     private val _musicService = MutableStateFlow<MusicPlayerService?>(null)
@@ -45,39 +48,43 @@ open class PlayerViewModel(private val repository: MusicRepository, application:
     private val _progress = MutableStateFlow(0F)
     val progress: StateFlow<Float> = _progress
 
+    val songs =
+        repository.getAllSongs().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val songs = repository.getAllSongs().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    private val serviceConnection =
+        object : ServiceConnection {
+            override fun onServiceConnected(
+                name: ComponentName?,
+                service: IBinder?,
+            ) {
+                val binder = service as? MusicPlayerService.MusicPlayerBinder
+                _musicService.value = binder?.getService()
+                _isConnected.value = true
+                _currentPosition.value = _musicService.value?.getCurrentPosition() ?: 0L
+                _isPlaying.value = _musicService.value?.isPlaying() ?: false
+                _duration.value = _musicService.value?.getDuration() ?: 0L
+                _progress.value = (_currentPosition.value / _duration.value).toFloat()
+                logger.debug("MusicPlayerService connected")
+            }
 
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as? MusicPlayerService.MusicPlayerBinder
-            _musicService.value = binder?.getService()
-            _isConnected.value = true
-            _currentPosition.value = _musicService.value?.getCurrentPosition() ?: 0L
-            _isPlaying.value = _musicService.value?.isPlaying() ?: false
-            _duration.value = _musicService.value?.getDuration() ?: 0L
-            _progress.value = (_currentPosition.value / _duration.value).toFloat()
-            logger.debug("MusicPlayerService connected")
+            override fun onServiceDisconnected(name: ComponentName?) {
+                _musicService.value = null
+                logger.debug("MusicPlayerService disconnected")
+            }
+
+            override fun onBindingDied(name: ComponentName?) {
+                onServiceDisconnected(name)
+                logger.debug("MusicPlayerService binding died")
+            }
+
+            override fun onNullBinding(name: ComponentName?) {
+                logger.error("Null binding from MusicPlayerService")
+            }
         }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            _musicService.value = null
-            logger.debug("MusicPlayerService disconnected")
-        }
-
-        override fun onBindingDied(name: ComponentName?) {
-            onServiceDisconnected(name)
-            logger.debug("MusicPlayerService binding died")
-        }
-
-        override fun onNullBinding(name: ComponentName?) {
-            logger.error("Null binding from MusicPlayerService")
-        }
-    }
 
     init {
         bindToMusicService()
@@ -88,7 +95,7 @@ open class PlayerViewModel(private val repository: MusicRepository, application:
         getApplication<Application>().bindService(
             intent,
             serviceConnection,
-            Context.BIND_AUTO_CREATE
+            Context.BIND_AUTO_CREATE,
         )
     }
 

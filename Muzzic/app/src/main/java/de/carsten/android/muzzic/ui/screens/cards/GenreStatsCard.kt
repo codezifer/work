@@ -31,40 +31,43 @@ fun GenreStatsCard(viewModel: StatisticsViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2937)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text(
                 text = "Genre-Verteilung",
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            val genres = listOf(
-                "Rock" to 35 to Color(0xFF8884D8),
-                "Pop" to 25 to Color(0xFF82CA9D),
-                "Jazz" to 20 to Color(0xFFE0E0E0),
-                "Electronic" to 15 to Color(0xFFFF7C7C),
-                "Classical" to 5 to Color(0xFF8DD1E1)
-            )
+            val genres =
+                listOf(
+                    "Rock" to 35 to Color(0xFF8884D8),
+                    "Pop" to 25 to Color(0xFF82CA9D),
+                    "Jazz" to 20 to Color(0xFFE0E0E0),
+                    "Electronic" to 15 to Color(0xFFFF7C7C),
+                    "Classical" to 5 to Color(0xFF8DD1E1),
+                )
 
             genres.forEach { (pair, color) ->
                 val (name, percentage) = pair
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(color, CircleShape)
+                        modifier =
+                            Modifier
+                                .size(12.dp)
+                                .background(color, CircleShape),
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -73,13 +76,13 @@ fun GenreStatsCard(viewModel: StatisticsViewModel) {
                         text = name,
                         color = Color.White,
                         fontSize = 12.sp,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
 
                     Text(
                         text = "$percentage%",
                         color = Color.Gray,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
                     )
                 }
             }

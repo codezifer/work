@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArtistDao {
-    @Query("SELECT DISTINCT UPPER(SUBSTR(artist, 1, 1)) FROM (SELECT DISTINCT artist FROM songs ORDER BY artist ASC) ORDER BY 1")
+    @Query(
+        "SELECT DISTINCT UPPER(SUBSTR(artist, 1, 1)) FROM (SELECT DISTINCT artist FROM songs ORDER BY artist ASC) ORDER BY 1",
+    )
     suspend fun getArtistAlphabet(): List<Char>
 
     @Query("SELECT COUNT(*) FROM songs WHERE artist < (SELECT MIN(artist) FROM songs WHERE artist LIKE :letter || '%')")
@@ -29,7 +31,7 @@ interface ArtistDao {
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
         FROM songs s
         GROUP BY s.artist ORDER BY s.artist ASC
-        """
+        """,
     )
     fun getArtistAggregations(): Flow<List<ArtistAggregation>>
 }

@@ -21,14 +21,17 @@ import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun StatisticsScreen(modifier: Modifier = Modifier, viewModel: StatisticsViewModel = koinViewModel()) {
-
+fun StatisticsScreen(
+    modifier: Modifier = Modifier,
+    viewModel: StatisticsViewModel = koinViewModel(),
+) {
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF111827))
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color(0xFF111827))
+                .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Header
         item {
@@ -37,7 +40,7 @@ fun StatisticsScreen(modifier: Modifier = Modifier, viewModel: StatisticsViewMod
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier.padding(vertical = 16.dp),
             )
         }
 

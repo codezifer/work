@@ -1,7 +1,5 @@
 package de.carsten.android.muzzic.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -10,8 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class PlayingQueueViewModel(private val repository: PlayingQueueRepository) : ViewModel() {
-
+class PlayingQueueViewModel(
+    private val repository: PlayingQueueRepository,
+) : ViewModel() {
     private val _currentPlayingQueue = MutableStateFlow<List<MediaItem>>(emptyList())
     val currentPlayingQueue: StateFlow<List<MediaItem>> = _currentPlayingQueue
 

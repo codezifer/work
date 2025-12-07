@@ -26,5 +26,9 @@ fun parseId3Year(year: String?): Int {
 
     val regex = Regex("^(\\d{4})")
     val match = regex.find(year)
-    return match?.groups?.get(1)?.value?.toIntOrNull() ?: -1
+    return match
+        ?.groups
+        ?.get(1)
+        ?.value
+        ?.toIntOrNull() ?: -1
 }

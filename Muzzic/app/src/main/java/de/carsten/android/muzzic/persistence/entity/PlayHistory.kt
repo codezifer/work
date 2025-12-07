@@ -10,14 +10,14 @@ import androidx.room.Index
         ForeignKey(
             entity = Song::class,
             parentColumns = ["id"],
-            childColumns = ["songId"]
-        )
+            childColumns = ["songId"],
+        ),
     ],
     indices = [
-        Index("songId")
-    ]
+        Index("songId"),
+    ],
 )
 data class PlayHistory(
     val songId: String,
-    val playedAt: Long = System.currentTimeMillis()
+    val playedAt: Long = System.currentTimeMillis(),
 ) : AbstractEntity()

@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AlbumDao {
-    @Query("SELECT DISTINCT UPPER(SUBSTR(album, 1, 1)) FROM (SELECT DISTINCT album FROM songs ORDER BY album ASC) ORDER BY 1")
+    @Query(
+        "SELECT DISTINCT UPPER(SUBSTR(album, 1, 1)) FROM (SELECT DISTINCT album FROM songs ORDER BY album ASC) ORDER BY 1",
+    )
     suspend fun getAlbumAlphabet(): List<Char>
 
     @Query("SELECT COUNT(*) FROM songs WHERE album < (SELECT MIN(album) FROM songs WHERE album LIKE :letter || '%')")
@@ -19,7 +21,10 @@ interface AlbumDao {
     suspend fun getAllAlbums(): List<ArtistAlbum>
 
     @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY title")
-    suspend fun getSongsByAlbum(album: String, artist: String): List<Song>
+    suspend fun getSongsByAlbum(
+        album: String,
+        artist: String,
+    ): List<Song>
 
     @Query(
         """
@@ -33,7 +38,7 @@ interface AlbumDao {
         FROM songs s
         GROUP BY s.album, s.albumYear, s.artist
         ORDER BY s.album ASC
-        """
+        """,
     )
     fun getAlbumAggregation(): Flow<List<AlbumAggregation>>
 }

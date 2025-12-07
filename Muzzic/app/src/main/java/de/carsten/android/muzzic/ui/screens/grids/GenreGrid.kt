@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.screens.cards.GenreCard
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -22,12 +23,12 @@ fun GenreGrid(viewModel: LibraryViewModel = koinViewModel()) {
 }
 
 @Composable
-fun GenreGridContent(genres: List<String>) {
+fun GenreGridContent(genres: List<GenreDto>) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(minSize = 170.dp),
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(genres) { genre ->
             GenreCard(genre)
@@ -40,11 +41,34 @@ fun GenreGridContent(genres: List<String>) {
 fun GenreGridPreview() {
     GenreGridContent(
         listOf(
-            "Alternative",
-            "Black Metal",
-            "Cold Wave",
-            "Dark Wave",
-            "Post Punk"
-        )
+            GenreDto(
+                genreName = "Alternative",
+                artistCount = 120,
+                albumCount = 980,
+                songCount = 9900,
+                genreDuration = 2 * 24 * 60 * 60 * 1000L,
+            ),
+            GenreDto(
+                genreName = "Black Metal",
+                artistCount = 60,
+                albumCount = 450,
+                songCount = 4200,
+                genreDuration = 24 * 60 * 60 * 1000L,
+            ),
+            GenreDto(
+                genreName = "Cold Wave",
+                artistCount = 20,
+                albumCount = 50,
+                songCount = 1000,
+                genreDuration = 12 * 60 * 60 * 1000L,
+            ),
+            GenreDto(
+                genreName = "Post Punk",
+                artistCount = 20,
+                albumCount = 50,
+                songCount = 1000,
+                genreDuration = 12 * 60 * 60 * 1000L,
+            ),
+        ),
     )
 }

@@ -26,7 +26,7 @@ fun SongList(viewModel: LibraryViewModel = koinViewModel()) {
 fun SongListContent(songs: List<Song>) {
     LazyColumn(
         modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs) { song ->
             SongListItem(song)
@@ -62,7 +62,7 @@ fun SongListPreview() {
                 rating = 3,
                 totalTracks = 10,
                 trackNumber = 4,
-            )
-        )
+            ),
+        ),
     )
 }

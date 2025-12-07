@@ -9,15 +9,15 @@ import androidx.room.Index
     primaryKeys = ["playlistId", "songId"],
     foreignKeys = [
         ForeignKey(entity = Playlist::class, parentColumns = ["id"], childColumns = ["playlistId"]),
-        ForeignKey(entity = Song::class, parentColumns = ["id"], childColumns = ["songId"])
+        ForeignKey(entity = Song::class, parentColumns = ["id"], childColumns = ["songId"]),
     ],
     indices = [
         Index("playlistId"),
-        Index("songId")
-    ]
+        Index("songId"),
+    ],
 )
 data class PlaylistSong(
     val playlistId: String,
     val songId: String,
-    val position: Int = 0
+    val position: Int = 0,
 ) : AbstractTimestampEntity()
