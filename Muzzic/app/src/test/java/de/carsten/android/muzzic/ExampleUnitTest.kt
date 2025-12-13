@@ -1,6 +1,6 @@
 package de.carsten.android.muzzic
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

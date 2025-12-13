@@ -43,6 +43,7 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.utils.uiEmpty
@@ -244,6 +245,11 @@ fun PlayerScreenContext(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // volume
+            VolumeControl()
         }
     }
 }

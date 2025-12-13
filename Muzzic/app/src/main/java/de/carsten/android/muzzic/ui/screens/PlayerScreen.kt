@@ -39,6 +39,7 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
+import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.utils.extractAlbumArt
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
@@ -154,35 +155,6 @@ fun PlayerScreenContent(
                     onNextClicked = onNextClicked,
                     onProgressChanged = onProgressChanged,
                 )
-
-                // Volume control
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = volume,
-                        tint = Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.size(20.dp),
-                    )
-
-                    Slider(
-                        value = 0.75f,
-                        onValueChange = { /* Handle volume change */ },
-                        modifier =
-                            Modifier
-                                .width(120.dp)
-                                .padding(horizontal = 8.dp),
-                        colors =
-                            SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                                activeTrackColor = MaterialTheme.colorScheme.primary,
-                                inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                            ),
-                    )
-                }
             }
         }
     }

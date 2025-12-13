@@ -1,25 +1,28 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
+val rootKotlinVersion = "2.2"
+val rootTargetSdk = 36
+val rootJvmVersion = "21"
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ktlint)
     alias(libs.plugins.android.room)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "de.carsten.android.muzzic"
-    compileSdk = 36
+    compileSdk = rootTargetSdk
 
     defaultConfig {
         applicationId = "de.carsten.android.muzzic"
-        minSdk = 35
-        targetSdk = 36
+        minSdk = rootTargetSdk - 1
+        targetSdk = rootTargetSdk
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "0.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,9 +50,12 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget("21")
-        languageVersion = KotlinVersion.fromVersion("2.1")
-        apiVersion = KotlinVersion.fromVersion("2.1")
+        jvmTarget = JvmTarget.fromTarget(rootJvmVersion)
+        languageVersion = KotlinVersion.fromVersion(rootKotlinVersion)
+        apiVersion = KotlinVersion.fromVersion(rootKotlinVersion)
+    }
+    sourceSets.all {
+        languageSettings.enableLanguageFeature("ExplicitBackingFields")
     }
 }
 
@@ -120,8 +126,4 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)
-}
-
-tasks.named("preBuild") {
-    dependsOn("ktlintFormat")
 }

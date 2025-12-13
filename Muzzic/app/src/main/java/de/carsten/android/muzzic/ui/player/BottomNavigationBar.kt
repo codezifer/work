@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.theme.AppTheme
 
 val tabs =
     listOf(
@@ -29,27 +31,30 @@ fun BottomNavigationBar(
     currentTab: Int,
     onTabSelected: (Int) -> Unit,
 ) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-        tabs.forEachIndexed { idx, (label, icon) ->
-            NavigationBarItem(
-                selected = currentTab == idx,
-                onClick = { onTabSelected(idx) },
-                icon = { Icon(icon, contentDescription = label) },
-                label = { Text(label, fontSize = 10.sp) },
-                colors =
-                    NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                    ),
-            )
+    AppTheme {
+        NavigationBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+            tabs.forEachIndexed { idx, (label, icon) ->
+                NavigationBarItem(
+                    selected = currentTab == idx,
+                    onClick = { onTabSelected(idx) },
+                    icon = { Icon(icon, contentDescription = label) },
+                    label = { Text(label, fontSize = 10.sp) },
+                    colors =
+                        NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            indicatorColor = MaterialTheme.colorScheme.inversePrimary,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                        ),
+                )
+            }
         }
     }
 }
 
 @Preview
-@Preview(name = "DarkMode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "BottomNavigationBarPreview_Dark")
 @Composable
 fun BottomNavigationBarPreview() {
     BottomNavigationBar(1) { tab -> }
