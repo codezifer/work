@@ -82,7 +82,6 @@ fun PlayerScreenContent(
     onProgressChanged: (Float) -> Unit,
 ) {
     val appName = stringResource(R.string.app_name)
-    val volume = stringResource(R.string.volume)
 
     AppTheme {
         Box(
@@ -133,18 +132,7 @@ fun PlayerScreenContent(
 
                 // Context
                 PlayerScreenContext(
-                    albumArtPainter =
-                        rememberAsyncImagePainter(
-                            model =
-                                ImageRequest
-                                    .Builder(LocalContext.current)
-                                    .data(
-                                        extractAlbumArt(
-                                            LocalContext.current,
-                                            currentSong?.filePath ?: "",
-                                        ),
-                                    ).build(),
-                        ),
+                    albumArtPath = currentSong?.albumArt,
                     songTitle = currentSong?.title,
                     artistName = currentSong?.artist,
                     isPlaying = isPlaying,

@@ -1,5 +1,11 @@
 package de.carsten.android.muzzic.ui.utils
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import de.carsten.android.muzzic.utils.extractAlbumArt
+
 const val EMPTY = "<EMPTY>"
 
 /**

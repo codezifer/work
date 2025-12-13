@@ -1,25 +1,23 @@
 package de.carsten.android.muzzic.ui.screens
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,20 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -50,7 +41,7 @@ import de.carsten.android.muzzic.utils.uiEmpty
 
 @Composable
 fun PlayerScreenContext(
-    albumArtPainter: Painter,
+    albumArtPath: String?,
     songTitle: String?,
     artistName: String?,
     isPlaying: Boolean,
@@ -62,70 +53,7 @@ fun PlayerScreenContext(
     onProgressChanged: (Float) -> Unit, // Callback for when user scrubs the progress bar
 ) {
     AppTheme {
-        val discResource = painterResource(R.drawable.disc)
-        val imageModifier =
-            Modifier
-                .fillMaxWidth(0.8f)
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.DarkGray)
-
         val textColor = MaterialTheme.colorScheme.onSurface
-
-        val getDiscImage = @Composable {
-            Image(
-                painter = discResource,
-                contentDescription = "On Error or Empty state, disc image",
-                modifier = imageModifier,
-                contentScale = ContentScale.Crop,
-            )
-        }
-        val getStateImage = @Composable {
-            when (albumArtPainter) {
-                is AsyncImagePainter -> {
-                    when (albumArtPainter.state) {
-                        is AsyncImagePainter.State.Loading -> {
-                            CircularProgressIndicator(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth(0.8f)
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(100)),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 22.dp,
-                            )
-                        }
-
-                        is AsyncImagePainter.State.Empty,
-                        is AsyncImagePainter.State.Error,
-                        -> {
-                            getDiscImage()
-                        }
-
-                        is AsyncImagePainter.State.Success -> {
-                            AsyncImage(
-                                model = albumArtPainter,
-                                contentDescription = "Album Art",
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth(0.8f)
-                                        .aspectRatio(1.0f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.DarkGray),
-                                contentScale = ContentScale.Crop,
-                                placeholder = discResource,
-                                error = discResource,
-                            )
-                        }
-                    }
-                }
-
-                else -> {
-                    getDiscImage()
-                }
-            }
-        }
-
         val leftDuration: String = formatDuration((duration * progress).toLong())
         val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
 
@@ -139,7 +67,7 @@ fun PlayerScreenContext(
             verticalArrangement = Arrangement.Center,
         ) {
             // Album Cover
-            getStateImage()
+            AlbumArtControl(albumArtPath)
             Spacer(modifier = Modifier.height(24.dp))
 
             // Song Info
@@ -206,8 +134,22 @@ fun PlayerScreenContext(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val circularButtonModifier = Modifier
+                    .size(40.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = CircleShape,
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = CircleShape
+                    )
                 // prev-button
-                IconButton(onClick = onPreviousClicked) {
+                IconButton(
+                    onClick = onPreviousClicked,
+                    modifier = circularButtonModifier,
+                ) {
                     Icon(
                         imageVector = Icons.Filled.SkipPrevious,
                         contentDescription = "Previous Track",
@@ -236,7 +178,10 @@ fun PlayerScreenContext(
                 }
 
                 // next-button
-                IconButton(onClick = onNextClicked) {
+                IconButton(
+                    onClick = onNextClicked,
+                    modifier = circularButtonModifier,
+                ) {
                     Icon(
                         imageVector = Icons.Filled.SkipNext,
                         contentDescription = "Next Track",
@@ -256,17 +201,14 @@ fun PlayerScreenContext(
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "PlayerScreenPreview_Playing_Dark")
 fun PlayerScreenPreview_Playing() {
     // In a real app, you'd get this from a ViewModel or Coil/Glide
     // For preview, using a placeholder icon if you don't have R.drawable.album_art_placeholder
-    val albumArtPainter =
-        painterResource(id = R.drawable.disc) // Replace with your actual placeholder
-
     MaterialTheme {
         // Ensure MaterialTheme is applied for default styles
         PlayerScreenContext(
-            albumArtPainter = albumArtPainter,
+            albumArtPath = null,
             songTitle = "The Greatest Show",
             artistName = "Panic! At The Disco",
             isPlaying = true,
@@ -282,39 +224,11 @@ fun PlayerScreenPreview_Playing() {
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "PlayerScreenPreview_Paused_Dark")
 fun PlayerScreenPreview_Paused() {
-    val albumArtPainter = painterResource(id = R.drawable.disc)
-
     MaterialTheme {
         PlayerScreenContext(
-            albumArtPainter = albumArtPainter,
-            songTitle = "Bohemian Rhapsody (Remastered 2011)",
-            artistName = "Queen",
-            isPlaying = false,
-            progress = 0.15f,
-            duration = 225000,
-            onPlayPauseClicked = {},
-            onNextClicked = {},
-            onPreviousClicked = {},
-            onProgressChanged = {},
-        )
-    }
-}
-
-@Composable
-@Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-fun PlayerScreenPreview_Loading() {
-    val loadingPainter =
-        rememberAsyncImagePainter(
-            model = null,
-            onState = { AsyncImagePainter.State.Loading(null) },
-        )
-
-    MaterialTheme {
-        PlayerScreenContext(
-            albumArtPainter = loadingPainter,
+            albumArtPath = null,
             songTitle = "Bohemian Rhapsody (Remastered 2011)",
             artistName = "Queen",
             isPlaying = false,

@@ -27,13 +27,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.utils.extractAlbumArt
 
 @Composable
-fun AlbumCard(album: AlbumDto) {
+fun AlbumCard(album: AlbumDto, grid: Boolean = false) {
     AppTheme {
         Card(
             modifier =
@@ -82,24 +85,33 @@ fun AlbumCard(album: AlbumDto) {
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
                 )
 
-                SubtitleInformation(
-                    listOf(
-                        Pair(Icons.Default.Person, album.artistName),
-                        Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
-                        Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
-                    ),
-                    fontColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                if (!grid) {
+                    SubtitleInformation(
+                        listOf(
+                            Pair(Icons.Default.Person, album.artistName),
+                            Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                            Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
+                        ),
+                        fontColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                } else {
+                    Text(
+                        text = album.artistName,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = SUBTITLE_FONTSIZE,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCardPreview_Dark")
+@Preview(name = "AlbumCardPreview_NonGrid")
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCardPreview_NonGrid_Dark")
 fun AlbumCardPreview() {
     AlbumCard(
         AlbumDto(

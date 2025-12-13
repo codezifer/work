@@ -31,7 +31,7 @@ fun AlbumGridContent(albums: List<AlbumDto>) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(albums) { album ->
-            AlbumCard(album)
+            AlbumCard(album, grid = true)
         }
     }
 }
