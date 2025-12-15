@@ -1,9 +1,10 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
-import coil.ImageLoader
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
+import coil3.ImageLoader
+import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
+import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
 
 private fun getImageLoader(context: Context): ImageLoader =
@@ -11,13 +12,13 @@ private fun getImageLoader(context: Context): ImageLoader =
         .Builder(context)
         .memoryCache {
             MemoryCache
-                .Builder(context)
-                .maxSizePercent(0.25)
+                .Builder()
+                .maxSizePercent(context, 0.25)
                 .build()
         }.diskCache {
             DiskCache
                 .Builder()
-                .directory(context.cacheDir.resolve("image_cache"))
+                .directory(context.cacheDir.resolve("image_cache").toOkioPath())
                 .maxSizePercent(0.02)
                 .build()
         }.build()

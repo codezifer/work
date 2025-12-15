@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
@@ -45,19 +45,18 @@ fun AlbumCoverCollage(
         ) {
             if (covers.isEmpty()) {
                 Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.linearGradient(
-                                    colors =
-                                        listOf(
-                                            gradient1Color,
-                                            gradient2Color,
-                                            gradient3Color,
-                                        ),
-                                ),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        gradient1Color,
+                                        gradient2Color,
+                                        gradient3Color,
+                                    ),
                             ),
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Placeholder")
@@ -68,11 +67,10 @@ fun AlbumCoverCollage(
                 ) {
                     items(covers) { cover ->
                         Box(
-                            modifier =
-                                Modifier
-                                    .aspectRatio(1f)
-                                    .border(0.5.dp, MaterialTheme.colorScheme.outline),
                             contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .border(0.5.dp, MaterialTheme.colorScheme.outline),
                         ) {
                             when (cover) {
                                 is CoverSource.FromPath -> {

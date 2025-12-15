@@ -100,9 +100,11 @@ fun PlayingQueueContent(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${"%02d".format(
-                                        item.mediaMetadata.trackNumber,
-                                    )} - ${item.mediaMetadata.title}",
+                                    text = "${
+                                        "%02d".format(
+                                            item.mediaMetadata.trackNumber,
+                                        )
+                                    } - ${item.mediaMetadata.title}",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )

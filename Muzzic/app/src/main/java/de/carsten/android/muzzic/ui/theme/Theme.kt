@@ -262,7 +262,7 @@ val unspecified_scheme =
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content:
-        @Composable()
+    @Composable()
         () -> Unit,
 ) {
     val colorScheme =

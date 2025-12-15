@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -67,7 +67,13 @@ fun PlayerScreenContext(
             verticalArrangement = Arrangement.Center,
         ) {
             // Album Cover
-            AlbumArtControl(albumArtPath)
+            AlbumArtControl(
+                if (albumArtPath == null) {
+                    AlbumArtInput.None
+                } else {
+                    AlbumArtInput.FromPath(albumArtPath)
+                }
+            )
             Spacer(modifier = Modifier.height(24.dp))
 
             // Song Info
@@ -130,64 +136,80 @@ fun PlayerScreenContext(
 
             // Controls
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val circularButtonModifier = Modifier
-                    .size(40.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
                     .border(
-                        width = 1.dp,
+                        width = 2.dp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         shape = CircleShape,
-                    )
-                    .background(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        shape = CircleShape
-                    )
-                // prev-button
-                IconButton(
-                    onClick = onPreviousClicked,
-                    modifier = circularButtonModifier,
+                    ),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            vertical = 8.dp
+                        )
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.SkipPrevious,
-                        contentDescription = "Previous Track",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(40.dp),
-                    )
-                }
+                    val circularButtonModifier = Modifier
+                        .size(40.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            shape = CircleShape,
+                        )
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        )
+                    // prev-button
+                    IconButton(
+                        onClick = onPreviousClicked,
+                        modifier = circularButtonModifier,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SkipPrevious,
+                            contentDescription = "Previous Track",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(40.dp),
+                        )
+                    }
 
-                // play-pause-button
-                IconButton(
-                    onClick = onPlayPauseClicked,
-                    modifier =
-                        Modifier
-                            .size(72.dp) // Larger play/pause button
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                CircleShape,
-                            ),
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(44.dp),
-                    )
-                }
+                    // play-pause-button
+                    IconButton(
+                        onClick = onPlayPauseClicked,
+                        modifier =
+                            Modifier
+                                .size(72.dp) // Larger play/pause button
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    CircleShape,
+                                ),
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(44.dp),
+                        )
+                    }
 
-                // next-button
-                IconButton(
-                    onClick = onNextClicked,
-                    modifier = circularButtonModifier,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.SkipNext,
-                        contentDescription = "Next Track",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(40.dp),
-                    )
+                    // next-button
+                    IconButton(
+                        onClick = onNextClicked,
+                        modifier = circularButtonModifier,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SkipNext,
+                            contentDescription = "Next Track",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(40.dp),
+                        )
+                    }
                 }
             }
 

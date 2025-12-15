@@ -104,7 +104,7 @@ dependencies {
     implementation(libs.koin.android.compose)
 
     // coil
-    implementation(libs.coil)
+    implementation(libs.coil3)
 
     // charts
     implementation(libs.charts)
@@ -122,8 +122,17 @@ dependencies {
     // testing
     testImplementation(composeBomPlatform)
     testImplementation(libs.junit)
+
+    // android testing
     androidTestImplementation(composeBomPlatform)
-    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.compose.ui.testing)
+    androidTestImplementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.koin.test)
+
+    // debug deps.
     debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.manifest)
 }

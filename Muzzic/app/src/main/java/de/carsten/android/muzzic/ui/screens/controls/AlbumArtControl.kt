@@ -2,91 +2,102 @@ package de.carsten.android.muzzic.ui.screens.controls
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DiscFull
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.model.TestingTags.Screens.CircularProgressIndicator
+import de.carsten.android.muzzic.model.TestingTags.Screens.FallbackPainter
+import de.carsten.android.muzzic.model.TestingTags.Screens.SuccessAsyncImage
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
-import de.carsten.android.muzzic.utils.extractAlbumArt
 
 @Composable
-fun AlbumArtControl(albumArtPath: String? = null) {
+fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None) {
+    val coilModel = when (albumArtInput) {
+        is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
+        is AlbumArtInput.FromInputStream -> albumArtInput.inputStream
+        is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
+        else -> null
+    }
+
     AppTheme {
-        AlbumArtContent(
-            albumArtPainter = if (albumArtPath == null) null else rememberAsyncImagePainter(
-                model = ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(
-                        extractAlbumArt(
-                            context = LocalContext.current,
-                            audioFilePath = albumArtPath,
-                        ),
-                    ).build(),
-            )
-        )
+        AlbumArtContent(coilModel)
     }
 }
 
 @Composable
-private fun AlbumArtContent(albumArtPainter: Painter? = null) {
-    when (albumArtPainter) {
-        is AsyncImagePainter -> HandleAsyncImagePainter(albumArtPainter)
-        else -> FallbackPainter()
+private fun AlbumArtContent(coilModel: Any?) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(coilModel)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Album Art",
+        ) {
+            val state by painter.state.collectAsState()
+            HandleAsyncImageState(state)
+        }
     }
 }
 
 @Composable
-private fun HandleAsyncImagePainter(asyncImagePainter: AsyncImagePainter) {
-    when (asyncImagePainter.state) {
+private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
+    when (state) {
+        is AsyncImagePainter.State.Empty,
         is AsyncImagePainter.State.Loading -> {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.primary,
                 strokeWidth = 22.dp,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(100)),
-
-                )
+                    .fillMaxSize()
+                    .padding(22.dp)
+                    .testTag(CircularProgressIndicator),
+            )
         }
 
-        is AsyncImagePainter.State.Empty,
         is AsyncImagePainter.State.Error -> {
             FallbackPainter()
         }
 
         is AsyncImagePainter.State.Success -> {
-            AsyncImage(
-                model = asyncImagePainter,
+            Image(
+                painter = state.painter,
                 contentDescription = "Album Art",
                 contentScale = ContentScale.Crop,
-                placeholder = rememberVectorPainter(Icons.Default.DiscFull),
-                error = rememberVectorPainter(Icons.Default.Error),
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .aspectRatio(1.0f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .testTag(SuccessAsyncImage),
             )
         }
     }
@@ -99,10 +110,11 @@ private fun FallbackPainter() {
         contentDescription = "Empty or error state fallback",
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .fillMaxWidth(0.8f)
+            .fillMaxWidth()
             .aspectRatio(1.0f)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.background)
+            .testTag(FallbackPainter)
     )
 }
 

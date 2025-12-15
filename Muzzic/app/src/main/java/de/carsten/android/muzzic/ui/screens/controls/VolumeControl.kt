@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -91,8 +90,8 @@ fun VolumeControl(modifier: Modifier = Modifier) {
                 },
                 valueRange = 0f..maxVolume.toFloat(), // Wertebereich an System anpassen
                 modifier = Modifier
-                        .width(150.dp) // Etwas mehr Platz für eine feinere Steuerung
-                        .padding(horizontal = 8.dp),
+                    .width(150.dp) // Etwas mehr Platz für eine feinere Steuerung
+                    .padding(horizontal = 8.dp),
                 colors =
                     SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
