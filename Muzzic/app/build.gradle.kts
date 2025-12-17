@@ -1,9 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 val rootKotlinVersion = "2.2"
 val rootTargetSdk = 36
-val rootJvmVersion = "21"
+val rootJvmVersion = 25
 
 plugins {
     alias(libs.plugins.android.application)
@@ -19,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "de.carsten.android.muzzic"
-        minSdk = rootTargetSdk - 1
+        minSdk = rootTargetSdk - 2
         targetSdk = rootTargetSdk
         versionCode = 1
         versionName = "0.1.1"
@@ -34,6 +33,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -42,20 +42,17 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildToolsVersion = "36.0.0"
 }
 
 kotlin {
+    val forJvmVersion = 17
+    jvmToolchain(rootJvmVersion)
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(rootJvmVersion)
-        languageVersion = KotlinVersion.fromVersion(rootKotlinVersion)
-        apiVersion = KotlinVersion.fromVersion(rootKotlinVersion)
-    }
-    sourceSets.all {
-        languageSettings.enableLanguageFeature("ExplicitBackingFields")
+        jvmTarget = JvmTarget.fromTarget(forJvmVersion.toString())
     }
 }
 
@@ -74,7 +71,7 @@ dependencies {
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.media)
 
-    // jestpack compose
+    // jetpack compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)
     implementation(composeBomPlatform)
     implementation(libs.androidx.compose.ui)
