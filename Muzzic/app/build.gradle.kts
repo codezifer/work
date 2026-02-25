@@ -1,8 +1,11 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val appId = "de.carsten.android.muzzic"
 val rootKotlinVersion = "2.2"
 val rootTargetSdk = 36
-val rootJvmVersion = 25
+val rootJvmVersion = 17
+val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
+val buildVersion = "${rootTargetSdk}.0.0"
 
 plugins {
     alias(libs.plugins.android.application)
@@ -13,11 +16,11 @@ plugins {
 }
 
 android {
-    namespace = "de.carsten.android.muzzic"
+    namespace = appId
     compileSdk = rootTargetSdk
 
     defaultConfig {
-        applicationId = "de.carsten.android.muzzic"
+        applicationId = appId
         minSdk = rootTargetSdk - 2
         targetSdk = rootTargetSdk
         versionCode = 1
@@ -35,24 +38,27 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
+        debug {
+            // Added buildConfigField manually to avoid dependency on automatic generation if it fails
+            buildConfigField("boolean", "SEED_DATABASE", "true")
+        }
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = compatibility
+        targetCompatibility = compatibility
     }
-    buildToolsVersion = "36.0.0"
+    buildToolsVersion = buildVersion
 }
 
 kotlin {
-    val forJvmVersion = 17
-    jvmToolchain(rootJvmVersion)
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(forJvmVersion.toString())
+        jvmTarget = JvmTarget.fromTarget(rootJvmVersion.toString())
     }
 }
 
