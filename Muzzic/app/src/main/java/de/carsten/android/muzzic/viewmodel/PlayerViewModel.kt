@@ -12,14 +12,19 @@ import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MusicPlayerService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
+@OptIn(ExperimentalCoroutinesApi::class)
 open class PlayerViewModel(
     private val repository: MusicRepository,
     application: Application,
@@ -36,17 +41,50 @@ open class PlayerViewModel(
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong: StateFlow<Song?> = _currentSong
 
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying
+    val isPlaying: StateFlow<Boolean> =
+        musicService
+            .flatMapLatest { service ->
+                service?.isPlayingFlow ?: flowOf(false)
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = false,
+            )
 
-    private val _currentPosition = MutableStateFlow(0L)
-    val currentPosition: StateFlow<Long> = _currentPosition
+    val currentPosition: StateFlow<Long> =
+        musicService
+            .flatMapLatest { service ->
+                service?.currentPositionFlow ?: flowOf(0L)
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0L,
+            )
 
-    private val _duration = MutableStateFlow(0L)
-    val duration: StateFlow<Long> = _duration
+    val duration: StateFlow<Long> =
+        musicService
+            .flatMapLatest { service ->
+                service?.durationFlow ?: flowOf(0L)
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0L,
+            )
 
-    private val _progress = MutableStateFlow(0F)
-    val progress: StateFlow<Float> = _progress
+    val progress: StateFlow<Float> =
+        musicService
+            .flatMapLatest { service ->
+                service?.let { s ->
+                    s.currentPositionFlow.map { pos ->
+                        val dur = s.durationFlow.value
+                        if (dur > 0) pos.toFloat() / dur else 0f
+                    }
+                } ?: flowOf(0f)
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0f,
+            )
 
     val songs =
         repository.getAllSongs().stateIn(
@@ -64,15 +102,12 @@ open class PlayerViewModel(
                 val binder = service as? MusicPlayerService.MusicPlayerBinder
                 _musicService.value = binder?.getService()
                 _isConnected.value = true
-                _currentPosition.value = _musicService.value?.getCurrentPosition() ?: 0L
-                _isPlaying.value = _musicService.value?.isPlaying() ?: false
-                _duration.value = _musicService.value?.getDuration() ?: 0L
-                _progress.value = (_currentPosition.value / _duration.value).toFloat()
                 logger.debug("MusicPlayerService connected")
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 _musicService.value = null
+                _isConnected.value = false
                 logger.debug("MusicPlayerService disconnected")
             }
 
@@ -101,45 +136,31 @@ open class PlayerViewModel(
 
     fun playSong(song: Song) {
         _currentSong.value = song
-        _isPlaying.value = true
-
         viewModelScope.launch {
             repository.recordPlay(song.id)
+            // Ideally we'd also tell the service to play here if not done elsewhere
         }
     }
 
     fun togglePlayPause() {
-        _isPlaying.value = !_isPlaying.value
-        val isPlaying = _isPlaying.value
-        if (isPlaying) {
-            viewModelScope.launch {
-                // pause on currently playing
-                _musicService.value?.pause()
-            }
+        val service = _musicService.value ?: return
+        if (service.isPlaying()) {
+            service.pause()
         } else {
-            viewModelScope.launch {
-                // play on currently pausing
-                _musicService.value?.play()
-            }
+            service.play()
         }
     }
 
     fun onPrevClicked() {
-        viewModelScope.launch {
-            _musicService.value?.previous()
-        }
+        _musicService.value?.previous()
     }
 
     fun onNextClicked() {
-        viewModelScope.launch {
-            _musicService.value?.next()
-        }
+        _musicService.value?.next()
     }
 
     fun onProgressChanged(progress: Float) {
-        viewModelScope.launch {
-            _musicService.value?.changeProgress(progress)
-        }
+        _musicService.value?.changeProgress(progress)
     }
 
     fun updateRating(rating: Int) {
@@ -154,5 +175,10 @@ open class PlayerViewModel(
         viewModelScope.launch {
             repository.scanMusicLibrary()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        getApplication<Application>().unbindService(serviceConnection)
     }
 }

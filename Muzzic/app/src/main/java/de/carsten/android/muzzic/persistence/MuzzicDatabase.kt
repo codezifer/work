@@ -39,6 +39,7 @@ abstract class MuzzicDatabase : RoomDatabase() {
             Room
                 .databaseBuilder(context, MuzzicDatabase::class.java, "muzzic.db")
                 .addMigrations(*Migrations.supply())
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
     }
 
