@@ -59,58 +59,57 @@ class MusicPlayerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        exoPlayer =
-            ExoPlayer.Builder(this).build().apply {
-                addListener(
-                    object : Player.Listener {
-                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                            _isPlaying.value = isPlaying
-                        }
+        exoPlayer = ExoPlayer.Builder(this).build().apply {
+            addListener(
+                object : Player.Listener {
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        _isPlaying.value = isPlaying
+                    }
 
-                        override fun onMediaItemTransition(
-                            mediaItem: MediaItem?,
-                            reason: Int,
-                        ) {
-                            _currentSong.value = mediaItem
+                    override fun onMediaItemTransition(
+                        mediaItem: MediaItem?,
+                        reason: Int,
+                    ) {
+                        _currentSong.value = mediaItem
+                        _duration.value = exoPlayer?.duration ?: 0L
+                        // update current playlist index
+                        mediaItem?.let {
+                            currentPlaylistIndex =
+                                _playlist.value.indexOfFirst { item -> item.mediaId == it.mediaId }
+                            currentLastPlaylistIndex = _playlist.value.lastIndex
+                        }
+                        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                            _currentSong.value = exoPlayer?.currentMediaItem
+                        }
+                    }
+
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        val oldState = prevPlaybackState
+                        val newState = playbackState
+                        _playbackState.value = newState
+                        if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
                             _duration.value = exoPlayer?.duration ?: 0L
-                            // update current playlist index
-                            mediaItem?.let {
-                                currentPlaylistIndex =
-                                    _playlist.value.indexOfFirst { item -> item.mediaId == it.mediaId }
-                                currentLastPlaylistIndex = _playlist.value.lastIndex
-                            }
-                            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-                                _currentSong.value = exoPlayer?.currentMediaItem
-                            }
+                        }
+                        if (playbackState == Player.STATE_ENDED) {
+                            // TODO: handle repead mode here
                         }
 
-                        override fun onPlaybackStateChanged(playbackState: Int) {
-                            val oldState = prevPlaybackState
-                            val newState = playbackState
-                            _playbackState.value = newState
-                            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
-                                _duration.value = exoPlayer?.duration ?: 0L
-                            }
-                            if (playbackState == Player.STATE_ENDED) {
-                                // TODO: handle repead mode here
-                            }
+                        resolvesPlaybackStateTransition(oldState, newState)
 
-                            resolvesPlaybackStateTransition(oldState, newState)
+                        prevPlaybackState = newState
+                    }
 
-                            prevPlaybackState = newState
+                    override fun onTimelineChanged(
+                        timeline: Timeline,
+                        reason: Int,
+                    ) {
+                        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+                            // TODO: update playlist STateFlow here if needed
                         }
-
-                        override fun onTimelineChanged(
-                            timeline: Timeline,
-                            reason: Int,
-                        ) {
-                            if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                                // TODO: update playlist STateFlow here if needed
-                            }
-                        }
-                    },
-                )
-            }
+                    }
+                },
+            )
+        }
         // start a coroutine to periodically update current position
         serviceScope.launch {
             while (true) {

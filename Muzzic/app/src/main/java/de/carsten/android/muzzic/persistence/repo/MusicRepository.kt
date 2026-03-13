@@ -4,6 +4,8 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Environment
 import com.mpatric.mp3agic.Mp3File
+import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.dao.AlbumDao
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
 import de.carsten.android.muzzic.persistence.dao.GenreDao
@@ -39,18 +41,36 @@ class MusicRepository(
     val playHistoryDao: PlayHistoryDao,
     val context: Context,
 ) {
+    companion object {
+        @JvmStatic
+        private val logger = logger()
+    }
+
     fun getAllSongs() = songDao.getAllSongs()
 
     fun getAllPlaylists() = playlistDao.getAllPlaylists()
 
     suspend fun scanMusicLibrary() {
         val musicFiles = scanForMusicFiles()
-        val songs =
-            musicFiles.map { file ->
+        val currentSongs = songDao.getAllSongs().first()
+        val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
+
+        val newFiles = musicFiles.filter { it.absolutePath !in currentFilePaths }
+
+        if (newFiles.isNotEmpty()) {
+            val songs = newFiles.map { file ->
                 extractSongMetadata(file)
             }
-        songDao.insertSongs(songs)
-        generateAutomaticPlaylists()
+            songDao.insertSongs(songs)
+            generateAutomaticPlaylists()
+        }
+
+        // Clean up songs that no longer exist on disk
+        val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
+        val missingSongs = currentSongs.filter { it.filePath !in existingFilesOnDisk }
+        if (missingSongs.isNotEmpty()) {
+            songDao.deleteSongs(missingSongs)
+        }
     }
 
     private fun scanForMusicFiles(): List<File> {
@@ -64,10 +84,12 @@ class MusicRepository(
         val musicFiles = mutableListOf<File>()
 
         musicFolders.forEach { folder ->
-            folder
-                .walkTopDown()
-                .filter { it.isFile && it.extension.lowercase() in supportedFormats }
-                .forEach { musicFiles.add(it) }
+            if (folder.exists()) {
+                folder
+                    .walkTopDown()
+                    .filter { it.isFile && it.extension.lowercase() in supportedFormats }
+                    .forEach { musicFiles.add(it) }
+            }
         }
 
         return musicFiles
@@ -86,12 +108,9 @@ class MusicRepository(
                     genre = id3v2Tag?.genreDescription ?: unknownGenre,
                     duration = mp3file.lengthInMilliseconds,
                     filePath = file.absolutePath,
-                    albumArt =
-                        id3v2Tag?.albumImage?.let {
-                            saveAlbumArt(it, file.nameWithoutExtension)
-                        },
-                    albumYear = parseId3Year(id3v2Tag.year),
-                    rating = id3v2Tag.wmpRating,
+                    albumArt = saveAlbumArt(file, mp3file),
+                    albumYear = parseId3Year(id3v2Tag?.year),
+                    rating = id3v2Tag?.wmpRating ?: 0,
                 )
             } else {
                 // For other formats, use MediaMetadataRetriever
@@ -131,19 +150,15 @@ class MusicRepository(
         }
 
     private fun saveAlbumArt(
-        imageData: ByteArray,
-        fileName: String,
-    ): String? =
-        try {
-            val albumArtDir = File(context.filesDir, "album_art")
-            if (!albumArtDir.exists()) albumArtDir.mkdirs()
-
-            val artFile = File(albumArtDir, "$fileName.jpg")
-            artFile.writeBytes(imageData)
-            artFile.absolutePath
-        } catch (e: Exception) {
-            null
-        }
+        file: File,
+        mp3File: Mp3File,
+    ): String? = try {
+        val (offset, size) = getAlbumArtOffsetAndSize(file, mp3File)
+        AlbumArtUri(file.absolutePath, offset, size).get()
+    } catch (e: Exception) {
+        logger.error("An error occurred while saving album art for ${file.name}", e)
+        null
+    }
 
     private suspend fun generateAutomaticPlaylists() {
         val genres = genreDao.getAllGenres()
@@ -199,5 +214,32 @@ class MusicRepository(
     suspend fun getTopSongs(): List<SongPlayCount> {
         val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
         return playHistoryDao.getTopSongs(oneMonthAgo, 50)
+    }
+
+    private fun getAlbumArtOffsetAndSize(file: File, mp3File: Mp3File): Pair<Long, Long> {
+        try {
+            val tag = mp3File.id3v2Tag
+            val albumImage = tag.albumImage ?: return Pair(0L, 0L)
+            val size = albumImage.size.toLong()
+            val fileBytes = file.inputStream().use { it.readNBytes(tag.length + 10) }
+            val offsetInTag = indexOf(fileBytes, albumImage)
+            if (offsetInTag != -1) {
+                return Pair(offsetInTag.toLong(), size)
+            }
+        } catch (e: Exception) {
+            return Pair(0L, 0L)
+        }
+        return Pair(0L, 0L)
+    }
+
+    private fun indexOf(data: ByteArray, search: ByteArray): Int {
+        if (search.isEmpty()) return 0
+        startloop@ for (i in 0 until data.size - search.size + 1) {
+            for (j in search.indices) {
+                if (data[i + j] != search[j]) continue@startloop
+            }
+            return i
+        }
+        return -1
     }
 }

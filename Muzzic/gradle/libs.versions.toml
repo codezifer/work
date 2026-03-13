@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.12.1"
-agp = "9.0.1"
+agp = "9.1.0"
 appcompat = "1.7.1"
 charts = "v3.1.0"
 coil3 = "3.3.0"

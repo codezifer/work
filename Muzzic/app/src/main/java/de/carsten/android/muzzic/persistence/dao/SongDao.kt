@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.persistence.dao
 
 import androidx.paging.PagingSource
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -39,4 +40,10 @@ interface SongDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSongs(songs: List<Song>)
+
+    @Delete
+    suspend fun deleteSongs(songs: List<Song>)
+
+    @Query("DELETE FROM songs WHERE filePath = :filePath")
+    suspend fun deleteSongByPath(filePath: String)
 }

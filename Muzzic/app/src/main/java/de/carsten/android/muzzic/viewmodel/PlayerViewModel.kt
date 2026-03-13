@@ -123,6 +123,7 @@ open class PlayerViewModel(
 
     init {
         bindToMusicService()
+        scanLibrary()
     }
 
     private fun bindToMusicService() {

@@ -5,9 +5,7 @@ import android.util.Log
 /**
  * Android Logger that implements Java Logger interface with automatic caller detection
  */
-class AndroidLogger private constructor(
-    private val tag: String,
-) {
+class AndroidLogger private constructor(private val tag: String) {
     companion object {
         private const val CALL_STACK_INDEX = 4 // Index to get the actual caller
 
