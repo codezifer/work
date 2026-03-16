@@ -13,7 +13,10 @@ import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 
 @Composable
-fun AlbumGrid(albums: List<AlbumDto>) {
+fun AlbumGrid(
+    albums: List<AlbumDto>,
+    onAlbumClick: (String, String) -> Unit = { _, _ -> },
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -21,7 +24,11 @@ fun AlbumGrid(albums: List<AlbumDto>) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(albums) { album ->
-            AlbumCard(album, grid = true)
+            AlbumCard(
+                album = album,
+                grid = true,
+                onClick = { onAlbumClick(album.artistName, album.albumName) }
+            )
         }
     }
 }

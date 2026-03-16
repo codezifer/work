@@ -20,11 +20,11 @@ interface AlbumDao {
     @Query("SELECT DISTINCT album, artist, albumArt FROM songs ORDER BY album ASC")
     suspend fun getAllAlbums(): List<ArtistAlbum>
 
-    @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY title")
-    suspend fun getSongsByAlbum(
+    @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY trackNumber ASC, title ASC")
+    fun getSongsByAlbum(
         album: String,
         artist: String,
-    ): List<Song>
+    ): Flow<List<Song>>
 
     @Query(
         """
@@ -41,4 +41,21 @@ interface AlbumDao {
         """,
     )
     fun getAlbumAggregation(): Flow<List<AlbumAggregation>>
+
+    @Query(
+        """
+        SELECT
+            s.album AS albumName,
+            s.albumYear AS albumYear,
+            s.artist AS artistName,
+            COUNT(*) AS songCount,
+            SUM(s.duration) AS albumDuration,
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.album = s.album ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+        FROM songs s
+        WHERE s.artist = :artistName
+        GROUP BY s.album, s.albumYear, s.artist
+        ORDER BY s.albumYear DESC, s.album ASC
+        """,
+    )
+    fun getAlbumsByArtist(artistName: String): Flow<List<AlbumAggregation>>
 }

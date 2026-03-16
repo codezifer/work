@@ -9,4 +9,6 @@ val viewModelModule =
         viewModelOf(::LibraryViewModel)
         viewModelOf(::StatisticsViewModel)
         viewModelOf(::PlayingQueueViewModel)
+        viewModelOf(::ArtistAlbumsViewModel)
+        viewModelOf(::AlbumSongsViewModel)
     }

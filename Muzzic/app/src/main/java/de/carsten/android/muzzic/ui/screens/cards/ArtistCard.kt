@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,10 +30,15 @@ import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun ArtistCard(artist: ArtistDto) {
+fun ArtistCard(
+    artist: ArtistDto,
+    onClick: () -> Unit = {},
+) {
     AppTheme {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(12.dp),
         ) {

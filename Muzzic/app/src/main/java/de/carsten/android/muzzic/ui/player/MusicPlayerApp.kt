@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import de.carsten.android.muzzic.ui.screens.LibraryScreen
+import de.carsten.android.muzzic.ui.AppNavHost
 import de.carsten.android.muzzic.ui.screens.PlayerScreen
 import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
@@ -27,7 +27,7 @@ fun MusicPlayerApp() {
         val paddingMod = Modifier.padding(paddingValues)
         when (currentTab) {
             0 -> PlayerScreen(paddingMod)
-            1 -> LibraryScreen(paddingMod)
+            1 -> AppNavHost(paddingMod)
             2 -> PlaylistsScreen(paddingMod)
             3 -> StatisticsScreen(paddingMod)
         }

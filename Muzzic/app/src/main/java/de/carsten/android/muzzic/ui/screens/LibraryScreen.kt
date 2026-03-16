@@ -50,6 +50,8 @@ import java.time.Instant
 @Composable
 fun LibraryScreen(
     modifier: Modifier = Modifier,
+    onArtistClick: (String) -> Unit = {},
+    onAlbumClick: (String, String) -> Unit = { _, _ -> },
     viewModel: LibraryViewModel = koinViewModel(),
 ) {
     val artists by viewModel.artists.collectAsStateWithLifecycle()
@@ -74,6 +76,8 @@ fun LibraryScreen(
         songs = songs,
         genres = genres,
         playlists = playlists,
+        onArtistClick = onArtistClick,
+        onAlbumClick = onAlbumClick,
         modifier = modifier,
     )
 }
@@ -86,6 +90,8 @@ fun LibraryScreenContent(
     songs: List<Song>,
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
+    onArtistClick: (String) -> Unit = {},
+    onAlbumClick: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var selectedFilter by remember { mutableStateOf(ARTIST) }
@@ -130,8 +136,8 @@ fun LibraryScreenContent(
 
             // Content based on filters
             when (selectedFilter) {
-                ARTIST -> ArtistGrid(artists)
-                ALBUM -> AlbumGrid(albums)
+                ARTIST -> ArtistGrid(artists, onArtistClick)
+                ALBUM -> AlbumGrid(albums, onAlbumClick)
                 SONG -> SongList(songs)
                 GENRE -> GenreGrid(genres)
                 PLAYLIST -> PlaylistGridContent(playlists)

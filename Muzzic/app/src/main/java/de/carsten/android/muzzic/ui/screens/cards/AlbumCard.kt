@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,13 +35,18 @@ import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun AlbumCard(album: AlbumDto, grid: Boolean = false) {
+fun AlbumCard(
+    album: AlbumDto,
+    grid: Boolean = false,
+    onClick: () -> Unit = {},
+) {
     AppTheme {
         Card(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
+                    .height(220.dp)
+                    .clickable(onClick = onClick),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(12.dp),
         ) {

@@ -13,7 +13,10 @@ import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
 
 @Composable
-fun ArtistGrid(artists: List<ArtistDto>) {
+fun ArtistGrid(
+    artists: List<ArtistDto>,
+    onArtistClick: (String) -> Unit = {},
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -21,7 +24,10 @@ fun ArtistGrid(artists: List<ArtistDto>) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(artists) { artist ->
-            ArtistCard(artist)
+            ArtistCard(
+                artist = artist,
+                onClick = { onArtistClick(artist.artistName) }
+            )
         }
     }
 }

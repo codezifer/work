@@ -3,6 +3,10 @@ package de.carsten.android.muzzic.persistence.repo
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Environment
+import com.mpatric.mp3agic.BufferTools
+import com.mpatric.mp3agic.ID3v2ObseletePictureFrameData
+import com.mpatric.mp3agic.ID3v2PictureFrameData
+import com.mpatric.mp3agic.ID3v2TagWithOffset
 import com.mpatric.mp3agic.Mp3File
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
@@ -65,9 +69,13 @@ class MusicRepository(
             generateAutomaticPlaylists()
         }
 
-        // Clean up songs that no longer exist on disk
+        // Clean up songs that no longer exist on disk, BUT keep mock songs
         val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
-        val missingSongs = currentSongs.filter { it.filePath !in existingFilesOnDisk }
+        val missingSongs = currentSongs.filter { song ->
+            val path = song.filePath
+            path != null && !path.startsWith("content://mock") && path !in existingFilesOnDisk
+        }
+
         if (missingSongs.isNotEmpty()) {
             songDao.deleteSongs(missingSongs)
         }
@@ -108,7 +116,7 @@ class MusicRepository(
                     genre = id3v2Tag?.genreDescription ?: unknownGenre,
                     duration = mp3file.lengthInMilliseconds,
                     filePath = file.absolutePath,
-                    albumArt = saveAlbumArt(file, mp3file),
+                    albumArt = saveAlbumArt(file),
                     albumYear = parseId3Year(id3v2Tag?.year),
                     rating = id3v2Tag?.wmpRating ?: 0,
                 )
@@ -151,9 +159,8 @@ class MusicRepository(
 
     private fun saveAlbumArt(
         file: File,
-        mp3File: Mp3File,
     ): String? = try {
-        val (offset, size) = getAlbumArtOffsetAndSize(file, mp3File)
+        val (offset, size) = getAlbumArtOffsetAndSize(file)
         AlbumArtUri(file.absolutePath, offset, size).get()
     } catch (e: Exception) {
         logger.error("An error occurred while saving album art for ${file.name}", e)
@@ -216,20 +223,39 @@ class MusicRepository(
         return playHistoryDao.getTopSongs(oneMonthAgo, 50)
     }
 
-    private fun getAlbumArtOffsetAndSize(file: File, mp3File: Mp3File): Pair<Long, Long> {
-        try {
-            val tag = mp3File.id3v2Tag
-            val albumImage = tag.albumImage ?: return Pair(0L, 0L)
-            val size = albumImage.size.toLong()
-            val fileBytes = file.inputStream().use { it.readNBytes(tag.length + 10) }
-            val offsetInTag = indexOf(fileBytes, albumImage)
-            if (offsetInTag != -1) {
-                return Pair(offsetInTag.toLong(), size)
+    private fun getAlbumArtOffsetAndSize(file: File): Pair<Long, Long> {
+        return try {
+            file.inputStream().use { input ->
+                val header = ByteArray(10)
+                if (input.read(header) != 10 || String(header, 0, 3) != "ID3") return Pair(0L, 0L)
+                // Get tag length (synchsafe integer at offset 6)
+                val tagLength = BufferTools.unpackSynchsafeInteger(header[6], header[7], header[8], header[9])
+                val tagBytes = ByteArray(tagLength + 10)
+                System.arraycopy(header, 0, tagBytes, 0, 10)
+                input.read(tagBytes, 10, tagLength)
+
+                val offsetTag = ID3v2TagWithOffset(tagBytes)
+                val apicFrame = offsetTag.getApicFrame() ?: return Pair(0L, 0L)
+
+                // The image data starts inside the frame data.
+                // We use mp3agic's own PictureFrameData to calculate the internal offset.
+                val pictureData = if (apicFrame.id == "PIC") {
+                    ID3v2ObseletePictureFrameData(false, apicFrame.data)
+                } else {
+                    ID3v2PictureFrameData(false, apicFrame.data)
+                }
+
+                // Calculation:
+                // Frame Offset in Tag + Frame Header (10 bytes) + Header fields inside APIC
+                val internalOffset = apicFrame.data.size - pictureData.imageData.size
+                val finalOffset = apicFrame.offsetInTag.toLong() + 10L + internalOffset.toLong()
+                val size = pictureData.imageData.size.toLong()
+
+                Pair(finalOffset, size)
             }
         } catch (e: Exception) {
-            return Pair(0L, 0L)
+            Pair(0L, 0L)
         }
-        return Pair(0L, 0L)
     }
 
     private fun indexOf(data: ByteArray, search: ByteArray): Int {

@@ -10,4 +10,10 @@ class AlbumRepository(
     val albumDao: AlbumDao,
 ) {
     fun getAlbumInformation(): Flow<List<AlbumDto>> = albumDao.getAlbumAggregation().map { it.toDto() }
+
+    fun getAlbumsByArtist(artistName: String): Flow<List<AlbumDto>> =
+        albumDao.getAlbumsByArtist(artistName).map { it.toDto() }
+
+    fun getSongsByAlbum(artistName: String, albumName: String) =
+        albumDao.getSongsByAlbum(albumName, artistName)
 }
