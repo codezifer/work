@@ -13,9 +13,9 @@ import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import java.time.Instant
 
 @Composable
-fun SongList(songs: List<Song>) {
+fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
     LazyColumn(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs) { song ->

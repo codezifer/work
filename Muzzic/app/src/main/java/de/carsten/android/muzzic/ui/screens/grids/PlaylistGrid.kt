@@ -69,9 +69,9 @@ fun PlaylistGrid(viewModel: LibraryViewModel? = null) {
 }
 
 @Composable
-fun PlaylistGridContent(playlists: List<PlaylistDto>) {
+fun PlaylistGridContent(playlists: List<PlaylistDto>, modifier: Modifier = Modifier) {
     LazyColumn(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier.padding(horizontal = 16.dp),
     ) {
         item {
             Text(

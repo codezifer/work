@@ -98,10 +98,9 @@ fun LibraryScreenContent(
 
     AppTheme {
         Column(
-            modifier =
-                modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
             // Header
             Text(
@@ -133,14 +132,15 @@ fun LibraryScreenContent(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            val modifier = Modifier.weight(1f)
 
             // Content based on filters
             when (selectedFilter) {
-                ARTIST -> ArtistGrid(artists, onArtistClick)
-                ALBUM -> AlbumGrid(albums, onAlbumClick)
-                SONG -> SongList(songs)
-                GENRE -> GenreGrid(genres)
-                PLAYLIST -> PlaylistGridContent(playlists)
+                ARTIST -> ArtistGrid(artists, onArtistClick, modifier)
+                ALBUM -> AlbumGrid(albums, onAlbumClick, modifier)
+                SONG -> SongList(songs, modifier)
+                GENRE -> GenreGrid(genres, modifier)
+                PLAYLIST -> PlaylistGridContent(playlists, modifier)
             }
         }
     }
@@ -164,6 +164,8 @@ fun LibraryScreenPreview() {
                 ArtistDto("Dimmu Borgir", 1, 10),
                 ArtistDto("Interpol", 1, 7),
                 ArtistDto("Jimmy Eat World", 1, 10),
+                ArtistDto("Marduk", 1, 23),
+                ArtistDto("Marilyn Masnon", 1, 21),
             ),
         albums =
             listOf(
@@ -181,6 +183,7 @@ fun LibraryScreenPreview() {
                     songCount = 12,
                     albumDuration = 45 * 60 * 1000L,
                 ),
+
             ),
         songs =
             listOf(

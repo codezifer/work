@@ -16,10 +16,11 @@ import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 fun AlbumGrid(
     albums: List<AlbumDto>,
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

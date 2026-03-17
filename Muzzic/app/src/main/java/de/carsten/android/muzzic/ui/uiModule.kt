@@ -4,12 +4,16 @@ import android.content.Context
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
+import de.carsten.android.muzzic.model.AlbumArtUri
 import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
 
 private fun getImageLoader(context: Context): ImageLoader =
     ImageLoader
         .Builder(context)
+        .components {
+            add(AlbumArtFetcher.Factory())
+        }
         .memoryCache {
             MemoryCache
                 .Builder()
