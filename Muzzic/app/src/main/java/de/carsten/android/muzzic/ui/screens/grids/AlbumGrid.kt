@@ -1,16 +1,26 @@
 package de.carsten.android.muzzic.ui.screens.grids
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
+import de.carsten.android.muzzic.ui.screens.controls.FastScroller
+import kotlinx.coroutines.launch
 
 @Composable
 fun AlbumGrid(
@@ -18,18 +28,48 @@ fun AlbumGrid(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        items(albums) { album ->
-            AlbumCard(
-                album = album,
-                grid = true,
-                onClick = { onAlbumClick(album.artistName, album.albumName) }
-            )
+    val gridState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+
+    val alphabet by remember(albums) {
+        derivedStateOf {
+            albums.map { it.albumName.take(1).uppercase() }.distinct().sorted()
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                items(albums) { album ->
+                    AlbumCard(
+                        album = album,
+                        grid = true,
+                        onClick = { onAlbumClick(album.artistName, album.albumName) }
+                    )
+                }
+            }
+
+            if (alphabet.isNotEmpty()) {
+                FastScroller(
+                    alphabet = alphabet,
+                    onLetterSelected = { letter ->
+                        val index = albums.indexOfFirst { it.albumName.startsWith(letter, ignoreCase = true) }
+                        if (index != -1) {
+                            scope.launch {
+                                gridState.scrollToItem(index)
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }

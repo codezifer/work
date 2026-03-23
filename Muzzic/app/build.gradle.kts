@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.media)
+    implementation(libs.androidx.work.runtime)
 
     // jetpack compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)

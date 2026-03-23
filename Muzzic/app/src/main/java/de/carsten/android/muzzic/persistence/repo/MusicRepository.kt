@@ -3,6 +3,11 @@ package de.carsten.android.muzzic.persistence.repo
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Environment
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.mpatric.mp3agic.BufferTools
 import com.mpatric.mp3agic.ID3v2ObseletePictureFrameData
 import com.mpatric.mp3agic.ID3v2PictureFrameData
@@ -33,7 +38,12 @@ import de.carsten.android.muzzic.utils.top100
 import de.carsten.android.muzzic.utils.unknownAlbum
 import de.carsten.android.muzzic.utils.unknownArtist
 import de.carsten.android.muzzic.utils.unknownGenre
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class MusicRepository(
@@ -48,6 +58,7 @@ class MusicRepository(
     companion object {
         @JvmStatic
         private val logger = logger()
+        const val SCAN_WORK_NAME = "MusicLibraryScanWork"
     }
 
     fun getAllSongs() = songDao.getAllSongs()
@@ -55,17 +66,51 @@ class MusicRepository(
     fun getAllPlaylists() = playlistDao.getAllPlaylists()
 
     suspend fun scanMusicLibrary() {
-        val musicFiles = scanForMusicFiles()
+        try {
+            val workManager = WorkManager.getInstance(context)
+            val scanRequest = OneTimeWorkRequestBuilder<MusicScanWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                        .setRequiresBatteryNotLow(true)
+                        .build()
+                )
+                .build()
+
+            workManager.enqueueUniqueWork(
+                SCAN_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                scanRequest
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to enqueue music scan work", e)
+            // Fallback to immediate scan if WorkManager fails
+            performLibraryScan()
+        }
+    }
+
+    suspend fun performLibraryScan() = coroutineScope {
+        val musicFiles = withContext(Dispatchers.IO) { scanForMusicFiles() }
         val currentSongs = songDao.getAllSongs().first()
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
 
         val newFiles = musicFiles.filter { it.absolutePath !in currentFilePaths }
 
         if (newFiles.isNotEmpty()) {
-            val songs = newFiles.map { file ->
-                extractSongMetadata(file)
+            // Process metadata extraction in parallel using IO dispatcher
+            // Limit parallelism to avoid overwhelming the system
+            val chunkedFiles = newFiles.chunked(20)
+            for (chunk in chunkedFiles) {
+                val songs = chunk.map { file ->
+                    async(Dispatchers.IO) {
+                        extractSongMetadata(file)
+                    }
+                }.awaitAll()
+
+                withContext(Dispatchers.IO) {
+                    songDao.insertSongs(songs)
+                }
             }
-            songDao.insertSongs(songs)
             generateAutomaticPlaylists()
         }
 
@@ -77,7 +122,9 @@ class MusicRepository(
         }
 
         if (missingSongs.isNotEmpty()) {
-            songDao.deleteSongs(missingSongs)
+            withContext(Dispatchers.IO) {
+                songDao.deleteSongs(missingSongs)
+            }
         }
     }
 
@@ -123,27 +170,31 @@ class MusicRepository(
             } else {
                 // For other formats, use MediaMetadataRetriever
                 val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(file.absolutePath)
+                try {
+                    retriever.setDataSource(file.absolutePath)
 
-                Song(
-                    title =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                            ?: file.nameWithoutExtension,
-                    artist =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
-                            ?: unknownArtist,
-                    album =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
-                            ?: unknownAlbum,
-                    genre =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
-                            ?: unknownGenre,
-                    duration =
-                        retriever
-                            .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                            ?.toLongOrNull() ?: 0L,
-                    filePath = file.absolutePath,
-                )
+                    Song(
+                        title =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                                ?: file.nameWithoutExtension,
+                        artist =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                                ?: unknownArtist,
+                        album =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                                ?: unknownAlbum,
+                        genre =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
+                                ?: unknownGenre,
+                        duration =
+                            retriever
+                                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLongOrNull() ?: 0L,
+                        filePath = file.absolutePath,
+                    )
+                } finally {
+                    retriever.release()
+                }
             }
         } catch (e: Exception) {
             // Fallback
@@ -269,3 +320,4 @@ class MusicRepository(
         return -1
     }
 }
+
