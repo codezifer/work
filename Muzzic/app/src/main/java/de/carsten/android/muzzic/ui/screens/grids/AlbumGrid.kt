@@ -37,6 +37,17 @@ fun AlbumGrid(
         }
     }
 
+    val activeLetter by remember(albums) {
+        derivedStateOf {
+            val index = gridState.firstVisibleItemIndex
+            if (index in albums.indices) {
+                albums[index].albumName.take(1).uppercase()
+            } else {
+                null
+            }
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             LazyVerticalGrid(
@@ -60,6 +71,7 @@ fun AlbumGrid(
             if (alphabet.isNotEmpty()) {
                 FastScroller(
                     alphabet = alphabet,
+                    activeLetter = activeLetter,
                     onLetterSelected = { letter ->
                         val index = albums.indexOfFirst { it.albumName.startsWith(letter, ignoreCase = true) }
                         if (index != -1) {

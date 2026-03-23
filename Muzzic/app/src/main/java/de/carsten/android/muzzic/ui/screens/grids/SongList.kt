@@ -33,6 +33,17 @@ fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
         }
     }
 
+    val activeLetter by remember(songs) {
+        derivedStateOf {
+            val index = listState.firstVisibleItemIndex
+            if (index in songs.indices) {
+                songs[index].title?.take(1)?.uppercase()
+            } else {
+                null
+            }
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -50,6 +61,7 @@ fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
             if (alphabet.isNotEmpty()) {
                 FastScroller(
                     alphabet = alphabet,
+                    activeLetter = activeLetter,
                     onLetterSelected = { letter ->
                         val index = songs.indexOfFirst { it.title?.startsWith(letter, ignoreCase = true) == true }
                         if (index != -1) {

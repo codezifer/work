@@ -14,7 +14,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +34,17 @@ fun ArtistGrid(
     val alphabet by remember(artists) {
         derivedStateOf {
             artists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
+        }
+    }
+
+    val activeLetter by remember(artists) {
+        derivedStateOf {
+            val index = gridState.firstVisibleItemIndex
+            if (index in artists.indices) {
+                artists[index].artistName.take(1).uppercase()
+            } else {
+                null
+            }
         }
     }
 
@@ -60,6 +70,7 @@ fun ArtistGrid(
             if (alphabet.isNotEmpty()) {
                 FastScroller(
                     alphabet = alphabet,
+                    activeLetter = activeLetter,
                     onLetterSelected = { letter ->
                         val index = artists.indexOfFirst { it.artistName.startsWith(letter, ignoreCase = true) }
                         if (index != -1) {
