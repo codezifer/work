@@ -1,6 +1,10 @@
 package de.carsten.android.muzzic.ui.player
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,13 +27,20 @@ fun MusicPlayerApp() {
                 onTabSelected = { currentTab = it },
             )
         },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        val paddingMod = Modifier.padding(paddingValues)
-        when (currentTab) {
-            0 -> PlayerScreen(paddingMod)
-            1 -> AppNavHost(paddingMod)
-            2 -> PlaylistsScreen(paddingMod)
-            3 -> StatisticsScreen(paddingMod)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            when (currentTab) {
+                0 -> PlayerScreen(Modifier.fillMaxSize())
+                1 -> AppNavHost(Modifier.fillMaxSize())
+                2 -> PlaylistsScreen(Modifier.fillMaxSize())
+                3 -> StatisticsScreen(Modifier.fillMaxSize())
+            }
         }
     }
 }

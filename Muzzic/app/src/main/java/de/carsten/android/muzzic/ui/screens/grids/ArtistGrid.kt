@@ -71,6 +71,7 @@ fun ArtistGrid(
                 FastScroller(
                     alphabet = alphabet,
                     activeLetter = activeLetter,
+                    isScrolling = gridState.isScrollInProgress,
                     onLetterSelected = { letter ->
                         val index = artists.indexOfFirst { it.artistName.startsWith(letter, ignoreCase = true) }
                         if (index != -1) {

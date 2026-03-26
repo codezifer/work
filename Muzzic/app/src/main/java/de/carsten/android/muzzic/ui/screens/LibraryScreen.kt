@@ -96,52 +96,50 @@ fun LibraryScreenContent(
 ) {
     var selectedFilter by remember { mutableStateOf(ARTIST) }
 
-    AppTheme {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        // Header
+        Text(
+            text = stringResource(R.string.library),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp),
+        )
+
+        LazyRow(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Header
-            Text(
-                text = stringResource(R.string.library),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(16.dp),
-            )
-
-            LazyRow(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(filters) { (key, label) ->
-                    FilterChip(
-                        selected = selectedFilter == key,
-                        onClick = { selectedFilter = key },
-                        label = { Text(text = label) },
-                        colors =
-                            FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = Color.White,
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                labelColor = Color.Gray,
-                            ),
-                    )
-                }
+            items(filters) { (key, label) ->
+                FilterChip(
+                    selected = selectedFilter == key,
+                    onClick = { selectedFilter = key },
+                    label = { Text(text = label) },
+                    colors =
+                        FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = Color.White,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = Color.Gray,
+                        ),
+                )
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            val modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(16.dp))
+        val contentModifier = Modifier.weight(1f)
 
-            // Content based on filters
-            when (selectedFilter) {
-                ARTIST -> ArtistGrid(artists, onArtistClick, modifier)
-                ALBUM -> AlbumGrid(albums, onAlbumClick, modifier)
-                SONG -> SongList(songs, modifier)
-                GENRE -> GenreGrid(genres, modifier)
-                PLAYLIST -> PlaylistGridContent(playlists, modifier)
-            }
+        // Content based on filters
+        when (selectedFilter) {
+            ARTIST -> ArtistGrid(artists, onArtistClick, contentModifier)
+            ALBUM -> AlbumGrid(albums, onAlbumClick, contentModifier)
+            SONG -> SongList(songs, contentModifier)
+            GENRE -> GenreGrid(genres, contentModifier)
+            PLAYLIST -> PlaylistGridContent(playlists, contentModifier)
         }
     }
 }
@@ -149,8 +147,9 @@ fun LibraryScreenContent(
 @Preview
 @Composable
 fun LibraryScreenPreview() {
-    LibraryScreenContent(
-        filters =
+    AppTheme {
+        LibraryScreenContent(
+            filters =
             listOf(
                 ARTIST to "Artists",
                 ALBUM to "Albums",
@@ -158,7 +157,7 @@ fun LibraryScreenPreview() {
                 GENRE to "Genres",
                 PLAYLIST to "Playlists",
             ),
-        artists =
+            artists =
             listOf(
                 ArtistDto("Cradle Of Filth", 2, 13),
                 ArtistDto("Dimmu Borgir", 1, 10),
@@ -167,7 +166,7 @@ fun LibraryScreenPreview() {
                 ArtistDto("Marduk", 1, 23),
                 ArtistDto("Marilyn Masnon", 1, 21),
             ),
-        albums =
+            albums =
             listOf(
                 AlbumDto(
                     artistName = "Dimmu Borgir",
@@ -185,7 +184,7 @@ fun LibraryScreenPreview() {
                 ),
 
             ),
-        songs =
+            songs =
             listOf(
                 Song(
                     title = "This is just a Test",
@@ -212,7 +211,7 @@ fun LibraryScreenPreview() {
                     trackNumber = 4,
                 ),
             ),
-        genres =
+            genres =
             listOf(
                 GenreDto(
                     genreName = "Alternative",
@@ -229,7 +228,7 @@ fun LibraryScreenPreview() {
                     genreDuration = 24 * 60 * 60 * 1000L,
                 ),
             ),
-        playlists =
+            playlists =
             listOf(
                 PlaylistDto(
                     playlistName = "TopAlternative",
@@ -241,6 +240,7 @@ fun LibraryScreenPreview() {
                     playlistDuration = 5 * 60 * 60 * 1000L,
                 ),
             ),
-        modifier = Modifier.padding(2.dp),
-    )
+            modifier = Modifier.padding(2.dp),
+        )
+    }
 }

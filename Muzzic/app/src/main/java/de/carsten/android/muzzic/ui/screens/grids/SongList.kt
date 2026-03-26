@@ -62,6 +62,7 @@ fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
                 FastScroller(
                     alphabet = alphabet,
                     activeLetter = activeLetter,
+                    isScrolling = listState.isScrollInProgress,
                     onLetterSelected = { letter ->
                         val index = songs.indexOfFirst { it.title?.startsWith(letter, ignoreCase = true) == true }
                         if (index != -1) {

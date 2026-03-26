@@ -72,6 +72,7 @@ fun AlbumGrid(
                 FastScroller(
                     alphabet = alphabet,
                     activeLetter = activeLetter,
+                    isScrolling = gridState.isScrollInProgress,
                     onLetterSelected = { letter ->
                         val index = albums.indexOfFirst { it.albumName.startsWith(letter, ignoreCase = true) }
                         if (index != -1) {
