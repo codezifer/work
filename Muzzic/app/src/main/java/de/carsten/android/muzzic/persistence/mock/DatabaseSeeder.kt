@@ -80,8 +80,8 @@ object DatabaseSeeder {
             val mockSongs = List(count) { index ->
                 val artist = artists.random()
                 val album = albums.random()
-                val mockPath = "content://mock/music/track_$index.mp3"
-                val seededAlbumArt = AlbumArtUri(mockPath, 1024L, 512000L).get()
+                val mockPath = "https://picsum.photos/500?random=$index"
+                val seededAlbumArt = AlbumArtUri(mockPath).get()
 
                 Song(
                     title = "${titles.random()} ${titles.random()}",

@@ -110,6 +110,9 @@ dependencies {
     // coil
     implementation(libs.coil3)
 
+    // okhttp
+    implementation(libs.okhttp)
+
     // charts
     implementation(libs.charts)
 

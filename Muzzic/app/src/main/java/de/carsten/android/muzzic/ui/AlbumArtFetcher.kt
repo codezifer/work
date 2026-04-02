@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui
 
+import android.content.Context
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -10,27 +11,45 @@ import coil3.request.Options
 import de.carsten.android.muzzic.model.AlbumArtUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okio.Buffer
 import okio.FileSystem
+import okio.Path.Companion.toOkioPath
+import okio.buffer
+import okio.sink
+import java.io.File
 import java.io.RandomAccessFile
+import java.security.MessageDigest
 
 class AlbumArtFetcher(
     private val data: AlbumArtUri,
-    private val options: Options
+    private val options: Options,
+    private val context: Context,
+    private val okHttpClient: OkHttpClient,
 ) : Fetcher {
 
     override suspend fun fetch(): FetchResult {
-        // Use RandomAccessFile to read specific bytes without loading the whole file
+        if (data.filePath.startsWith("http")) {
+            return handleHttpFile()
+        }
+
+        return handleLocalFile()
+    }
+
+    private suspend fun handleLocalFile(): FetchResult {
         val buffer = withContext(Dispatchers.IO) {
             val randomAccessFile = RandomAccessFile(data.filePath, "r")
             randomAccessFile.seek(data.offset)
             val bytes = ByteArray(data.size.toInt())
             randomAccessFile.readFully(bytes)
             randomAccessFile.close()
+
             Buffer().apply {
                 write(bytes)
             }
         }
+
         return SourceFetchResult(
             source = ImageSource(
                 source = buffer,
@@ -41,9 +60,69 @@ class AlbumArtFetcher(
         )
     }
 
-    class Factory : Fetcher.Factory<AlbumArtUri> {
+    private suspend fun handleHttpFile(): FetchResult {
+        val url = data.filePath
+        val (path, mimeType) = withContext(Dispatchers.IO) {
+            val cacheFile = cacheFile(url)
+
+            // cache hit
+            if (cacheFile.exists() && cacheFile.length() > 0) {
+                return@withContext Pair(cacheFile.toOkioPath(), null)
+            }
+
+            // cache miss
+            val req = Request.Builder().url(url).build()
+            val res = okHttpClient.newCall(req).execute()
+
+            check(res.isSuccessful) {
+                "Request failed: ${res.code} ${res.message}"
+            }
+
+            val body = checkNotNull(res.body) {
+                "Empty response body for $url!"
+            }
+
+            val tmpFile = File(cacheFile.parent, "${cacheFile.name}.tmp")
+            tmpFile.parentFile?.mkdirs()
+
+            body.source().use { source ->
+                tmpFile.sink().buffer().use { sink ->
+                    sink.writeAll(source)
+                }
+            }
+            tmpFile.renameTo(cacheFile)
+
+            Pair(cacheFile.toOkioPath(), res.header("Content-Type"))
+        }
+
+        return SourceFetchResult(
+            source = ImageSource(
+                file = path,
+                fileSystem = FileSystem.SYSTEM
+            ),
+            mimeType = mimeType,
+            dataSource = DataSource.NETWORK
+        )
+    }
+
+    private fun cacheFile(url: String): File {
+        val cacheDir = File(context.cacheDir, "album_art_cache")
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+        val hash = url.md5()
+        return File(cacheDir, hash)
+    }
+
+    private fun String.md5(): String {
+        val digest = MessageDigest.getInstance("MD5")
+        return digest.digest(toByteArray())
+            .joinToString("") { "%02x".format(it) }
+    }
+
+    class Factory(private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher.Factory<AlbumArtUri> {
         override fun create(data: AlbumArtUri, options: Options, imageLoader: ImageLoader): Fetcher {
-            return AlbumArtFetcher(data, options)
+            return AlbumArtFetcher(data, options, context, okHttpClient)
         }
     }
 }

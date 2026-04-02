@@ -21,6 +21,7 @@ material = "1.13.0"
 media = "1.7.1"
 mp3agic = "0.9.1"
 navigation = "2.9.6"
+okhttp = "4.12.0"
 paging = "3.3.6"
 permissions = "0.37.3"
 room = "2.8.4"
@@ -70,6 +71,9 @@ koin-android-compose = { group = "io.insert-koin", name = "koin-androidx-compose
 
 # coil
 coil3 = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
+
+# okhttp
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 # permissions
 permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "permissions" }

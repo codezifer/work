@@ -2,11 +2,11 @@ package de.carsten.android.muzzic.model
 
 import androidx.core.net.toUri
 
-data class AlbumArtUri(val filePath: String, val offset: Long, val size: Long, val mimeType: String? = null) {
+data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Long = 0L, val mimeType: String? = null) {
     fun get(): String {
+        if (filePath.startsWith("http")) return filePath
         val path = "file://${filePath.replace(" ", "%20")}?offset=$offset&size=$size"
-        if (mimeType == null) return path
-        return "$path&mimeType=$mimeType"
+        return if (mimeType == null) path else "$path&mimeType=$mimeType"
     }
 
     companion object {
