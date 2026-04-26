@@ -67,7 +67,10 @@ fun AlbumSongsScreen(
                 }
             }
 
-            SongList(songs = songs)
+            SongList(
+                songs = songs,
+                onSongClick = { song -> viewModel.playSong(song, songs) }
+            )
         }
     }
 }

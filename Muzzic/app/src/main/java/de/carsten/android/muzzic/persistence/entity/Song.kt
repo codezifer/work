@@ -8,6 +8,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.utils.maxStars
 import de.carsten.android.muzzic.utils.mediaItemInstant
 import java.time.Instant
@@ -50,17 +51,17 @@ data class Song(
                 title = metadata.title?.toString(),
                 artist = metadata.artist?.toString(),
                 album = metadata.albumTitle?.toString(),
-                filePath = metadata.artworkUri?.toString(),
+                filePath = mediaItem.localConfiguration?.uri?.toString(),
                 albumArt = metadata.artworkUri?.toString(),
                 albumYear = metadata.releaseYear,
-                rating = getWmpRating(metadata.userRating as StarRating),
+                rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(maxStars, 0f)),
                 genre = metadata.genre?.toString(),
                 duration = metadata.durationMs,
-                lastPlayed = mediaItem.mediaItemInstant("lastPlayed"),
+                lastPlayed = mediaItem.mediaItemInstant(MediaKeys.LAST_PLAYED),
             ).apply {
                 id = mediaItem.mediaId
-                createdAt = mediaItem.mediaItemInstant("createdAt")
-                updatedAt = mediaItem.mediaItemInstant("updatedAt")
+                createdAt = mediaItem.mediaItemInstant(MediaKeys.CREATED_AT)
+                updatedAt = mediaItem.mediaItemInstant(MediaKeys.UPDATED_AT)
             }
         }
 
@@ -127,19 +128,21 @@ data class Song(
                     .setAlbumTitle(this.album)
                     .setReleaseYear(this.albumYear)
                     .setAlbumArtist(this.artist)
-                    .setArtworkUri(this.filePath?.toUri())
+                    .setArtworkUri(this.albumArt?.toUri())
                     .setGenre(this.genre)
                     .setDurationMs(this.duration)
                     .setUserRating(getStarRating(this.rating))
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
                     .setExtras(getExtras())
                     .build(),
             ).build()
 
     private fun getExtras(): Bundle =
         bundleOf(
-            Pair("playCount", this.playCount ?: 0),
-            Pair("lastPlayed", this.lastPlayed?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-            Pair("createdAt", this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-            Pair("updatedAt", this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair(MediaKeys.PLAY_COUNT, this.playCount ?: 0),
+            Pair(MediaKeys.LAST_PLAYED, this.lastPlayed?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair(MediaKeys.UPDATED_AT, this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
         )
 }

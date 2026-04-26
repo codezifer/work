@@ -67,6 +67,12 @@ room {
 }
 
 dependencies {
+    // kotlin
+    val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)
+    implementation(kotlinxCoroutinesBom)
+    implementation(libs.kotlinx.coroutines.code)
+    implementation(libs.kotlinx.coroutines.guava)
+
     // core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
@@ -76,6 +82,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.media)
+    implementation(libs.androidx.media.session)
     implementation(libs.androidx.work.runtime)
 
     // jetpack compose
@@ -108,7 +115,8 @@ dependencies {
     implementation(libs.koin.android.compose)
 
     // coil
-    implementation(libs.coil3)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
 
     // okhttp
     implementation(libs.okhttp)

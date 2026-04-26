@@ -75,6 +75,7 @@ class MusicRepository(
                         .setRequiresBatteryNotLow(true)
                         .build()
                 )
+                .addTag(SCAN_WORK_NAME)
                 .build()
 
             workManager.enqueueUniqueWork(
@@ -89,7 +90,10 @@ class MusicRepository(
         }
     }
 
-    suspend fun performLibraryScan() = coroutineScope {
+    suspend fun performLibraryScan(
+        onProgress: ((String, Int) -> Unit)? = null
+    ) = coroutineScope {
+        onProgress?.invoke(context.getString(de.carsten.android.muzzic.R.string.scan_status_scanning), 0)
         val musicFiles = withContext(Dispatchers.IO) { scanForMusicFiles() }
         val currentSongs = songDao.getAllSongs().first()
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
@@ -99,7 +103,11 @@ class MusicRepository(
         if (newFiles.isNotEmpty()) {
             // Process metadata extraction in parallel using IO dispatcher
             // Limit parallelism to avoid overwhelming the system
-            val chunkedFiles = newFiles.chunked(20)
+            val totalFiles = newFiles.size
+            var processedFiles = 0
+            val chunkSize = 20
+            val chunkedFiles = newFiles.chunked(chunkSize)
+
             for (chunk in chunkedFiles) {
                 val songs = chunk.map { file ->
                     async(Dispatchers.IO) {
@@ -110,15 +118,27 @@ class MusicRepository(
                 withContext(Dispatchers.IO) {
                     songDao.insertSongs(songs)
                 }
+
+                processedFiles += chunk.size
+                val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
+                onProgress?.invoke(
+                    context.getString(de.carsten.android.muzzic.R.string.scan_status_metadata, progress),
+                    progress
+                )
             }
             generateAutomaticPlaylists()
         }
 
-        // Clean up songs that no longer exist on disk, BUT keep mock songs
+        onProgress?.invoke(context.getString(de.carsten.android.muzzic.R.string.scan_status_cleaning), 100)
+        // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
         val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
         val missingSongs = currentSongs.filter { song ->
             val path = song.filePath
-            path != null && !path.startsWith("content://mock") && path !in existingFilesOnDisk
+            path != null &&
+                    !path.startsWith("content://mock") &&
+                    !path.startsWith("http://") &&
+                    !path.startsWith("https://") &&
+                    path !in existingFilesOnDisk
         }
 
         if (missingSongs.isNotEmpty()) {
@@ -191,6 +211,7 @@ class MusicRepository(
                                 .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                 ?.toLongOrNull() ?: 0L,
                         filePath = file.absolutePath,
+                        albumArt = saveAlbumArt(file),
                     )
                 } finally {
                     retriever.release()
@@ -249,7 +270,7 @@ class MusicRepository(
 
     suspend fun recordPlay(songId: String) {
         songDao.incrementPlayCount(songId)
-        playHistoryDao.insertPlayHistory(PlayHistory(songId = songId))
+        playHistoryDao.insertPlayHistory(PlayHistory(songId))
     }
 
     suspend fun updateSongRating(

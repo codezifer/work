@@ -4,4 +4,7 @@ import de.carsten.android.muzzic.persistence.dao.SongDao
 
 class SongRepository(
     private val songDao: SongDao,
-)
+) {
+    suspend fun searchSongs(query: String) = songDao.searchSongs(query)
+    suspend fun getSongById(songId: String) = songDao.getSongById(songId)
+}

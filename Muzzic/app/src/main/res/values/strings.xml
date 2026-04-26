@@ -26,6 +26,11 @@
     <string name="genres">Genres</string>
     <string name="playlists">Playlists</string>
     <string name="scan_library">Bibliothek scannen</string>
+    <string name="scan_notification_channel_name">Bibliotheksscan</string>
+    <string name="scan_notification_title">Bibliothek wird gescannt</string>
+    <string name="scan_status_scanning">Dateien werden gesucht…</string>
+    <string name="scan_status_metadata">Metadaten werden extrahiert (%1$d%%)…</string>
+    <string name="scan_status_cleaning">Bibliothek wird bereinigt…</string>
 
     <!-- Playlists -->
     <string name="auto_playlists">Automatische Genre-Playlists</string>

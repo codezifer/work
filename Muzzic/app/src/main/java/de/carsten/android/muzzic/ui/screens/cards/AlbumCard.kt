@@ -27,7 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImage
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
@@ -75,6 +77,8 @@ fun AlbumCard(
                             contentDescription = "AlbumArt",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.disc),
+                            error = painterResource(R.drawable.disc),
                         )
                     }
                 }

@@ -1,14 +1,21 @@
 package de.carsten.android.muzzic.service
 
-import android.app.Service
-import android.content.Intent
-import android.os.Binder
-import android.os.IBinder
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaSession
 import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.persistence.repo.AlbumRepository
+import de.carsten.android.muzzic.persistence.repo.ArtistRepository
+import de.carsten.android.muzzic.persistence.repo.GenreRepository
+import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
+import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
+import de.carsten.android.muzzic.persistence.repo.SongRepository
 import de.carsten.android.muzzic.utils.playbackStateToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,13 +25,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class MusicPlayerService : Service() {
+class MusicPlayerService : MediaLibraryService(), KoinComponent {
     private val logger = logger()
-    private var exoPlayer: ExoPlayer? = null
-    private val binder = MusicPlayerBinder()
+    private lateinit var mediaLibrarySession: MediaLibrarySession
+    private lateinit var exoPlayer: ExoPlayer
+
+    private val musicRepository: MusicRepository by inject()
+    private val songRepository: SongRepository by inject()
+    private val artistRepository: ArtistRepository by inject()
+    private val albumRepository: AlbumRepository by inject()
+    private val genreRepository: GenreRepository by inject()
+    private val playlistRepository: PlaylistRepository by inject()
+    private val playingQueueRepository: PlayingQueueRepository by inject()
+
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     private var currentPlaylistIndex = -1
     private var currentLastPlaylistIndex = -1
@@ -51,12 +69,7 @@ class MusicPlayerService : Service() {
     private val _playlist = MutableStateFlow<List<MediaItem>>(emptyList())
     val playlistStateFlow: StateFlow<List<MediaItem>> = _playlist.asStateFlow()
 
-    inner class MusicPlayerBinder : Binder() {
-        fun getService(): MusicPlayerService = this@MusicPlayerService
-    }
-
-    override fun onBind(intent: Intent): IBinder = binder
-
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         exoPlayer = ExoPlayer.Builder(this).build().apply {
@@ -110,6 +123,7 @@ class MusicPlayerService : Service() {
                 },
             )
         }
+
         // start a coroutine to periodically update current position
         serviceScope.launch {
             while (true) {
@@ -119,11 +133,27 @@ class MusicPlayerService : Service() {
                 delay(500) // twice a second
             }
         }
+
+        // init media session
+        mediaLibrarySession = MediaLibrarySession.Builder(
+            this,
+            exoPlayer,
+            MusicPlayerServiceCallback(
+                serviceScope,
+                musicRepository,
+                songRepository,
+                artistRepository,
+                albumRepository,
+                genreRepository,
+                playlistRepository,
+                playingQueueRepository
+            )
+        ).build()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        exoPlayer?.release()
+        exoPlayer.release()
         serviceJob.cancel()
     }
 
@@ -160,10 +190,10 @@ class MusicPlayerService : Service() {
         if (index >= 0 && index < _playlist.value.size) {
             currentPlaylistIndex = index
             currentLastPlaylistIndex = _playlist.value.lastIndex
-            exoPlayer?.seekToDefaultPosition(index) // More robust way to switch within playlist
-            exoPlayer?.playWhenReady = true // Ensure it plays
-            exoPlayer?.prepare() // Call prepare if not already prepared or after seek
-            exoPlayer?.play()
+            exoPlayer.seekToDefaultPosition(index) // More robust way to switch within playlist
+            exoPlayer.playWhenReady = true // Ensure it plays
+            exoPlayer.prepare() // Call prepare if not already prepared or after seek
+            exoPlayer.play()
             _currentSong.value = exoPlayer?.currentMediaItem // Update current song immediately
         }
     }
@@ -175,25 +205,25 @@ class MusicPlayerService : Service() {
 
     // --- Playback Control Functions ---
 
-    fun pause() = exoPlayer?.pause()
+    fun pause() = exoPlayer.pause()
 
     fun play() {
         // If there's a playlist and a valid index, ensure player is ready for that item
-        if (exoPlayer?.currentMediaItem == null &&
+        if (exoPlayer.currentMediaItem == null &&
             currentPlaylistIndex != -1 &&
             currentPlaylistIndex < _playlist.value.size
         ) {
-            exoPlayer?.seekToDefaultPosition(currentPlaylistIndex)
-            exoPlayer?.prepare()
+            exoPlayer.seekToDefaultPosition(currentPlaylistIndex)
+            exoPlayer.prepare()
         }
-        exoPlayer?.play()
+        exoPlayer.play()
     }
 
-    fun stop() = exoPlayer?.stop()
+    fun stop() = exoPlayer.stop()
 
     fun next() {
-        if (exoPlayer?.hasNextMediaItem() == true) {
-            exoPlayer?.seekToNextMediaItem()
+        if (exoPlayer.hasNextMediaItem()) {
+            exoPlayer.seekToNextMediaItem()
             // ExoPlayer's onMediaItemTransition will update currentPlaylistIndex and _currentSong
         } else {
             // Handle end of playlist: stop, loop, etc.
@@ -367,5 +397,9 @@ class MusicPlayerService : Service() {
                     }
                 }
             }
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+        return mediaLibrarySession
     }
 }

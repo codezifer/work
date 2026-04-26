@@ -1,6 +1,9 @@
 package de.carsten.android.muzzic
 
 import android.app.Application
+import android.content.Context
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import de.carsten.android.muzzic.persistence.MuzzicDatabase
 import de.carsten.android.muzzic.persistence.databaseModule
 import de.carsten.android.muzzic.persistence.mock.DatabaseSeeder
@@ -12,7 +15,11 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
-class MuzzicPlayerApplication : Application() {
+class MuzzicPlayerApplication : Application(), SingletonImageLoader.Factory {
+    override fun newImageLoader(context: Context): ImageLoader {
+        return get()
+    }
+
     override fun onCreate() {
         super.onCreate()
 

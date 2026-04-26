@@ -16,4 +16,6 @@ class AlbumRepository(
 
     fun getSongsByAlbum(artistName: String, albumName: String) =
         albumDao.getSongsByAlbum(albumName, artistName)
+
+    suspend fun searchAlbums(query: String): List<AlbumDto> = albumDao.searchAlbums(query).toDto()
 }

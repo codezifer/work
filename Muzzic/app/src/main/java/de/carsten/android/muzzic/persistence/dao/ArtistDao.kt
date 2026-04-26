@@ -30,6 +30,20 @@ interface ArtistDao {
             COUNT(s.id) AS songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
         FROM songs s
+        WHERE s.artist LIKE '%' || :query || '%'
+        GROUP BY s.artist ORDER BY s.artist ASC
+        """,
+    )
+    suspend fun searchArtists(query: String): List<ArtistAggregation>
+
+    @Query(
+        """
+        SELECT
+            s.artist AS artistName,
+            COUNT(DISTINCT s.album) AS albumCount,
+            COUNT(s.id) AS songCount,
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+        FROM songs s
         GROUP BY s.artist ORDER BY s.artist ASC
         """,
     )

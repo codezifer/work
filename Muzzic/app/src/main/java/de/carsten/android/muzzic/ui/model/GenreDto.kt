@@ -1,7 +1,9 @@
 package de.carsten.android.muzzic.ui.model
 
 import androidx.compose.runtime.Immutable
+import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.model.AlbumArt
+import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenreAggregation
 
 @Immutable
@@ -25,3 +27,15 @@ fun GenreAggregation.toDto() =
     )
 
 fun List<GenreAggregation>.toDto() = map { it.toDto() }
+
+fun MediaItem.toGenreDto(): GenreDto {
+    val metadata = mediaMetadata
+    val extras = metadata.extras ?: android.os.Bundle.EMPTY
+    return GenreDto(
+        genreName = metadata.title?.toString() ?: "",
+        artistCount = extras.getInt(MediaKeys.ARTIST_COUNT),
+        albumCount = extras.getInt(MediaKeys.ALBUM_COUNT),
+        songCount = extras.getInt(MediaKeys.SONG_COUNT),
+        genreDuration = extras.getLong(MediaKeys.DURATION)
+    )
+}

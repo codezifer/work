@@ -10,4 +10,6 @@ class PlaylistRepository(
     val playlistDao: PlaylistDao,
 ) {
     fun getPlaylistInformation(): Flow<List<PlaylistDto>> = playlistDao.getPlaylistAggregation().map { it.toDto() }
+
+    suspend fun searchPlaylists(query: String) = playlistDao.searchPlaylists(query)
 }

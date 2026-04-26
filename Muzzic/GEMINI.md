@@ -430,6 +430,18 @@ fun UserDto.toDomain(): User = User(
     email = email
 )
 
+// ✅ Media3 Conversion Pattern: MediaItem to DTO
+// Place conversion logic as extension functions within the DTO file
+fun MediaItem.toArtistDto(): ArtistDto {
+    val metadata = mediaMetadata
+    val extras = metadata.extras ?: Bundle.EMPTY
+    return ArtistDto(
+        artistName = metadata.title?.toString() ?: "",
+        albumCount = extras.getInt("album_count"),
+        songCount = extras.getInt("song_count")
+    )
+}
+
 // ✅ Wrap network calls in safe result wrappers
 suspend fun <T> safeApiCall(call: suspend () -> Response<T>): Result<T> {
     return try {

@@ -23,7 +23,11 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 
 @Composable
-fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
+fun SongList(
+    songs: List<Song>,
+    onSongClick: (Song) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -54,7 +58,7 @@ fun SongList(songs: List<Song>, modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(songs) { song ->
-                    SongListItem(song)
+                    SongListItem(song, onClick = { onSongClick(song) })
                 }
             }
 

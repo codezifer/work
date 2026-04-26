@@ -1,39 +1,38 @@
 package de.carsten.android.muzzic.viewmodel
 
 import android.app.Application
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
+import androidx.annotation.OptIn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaBrowser
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
-import de.carsten.android.muzzic.service.MusicPlayerService
+import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.service.MusicPlayerServiceCallback
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
 open class PlayerViewModel(
     private val repository: MusicRepository,
+    private val mediaLibraryManager: MediaLibraryManager,
     application: Application,
 ) : AndroidViewModel(application),
     KoinComponent {
     private val logger = this.logger()
 
-    private val _musicService = MutableStateFlow<MusicPlayerService?>(null)
-    val musicService: StateFlow<MusicPlayerService?> = _musicService.asStateFlow()
+    val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
 
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
@@ -41,50 +40,20 @@ open class PlayerViewModel(
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong: StateFlow<Song?> = _currentSong
 
-    val isPlaying: StateFlow<Boolean> =
-        musicService
-            .flatMapLatest { service ->
-                service?.isPlayingFlow ?: flowOf(false)
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = false,
-            )
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    val currentPosition: StateFlow<Long> =
-        musicService
-            .flatMapLatest { service ->
-                service?.currentPositionFlow ?: flowOf(0L)
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = 0L,
-            )
+    private val _currentPosition = MutableStateFlow(0L)
+    val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
 
-    val duration: StateFlow<Long> =
-        musicService
-            .flatMapLatest { service ->
-                service?.durationFlow ?: flowOf(0L)
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = 0L,
-            )
+    private val _duration = MutableStateFlow(0L)
+    val duration: StateFlow<Long> = _duration.asStateFlow()
 
-    val progress: StateFlow<Float> =
-        musicService
-            .flatMapLatest { service ->
-                service?.let { s ->
-                    s.currentPositionFlow.map { pos ->
-                        val dur = s.durationFlow.value
-                        if (dur > 0) pos.toFloat() / dur else 0f
-                    }
-                } ?: flowOf(0f)
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = 0f,
-            )
+    private val _progress = MutableStateFlow(0f)
+    val progress: StateFlow<Float> = _progress.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
+    val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
 
     val songs =
         repository.getAllSongs().stateIn(
@@ -93,79 +62,92 @@ open class PlayerViewModel(
             initialValue = emptyList(),
         )
 
-    private val serviceConnection =
-        object : ServiceConnection {
-            override fun onServiceConnected(
-                name: ComponentName?,
-                service: IBinder?,
-            ) {
-                val binder = service as? MusicPlayerService.MusicPlayerBinder
-                _musicService.value = binder?.getService()
-                _isConnected.value = true
-                logger.debug("MusicPlayerService connected")
-            }
-
-            override fun onServiceDisconnected(name: ComponentName?) {
-                _musicService.value = null
-                _isConnected.value = false
-                logger.debug("MusicPlayerService disconnected")
-            }
-
-            override fun onBindingDied(name: ComponentName?) {
-                onServiceDisconnected(name)
-                logger.debug("MusicPlayerService binding died")
-            }
-
-            override fun onNullBinding(name: ComponentName?) {
-                logger.error("Null binding from MusicPlayerService")
-            }
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _isPlaying.value = isPlaying
         }
 
-    init {
-        bindToMusicService()
-        scanLibrary()
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _currentSong.value = mediaItem?.let { Song.fromMediaItem(it) }
+            _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_READY) {
+                _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
+            }
+        }
     }
 
-    private fun bindToMusicService() {
-        val intent = Intent(getApplication(), MusicPlayerService::class.java)
-        getApplication<Application>().bindService(
-            intent,
-            serviceConnection,
-            Context.BIND_AUTO_CREATE,
-        )
+    init {
+        scanLibrary()
+        startProgressUpdater()
+        viewModelScope.launch {
+            browser.collect { b ->
+                if (b != null) {
+                    _isConnected.value = true
+                    b.addListener(playerListener)
+                    // Initial state
+                    _isPlaying.value = b.isPlaying
+                    _currentSong.value = b.currentMediaItem?.let { Song.fromMediaItem(it) }
+                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                    logger.debug("MediaBrowser connected")
+                }
+            }
+        }
+    }
+
+    private fun startProgressUpdater() {
+        viewModelScope.launch {
+            while (true) {
+                val b = browser.value
+                if (b != null && b.isPlaying) {
+                    val pos = b.currentPosition
+                    val dur = b.duration
+                    _currentPosition.value = pos
+                    if (dur > 0) {
+                        _progress.value = pos.toFloat() / dur
+                    }
+                }
+                delay(500)
+            }
+        }
     }
 
     fun playSong(song: Song) {
-        _currentSong.value = song
+        mediaLibraryManager.playContent(song.toMediaItem())
         viewModelScope.launch {
             repository.recordPlay(song.id)
-            // Ideally we'd also tell the service to play here if not done elsewhere
         }
     }
 
     fun togglePlayPause() {
-        val service = _musicService.value ?: return
-        if (service.isPlaying()) {
-            service.pause()
+        val b = browser.value ?: return
+        if (b.isPlaying) {
+            b.pause()
         } else {
-            service.play()
+            b.play()
         }
     }
 
     fun onPrevClicked() {
-        _musicService.value?.previous()
+        browser.value?.seekToPreviousMediaItem()
     }
 
     fun onNextClicked() {
-        _musicService.value?.next()
+        browser.value?.seekToNextMediaItem()
     }
 
     fun onProgressChanged(progress: Float) {
-        _musicService.value?.changeProgress(progress)
+        val b = browser.value ?: return
+        val dur = b.duration
+        if (dur > 0) {
+            b.seekTo((progress * dur).toLong())
+        }
     }
 
     fun updateRating(rating: Int) {
-        currentSong.value?.let { song ->
+        _currentSong.value?.let { song ->
             viewModelScope.launch {
                 repository.updateSongRating(song.id, rating)
             }
@@ -178,8 +160,27 @@ open class PlayerViewModel(
         }
     }
 
+    // Example of how to browse via MediaBrowser
+    fun loadArtists(callback: (List<MediaItem>) -> Unit) {
+        viewModelScope.launch {
+            val artists = mediaLibraryManager.getChildren(MusicPlayerServiceCallback.ARTISTS_ID)
+            callback(artists)
+        }
+    }
+
+    fun loadAlbums(callback: (List<MediaItem>) -> Unit) {
+        viewModelScope.launch {
+            val albums = mediaLibraryManager.getChildren(MusicPlayerServiceCallback.ALBUMS_ID)
+            callback(albums)
+        }
+    }
+
+    fun search(query: String, callback: (List<MediaItem>) -> Unit) {
+        val b = browser.value ?: return
+        b.search(query, null)
+    }
+
     override fun onCleared() {
         super.onCleared()
-        getApplication<Application>().unbindService(serviceConnection)
     }
 }

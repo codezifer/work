@@ -35,6 +35,12 @@ interface SongDao {
         rating: Int,
     )
 
+    @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' OR album LIKE '%' || :query || '%'")
+    suspend fun searchSongs(query: String): List<Song>
+
+    @Query("SELECT * FROM songs WHERE id = :songId")
+    suspend fun getSongById(songId: String): Song?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSong(song: Song)
 

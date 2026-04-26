@@ -78,6 +78,7 @@ fun LibraryScreen(
         playlists = playlists,
         onArtistClick = onArtistClick,
         onAlbumClick = onAlbumClick,
+        onSongClick = { song -> viewModel.playSong(song) },
         modifier = modifier,
     )
 }
@@ -92,6 +93,7 @@ fun LibraryScreenContent(
     playlists: List<PlaylistDto>,
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onSongClick: (Song) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var selectedFilter by remember { mutableStateOf(ARTIST) }
@@ -137,7 +139,7 @@ fun LibraryScreenContent(
         when (selectedFilter) {
             ARTIST -> ArtistGrid(artists, onArtistClick, contentModifier)
             ALBUM -> AlbumGrid(albums, onAlbumClick, contentModifier)
-            SONG -> SongList(songs, contentModifier)
+            SONG -> SongList(songs, onSongClick, contentModifier)
             GENRE -> GenreGrid(genres, contentModifier)
             PLAYLIST -> PlaylistGridContent(playlists, contentModifier)
         }

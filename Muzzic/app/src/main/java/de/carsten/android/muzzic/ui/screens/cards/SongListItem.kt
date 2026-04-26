@@ -33,12 +33,15 @@ import de.carsten.android.muzzic.ui.utils.formatDuration
 import java.time.Instant
 
 @Composable
-fun SongListItem(song: Song) {
+fun SongListItem(
+    song: Song,
+    onClick: () -> Unit = {},
+) {
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable { /* Play song */ },
+                .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(8.dp),
     ) {

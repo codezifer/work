@@ -15,6 +15,9 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlists ORDER BY name ASC")
     fun getAllPlaylists(): Flow<List<Playlist>>
 
+    @Query("SELECT * FROM playlists WHERE name LIKE '%' || :query || '%' ORDER BY name ASC")
+    suspend fun searchPlaylists(query: String): List<Playlist>
+
     @Query(
         "SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.songId WHERE ps.playlistId = :playlistId ORDER BY ps.position",
     )

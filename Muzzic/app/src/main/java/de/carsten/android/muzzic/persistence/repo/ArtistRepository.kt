@@ -10,4 +10,6 @@ class ArtistRepository(
     val artistDao: ArtistDao,
 ) {
     fun getArtistInformation(): Flow<List<ArtistDto>> = artistDao.getArtistAggregations().map { it.toDto() }
+
+    suspend fun searchArtists(query: String): List<ArtistDto> = artistDao.searchArtists(query).toDto()
 }
