@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui
+package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -8,12 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import de.carsten.android.muzzic.ui.AppDestinations
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_SONGS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ALBUMS
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY
-import de.carsten.android.muzzic.ui.screens.AlbumSongsScreen
-import de.carsten.android.muzzic.ui.screens.ArtistAlbumsScreen
-import de.carsten.android.muzzic.ui.screens.LibraryScreen
 
 @Composable
 fun AppNavHost(

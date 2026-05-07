@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -22,6 +23,7 @@ val tabs =
     listOf(
         "Player" to Icons.Default.PlayArrow,
         "Library" to Icons.Default.LibraryMusic,
+        "Queue" to Icons.Default.Queue,
         "Playlists" to Icons.AutoMirrored.Filled.PlaylistPlay,
         "Statistics" to Icons.Default.BarChart,
     )

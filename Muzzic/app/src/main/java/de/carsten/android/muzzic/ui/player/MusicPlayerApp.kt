@@ -12,8 +12,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import de.carsten.android.muzzic.ui.AppNavHost
+import de.carsten.android.muzzic.ui.screens.AppNavHost
 import de.carsten.android.muzzic.ui.screens.PlayerScreen
+import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
 import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 
@@ -38,8 +39,9 @@ fun MusicPlayerApp() {
             when (currentTab) {
                 0 -> PlayerScreen(Modifier.fillMaxSize())
                 1 -> AppNavHost(Modifier.fillMaxSize())
-                2 -> PlaylistsScreen(Modifier.fillMaxSize())
-                3 -> StatisticsScreen(Modifier.fillMaxSize())
+                2 -> PlayingQueueScreen(Modifier.fillMaxSize())
+                3 -> PlaylistsScreen(Modifier.fillMaxSize())
+                4 -> StatisticsScreen(Modifier.fillMaxSize())
             }
         }
     }
