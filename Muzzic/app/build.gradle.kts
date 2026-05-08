@@ -24,7 +24,7 @@ android {
         minSdk = rootTargetSdk - 2
         targetSdk = rootTargetSdk
         versionCode = 1
-        versionName = "0.1.1"
+        versionName = "0.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.palette)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout)

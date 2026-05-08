@@ -1,7 +1,13 @@
 package de.carsten.android.muzzic.ui
 
 object AppDestinations {
+    const val PLAYER = "player"
+    const val LIBRARY_GRAPH = "library_graph"
     const val LIBRARY = "library"
+    const val QUEUE = "queue"
+    const val PLAYLISTS = "playlists"
+    const val STATISTICS = "statistics"
+
     const val ARTIST_ALBUMS = "artist/{artistName}/albums"
     const val ALBUM_SONGS = "album/{artistName}/{albumName}/songs"
 

@@ -36,15 +36,12 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 fun AlbumCoverCollage(
     covers: List<CoverSource>,
     modifier: Modifier = Modifier,
+    useCard: Boolean = true,
 ) {
     val columns = if (covers.size == 4) 2 else covers.size.coerceIn(1, 3)
 
     AppTheme {
-        Card(
-            modifier = modifier,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(8.dp),
-        ) {
+        val content = @Composable {
             if (covers.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -66,6 +63,7 @@ fun AlbumCoverCollage(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(columns),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     items(covers) { cover ->
                         Box(
@@ -97,6 +95,20 @@ fun AlbumCoverCollage(
                         }
                     }
                 }
+            }
+        }
+
+        if (useCard) {
+            Card(
+                modifier = modifier,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                content()
+            }
+        } else {
+            Box(modifier = modifier) {
+                content()
             }
         }
     }

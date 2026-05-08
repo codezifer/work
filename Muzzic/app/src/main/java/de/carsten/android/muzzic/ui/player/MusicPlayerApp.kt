@@ -7,26 +7,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import de.carsten.android.muzzic.ui.screens.AppNavHost
-import de.carsten.android.muzzic.ui.screens.PlayerScreen
-import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
-import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
-import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 
 @Composable
 fun MusicPlayerApp() {
-    var currentTab by remember { mutableIntStateOf(0) }
+    val navController = rememberNavController()
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(
-                currentTab = currentTab,
-                onTabSelected = { currentTab = it },
-            )
+            BottomNavigationBar(navController = navController)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -36,13 +26,10 @@ fun MusicPlayerApp() {
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            when (currentTab) {
-                0 -> PlayerScreen(Modifier.fillMaxSize())
-                1 -> AppNavHost(Modifier.fillMaxSize())
-                2 -> PlayingQueueScreen(Modifier.fillMaxSize())
-                3 -> PlaylistsScreen(Modifier.fillMaxSize())
-                4 -> StatisticsScreen(Modifier.fillMaxSize())
-            }
+            AppNavHost(
+                navController = navController,
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }

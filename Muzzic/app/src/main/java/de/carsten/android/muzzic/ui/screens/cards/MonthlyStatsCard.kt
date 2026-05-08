@@ -1,16 +1,16 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -28,20 +28,23 @@ import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
 fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
     val monthlyPlayCountsState = viewModel.monthlyStats.observeAsState(emptyList())
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2937)),
-        shape = RoundedCornerShape(12.dp),
+    MuzzicCard(
+        backgroundColor = Color(0xFF1F2937),
+        contentColor = Color.White,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.monthly_plays),
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(16.dp),
-            )
+        Text(
+            text = stringResource(R.string.monthly_plays),
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 16.dp),
+        )
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+        ) {
             // simple row chart
             val months = listOf("Jan", "Feb", "Mär", "Apr", "Mai", "Jun")
             val plays = listOf(420, 380, 510, 290, 450, 380)

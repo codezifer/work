@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +29,10 @@ fun SubtitleInformation(
     iconTextPairs: List<Pair<ImageVector, String>>,
     fontColor: Color = Color.Gray,
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         iconTextPairs.forEachIndexed { idx, (img, text) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -68,6 +69,36 @@ fun SubtitleInformationPreview() {
             Pair(Icons.Default.Person, "50 Artists"),
             Pair(Icons.Default.Album, "500 Albums"),
             Pair(Icons.Default.MusicNote, "5000 Songs"),
+        ),
+    )
+}
+
+@Composable
+@Preview(widthDp = 300)
+fun SubtitleInformation300WidthPreview() {
+    SubtitleInformation(
+        listOf(
+            Pair(Icons.Default.Person, "50 Artists"),
+            Pair(Icons.Default.Album, "500 Albums"),
+            Pair(Icons.Default.MusicNote, "5000 Songs"),
+            Pair(Icons.Default.Person, "50 Extra Artists"),
+            Pair(Icons.Default.Album, "500 Extra Albums"),
+            Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
+        ),
+    )
+}
+
+@Composable
+@Preview(widthDp = 100)
+fun SubtitleInformation100WidthPreview() {
+    SubtitleInformation(
+        listOf(
+            Pair(Icons.Default.Person, "50 Artists"),
+            Pair(Icons.Default.Album, "500 Albums"),
+            Pair(Icons.Default.MusicNote, "5000 Songs"),
+            Pair(Icons.Default.Person, "50 Extra Artists"),
+            Pair(Icons.Default.Album, "500 Extra Albums"),
+            Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
         ),
     )
 }

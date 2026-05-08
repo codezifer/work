@@ -1,23 +1,19 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,59 +23,56 @@ import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
-import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun PlaylistCard(playlist: PlaylistDto) {
-    AppTheme {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Column(
+fun PlaylistCard(
+    playlist: PlaylistDto,
+    onClick: () -> Unit = {},
+) {
+    val palette by rememberPaletteState(playlist.lastAlbumArt)
+    val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
+    val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+
+    MuzzicCard(
+        header = {
+            AlbumCoverCollage(
+                covers =
+                    if (playlist.lastAlbumArt == null) {
+                        emptyList()
+                    } else {
+                        listOf(CoverSource.FromPath(playlist.lastAlbumArt))
+                    },
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                AlbumCoverCollage(
-                    covers =
-                        if (playlist.lastAlbumArt ==
-                            null
-                        ) {
-                            emptyList()
-                        } else {
-                            listOf(CoverSource.FromPath(playlist.lastAlbumArt))
-                        },
-                    modifier = Modifier.size(120.dp),
-                )
+                        .aspectRatio(1.2f),
+                useCard = false,
+            )
+        },
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        onClick = onClick,
+    ) {
+        Text(
+            text = playlist.playlistName,
+            color = it,
+            fontSize = MAINTITLE_FONTSIZE,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
 
-                Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = playlist.playlistName,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = MAINTITLE_FONTSIZE,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                SubtitleInformation(
-                    listOf(
-                        Pair(Icons.Default.Person, "${playlist.artistCount} Artists"),
-                        Pair(Icons.Default.Album, "${playlist.albumCount} Albums"),
-                        Pair(Icons.Default.MusicNote, "${playlist.songCount} Songs"),
-                    ),
-                    fontColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, "${playlist.artistCount} Artists"),
+                Pair(Icons.Default.Album, "${playlist.albumCount} Albums"),
+                Pair(Icons.Default.MusicNote, "${playlist.songCount} Songs"),
+            ),
+            fontColor = it.copy(alpha = 0.8f),
+        )
     }
 }
 
