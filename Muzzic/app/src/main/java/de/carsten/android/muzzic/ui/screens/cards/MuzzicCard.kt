@@ -25,32 +25,30 @@ fun MuzzicCard(
     onClick: (() -> Unit)? = null,
     content: @Composable (contentColor: Color) -> Unit,
 ) {
-    AppTheme {
-        Card(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .then(if (onClick != null) Modifier.Companion.clickable(onClick = onClick) else Modifier.Companion),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = backgroundColor,
-                    contentColor = contentColor,
-                ),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Column(modifier = Modifier.Companion.fillMaxWidth()) {
-                header?.let {
-                    Box(modifier = Modifier.Companion.fillMaxWidth()) { it() }
-                }
-                Column(
-                    modifier =
-                        Modifier.Companion
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                    horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                ) {
-                    content(contentColor)
-                }
+    Card(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.Companion.clickable(onClick = onClick) else Modifier.Companion),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = backgroundColor,
+                contentColor = contentColor,
+            ),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column(modifier = Modifier.Companion.fillMaxWidth()) {
+            header?.let {
+                Box(modifier = Modifier.Companion.fillMaxWidth()) { it() }
+            }
+            Column(
+                modifier =
+                    Modifier.Companion
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                horizontalAlignment = Alignment.Companion.CenterHorizontally,
+            ) {
+                content(contentColor)
             }
         }
     }

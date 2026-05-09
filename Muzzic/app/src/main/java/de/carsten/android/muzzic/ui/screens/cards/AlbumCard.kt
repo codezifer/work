@@ -28,13 +28,11 @@ import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 
 @Composable
 fun AlbumCard(
     album: AlbumDto,
-    grid: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     val palette by rememberPaletteState(album.lastAlbumArt)
@@ -75,25 +73,14 @@ fun AlbumCard(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (!grid) {
-            SubtitleInformation(
-                listOf(
-                    Pair(Icons.Default.Person, album.artistName),
-                    Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
-                    Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
-                ),
-                fontColor = it.copy(alpha = 0.8f),
-            )
-        } else {
-            Text(
-                text = album.artistName,
-                color = it.copy(alpha = 0.8f),
-                fontSize = SUBTITLE_FONTSIZE,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, album.artistName),
+                Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
+            ),
+            fontColor = it.copy(alpha = 0.8f),
+        )
     }
 }
 

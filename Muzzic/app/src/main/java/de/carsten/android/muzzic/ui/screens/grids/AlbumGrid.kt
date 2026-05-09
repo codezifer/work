@@ -59,11 +59,17 @@ fun AlbumGrid(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                items(albums) { album ->
+                items(
+                    items = albums,
+                    key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
+                    contentType = { "Album" }
+                ) { album ->
+                    val onClick = remember(album.artistName, album.albumName) {
+                        { onAlbumClick(album.artistName, album.albumName) }
+                    }
                     AlbumCard(
                         album = album,
-                        grid = true,
-                        onClick = { onAlbumClick(album.artistName, album.albumName) }
+                        onClick = onClick
                     )
                 }
             }

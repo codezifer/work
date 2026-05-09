@@ -20,7 +20,11 @@ fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(genres) { genre ->
+        items(
+            items = genres,
+            key = { genre -> genre.genreName },
+            contentType = { "Genre" }
+        ) { genre ->
             GenreCard(genre)
         }
     }

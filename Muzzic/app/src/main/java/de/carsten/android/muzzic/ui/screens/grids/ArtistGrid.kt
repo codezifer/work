@@ -59,10 +59,17 @@ fun ArtistGrid(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                itemsIndexed(artists) { _, artist ->
+                itemsIndexed(
+                    items = artists,
+                    key = { _, artist -> artist.artistName },
+                    contentType = { _, _ -> "Artist" }
+                ) { _, artist ->
+                    val onClick = remember(artist.artistName) {
+                        { onArtistClick(artist.artistName) }
+                    }
                     ArtistCard(
                         artist = artist,
-                        onClick = { onArtistClick(artist.artistName) }
+                        onClick = onClick
                     )
                 }
             }

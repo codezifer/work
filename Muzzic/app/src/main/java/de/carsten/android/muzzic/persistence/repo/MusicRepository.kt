@@ -177,10 +177,10 @@ class MusicRepository(
                 val id3v2Tag = mp3file.id3v2Tag
 
                 Song(
-                    title = id3v2Tag?.title ?: file.nameWithoutExtension,
-                    artist = id3v2Tag?.artist ?: unknownArtist,
-                    album = id3v2Tag?.album ?: unknownAlbum,
-                    genre = id3v2Tag?.genreDescription ?: unknownGenre,
+                    title = id3v2Tag?.title?.trim() ?: file.nameWithoutExtension,
+                    artist = id3v2Tag?.artist?.trim() ?: unknownArtist,
+                    album = id3v2Tag?.album?.trim() ?: unknownAlbum,
+                    genre = id3v2Tag?.genreDescription?.trim() ?: unknownGenre,
                     duration = mp3file.lengthInMilliseconds,
                     filePath = file.absolutePath,
                     albumArt = saveAlbumArt(file),
@@ -195,16 +195,16 @@ class MusicRepository(
 
                     Song(
                         title =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
                                 ?: file.nameWithoutExtension,
                         artist =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
                                 ?: unknownArtist,
                         album =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
                                 ?: unknownAlbum,
                         genre =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
                                 ?: unknownGenre,
                         duration =
                             retriever

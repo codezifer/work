@@ -21,11 +21,11 @@ data class Song(
     val trackNumber: Int? = 0,
     @ColumnInfo(defaultValue = "0")
     val totalTracks: Int? = 0,
-    @ColumnInfo(index = true)
+    @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
     val artist: String? = null,
-    @ColumnInfo(index = true)
+    @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
     val album: String? = null,
-    @ColumnInfo(index = true)
+    @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
     val genre: String? = null,
     @ColumnInfo(defaultValue = "0")
     val duration: Long? = 0L, // in milliseconds

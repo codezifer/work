@@ -57,8 +57,15 @@ fun SongList(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(songs) { song ->
-                    SongListItem(song, onClick = { onSongClick(song) })
+                items(
+                    items = songs,
+                    key = { song -> song.id },
+                    contentType = { "Song" }
+                ) { song ->
+                    val onClick = remember(song.id) {
+                        { onSongClick(song) }
+                    }
+                    SongListItem(song, onClick = onClick)
                 }
             }
 

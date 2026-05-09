@@ -85,7 +85,9 @@ fun FastScroller(
 
     // Prioritize the currently dragged letter over the system-reported active letter
     val effectiveLetter = draggingLetter ?: activeLetter
-    val letterIndex = alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
+    val letterIndex = remember(effectiveLetter, alphabet) {
+        alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
+    }
 
     AnimatedVisibility(
         visible = isVisible,

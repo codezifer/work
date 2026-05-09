@@ -3,11 +3,11 @@ package de.carsten.android.muzzic.ui.screens.cards
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
@@ -16,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -30,7 +31,6 @@ import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
 import de.carsten.android.muzzic.ui.model.CoverSource
-import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
 fun AlbumCoverCollage(
@@ -40,76 +40,86 @@ fun AlbumCoverCollage(
 ) {
     val columns = if (covers.size == 4) 2 else covers.size.coerceIn(1, 3)
 
-    AppTheme {
-        val content = @Composable {
-            if (covers.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.linearGradient(
-                                colors =
-                                    listOf(
-                                        gradient1Color,
-                                        gradient2Color,
-                                        gradient3Color,
-                                    ),
-                            ),
+    val content = @Composable {
+        if (covers.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            colors =
+                                listOf(
+                                    gradient1Color,
+                                    gradient2Color,
+                                    gradient3Color,
+                                ),
                         ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Placeholder")
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Placeholder")
+            }
+        } else {
+            // Simplified grid replacement using Row/Column for better performance
+            Column(modifier = Modifier.fillMaxSize()) {
+                val chunkedCovers = remember(covers, columns) {
+                    covers.chunked(columns)
                 }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(columns),
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    items(covers) { cover ->
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .border(0.5.dp, MaterialTheme.colorScheme.outline),
-                        ) {
-                            when (cover) {
-                                is CoverSource.FromPath -> {
-                                    AsyncImage(
-                                        model = cover.path,
-                                        contentDescription = "Album Art",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop,
-                                        placeholder = painterResource(R.drawable.disc),
-                                        error = painterResource(R.drawable.disc),
-                                    )
-                                }
+                chunkedCovers.forEach { rowCovers ->
+                    Row(modifier = Modifier.weight(1f)) {
+                        rowCovers.forEach { cover ->
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .border(0.5.dp, MaterialTheme.colorScheme.outline),
+                            ) {
+                                when (cover) {
+                                    is CoverSource.FromPath -> {
+                                        AsyncImage(
+                                            model = cover.path,
+                                            contentDescription = "Album Art",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            placeholder = painterResource(R.drawable.disc),
+                                            error = painterResource(R.drawable.disc),
+                                        )
+                                    }
 
-                                is CoverSource.FromVector -> {
-                                    Icon(
-                                        imageVector = cover.imageVector,
-                                        contentDescription = "Placeholder Icon",
-                                        modifier = Modifier.fillMaxSize(0.5f),
-                                    )
+                                    is CoverSource.FromVector -> {
+                                        Icon(
+                                            imageVector = cover.imageVector,
+                                            contentDescription = "Placeholder Icon",
+                                            modifier = Modifier.fillMaxSize(0.5f),
+                                        )
+                                    }
                                 }
+                            }
+                        }
+                        // Fill empty slots in the last row if necessary
+                        if (rowCovers.size < columns) {
+                            repeat(columns - rowCovers.size) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
                 }
             }
         }
+    }
 
-        if (useCard) {
-            Card(
-                modifier = modifier,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                shape = RoundedCornerShape(8.dp),
-            ) {
-                content()
-            }
-        } else {
-            Box(modifier = modifier) {
-                content()
-            }
+    if (useCard) {
+        Card(
+            modifier = modifier,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            content()
+        }
+    } else {
+        Box(modifier = modifier) {
+            content()
         }
     }
 }
