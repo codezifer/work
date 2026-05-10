@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.GenreDto
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import kotlin.math.absoluteValue
 
 @Composable
@@ -41,38 +42,40 @@ fun GenreCard(
     val colorPair = colors[genre.hashCode().absoluteValue % colors.size]
     val palette by rememberPaletteState(genre.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
 
-    MuzzicCard(
-        header = {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .background(Brush.horizontalGradient(colorPair)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = genre.genreName,
-                    color = Color.White,
-                    fontSize = MAINTITLE_FONTSIZE,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        },
-        backgroundColor = backgroundColor,
-        contentColor = contentColor,
-        onClick = onClick,
-    ) {
-        SubtitleInformation(
-            listOf(
-                Pair(Icons.Default.Person, "${genre.artistCount} Artists"),
-                Pair(Icons.Default.Album, "${genre.albumCount} Albums"),
-                Pair(Icons.Default.MusicNote, "${genre.songCount} Songs"),
-            ),
-            fontColor = it.copy(alpha = 0.8f),
-        )
+    AppTheme {
+        MuzzicCard(
+            header = {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .background(Brush.horizontalGradient(colorPair)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = genre.genreName,
+                        color = Color.White,
+                        fontSize = MAINTITLE_FONTSIZE,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            },
+            backgroundColor = backgroundColor,
+            contentColor = contentColor,
+            onClick = onClick,
+        ) {
+            SubtitleInformation(
+                listOf(
+                    Pair(Icons.Default.Person, "${genre.artistCount} Artists"),
+                    Pair(Icons.Default.Album, "${genre.albumCount} Albums"),
+                    Pair(Icons.Default.MusicNote, "${genre.songCount} Songs"),
+                ),
+                fontColor = it.copy(alpha = 0.8f),
+            )
+        }
     }
 }
 

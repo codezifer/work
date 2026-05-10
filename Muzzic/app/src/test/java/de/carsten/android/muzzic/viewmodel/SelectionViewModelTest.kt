@@ -7,6 +7,7 @@ import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
+import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

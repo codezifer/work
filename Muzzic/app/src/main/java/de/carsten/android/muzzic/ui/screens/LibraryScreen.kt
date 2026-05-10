@@ -33,6 +33,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.ARTIST
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST
 import de.carsten.android.muzzic.ui.AppDestinations.SONG
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
@@ -200,8 +201,9 @@ fun LibraryScreenContent(
     }
 }
 
-@Preview
 @Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun LibraryScreenPreview() {
     AppTheme {
         LibraryScreenContent(

@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui.screens
+package de.carsten.android.muzzic.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,15 +9,23 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import de.carsten.android.muzzic.ui.AppDestinations
+import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_ARGUMENT
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_SONGS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ALBUMS
+import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ARGUMENT
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY_GRAPH
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
+import de.carsten.android.muzzic.ui.screens.AlbumSongsScreen
+import de.carsten.android.muzzic.ui.screens.ArtistAlbumsScreen
+import de.carsten.android.muzzic.ui.screens.LibraryScreen
+import de.carsten.android.muzzic.ui.screens.PlayerScreen
+import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
+import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
+import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 
 @Composable
@@ -55,7 +63,7 @@ fun AppNavHost(
 
             composable(
                 route = ARTIST_ALBUMS,
-                arguments = listOf(navArgument("artistName") { type = NavType.StringType })
+                arguments = listOf(navArgument(ARTIST_ARGUMENT) { type = NavType.StringType })
             ) {
                 ArtistAlbumsScreen(
                     modifier = modifier,
@@ -70,8 +78,8 @@ fun AppNavHost(
             composable(
                 route = ALBUM_SONGS,
                 arguments = listOf(
-                    navArgument("artistName") { type = NavType.StringType },
-                    navArgument("albumName") { type = NavType.StringType }
+                    navArgument(ARTIST_ARGUMENT) { type = NavType.StringType },
+                    navArgument(ALBUM_ARGUMENT) { type = NavType.StringType }
                 )
             ) {
                 AlbumSongsScreen(

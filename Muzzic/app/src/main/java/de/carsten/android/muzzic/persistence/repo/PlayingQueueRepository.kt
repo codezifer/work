@@ -24,4 +24,15 @@ class PlayingQueueRepository(
     suspend fun removeSongs(mediaItems: List<MediaItem>) {
         playingQueueDao.removeSongs(mediaItems.map { item -> item.mediaId })
     }
+
+    suspend fun persistQueue(mediaItems: List<MediaItem>) {
+        playingQueueDao.clearQueue()
+        playingQueueDao.addSongs(
+            mediaItems.mapIndexed { index, item ->
+                PlayingQueue.fromMediaItem(item).apply {
+                    this.queuePosition = index
+                }
+            },
+        )
+    }
 }

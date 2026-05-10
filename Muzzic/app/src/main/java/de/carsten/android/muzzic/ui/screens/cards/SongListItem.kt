@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.containerColor
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.EMPTY
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import java.time.Instant
@@ -46,93 +47,95 @@ fun SongListItem(
     onLongClick: () -> Unit = {},
     isSelected: Boolean = false,
 ) {
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick
-                ),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else containerColor
-        ),
-        shape = RoundedCornerShape(8.dp),
-    ) {
-        Row(
+    AppTheme {
+        Card(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                    .clip(RoundedCornerShape(8.dp))
+                    .combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick
+                    ),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else containerColor
+            ),
+            shape = RoundedCornerShape(8.dp),
         ) {
-            // Song Icon or Checkmark
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center,
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Card(
-                    modifier = Modifier.fillMaxSize(),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else containerColor,
-                        ),
-                    shape = if (isSelected) CircleShape else RoundedCornerShape(8.dp),
+                // Song Icon or Checkmark
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
+                    Card(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else containerColor,
+                            ),
+                        shape = if (isSelected) CircleShape else RoundedCornerShape(8.dp),
                     ) {
-                        Icon(
-                            if (isSelected) Icons.Default.Check else Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
-                            modifier = Modifier.size(20.dp),
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                if (isSelected) Icons.Default.Check else Icons.Default.MusicNote,
+                                contentDescription = null,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            // Song Info
-            Column(
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(
-                    text = song.title ?: EMPTY,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                // Song Info
+                Column(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        text = song.title ?: EMPTY,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
 
-                Text(
-                    text = "${song.artist} • ${song.album}",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+                    Text(
+                        text = "${song.artist} • ${song.album}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
-            // Rating and Duration
-            Column(
-                horizontalAlignment = Alignment.End,
-            ) {
-                StarRating(
-                    rating = song.rating ?: 0,
-                    onRatingChanged = { /* Update rating */ },
-                    size = 12.dp,
-                )
+                // Rating and Duration
+                Column(
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    StarRating(
+                        rating = song.rating ?: 0,
+                        onRatingChanged = { /* Update rating */ },
+                        size = 12.dp,
+                    )
 
-                Text(
-                    text = formatDuration(song.duration ?: 0),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
-                )
+                    Text(
+                        text = formatDuration(song.duration ?: 0),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 10.sp,
+                    )
+                }
             }
         }
     }
@@ -140,6 +143,7 @@ fun SongListItem(
 
 @Composable
 @Preview
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "SongListItemPreview_Dark")
 fun SongListItemPreview() {
     SongListItem(
         Song(

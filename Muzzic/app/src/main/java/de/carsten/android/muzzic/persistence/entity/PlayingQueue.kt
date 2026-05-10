@@ -16,7 +16,7 @@ data class PlayingQueue(
     val albumArt: String? = null,
     val genre: String? = null,
     val duration: Long? = null, // in milliseconds
-    val queuePosition: Int = 0,
+    var queuePosition: Int = 0,
 ) : AbstractEntity() {
     companion object {
         fun fromMediaItem(mediaItem: MediaItem): PlayingQueue =

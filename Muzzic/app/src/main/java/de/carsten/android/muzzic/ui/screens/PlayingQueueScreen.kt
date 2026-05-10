@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -37,7 +34,7 @@ fun PlayingQueueScreen(
     modifier: Modifier,
     viewModel: PlayingQueueViewModel = koinViewModel(),
 ) {
-    val playingQueue by viewModel.currentPlayingQueue.collectAsState()
+    val playingQueue: List<MediaItem> by viewModel.currentPlayingQueue.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadPlayingQueue()
@@ -46,7 +43,6 @@ fun PlayingQueueScreen(
     PlayingQueueContent(
         modifier = modifier,
         playingQueue = playingQueue,
-        onClear = viewModel::clear,
     )
 }
 
@@ -55,7 +51,6 @@ fun PlayingQueueContent(
     modifier: Modifier,
     name: String = "Playing Queue",
     playingQueue: List<MediaItem>,
-    onClear: () -> Unit,
 ) {
     AppTheme {
         Column(
@@ -78,13 +73,6 @@ fun PlayingQueueContent(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                IconButton(onClick = onClear) {
-                    Icon(
-                        imageVector = Icons.Filled.ClearAll,
-                        contentDescription = stringResource(R.string.clear_all),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
             }
 
             if (playingQueue.isEmpty()) {
@@ -129,7 +117,7 @@ fun PlayingQueueContent(
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun PlayingQueueScreenPreview() {
     PlayingQueueContent(
         modifier = Modifier.padding(2.dp),
@@ -149,6 +137,5 @@ fun PlayingQueueScreenPreview() {
                             .build(),
                     ).build(),
             ),
-        onClear = {},
     )
 }

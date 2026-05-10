@@ -29,6 +29,7 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
+import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
 fun AlbumCard(
@@ -39,52 +40,54 @@ fun AlbumCard(
 ) {
     val palette by rememberPaletteState(album.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
 
-    MuzzicCard(
-        header = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                AsyncImage(
-                    model = album.lastAlbumArt,
-                    contentDescription = "AlbumArt",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(R.drawable.disc),
-                    error = painterResource(R.drawable.disc),
-                )
-            }
-        },
-        backgroundColor = backgroundColor,
-        contentColor = contentColor,
-        onClick = onClick,
-        onLongClick = onLongClick,
-        isSelected = isSelected,
-    ) {
-        Text(
-            text = album.albumName,
-            color = it,
-            fontSize = MAINTITLE_FONTSIZE,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+    AppTheme {
+        MuzzicCard(
+            header = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    AsyncImage(
+                        model = album.lastAlbumArt,
+                        contentDescription = "AlbumArt",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.disc),
+                        error = painterResource(R.drawable.disc),
+                    )
+                }
+            },
+            backgroundColor = backgroundColor,
+            contentColor = contentColor,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            isSelected = isSelected,
+        ) {
+            Text(
+                text = album.albumName,
+                color = it,
+                fontSize = MAINTITLE_FONTSIZE,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-        SubtitleInformation(
-            listOf(
-                Pair(Icons.Default.Person, album.artistName),
-                Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
-                Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
-            ),
-            fontColor = it.copy(alpha = 0.8f),
-        )
+            SubtitleInformation(
+                listOf(
+                    Pair(Icons.Default.Person, album.artistName),
+                    Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                    Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
+                ),
+                fontColor = it.copy(alpha = 0.8f),
+            )
+        }
     }
 }
 

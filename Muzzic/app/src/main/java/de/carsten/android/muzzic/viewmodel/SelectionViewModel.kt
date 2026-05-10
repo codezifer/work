@@ -7,6 +7,7 @@ import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
+import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -142,9 +143,3 @@ class SelectionViewModel(
     }
 }
 
-data class SelectionState(
-    val isActive: Boolean = false,
-    val selectedArtists: Set<String> = emptySet(),
-    val selectedAlbums: Set<String> = emptySet(), // "artist|album"
-    val selectedSongs: Set<String> = emptySet(),
-)

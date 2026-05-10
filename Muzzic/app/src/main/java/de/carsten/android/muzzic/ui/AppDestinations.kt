@@ -8,8 +8,10 @@ object AppDestinations {
     const val PLAYLISTS = "playlists"
     const val STATISTICS = "statistics"
 
-    const val ARTIST_ALBUMS = "artist/{artistName}/albums"
-    const val ALBUM_SONGS = "album/{artistName}/{albumName}/songs"
+    const val ARTIST_ARGUMENT = "artistName"
+    const val ARTIST_ALBUMS = "artist/{$ARTIST_ARGUMENT}/albums"
+    const val ALBUM_ARGUMENT = "albumName"
+    const val ALBUM_SONGS = "album/{$ARTIST_ARGUMENT}/{$ALBUM_ARGUMENT}/songs"
 
     // Legacy constants if needed
     const val ARTIST = "artist"

@@ -37,4 +37,10 @@ class PlayingQueueViewModel(
             repository.removeSongs(mediaItems)
         }
     }
+
+    fun persistCurrentQueue() {
+        viewModelScope.launch {
+            repository.persistQueue(_currentPlayingQueue.value)
+        }
+    }
 }

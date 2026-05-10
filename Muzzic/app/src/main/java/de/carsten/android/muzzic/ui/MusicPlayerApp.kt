@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui.player
+package de.carsten.android.muzzic.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -17,19 +17,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import de.carsten.android.muzzic.ui.AppDestinations
-import de.carsten.android.muzzic.ui.screens.AppNavHost
-import de.carsten.android.muzzic.ui.screens.SelectionToolbar
+import de.carsten.android.muzzic.ui.screens.controls.BottomNavigationBar
+import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
+import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
+import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
+import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MusicPlayerApp(
-    viewModel: SelectionViewModel = koinViewModel()
+    selectionViewModel: SelectionViewModel = koinViewModel(),
+    queueViewModel: PlayingQueueViewModel = koinViewModel()
 ) {
-    val navController = rememberNavController()
-    val selectionState by viewModel.selectionState.collectAsStateWithLifecycle()
+    val navController: NavHostController = rememberNavController()
+    val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
+    val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
+    val currentDestination: String? = navBackStackEntry?.destination?.route
 
     Scaffold(
         bottomBar = {
@@ -45,13 +53,14 @@ fun MusicPlayerApp(
         ) {
             AppNavHost(
                 navController = navController,
-                selectionViewModel = viewModel,
+                selectionViewModel = selectionViewModel,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Floating Selection Toolbar
+            // Floating Contextual Toolbar
+            val showSelectionToolbar = selectionState.isActive || currentDestination == AppDestinations.QUEUE
             AnimatedVisibility(
-                visible = selectionState.isActive,
+                visible = showSelectionToolbar,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                 modifier = Modifier
@@ -59,13 +68,16 @@ fun MusicPlayerApp(
                     .padding(bottom = 16.dp)
             ) {
                 SelectionToolbar(
-                    selectedCount = selectionState.selectedArtists.size + selectionState.selectedAlbums.size + selectionState.selectedSongs.size,
+                    mode = if (selectionState.isActive) ToolbarMode.SELECTION else ToolbarMode.QUEUE_MGMT,
+                    selectedCount = selectionState.selectedSongs.size,
                     onConfirm = {
-                        viewModel.confirmSelection {
+                        selectionViewModel.confirmSelection {
                             navController.navigate(AppDestinations.QUEUE)
                         }
                     },
-                    onCancel = { viewModel.clearSelection() }
+                    onCancel = { selectionViewModel.clearSelection() },
+                    onClearQueue = { queueViewModel.clear() },
+                    onPersistQueue = { queueViewModel.persistCurrentQueue() }
                 )
             }
         }

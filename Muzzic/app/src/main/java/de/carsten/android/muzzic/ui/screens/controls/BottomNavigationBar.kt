@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui.player
+package de.carsten.android.muzzic.ui.screens.controls
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay

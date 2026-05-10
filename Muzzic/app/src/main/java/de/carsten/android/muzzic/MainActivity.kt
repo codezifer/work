@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import de.carsten.android.muzzic.ui.player.MusicPlayerApp
+import de.carsten.android.muzzic.ui.MusicPlayerApp
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
