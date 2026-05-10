@@ -34,6 +34,8 @@ import de.carsten.android.muzzic.ui.model.AlbumDto
 fun AlbumCard(
     album: AlbumDto,
     onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
 ) {
     val palette by rememberPaletteState(album.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
@@ -60,6 +62,8 @@ fun AlbumCard(
         backgroundColor = backgroundColor,
         contentColor = contentColor,
         onClick = onClick,
+        onLongClick = onLongClick,
+        isSelected = isSelected,
     ) {
         Text(
             text = album.albumName,

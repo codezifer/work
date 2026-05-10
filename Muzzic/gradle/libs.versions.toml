@@ -22,6 +22,9 @@ material = "1.13.0"
 media = "1.7.1"
 mediaSession = "1.10.0"
 mp3agic = "0.9.1"
+mockk = "1.13.13"
+robolectric = "4.16.1"
+turbine = "1.2.0"
 navigation = "2.9.6"
 okhttp = "4.12.0"
 paging = "3.3.6"
@@ -100,14 +103,19 @@ androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", 
 androidx-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }
 
 # Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-compose-ui-testing = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-testing = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoCore" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitVersion" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
 koin-test = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 
 [plugins]

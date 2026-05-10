@@ -27,6 +27,8 @@ import de.carsten.android.muzzic.ui.model.CoverSource
 fun ArtistCard(
     artist: ArtistDto,
     onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
 ) {
     val palette by rememberPaletteState(artist.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
@@ -51,6 +53,8 @@ fun ArtistCard(
         backgroundColor = backgroundColor,
         contentColor = contentColor,
         onClick = onClick,
+        onLongClick = onLongClick,
+        isSelected = isSelected,
     ) {
         Text(
             text = artist.artistName,

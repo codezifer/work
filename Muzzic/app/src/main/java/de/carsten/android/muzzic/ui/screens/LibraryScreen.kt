@@ -44,6 +44,7 @@ import de.carsten.android.muzzic.ui.screens.grids.PlaylistGridContent
 import de.carsten.android.muzzic.ui.screens.grids.SongList
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.time.Instant
 
@@ -53,12 +54,14 @@ fun LibraryScreen(
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     viewModel: LibraryViewModel = koinViewModel(),
+    selectionViewModel: SelectionViewModel,
 ) {
     val artists by viewModel.artists.collectAsStateWithLifecycle()
     val albums by viewModel.albums.collectAsStateWithLifecycle()
     val songs by viewModel.songs.collectAsStateWithLifecycle()
     val genres by viewModel.genres.collectAsStateWithLifecycle()
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     val filters =
         listOf(
@@ -70,21 +73,46 @@ fun LibraryScreen(
         )
 
     LibraryScreenContent(
+        modifier = modifier,
         filters = filters,
         artists = artists,
         albums = albums,
         songs = songs,
         genres = genres,
         playlists = playlists,
-        onArtistClick = onArtistClick,
-        onAlbumClick = onAlbumClick,
-        onSongClick = { song -> viewModel.playSong(song) },
-        modifier = modifier,
+        onArtistClick = { artist ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleArtistSelection(artist)
+            } else {
+                onArtistClick(artist)
+            }
+        },
+        onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
+        onAlbumClick = { artist, album ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleAlbumSelection(artist, album)
+            } else {
+                onAlbumClick(artist, album)
+            }
+        },
+        onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
+        onSongClick = { song ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleSongSelection(song.id)
+            } else {
+                viewModel.playSong(song)
+            }
+        },
+        onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
+        selectedArtists = selectionState.selectedArtists,
+        selectedAlbums = selectionState.selectedAlbums,
+        selectedSongs = selectionState.selectedSongs,
     )
 }
 
 @Composable
 fun LibraryScreenContent(
+    modifier: Modifier = Modifier,
     filters: List<Pair<String, String>>,
     artists: List<ArtistDto>,
     albums: List<AlbumDto>,
@@ -92,9 +120,14 @@ fun LibraryScreenContent(
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
     onArtistClick: (String) -> Unit = {},
+    onArtistLongClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     onSongClick: (Song) -> Unit = {},
-    modifier: Modifier = Modifier,
+    onSongLongClick: (Song) -> Unit = {},
+    selectedArtists: Set<String> = emptySet(),
+    selectedAlbums: Set<String> = emptySet(),
+    selectedSongs: Set<String> = emptySet(),
 ) {
     var selectedFilter by remember { mutableStateOf(ARTIST) }
 
@@ -124,9 +157,9 @@ fun LibraryScreenContent(
                     colors =
                         FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = Color.White,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            labelColor = Color.Gray,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                 )
             }
@@ -137,9 +170,30 @@ fun LibraryScreenContent(
 
         // Content based on filters
         when (selectedFilter) {
-            ARTIST -> ArtistGrid(artists, onArtistClick, contentModifier)
-            ALBUM -> AlbumGrid(albums, onAlbumClick, contentModifier)
-            SONG -> SongList(songs, onSongClick, contentModifier)
+            ARTIST -> ArtistGrid(
+                artists = artists,
+                onArtistClick = onArtistClick,
+                onArtistLongClick = onArtistLongClick,
+                selectedArtists = selectedArtists,
+                modifier = contentModifier,
+            )
+
+            ALBUM -> AlbumGrid(
+                albums = albums,
+                onAlbumClick = onAlbumClick,
+                onAlbumLongClick = onAlbumLongClick,
+                selectedAlbums = selectedAlbums,
+                modifier = contentModifier,
+            )
+
+            SONG -> SongList(
+                songs = songs,
+                onSongClick = onSongClick,
+                onSongLongClick = onSongLongClick,
+                selectedSongs = selectedSongs,
+                modifier = contentModifier,
+            )
+
             GENRE -> GenreGrid(genres, contentModifier)
             PLAYLIST -> PlaylistGridContent(playlists, contentModifier)
         }
@@ -242,7 +296,15 @@ fun LibraryScreenPreview() {
                     playlistDuration = 5 * 60 * 60 * 1000L,
                 ),
             ),
-            modifier = Modifier.padding(2.dp),
+            onArtistClick = {},
+            onArtistLongClick = {},
+            onAlbumClick = { _, _ -> },
+            onAlbumLongClick = { _, _ -> },
+            onSongClick = {},
+            onSongLongClick = {},
+            selectedArtists = emptySet(),
+            selectedAlbums = emptySet(),
+            selectedSongs = emptySet(),
         )
     }
 }

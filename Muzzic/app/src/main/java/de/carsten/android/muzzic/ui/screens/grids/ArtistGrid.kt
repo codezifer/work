@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 fun ArtistGrid(
     artists: List<ArtistDto>,
     onArtistClick: (String) -> Unit = {},
+    onArtistLongClick: (String) -> Unit = {},
+    selectedArtists: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
 ) {
     val gridState = rememberLazyGridState()
@@ -64,12 +66,11 @@ fun ArtistGrid(
                     key = { _, artist -> artist.artistName },
                     contentType = { _, _ -> "Artist" }
                 ) { _, artist ->
-                    val onClick = remember(artist.artistName) {
-                        { onArtistClick(artist.artistName) }
-                    }
                     ArtistCard(
                         artist = artist,
-                        onClick = onClick
+                        onClick = { onArtistClick(artist.artistName) },
+                        onLongClick = { onArtistLongClick(artist.artistName) },
+                        isSelected = selectedArtists.contains(artist.artistName)
                     )
                 }
             }

@@ -26,6 +26,8 @@ import java.time.Instant
 fun SongList(
     songs: List<Song>,
     onSongClick: (Song) -> Unit = {},
+    onSongLongClick: (Song) -> Unit = {},
+    selectedSongs: Set<String> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -62,10 +64,12 @@ fun SongList(
                     key = { song -> song.id },
                     contentType = { "Song" }
                 ) { song ->
-                    val onClick = remember(song.id) {
-                        { onSongClick(song) }
-                    }
-                    SongListItem(song, onClick = onClick)
+                    SongListItem(
+                        song = song,
+                        onClick = { onSongClick(song) },
+                        onLongClick = { onSongLongClick(song) },
+                        isSelected = selectedSongs.contains(song.id)
+                    )
                 }
             }
 

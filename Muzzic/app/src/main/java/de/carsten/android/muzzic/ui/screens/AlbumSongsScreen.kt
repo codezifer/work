@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.screens.grids.SongList
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.AlbumSongsViewModel
+import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -30,8 +31,10 @@ fun AlbumSongsScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     viewModel: AlbumSongsViewModel = koinViewModel(),
+    selectionViewModel: SelectionViewModel,
 ) {
     val songs by viewModel.songs.collectAsStateWithLifecycle()
+    val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -68,7 +71,15 @@ fun AlbumSongsScreen(
 
         SongList(
             songs = songs,
-            onSongClick = { song -> viewModel.playSong(song, songs) }
+            onSongClick = { song ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleSongSelection(song.id)
+                } else {
+                    viewModel.playSong(song, songs)
+                }
+            },
+            onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
+            selectedSongs = selectionState.selectedSongs,
         )
     }
 }

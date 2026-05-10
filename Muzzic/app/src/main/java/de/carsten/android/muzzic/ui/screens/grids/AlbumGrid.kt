@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 fun AlbumGrid(
     albums: List<AlbumDto>,
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
+    selectedAlbums: Set<String> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     val gridState = rememberLazyGridState()
@@ -64,12 +66,11 @@ fun AlbumGrid(
                     key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
                     contentType = { "Album" }
                 ) { album ->
-                    val onClick = remember(album.artistName, album.albumName) {
-                        { onAlbumClick(album.artistName, album.albumName) }
-                    }
                     AlbumCard(
                         album = album,
-                        onClick = onClick
+                        onClick = { onAlbumClick(album.artistName, album.albumName) },
+                        onLongClick = { onAlbumLongClick(album.artistName, album.albumName) },
+                        isSelected = selectedAlbums.contains("${album.artistName}|${album.albumName}")
                     )
                 }
             }

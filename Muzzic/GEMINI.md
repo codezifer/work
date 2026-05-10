@@ -31,12 +31,13 @@ app/
 │   ├── component/      # Reusable Compose components
 │   ├── screen/         # Screen-level composables + ViewModels
 │   └── theme/          # MaterialTheme, Typography, Color, Shape
-└── di/                 # Hilt modules
+└── utils/              # Helper functions and extensions
 ```
 
 - One feature = one package. Never mix features.
 - `domain/` must have **zero Android framework dependencies**.
 - Keep `data/` and `ui/` strictly separated via `domain/` interfaces.
+- Koin modules should be located within the relevant package (e.g., `data/local/databaseModule.kt`).
 
 ---
 
@@ -107,6 +108,25 @@ createRequest(url = "https://api.example.com", retries = 5)
 
 // ✅ Use extension functions to extend existing types cleanly
 fun String.isValidEmail(): Boolean = android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+
+### Documentation (KDoc)
+
+```kotlin
+/**
+ * Short description of the function's goal.
+ *
+ * Longer explanation if necessary, detailing complex logic or side effects.
+ *
+ * @param parameterName Description of what this parameter represents.
+ * @return Description of the result produced by this function.
+ * @throws ExceptionType Description of when this exception might be thrown.
+ */
+fun processData(input: String): Result { ... }
+```
+
+- All **public methods and classes** MUST have KDoc.
+- Keep descriptions concise but informative.
+- Document all parameters, return values, and potential exceptions.
 ```
 
 ### Data Classes & Sealed Classes
@@ -229,8 +249,7 @@ val users: Flow<List<User>> = userDao.observeAll()
 ### ViewModel
 
 ```kotlin
-@HiltViewModel
-class UserViewModel @Inject constructor(
+class UserViewModel(
     private val getUsersUseCase: GetUsersUseCase
 ) : ViewModel() {
 
@@ -293,7 +312,7 @@ class UserRepositoryImpl @Inject constructor(
 ```kotlin
 // ✅ Composables are PascalCase
 @Composable
-fun UserProfileScreen(viewModel: UserViewModel = hiltViewModel()) {
+fun UserProfileScreen(viewModel: UserViewModel = koinViewModel()) {
 }
 
 // ✅ Use state hoisting — lift state up to the caller
@@ -459,45 +478,48 @@ suspend fun <T> safeApiCall(call: suspend () -> Response<T>): Result<T> {
 
 ---
 
-## 💉 Dependency Injection with Hilt
+## 💉 Dependency Injection with Koin
 
 ```kotlin
 // ✅ Module per concern
-@Module
-@InstallIn(SingletonComponent::class)
-object NetworkModule {
+val networkModule = module {
+    single {
+        OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
-        .baseUrl(BuildConfig.BASE_URL)
-        .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    single {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(get())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 }
 
-// ✅ Bind interfaces to implementations
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class RepositoryModule {
-    @Binds
-    @Singleton
-    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+// ✅ Register ViewModels using viewModel or viewModelOf
+val viewModelModule = module {
+    viewModelOf(::UserViewModel)
+
+    // Explicit constructor injection if needed
+    viewModel {
+        LibraryViewModel(musicRepository = get(), artistRepository = get())
+    }
 }
 
-// ✅ Scope components correctly
-// @Singleton     → lives as long as the app
-// @ActivityRetainedScoped → survives config changes, dies with Activity
-// @ViewModelScoped → lives as long as the ViewModel
+// ✅ Register Repositories and Data Sources
+val repoModule = module {
+    single<UserRepository> { UserRepositoryImpl(get()) }
+}
+
+// ✅ Koin Scopes and Definitions
+// single  → singleton definition, lives as long as the Koin container
+// factory → provides a new instance each time
+// viewModel → specific definition for Android ViewModels
 ```
 
 ---
@@ -623,13 +645,13 @@ AsyncImage(
 ```kotlin
 // ✅ Use Version Catalog (libs.versions.toml)
 [versions]
-kotlin = "2.0.0"
-compose = "1.6.0"
-hilt = "2.51"
+kotlin = "2.2.0"
+compose = "1.7.0"
+koin = "4.1.1"
 
 [libraries]
-androidx - compose - ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
-hilt - android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 
 // ✅ Kotlin DSL for build scripts (build.gradle.kts)
 android {
@@ -663,9 +685,9 @@ android {
 | `startActivity` in ViewModel            | Navigation events via `SharedFlow`    |
 | Hardcoded strings                       | `strings.xml` resources               |
 | `!!` (non-null assertion)               | Safe calls + Elvis operator           |
-| Static context references               | Hilt injection / `ApplicationContext` |
+| Static context references               | Koin injection / `androidContext()`   |
 | Blocking main thread                    | `withContext(Dispatchers.IO)`         |
-| Custom `Application.instance` singleton | Hilt `@Singleton`                     |
+| Custom `Application.instance` singleton | Koin `single`                         |
 | Mutable public state in ViewModel       | Private `_state` + public `state`     |
 | Business logic in Composables           | ViewModel + Use Cases                 |
 
@@ -679,7 +701,7 @@ android {
 - [ ] All suspend functions tested with `runTest`
 - [ ] ViewModels use `viewModelScope` only
 - [ ] Flows collected with `repeatOnLifecycle`
-- [ ] All public APIs documented with KDoc
+- [ ] All public APIs documented with KDoc (short but detailed, including goal, parameters, errors, and result types)
 - [ ] ProGuard rules updated for new dependencies
 - [ ] Accessibility: content descriptions on interactive elements
 - [ ] No sensitive data in logs

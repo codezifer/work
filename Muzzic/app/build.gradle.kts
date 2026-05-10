@@ -138,6 +138,11 @@ dependencies {
     // testing
     testImplementation(composeBomPlatform)
     testImplementation(libs.junit)
+    testImplementation(libs.androidx.test.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // android testing
     androidTestImplementation(composeBomPlatform)

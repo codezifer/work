@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.ArtistAlbumsViewModel
+import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -31,8 +32,10 @@ fun ArtistAlbumsScreen(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
     viewModel: ArtistAlbumsViewModel = koinViewModel(),
+    selectionViewModel: SelectionViewModel,
 ) {
     val albums by viewModel.albums.collectAsStateWithLifecycle()
+    val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -63,7 +66,15 @@ fun ArtistAlbumsScreen(
 
         AlbumGrid(
             albums = albums,
-            onAlbumClick = onAlbumClick
+            onAlbumClick = { artist, album ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleAlbumSelection(artist, album)
+                } else {
+                    onAlbumClick(artist, album)
+                }
+            },
+            onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
+            selectedAlbums = selectionState.selectedAlbums,
         )
     }
 }

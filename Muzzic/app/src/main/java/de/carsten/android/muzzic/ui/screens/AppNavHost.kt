@@ -18,12 +18,14 @@ import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
+import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: String = PLAYER,
+    selectionViewModel: SelectionViewModel,
 ) {
     NavHost(
         navController = navController,
@@ -46,7 +48,8 @@ fun AppNavHost(
                     },
                     onAlbumClick = { artistName, albumName ->
                         navController.navigate(AppDestinations.albumSongs(artistName, albumName))
-                    }
+                    },
+                    selectionViewModel = selectionViewModel
                 )
             }
 
@@ -59,7 +62,8 @@ fun AppNavHost(
                     onAlbumClick = { artistName, albumName ->
                         navController.navigate(AppDestinations.albumSongs(artistName, albumName))
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    selectionViewModel = selectionViewModel
                 )
             }
 
@@ -72,7 +76,8 @@ fun AppNavHost(
             ) {
                 AlbumSongsScreen(
                     modifier = modifier,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    selectionViewModel = selectionViewModel
                 )
             }
         }

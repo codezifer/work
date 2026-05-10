@@ -20,6 +20,14 @@ val viewModelModule =
         viewModelOf(::StatisticsViewModel)
         viewModelOf(::PlayingQueueViewModel)
         viewModel {
+            SelectionViewModel(
+                artistRepository = get(),
+                albumRepository = get(),
+                songRepository = get(),
+                playingQueueRepository = get()
+            )
+        }
+        viewModel {
             ArtistAlbumsViewModel(
                 savedStateHandle = get(),
                 albumRepository = get(),
