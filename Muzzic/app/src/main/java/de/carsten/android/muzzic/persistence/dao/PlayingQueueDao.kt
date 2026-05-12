@@ -5,11 +5,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import de.carsten.android.muzzic.persistence.entity.PlayingQueue
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PlayingQueueDao {
-    @Query("SELECT * FROM playing_queue ORDER BY queuePosition ASC")
+    @Query("SELECT * FROM playing_queue WHERE enqueued = 1 ORDER BY queuePosition ASC")
     suspend fun findAll(): List<PlayingQueue>
+
+    @Query("SELECT * FROM playing_queue WHERE enqueued = 1 ORDER BY queuePosition ASC")
+    fun observeAll(): Flow<List<PlayingQueue>>
 
     @Query("DELETE FROM playing_queue")
     suspend fun clearQueue()

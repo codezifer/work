@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -29,6 +30,12 @@ class SelectionViewModel(
      * Includes whether selection is active and the sets of selected artists, albums, and songs.
      */
     val selectionState: StateFlow<SelectionState> = _selectionState.asStateFlow()
+
+    /**
+     * Tracks songs that were enqueued during the current selection session.
+     * This allows for rolling back the enqueue operation if the user cancels.
+     */
+    private val recentlyEnqueuedSongs = mutableListOf<MediaItem>()
 
     /**
      * Toggles the selection status of an artist.
@@ -126,6 +133,24 @@ class SelectionViewModel(
      */
     fun clearSelection() {
         _selectionState.value = SelectionState()
+        recentlyEnqueuedSongs.clear()
+    }
+
+    /**
+     * Rolls back the songs that were enqueued during the current selection session.
+     * This is triggered when the user clicks the "x" (cancel) button in the selection toolbar.
+     */
+    fun rollbackEnqueued(onComplete: (String) -> Unit) {
+        viewModelScope.launch {
+            if (recentlyEnqueuedSongs.isNotEmpty()) {
+                playingQueueRepository.removeSongs(recentlyEnqueuedSongs.toList())
+                recentlyEnqueuedSongs.clear()
+                onComplete("Queue rollback complete")
+            } else {
+                onComplete("Selection cleared")
+            }
+            clearSelection()
+        }
     }
 
     /**
@@ -137,11 +162,13 @@ class SelectionViewModel(
     fun confirmRemoval(onComplete: () -> Unit) {
         viewModelScope.launch {
             val state = _selectionState.value
-            val songIds = state.selectedSongs.toTypedArray()
-            val songsToRemove = songRepository.getSongsByIds(*songIds)
+            val songIds = state.selectedSongs.toList()
 
-            if (songsToRemove.isNotEmpty()) {
-                playingQueueRepository.removeSongs(songsToRemove.map { it.toMediaItem() })
+            if (songIds.isNotEmpty()) {
+                val mediaItemsToRemove = songIds.map { id ->
+                    MediaItem.Builder().setMediaId(id).build()
+                }
+                playingQueueRepository.removeSongs(mediaItemsToRemove)
             }
 
             clearSelection()
@@ -153,10 +180,9 @@ class SelectionViewModel(
      * Confirms the current selection, resolves all selected entities into
      * individual songs (already resolved in this implementation), and adds them to the playing queue.
      *
-     * @param onComplete Callback invoked after songs have been added to the queue. Note that the selection
-     * is NOT cleared automatically to allow the user to see their selection when returning to the library.
+     * @param onComplete Callback invoked after songs have been added to the queue.
      */
-    fun confirmSelection(onComplete: () -> Unit) {
+    fun confirmSelection(onComplete: (String) -> Unit) {
         viewModelScope.launch {
             val state = _selectionState.value
             val songsToEnqueue = mutableListOf<Song>()
@@ -166,11 +192,14 @@ class SelectionViewModel(
             songsToEnqueue.addAll(songRepository.getSongsByIds(*songIds))
 
             if (songsToEnqueue.isNotEmpty()) {
-                playingQueueRepository.addSongs(songsToEnqueue.map { it.toMediaItem() })
+                val mediaItems = songsToEnqueue.map { it.toMediaItem() }
+                val addedEntities = playingQueueRepository.addSongs(mediaItems, enqueued = true)
+                recentlyEnqueuedSongs.addAll(addedEntities.map { it.toMediaItem() })
+                toggleEnqueued()
+                onComplete("Added ${songsToEnqueue.size} songs to queue")
+            } else {
+                onComplete("No songs selected")
             }
-
-            clearSelection()
-            onComplete()
         }
     }
 }

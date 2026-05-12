@@ -4,15 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PlayingQueueViewModel(
     private val repository: PlayingQueueRepository,
 ) : ViewModel() {
-    private val _currentPlayingQueue = MutableStateFlow<List<MediaItem>>(emptyList())
-    val currentPlayingQueue: StateFlow<List<MediaItem>> = _currentPlayingQueue
+    val currentPlayingQueue: StateFlow<List<MediaItem>> =
+        repository.observePlayingQueue()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList(),
+            )
 
     fun clear() {
         viewModelScope.launch {
@@ -21,9 +27,7 @@ class PlayingQueueViewModel(
     }
 
     fun loadPlayingQueue() {
-        viewModelScope.launch {
-            _currentPlayingQueue.value = repository.getPlayingQueue()
-        }
+        // No-op: handled by reactive StateFlow
     }
 
     fun savePlayingQueue(mediaItems: List<MediaItem>) {
@@ -40,7 +44,7 @@ class PlayingQueueViewModel(
 
     fun persistCurrentQueue() {
         viewModelScope.launch {
-            repository.persistQueue(_currentPlayingQueue.value)
+            repository.persistQueue(currentPlayingQueue.value)
         }
     }
 }

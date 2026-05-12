@@ -136,10 +136,8 @@ class SelectionViewModelTest {
 
         coEvery { artistRepository.getSongsByArtist("Artist 1") } returns listOf(song1)
         every { albumRepository.getSongsByAlbum("Artist 2", "Album 2") } returns flowOf(listOf(song2))
-        coEvery { songRepository.getSongById("1") } returns song1
-        coEvery { songRepository.getSongById("2") } returns song2
-        coEvery { songRepository.getSongById("3") } returns song3
-        coEvery { playingQueueRepository.addSongs(any()) } returns Unit
+        coEvery { songRepository.getSongsByIds(*anyVararg()) } returns listOf(song1, song2, song3)
+        coEvery { playingQueueRepository.addSongs(any(), any()) } returns emptyList()
 
         viewModel.toggleArtistSelection("Artist 1")
         testScheduler.advanceUntilIdle()
@@ -154,8 +152,29 @@ class SelectionViewModelTest {
             playingQueueRepository.addSongs(any())
         }
 
-        // Selection is NOT cleared automatically after confirmation anymore
+        // Selection is ENQUEUED after confirmation
         assertTrue(viewModel.selectionState.value.isActive)
+        assertEquals(de.carsten.android.muzzic.viewmodel.states.Selection.ENQUEUED, viewModel.selectionState.value.value)
+    }
+
+    @Test
+    fun `rollbackEnqueued removes recently added songs`() = runTest {
+        val song1 = createSong("1", "Artist 1", "Album 1")
+        coEvery { songRepository.getSongsByIds(*anyVararg()) } returns listOf(song1)
+        coEvery { playingQueueRepository.addSongs(any(), any()) } returns emptyList()
+        coEvery { playingQueueRepository.removeSongs(any()) } returns Unit
+
+        viewModel.toggleSongSelection("1")
+        viewModel.confirmSelection { }
+        testScheduler.advanceUntilIdle()
+
+        viewModel.rollbackEnqueued { }
+        testScheduler.advanceUntilIdle()
+
+        coVerify {
+            playingQueueRepository.removeSongs(any())
+        }
+        assertFalse(viewModel.selectionState.value.isActive)
     }
 
     private fun createSong(id: String, artist: String, album: String) = Song(

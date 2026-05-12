@@ -5,8 +5,18 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 
-@Entity(tableName = "playing_queue")
+@Entity(
+    tableName = "playing_queue",
+    foreignKeys = [
+        ForeignKey(entity = Song::class, parentColumns = ["id"], childColumns = ["songId"])
+    ],
+    indices = [
+        Index("songId"),
+    ]
+)
 data class PlayingQueue(
     val title: String? = null,
     val trackNumber: Int? = null,
@@ -16,6 +26,8 @@ data class PlayingQueue(
     val albumArt: String? = null,
     val genre: String? = null,
     val duration: Long? = null, // in milliseconds
+    var enqueued: Boolean? = null,
+    val songId: String? = null,
     var queuePosition: Int = 0,
 ) : AbstractEntity() {
     companion object {
@@ -28,6 +40,15 @@ data class PlayingQueue(
                 album = mediaItem.mediaMetadata.albumTitle?.toString(),
                 albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
                 genre = mediaItem.mediaMetadata.genre?.toString(),
+                duration = mediaItem.mediaMetadata.durationMs,
+                enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
+                songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
+                    when (it) {
+                        "", null -> null
+                        else -> it
+                    }
+                },
+                queuePosition = mediaItem.mediaMetadata.extras?.getInt("queuePosition") ?: 0,
             )
     }
 
@@ -52,6 +73,8 @@ data class PlayingQueue(
     private fun getExtras(): Bundle =
         Bundle().apply {
             putInt("queuePosition", queuePosition)
+            putBoolean("enqueued", enqueued ?: false)
+            putString("songId", songId ?: "")
             putLong("createdAt", createdAt?.toEpochMilli() ?: 0L)
             putLong("updatedAt", updatedAt?.toEpochMilli() ?: 0L)
         }

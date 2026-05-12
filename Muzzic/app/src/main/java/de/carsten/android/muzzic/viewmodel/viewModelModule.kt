@@ -6,7 +6,14 @@ import org.koin.dsl.module
 
 val viewModelModule =
     module {
-        viewModelOf(::PlayerViewModel)
+        viewModel {
+            PlayerViewModel(
+                repository = get(),
+                playingQueueRepository = get(),
+                mediaLibraryManager = get(),
+                application = get()
+            )
+        }
         viewModel {
             LibraryViewModel(
                 musicRepository = get(),

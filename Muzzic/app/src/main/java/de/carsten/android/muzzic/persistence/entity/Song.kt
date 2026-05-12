@@ -140,6 +140,7 @@ data class Song(
 
     private fun getExtras(): Bundle =
         bundleOf(
+            Pair("songId", this.id),
             Pair(MediaKeys.PLAY_COUNT, this.playCount ?: 0),
             Pair(MediaKeys.LAST_PLAYED, this.lastPlayed?.toEpochMilli() ?: Instant.now().toEpochMilli()),
             Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
