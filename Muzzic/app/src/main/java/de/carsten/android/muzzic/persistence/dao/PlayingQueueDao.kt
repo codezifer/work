@@ -12,7 +12,7 @@ interface PlayingQueueDao {
     @Query("SELECT * FROM playing_queue WHERE enqueued = 1 ORDER BY queuePosition ASC")
     suspend fun findAll(): List<PlayingQueue>
 
-    @Query("SELECT * FROM playing_queue WHERE enqueued = 1 ORDER BY queuePosition ASC")
+    @Query("SELECT * FROM playing_queue ORDER BY enqueued DESC, queuePosition ASC")
     fun observeAll(): Flow<List<PlayingQueue>>
 
     @Query("DELETE FROM playing_queue")

@@ -193,7 +193,7 @@ class SelectionViewModel(
 
             if (songsToEnqueue.isNotEmpty()) {
                 val mediaItems = songsToEnqueue.map { it.toMediaItem() }
-                val addedEntities = playingQueueRepository.addSongs(mediaItems, enqueued = true)
+                val addedEntities = playingQueueRepository.addSongs(mediaItems, enqueued = false)
                 recentlyEnqueuedSongs.addAll(addedEntities.map { it.toMediaItem() })
                 toggleEnqueued()
                 onComplete("Added ${songsToEnqueue.size} songs to queue")

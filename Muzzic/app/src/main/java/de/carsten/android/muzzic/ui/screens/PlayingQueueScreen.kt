@@ -35,10 +35,10 @@ import java.util.UUID
 fun PlayingQueueScreen(
     modifier: Modifier,
     viewModel: PlayingQueueViewModel = koinViewModel(),
-    selectionViewModel: SelectionViewModel,
+    selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
     val playingQueue: List<MediaItem> by viewModel.currentPlayingQueue.collectAsState()
-    val selectionState by selectionViewModel.selectionState.collectAsState()
+    val selectionState: SelectionState by selectionViewModel.selectionState.collectAsState()
 
     PlayingQueueContent(
         modifier = modifier,
