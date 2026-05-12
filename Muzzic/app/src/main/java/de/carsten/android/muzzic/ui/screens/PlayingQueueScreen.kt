@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,8 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
+import de.carsten.android.muzzic.viewmodel.SelectionViewModel
+import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 import java.util.UUID
 
@@ -33,8 +36,10 @@ import java.util.UUID
 fun PlayingQueueScreen(
     modifier: Modifier,
     viewModel: PlayingQueueViewModel = koinViewModel(),
+    selectionViewModel: SelectionViewModel,
 ) {
     val playingQueue: List<MediaItem> by viewModel.currentPlayingQueue.collectAsState()
+    val selectionState by selectionViewModel.selectionState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadPlayingQueue()
@@ -43,6 +48,13 @@ fun PlayingQueueScreen(
     PlayingQueueContent(
         modifier = modifier,
         playingQueue = playingQueue,
+        selectionState = selectionState,
+        onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
+        onSongClick = { songId ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleSongSelection(songId)
+            }
+        },
     )
 }
 
@@ -51,6 +63,9 @@ fun PlayingQueueContent(
     modifier: Modifier,
     name: String = "Playing Queue",
     playingQueue: List<MediaItem>,
+    selectionState: SelectionState = SelectionState(),
+    onSongClick: (String) -> Unit = {},
+    onSongLongClick: (String) -> Unit = {},
 ) {
     AppTheme {
         Column(
@@ -84,11 +99,21 @@ fun PlayingQueueContent(
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(playingQueue, key = { item -> item.mediaId }) { item ->
+                        val isSelected = selectionState.selectedSongs.contains(item.mediaId)
                         Row(
                             modifier =
-                                modifier
+                                Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                                    .background(
+                                        if (isSelected) {
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                        } else {
+                                            MaterialTheme.colorScheme.background
+                                        },
+                                    ).combinedClickable(
+                                        onClick = { onSongClick(item.mediaId) },
+                                        onLongClick = { onSongLongClick(item.mediaId) },
+                                    ).padding(vertical = 8.dp, horizontal = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
@@ -99,7 +124,7 @@ fun PlayingQueueContent(
                                         )
                                     } - ${item.mediaMetadata.title}",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
                                     text = "${item.mediaMetadata.artist} - ${item.mediaMetadata.albumTitle}",

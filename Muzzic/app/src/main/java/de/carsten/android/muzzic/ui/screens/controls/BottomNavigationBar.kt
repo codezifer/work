@@ -26,7 +26,7 @@ import de.carsten.android.muzzic.ui.AppDestinations
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
-sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
+sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String, var onClick: () -> Unit = {}) {
     object Player : BottomNavItem(AppDestinations.PLAYER, Icons.Default.PlayArrow, "Player")
     object Library : BottomNavItem(AppDestinations.LIBRARY_GRAPH, Icons.Default.LibraryMusic, "Library")
     object Queue : BottomNavItem(AppDestinations.QUEUE, Icons.Default.Queue, "Queue")
@@ -44,7 +44,8 @@ val bottomNavItems = listOf(
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavController
+    navController: NavController,
+    clickHandlers: Map<String, () -> Unit> = HashMap()
 ) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
@@ -69,6 +70,7 @@ fun BottomNavigationBar(
                             // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
+                        clickHandlers[item.label]?.invoke()
                     },
                     icon = { Icon(item.icon, contentDescription = item.label) },
                     label = { Text(item.label, fontSize = 10.sp) },
@@ -89,5 +91,7 @@ fun BottomNavigationBar(
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "BottomNavigationBarPreview_Dark")
 @Composable
 fun BottomNavigationBarPreview() {
-    BottomNavigationBar(rememberNavController())
+    BottomNavigationBar(
+        rememberNavController(),
+    )
 }

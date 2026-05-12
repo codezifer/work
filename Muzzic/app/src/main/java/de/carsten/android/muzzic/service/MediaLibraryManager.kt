@@ -77,4 +77,10 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
         browser.prepare()
         browser.play()
     }
+
+    fun preparePlaylist(mediaItems: List<MediaItem>, startIndex: Int = 0) {
+        val browser = _browser.value ?: return
+        browser.setMediaItems(mediaItems, startIndex, 0L)
+        browser.prepare()
+    }
 }

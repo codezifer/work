@@ -91,7 +91,10 @@ fun AppNavHost(
         }
 
         composable(QUEUE) {
-            PlayingQueueScreen(modifier = modifier)
+            PlayingQueueScreen(
+                modifier = modifier,
+                selectionViewModel = selectionViewModel
+            )
         }
 
         composable(PLAYLISTS) {

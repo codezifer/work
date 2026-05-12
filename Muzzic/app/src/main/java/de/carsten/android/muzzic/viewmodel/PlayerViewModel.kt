@@ -121,6 +121,10 @@ open class PlayerViewModel(
         }
     }
 
+    fun loadPlaylist(mediaItems: List<MediaItem>) {
+        mediaLibraryManager.preparePlaylist(mediaItems)
+    }
+
     fun togglePlayPause() {
         val b = browser.value ?: return
         if (b.isPlaying) {

@@ -41,6 +41,9 @@ interface SongDao {
     @Query("SELECT * FROM songs WHERE id = :songId")
     suspend fun getSongById(songId: String): Song?
 
+    @Query("SELECT * FROM songs WHERE id IN (:songId)")
+    suspend fun getSongsByIds(vararg songId: String): List<Song>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSong(song: Song)
 

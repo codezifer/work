@@ -22,6 +22,7 @@ import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.CoverSource
+import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
 fun ArtistCard(
@@ -32,49 +33,51 @@ fun ArtistCard(
 ) {
     val palette by rememberPaletteState(artist.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
 
-    MuzzicCard(
-        header = {
-            // Album Cover Collage - Edge to Edge
-            AlbumCoverCollage(
-                covers =
-                    if (artist.lastAlbumArt == null) {
-                        emptyList()
-                    } else {
-                        listOf(CoverSource.FromPath(artist.lastAlbumArt))
-                    },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1.2f),
-                useCard = false,
+    AppTheme {
+        MuzzicCard(
+            header = {
+                // Album Cover Collage - Edge to Edge
+                AlbumCoverCollage(
+                    covers =
+                        if (artist.lastAlbumArt == null) {
+                            emptyList()
+                        } else {
+                            listOf(CoverSource.FromPath(artist.lastAlbumArt))
+                        },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1.2f),
+                    useCard = false,
+                )
+            },
+            backgroundColor = backgroundColor,
+            contentColor = contentColor,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            isSelected = isSelected,
+        ) {
+            Text(
+                text = artist.artistName,
+                color = it,
+                fontSize = MAINTITLE_FONTSIZE,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-        },
-        backgroundColor = backgroundColor,
-        contentColor = contentColor,
-        onClick = onClick,
-        onLongClick = onLongClick,
-        isSelected = isSelected,
-    ) {
-        Text(
-            text = artist.artistName,
-            color = it,
-            fontSize = MAINTITLE_FONTSIZE,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-        SubtitleInformation(
-            listOf(
-                Pair(Icons.Default.Album, "${artist.albumCount} Albums"),
-                Pair(Icons.Default.MusicNote, "${artist.songCount} Songs"),
-            ),
-            fontColor = it.copy(alpha = 0.8f),
-        )
+            SubtitleInformation(
+                listOf(
+                    Pair(Icons.Default.Album, "${artist.albumCount} Albums"),
+                    Pair(Icons.Default.MusicNote, "${artist.songCount} Songs"),
+                ),
+                fontColor = it.copy(alpha = 0.8f),
+            )
+        }
     }
 }
 

@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
@@ -24,11 +25,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistGrid(
+    modifier: Modifier = Modifier,
     artists: List<ArtistDto>,
     onArtistClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
-    modifier: Modifier = Modifier,
 ) {
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -94,11 +95,12 @@ fun ArtistGrid(
     }
 }
 
-@Preview
 @Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun ArtistGridPreview() {
     ArtistGrid(
-        listOf(
+        artists = listOf(
             ArtistDto("Cradle Of Filth", 2, 13),
             ArtistDto("Dimmu Borgir", 1, 10),
             ArtistDto("Interpol", 1, 7),

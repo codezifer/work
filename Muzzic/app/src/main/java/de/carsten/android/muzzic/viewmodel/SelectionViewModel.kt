@@ -7,6 +7,7 @@ import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
+import de.carsten.android.muzzic.viewmodel.states.Selection
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,7 +55,7 @@ class SelectionViewModel(
             _selectionState.value = current.copy(
                 selectedSongs = newSongs,
                 selectedArtists = newArtists,
-                isActive = newSongs.isNotEmpty(),
+                value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
             )
         }
     }
@@ -86,7 +87,7 @@ class SelectionViewModel(
             _selectionState.value = current.copy(
                 selectedSongs = newSongs,
                 selectedAlbums = newAlbums,
-                isActive = newSongs.isNotEmpty(),
+                value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT
             )
         }
     }
@@ -106,7 +107,17 @@ class SelectionViewModel(
         }
         _selectionState.value = current.copy(
             selectedSongs = newSongs,
-            isActive = newSongs.isNotEmpty(),
+            value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
+        )
+    }
+
+    /**
+     * Toggles the selection status of songs are enqueued
+     */
+    fun toggleEnqueued() {
+        val current = _selectionState.value
+        _selectionState.value = current.copy(
+            value = Selection.ENQUEUED
         )
     }
 
@@ -115,6 +126,27 @@ class SelectionViewModel(
      */
     fun clearSelection() {
         _selectionState.value = SelectionState()
+    }
+
+    /**
+     * Confirms the current selection for removal, resolves selected songs,
+     * and removes them from the playing queue.
+     *
+     * @param onComplete Callback invoked after songs have been removed.
+     */
+    fun confirmRemoval(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val state = _selectionState.value
+            val songIds = state.selectedSongs.toTypedArray()
+            val songsToRemove = songRepository.getSongsByIds(*songIds)
+
+            if (songsToRemove.isNotEmpty()) {
+                playingQueueRepository.removeSongs(songsToRemove.map { it.toMediaItem() })
+            }
+
+            clearSelection()
+            onComplete()
+        }
     }
 
     /**
@@ -130,14 +162,14 @@ class SelectionViewModel(
             val songsToEnqueue = mutableListOf<Song>()
 
             // Songs are already resolved in selectedSongs set
-            state.selectedSongs.forEach { songId ->
-                songRepository.getSongById(songId)?.let { songsToEnqueue.add(it) }
-            }
+            val songIds = state.selectedSongs.toTypedArray()
+            songsToEnqueue.addAll(songRepository.getSongsByIds(*songIds))
 
             if (songsToEnqueue.isNotEmpty()) {
                 playingQueueRepository.addSongs(songsToEnqueue.map { it.toMediaItem() })
             }
 
+            clearSelection()
             onComplete()
         }
     }

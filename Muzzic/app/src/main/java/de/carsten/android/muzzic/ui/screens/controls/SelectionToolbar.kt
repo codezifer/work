@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,10 +64,12 @@ fun SelectionToolbar(
     modifier: Modifier = Modifier,
     mode: ToolbarMode,
     selectedCount: Int = 0,
-    onConfirm: () -> Unit = {},
-    onCancel: () -> Unit = {},
-    onClearQueue: () -> Unit = {},
-    onPersistQueue: () -> Unit = {},
+    confirmIcon: ImageVector = Icons.Default.Add,
+    confirmLabel: String = "Add to Queue",
+    onConfirm: (String) -> Unit = {},
+    onCancel: (String) -> Unit = {},
+    onClearQueue: (String) -> Unit = {},
+    onPersistQueue: (String) -> Unit = {},
 ) {
     Card(
         modifier = modifier
@@ -87,7 +90,9 @@ fun SelectionToolbar(
         ) {
             when (mode) {
                 ToolbarMode.SELECTION -> {
-                    IconButton(onClick = onCancel) {
+                    IconButton(onClick = {
+                        onCancel("Cancel Selection")
+                    }) {
                         Icon(Icons.Default.Close, contentDescription = "Cancel Selection")
                     }
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
@@ -97,13 +102,17 @@ fun SelectionToolbar(
                         modifier = Modifier.padding(horizontal = PADDING_H)
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    IconButton(onClick = onConfirm) {
-                        Icon(Icons.Default.Add, contentDescription = "Add to Queue")
+                    IconButton(onClick = {
+                        onConfirm(confirmLabel)
+                    }) {
+                        Icon(confirmIcon, contentDescription = confirmLabel)
                     }
                 }
 
                 ToolbarMode.QUEUE_MGMT -> {
-                    IconButton(onClick = onClearQueue) {
+                    IconButton(onClick = {
+                        onClearQueue("Clear Queue")
+                    }) {
                         Icon(Icons.Default.Delete, contentDescription = "Clear Queue")
                     }
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
@@ -113,7 +122,9 @@ fun SelectionToolbar(
                         modifier = Modifier.padding(horizontal = PADDING_H)
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    IconButton(onClick = onPersistQueue) {
+                    IconButton(onClick = {
+                        onPersistQueue("Persist Queue")
+                    }) {
                         Icon(Icons.Default.Save, contentDescription = "Persist Queue")
                     }
                 }
