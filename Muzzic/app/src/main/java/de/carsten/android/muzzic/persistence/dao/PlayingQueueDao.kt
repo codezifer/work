@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PlayingQueueDao {
     @Query("SELECT * FROM playing_queue WHERE enqueued = 1 ORDER BY queuePosition ASC")
+    suspend fun findEnqueued(): List<PlayingQueue>
+
+    @Query("SELECT * FROM playing_queue ORDER BY enqueued DESC, queuePosition ASC")
     suspend fun findAll(): List<PlayingQueue>
 
     @Query("SELECT * FROM playing_queue ORDER BY enqueued DESC, queuePosition ASC")

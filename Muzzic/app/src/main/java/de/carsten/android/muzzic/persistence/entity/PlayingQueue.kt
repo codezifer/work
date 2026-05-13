@@ -43,13 +43,14 @@ data class PlayingQueue(
                 duration = mediaItem.mediaMetadata.durationMs,
                 enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
                 songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
-                    when (it) {
-                        "", null -> null
-                        else -> it
-                    }
+                    if (it.isNullOrBlank()) null else it
                 },
                 queuePosition = mediaItem.mediaMetadata.extras?.getInt("queuePosition") ?: 0,
-            )
+            ).apply {
+                if (mediaItem.mediaId.isNotBlank()) {
+                    id = mediaItem.mediaId
+                }
+            }
     }
 
     fun toMediaItem(): MediaItem =

@@ -93,7 +93,6 @@ fun MusicPlayerApp(
                         appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
                     },
                     BottomNavItem.Queue.label to {
-                        queueViewModel.loadPlayingQueue()
                         appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
                     },
                     BottomNavItem.Playlists.label to {
@@ -143,24 +142,20 @@ fun MusicPlayerApp(
                         if (uiState is AppUiState.Queue) {
                             selectionViewModel.confirmRemoval {
                                 appState.showSnackbar("Removed from Queue")
-                                queueViewModel.loadPlayingQueue()
                             }
                         } else {
                             selectionViewModel.confirmSelection { info ->
                                 appState.showSnackbar(info)
-                                queueViewModel.loadPlayingQueue()
                             }
                         }
                     },
                     onCancel = {
                         selectionViewModel.rollbackEnqueued { info ->
                             appState.showSnackbar(info)
-                            queueViewModel.loadPlayingQueue()
                         }
                     },
                     onClearQueue = {
                         queueViewModel.clear()
-                        queueViewModel.loadPlayingQueue()
                         appState.showSnackbar("Queue cleared")
                     },
                     onPersistQueue = {

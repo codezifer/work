@@ -1,15 +1,17 @@
 package de.carsten.android.muzzic.persistence.repo
 
 import androidx.media3.common.MediaItem
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
 import de.carsten.android.muzzic.persistence.entity.PlayingQueue
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class PlayingQueueRepository(
     private val playingQueueDao: PlayingQueueDao,
 ) {
-    suspend fun getPlayingQueue(): List<MediaItem> = playingQueueDao.findAll().map { song -> song.toMediaItem() }
+    suspend fun getPlayingQueue(): List<MediaItem> = playingQueueDao.findEnqueued().map { song -> song.toMediaItem() }
+
+    suspend fun getCompleteQueue(): List<MediaItem> = playingQueueDao.findAll().map { it.toMediaItem() }
 
     fun observePlayingQueue(): Flow<List<MediaItem>> =
         playingQueueDao.observeAll().map { queue ->

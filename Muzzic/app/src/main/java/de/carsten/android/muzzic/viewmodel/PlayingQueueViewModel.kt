@@ -13,21 +13,16 @@ class PlayingQueueViewModel(
     private val repository: PlayingQueueRepository,
 ) : ViewModel() {
     val currentPlayingQueue: StateFlow<List<MediaItem>> =
-        repository.observePlayingQueue()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList(),
-            )
+        repository.observePlayingQueue().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList(),
+        )
 
     fun clear() {
         viewModelScope.launch {
             repository.clear()
         }
-    }
-
-    fun loadPlayingQueue() {
-        // No-op: handled by reactive StateFlow
     }
 
     fun savePlayingQueue(mediaItems: List<MediaItem>) {
@@ -44,7 +39,7 @@ class PlayingQueueViewModel(
 
     fun persistCurrentQueue() {
         viewModelScope.launch {
-            repository.persistQueue(currentPlayingQueue.value)
+            repository.persistQueue(repository.getCompleteQueue())
         }
     }
 }
