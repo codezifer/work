@@ -23,10 +23,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.ui.component.TextInputDialog
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.navigation.NavigationEvent
 import de.carsten.android.muzzic.ui.navigation.rememberMusicAppState
@@ -54,6 +58,21 @@ fun MusicPlayerApp(
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
     val uiState = appState.getUiState(selectionState)
+
+    var showSavePlaylistDialog by remember { mutableStateOf(false) }
+
+    if (showSavePlaylistDialog) {
+        TextInputDialog(
+            title = "Save Queue as Playlist",
+            label = "Playlist Name",
+            onConfirm = { name ->
+                queueViewModel.saveAsPlaylist(name)
+                showSavePlaylistDialog = false
+                appState.showSnackbar("Playlist '$name' saved")
+            },
+            onDismiss = { showSavePlaylistDialog = false }
+        )
+    }
 
     Scaffold(
         snackbarHost = {
@@ -161,6 +180,9 @@ fun MusicPlayerApp(
                     onPersistQueue = {
                         queueViewModel.persistCurrentQueue()
                         appState.showSnackbar("Queue persisted")
+                    },
+                    onSaveAsPlaylist = {
+                        showSavePlaylistDialog = true
                     }
                 )
             }

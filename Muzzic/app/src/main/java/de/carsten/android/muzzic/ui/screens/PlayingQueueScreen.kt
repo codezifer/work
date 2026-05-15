@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
@@ -50,6 +53,7 @@ fun PlayingQueueScreen(
                 selectionViewModel.toggleSongSelection(songId)
             }
         },
+        onMove = { from, to -> viewModel.moveSong(from, to) }
     )
 }
 
@@ -61,6 +65,7 @@ fun PlayingQueueContent(
     selectionState: SelectionState = SelectionState(),
     onSongClick: (String) -> Unit = {},
     onSongLongClick: (String) -> Unit = {},
+    onMove: (Int, Int) -> Unit = { _, _ -> },
 ) {
     AppTheme {
         Column(
@@ -92,41 +97,56 @@ fun PlayingQueueContent(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             } else {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(playingQueue, key = { item -> item.mediaId }) { item ->
-                        val isSelected = selectionState.selectedSongs.contains(item.mediaId)
-                        Row(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        if (isSelected) {
-                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                        } else {
-                                            MaterialTheme.colorScheme.background
-                                        },
-                                    ).combinedClickable(
-                                        onClick = { onSongClick(item.mediaId) },
-                                        onLongClick = { onSongLongClick(item.mediaId) },
-                                    ).padding(vertical = 8.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "${
-                                        "%02d".format(
-                                            item.mediaMetadata.trackNumber,
-                                        )
-                                    } - ${item.mediaMetadata.title}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                )
-                                Text(
-                                    text = "${item.mediaMetadata.artist} - ${item.mediaMetadata.albumTitle}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
+                ReorderableLazyColumn(
+                    items = playingQueue,
+                    onMove = onMove,
+                    key = { _, item -> item.mediaId },
+                    modifier = Modifier.weight(1f)
+                ) { index, item, isDragging, dragModifier ->
+                    val isSelected = selectionState.selectedSongs.contains(item.mediaId)
+
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isDragging) {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    } else if (isSelected) {
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                    } else {
+                                        MaterialTheme.colorScheme.background
+                                    },
+                                ).combinedClickable(
+                                    onClick = { onSongClick(item.mediaId) },
+                                    onLongClick = { onSongLongClick(item.mediaId) },
+                                ).padding(vertical = 8.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = "Reorder",
+                            modifier = dragModifier
+                                .padding(end = 8.dp)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${
+                                    "%02d".format(
+                                        item.mediaMetadata.trackNumber,
+                                    )
+                                } - ${item.mediaMetadata.title}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = "${item.mediaMetadata.artist} - ${item.mediaMetadata.albumTitle}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
                         }
                     }
                 }

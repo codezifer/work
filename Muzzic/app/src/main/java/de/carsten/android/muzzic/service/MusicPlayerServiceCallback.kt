@@ -14,6 +14,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.persistence.entity.toMediaItem
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.GenreRepository
@@ -25,6 +26,7 @@ import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.toMediaItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
@@ -48,11 +50,6 @@ class MusicPlayerServiceCallback(
         const val SONGS_ID = "[SONGS]"
         const val PLAYLISTS_ID = "[PLAYLISTS]"
         const val GENRES_ID = "[GENRES]"
-
-        const val ARTIST_PREFIX = "[ARTIST]:"
-        const val ALBUM_PREFIX = "[ALBUM]:"
-        const val PLAYLIST_PREFIX = "[PLAYLIST]:"
-        const val GENRE_PREFIX = "[GENRE]:"
     }
 
     override fun onGetLibraryRoot(
@@ -89,22 +86,22 @@ class MusicPlayerServiceCallback(
                 PLAYLISTS_ID -> getPlaylists()
                 GENRES_ID -> getGenres()
                 else -> {
-                    if (parentId.startsWith(ARTIST_PREFIX)) {
-                        val artistName = parentId.removePrefix(ARTIST_PREFIX)
+                    if (parentId.startsWith(MediaKeys.ARTIST_PREFIX)) {
+                        val artistName = parentId.removePrefix(MediaKeys.ARTIST_PREFIX)
                         getAlbumsByArtist(artistName)
-                    } else if (parentId.startsWith(ALBUM_PREFIX)) {
+                    } else if (parentId.startsWith(MediaKeys.ALBUM_PREFIX)) {
                         // Expected format [ALBUM]:artistName:albumName
-                        val parts = parentId.removePrefix(ALBUM_PREFIX).split(":", limit = 2)
+                        val parts = parentId.removePrefix(MediaKeys.ALBUM_PREFIX).split(":", limit = 2)
                         if (parts.size == 2) {
                             getSongsByAlbum(parts[0], parts[1])
                         } else {
                             emptyList()
                         }
-                    } else if (parentId.startsWith(PLAYLIST_PREFIX)) {
-                        val playlistName = parentId.removePrefix(PLAYLIST_PREFIX)
+                    } else if (parentId.startsWith(MediaKeys.PLAYLIST_PREFIX)) {
+                        val playlistName = parentId.removePrefix(MediaKeys.PLAYLIST_PREFIX)
                         getSongsByPlaylist(playlistName)
-                    } else if (parentId.startsWith(GENRE_PREFIX)) {
-                        val genreName = parentId.removePrefix(GENRE_PREFIX)
+                    } else if (parentId.startsWith(MediaKeys.GENRE_PREFIX)) {
+                        val genreName = parentId.removePrefix(MediaKeys.GENRE_PREFIX)
                         getSongsByGenre(genreName)
                     } else {
                         emptyList()
@@ -250,80 +247,6 @@ class MusicPlayerServiceCallback(
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(title)
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-    }
-
-    private fun ArtistDto.toMediaItem(): MediaItem {
-        return MediaItem.Builder()
-            .setMediaId("$ARTIST_PREFIX$artistName")
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(artistName)
-                    .setArtworkUri(lastAlbumArt?.toUri())
-                    .setExtras(android.os.Bundle().apply {
-                        putInt(MediaKeys.ALBUM_COUNT, albumCount)
-                        putInt(MediaKeys.SONG_COUNT, songCount)
-                    })
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-    }
-
-    private fun AlbumDto.toMediaItem(): MediaItem {
-        return MediaItem.Builder()
-            .setMediaId("$ALBUM_PREFIX$artistName:$albumName")
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(albumName)
-                    .setArtist(artistName)
-                    .setReleaseYear(albumYear)
-                    .setArtworkUri(lastAlbumArt?.toUri())
-                    .setExtras(android.os.Bundle().apply {
-                        putInt(MediaKeys.SONG_COUNT, songCount)
-                        putLong(MediaKeys.DURATION, albumDuration)
-                    })
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-    }
-
-    private fun Playlist.toMediaItem(): MediaItem {
-        return MediaItem.Builder()
-            .setMediaId("$PLAYLIST_PREFIX$name")
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(name)
-                    .setExtras(android.os.Bundle().apply {
-                        putBoolean(MediaKeys.IS_AUTO_GENERATED, isAutoGenerated)
-                        putString(MediaKeys.GENRE, genre)
-                    })
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-    }
-
-    private fun GenreDto.toMediaItem(): MediaItem {
-        return MediaItem.Builder()
-            .setMediaId("$GENRE_PREFIX$genreName")
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(genreName)
-                    .setExtras(android.os.Bundle().apply {
-                        putInt(MediaKeys.ARTIST_COUNT, artistCount)
-                        putInt(MediaKeys.ALBUM_COUNT, albumCount)
-                        putInt(MediaKeys.SONG_COUNT, songCount)
-                        putLong(MediaKeys.DURATION, genreDuration)
-                    })
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
                     .build()

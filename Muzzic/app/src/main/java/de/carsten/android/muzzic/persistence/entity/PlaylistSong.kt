@@ -8,8 +8,18 @@ import androidx.room.Index
     tableName = "playlist_songs",
     primaryKeys = ["playlistId", "songId"],
     foreignKeys = [
-        ForeignKey(entity = Playlist::class, parentColumns = ["id"], childColumns = ["playlistId"]),
-        ForeignKey(entity = Song::class, parentColumns = ["id"], childColumns = ["songId"]),
+        ForeignKey(
+            entity = Playlist::class,
+            parentColumns = ["id"],
+            childColumns = ["playlistId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = Song::class,
+            parentColumns = ["id"],
+            childColumns = ["songId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
     indices = [
         Index("playlistId"),

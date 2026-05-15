@@ -98,7 +98,14 @@ fun AppNavHost(
         }
 
         composable(PLAYLISTS) {
-            PlaylistsScreen(modifier = modifier)
+            PlaylistsScreen(
+                modifier = modifier,
+                onPlayPlaylist = {
+                    navController.navigate(PLAYER) {
+                        popUpTo(PLAYER) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(STATISTICS) {

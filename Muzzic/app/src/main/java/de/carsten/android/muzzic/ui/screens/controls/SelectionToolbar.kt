@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
@@ -58,6 +59,7 @@ enum class ToolbarMode {
  * @param onCancel Callback for clearing selection (SELECTION mode).
  * @param onClearQueue Callback for emptying the playing queue (QUEUE_MGMT mode).
  * @param onPersistQueue Callback for saving the queue state to database (QUEUE_MGMT mode).
+ * @param onSaveAsPlaylist Callback for saving the queue as a new playlist (QUEUE_MGMT mode).
  */
 @Composable
 fun SelectionToolbar(
@@ -70,6 +72,7 @@ fun SelectionToolbar(
     onCancel: (String) -> Unit = {},
     onClearQueue: (String) -> Unit = {},
     onPersistQueue: (String) -> Unit = {},
+    onSaveAsPlaylist: (String) -> Unit = {},
 ) {
     Card(
         modifier = modifier
@@ -114,6 +117,12 @@ fun SelectionToolbar(
                         onClearQueue("Clear Queue")
                     }) {
                         Icon(Icons.Default.Delete, contentDescription = "Clear Queue")
+                    }
+                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                    IconButton(onClick = {
+                        onSaveAsPlaylist("Save as Playlist")
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Save as Playlist")
                     }
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     Text(

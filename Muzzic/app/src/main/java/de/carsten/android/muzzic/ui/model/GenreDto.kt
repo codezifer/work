@@ -1,7 +1,9 @@
 package de.carsten.android.muzzic.ui.model
 
 import androidx.compose.runtime.Immutable
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.model.AlbumArt
 import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenreAggregation
@@ -38,4 +40,24 @@ fun MediaItem.toGenreDto(): GenreDto {
         songCount = extras.getInt(MediaKeys.SONG_COUNT),
         genreDuration = extras.getLong(MediaKeys.DURATION)
     )
+}
+
+fun GenreDto.toMediaItem(): MediaItem {
+    return MediaItem.Builder()
+        .setMediaId("${MediaKeys.GENRE_PREFIX}$genreName")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(genreName)
+                .setArtworkUri(lastAlbumArt?.toUri())
+                .setExtras(android.os.Bundle().apply {
+                    putInt(MediaKeys.ARTIST_COUNT, artistCount)
+                    putInt(MediaKeys.ALBUM_COUNT, albumCount)
+                    putInt(MediaKeys.SONG_COUNT, songCount)
+                    putLong(MediaKeys.DURATION, genreDuration)
+                })
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .build()
+        )
+        .build()
 }

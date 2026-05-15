@@ -11,6 +11,7 @@ import androidx.room.Index
             entity = Song::class,
             parentColumns = ["id"],
             childColumns = ["songId"],
+            onDelete = ForeignKey.CASCADE,
         ),
     ],
     indices = [

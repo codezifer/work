@@ -16,47 +16,47 @@ import java.time.Instant
 @Entity(tableName = "songs")
 data class Song(
     @ColumnInfo
-    val title: String? = null,
+    val title: String = UNKNOWN,
     @ColumnInfo(defaultValue = "0")
-    val trackNumber: Int? = 0,
+    val trackNumber: Int = 0,
     @ColumnInfo(defaultValue = "0")
-    val totalTracks: Int? = 0,
+    val totalTracks: Int = 0,
     @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
-    val artist: String? = null,
+    val artist: String = UNKNOWN,
     @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
-    val album: String? = null,
+    val album: String = UNKNOWN,
     @ColumnInfo(index = true, collate = ColumnInfo.NOCASE)
-    val genre: String? = null,
+    val genre: String = UNKNOWN,
     @ColumnInfo(defaultValue = "0")
-    val duration: Long? = 0L, // in milliseconds
+    val duration: Long = 0L, // in milliseconds
     @ColumnInfo
     val filePath: String? = null,
     @ColumnInfo
     val albumArt: String? = null,
     @ColumnInfo(defaultValue = "-1")
-    val albumYear: Int? = -1,
+    val albumYear: Int = -1,
     @ColumnInfo(defaultValue = "3")
-    val rating: Int? = 0, // 0-5 stars
+    val rating: Int = 0, // 0-5 stars
     @ColumnInfo(defaultValue = "0")
-    val playCount: Int? = 0,
+    val playCount: Int = 0,
     @ColumnInfo(defaultValue = "0")
-    val lastPlayed: Instant? = Instant.ofEpochMilli(0L),
+    val lastPlayed: Instant = Instant.ofEpochMilli(0L),
 ) : AbstractEntity() {
     companion object {
         fun fromMediaItem(mediaItem: MediaItem): Song {
             val metadata = mediaItem.mediaMetadata
             return Song(
-                trackNumber = metadata.trackNumber,
-                totalTracks = metadata.totalTrackCount,
-                title = metadata.title?.toString(),
-                artist = metadata.artist?.toString(),
-                album = metadata.albumTitle?.toString(),
+                trackNumber = metadata.trackNumber ?: 0,
+                totalTracks = metadata.totalTrackCount ?: 0,
+                title = metadata.title?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+                artist = metadata.artist?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+                album = metadata.albumTitle?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
                 filePath = mediaItem.localConfiguration?.uri?.toString(),
                 albumArt = metadata.artworkUri?.toString(),
-                albumYear = metadata.releaseYear,
+                albumYear = metadata.releaseYear ?: -1,
                 rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(maxStars, 0f)),
-                genre = metadata.genre?.toString(),
-                duration = metadata.durationMs,
+                genre = metadata.genre?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+                duration = metadata.durationMs ?: 0L,
                 lastPlayed = mediaItem.mediaItemInstant(MediaKeys.LAST_PLAYED),
             ).apply {
                 id = mediaItem.mediaId
@@ -113,36 +113,34 @@ data class Song(
             }
     }
 
-    fun toMediaItem(): MediaItem =
-        MediaItem
-            .Builder()
-            .setMediaId(this.id)
-            .setUri(this.filePath)
-            .setMediaMetadata(
-                MediaMetadata
-                    .Builder()
-                    .setTitle(this.title)
-                    .setTrackNumber(this.trackNumber)
-                    .setTotalTrackCount(this.totalTracks)
-                    .setArtist(this.artist)
-                    .setAlbumTitle(this.album)
-                    .setReleaseYear(this.albumYear)
-                    .setAlbumArtist(this.artist)
-                    .setArtworkUri(this.albumArt?.toUri())
-                    .setGenre(this.genre)
-                    .setDurationMs(this.duration)
-                    .setUserRating(getStarRating(this.rating))
-                    .setIsPlayable(true)
-                    .setIsBrowsable(false)
-                    .setExtras(getExtras())
-                    .build(),
-            ).build()
+    fun toMediaItem(): MediaItem = MediaItem.Builder()
+        .setMediaId(this.id)
+        .setUri(this.filePath)
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(this.title)
+                .setTrackNumber(this.trackNumber)
+                .setTotalTrackCount(this.totalTracks)
+                .setArtist(this.artist)
+                .setAlbumTitle(this.album)
+                .setReleaseYear(this.albumYear)
+                .setAlbumArtist(this.artist)
+                .setArtworkUri(this.albumArt?.toUri())
+                .setGenre(this.genre)
+                .setDurationMs(this.duration)
+                .setUserRating(getStarRating(this.rating))
+                .setIsPlayable(true)
+                .setIsBrowsable(false)
+                .setExtras(getExtras())
+                .build(),
+        ).build()
 
     private fun getExtras(): Bundle =
         bundleOf(
             Pair("songId", this.id),
-            Pair(MediaKeys.PLAY_COUNT, this.playCount ?: 0),
-            Pair(MediaKeys.LAST_PLAYED, this.lastPlayed?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+            Pair(MediaKeys.PLAY_COUNT, this.playCount),
+            Pair(MediaKeys.LAST_PLAYED, this.lastPlayed.toEpochMilli()),
             Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
             Pair(MediaKeys.UPDATED_AT, this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
         )

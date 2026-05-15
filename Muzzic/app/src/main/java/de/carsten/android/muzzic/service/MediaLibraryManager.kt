@@ -7,6 +7,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
+import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
@@ -59,10 +60,10 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
         getChildren(MusicPlayerServiceCallback.PLAYLISTS_ID).map { it.toPlaylistDto() }
 
     suspend fun getAlbumsByArtist(artistName: String): List<AlbumDto> =
-        getChildren("${MusicPlayerServiceCallback.ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
+        getChildren("${MediaKeys.ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
 
     suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> =
-        getChildren("${MusicPlayerServiceCallback.ALBUM_PREFIX}$artistName:$albumName")
+        getChildren("${MediaKeys.ALBUM_PREFIX}$artistName:$albumName")
 
     fun playContent(mediaItem: MediaItem) {
         val browser = _browser.value ?: return

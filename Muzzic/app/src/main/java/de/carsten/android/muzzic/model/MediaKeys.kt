@@ -11,6 +11,13 @@ object MediaKeys {
     const val DURATION = "duration"
     const val GENRE = "genre"
     const val IS_AUTO_GENERATED = "is_auto_generated"
+    const val PLAYLIST_ID = "playlist_id"
+
+    // Prefix constants for MediaItems
+    const val ARTIST_PREFIX = "[ARTIST]:"
+    const val ALBUM_PREFIX = "[ALBUM]:"
+    const val PLAYLIST_PREFIX = "[PLAYLIST]:"
+    const val GENRE_PREFIX = "[GENRE]:"
 
     // Song/Media playback specific extras
     const val PLAY_COUNT = "playCount"

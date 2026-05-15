@@ -127,7 +127,17 @@ fun processData(input: String): Result { ... }
 - All **public methods and classes** MUST have KDoc.
 - Keep descriptions concise but informative.
 - Document all parameters, return values, and potential exceptions.
-```
+
+---
+
+## ♻️ Reusability & Generalization
+
+- **Favor Generalized Components**: Avoid screen-specific implementations for common UI patterns (e.g., Drag-and-Drop, Loading states, Error handling).
+- **DRY Principle**: Logic or UI patterns appearing more than once, or complex enough to be isolated, MUST be moved to `ui/component/` or `utils/`.
+- **Composition over Inheritance**: Provide flexible Slot-based APIs (`content: @Composable () -> Unit`) to make components versatile.
+- **Stateless Components**: Keep shared components as stateless as possible by hoisting state to the caller.
+
+---
 
 ### Data Classes & Sealed Classes
 
@@ -415,6 +425,14 @@ interface UserDao {
     suspend fun delete(user: UserEntity)
 }
 
+// ✅ Database schema changes
+// When changing the database schema (Entities, DAOs), ALWAYS increment the version
+// in the Database class and provide a migration if necessary.
+@Database(entities = [UserEntity::class], version = 2)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+}
+
 // ✅ Use TypeConverters for complex types
 class Converters {
     @TypeConverter
@@ -443,6 +461,8 @@ interface UserApiService {
 }
 
 // ✅ Map DTOs to domain models — never leak DTOs into domain/UI
+// ✅ Place mapping logic (e.g., DTO to MediaItem, Entity to DTO) as extension functions
+//    within the DTO or Entity file. This ensures related logic stays close together.
 fun UserDto.toDomain(): User = User(
     id = id,
     name = displayName,

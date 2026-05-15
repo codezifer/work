@@ -21,11 +21,18 @@ val viewModelModule =
                 albumRepository = get(),
                 genreRepository = get(),
                 playlistRepository = get(),
+                playingQueueRepository = get(),
                 mediaLibraryManager = get()
             )
         }
         viewModelOf(::StatisticsViewModel)
-        viewModelOf(::PlayingQueueViewModel)
+        viewModel {
+            PlayingQueueViewModel(
+                repository = get(),
+                playlistRepository = get(),
+                mediaLibraryManager = get()
+            )
+        }
         viewModel {
             SelectionViewModel(
                 artistRepository = get(),

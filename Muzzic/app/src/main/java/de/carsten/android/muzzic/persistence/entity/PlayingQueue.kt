@@ -11,7 +11,12 @@ import androidx.room.Index
 @Entity(
     tableName = "playing_queue",
     foreignKeys = [
-        ForeignKey(entity = Song::class, parentColumns = ["id"], childColumns = ["songId"])
+        ForeignKey(
+            entity = Song::class,
+            parentColumns = ["id"],
+            childColumns = ["songId"],
+            onDelete = ForeignKey.CASCADE,
+        )
     ],
     indices = [
         Index("songId"),
@@ -66,6 +71,7 @@ data class PlayingQueue(
                     .setArtist(artist)
                     .setAlbumTitle(album)
                     .setArtworkUri(albumArt?.toUri())
+                    .setGenre(genre)
                     .setDurationMs(duration)
                     .setExtras(getExtras())
                     .build(),
