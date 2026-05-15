@@ -119,9 +119,6 @@ open class PlayerViewModel(
 
     fun playSong(song: Song) {
         mediaLibraryManager.playContent(song.toMediaItem())
-        viewModelScope.launch {
-            repository.recordPlay(song.id)
-        }
     }
 
     fun loadPlaylist(mediaItems: List<MediaItem>) {

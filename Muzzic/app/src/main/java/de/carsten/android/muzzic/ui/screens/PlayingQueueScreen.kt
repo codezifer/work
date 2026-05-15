@@ -1,22 +1,19 @@
 package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,6 +23,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.PlayingQueueItem
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
@@ -40,20 +38,36 @@ fun PlayingQueueScreen(
     viewModel: PlayingQueueViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
-    val playingQueue: List<MediaItem> by viewModel.currentPlayingQueue.collectAsState()
-    val selectionState: SelectionState by selectionViewModel.selectionState.collectAsState()
+    val playingQueue by viewModel.currentPlayingQueue.collectAsState()
+    val selectionState by selectionViewModel.selectionState.collectAsState()
+    val currentSong by viewModel.currentSong.collectAsState()
+    val isPlaying by viewModel.isPlaying.collectAsState()
+    val currentPosition by viewModel.currentPosition.collectAsState()
+    val duration by viewModel.duration.collectAsState()
+
+    val progress by remember {
+        derivedStateOf {
+            if (duration > 0) currentPosition.toFloat() / duration else 0f
+        }
+    }
 
     PlayingQueueContent(
         modifier = modifier,
         playingQueue = playingQueue,
         selectionState = selectionState,
+        currentSong = currentSong,
+        isPlaying = isPlaying,
+        progress = progress,
         onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
-        onSongClick = { songId ->
+        onSongClick = { index, songId ->
             if (selectionState.isActive) {
                 selectionViewModel.toggleSongSelection(songId)
+            } else {
+                viewModel.playSongAt(index)
             }
         },
-        onMove = { from, to -> viewModel.moveSong(from, to) }
+        onMove = { from, to -> viewModel.moveSong(from, to) },
+        onTogglePlayPause = { viewModel.togglePlayPause() }
     )
 }
 
@@ -63,9 +77,13 @@ fun PlayingQueueContent(
     name: String = "Playing Queue",
     playingQueue: List<MediaItem>,
     selectionState: SelectionState = SelectionState(),
-    onSongClick: (String) -> Unit = {},
+    currentSong: MediaItem? = null,
+    isPlaying: Boolean = false,
+    progress: Float = 0f,
+    onSongClick: (Int, String) -> Unit = { _, _ -> },
     onSongLongClick: (String) -> Unit = {},
     onMove: (Int, Int) -> Unit = { _, _ -> },
+    onTogglePlayPause: () -> Unit = {},
 ) {
     AppTheme {
         Column(
@@ -101,54 +119,31 @@ fun PlayingQueueContent(
                     items = playingQueue,
                     onMove = onMove,
                     key = { _, item -> item.mediaId },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 8.dp)
                 ) { index, item, isDragging, dragModifier ->
                     val isSelected = selectionState.selectedSongs.contains(item.mediaId)
+                    val isCurrentSong = item.mediaId == currentSong?.mediaId
 
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (isDragging) {
-                                        MaterialTheme.colorScheme.surfaceVariant
-                                    } else if (isSelected) {
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                    } else {
-                                        MaterialTheme.colorScheme.background
-                                    },
-                                ).combinedClickable(
-                                    onClick = { onSongClick(item.mediaId) },
-                                    onLongClick = { onSongLongClick(item.mediaId) },
-                                ).padding(vertical = 8.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DragHandle,
-                            contentDescription = "Reorder",
-                            modifier = dragModifier
-                                .padding(end = 8.dp)
-                                .size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${
-                                    "%02d".format(
-                                        item.mediaMetadata.trackNumber,
-                                    )
-                                } - ${item.mediaMetadata.title}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = "${item.mediaMetadata.artist} - ${item.mediaMetadata.albumTitle}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
+                    PlayingQueueItem(
+                        item = item,
+                        isPlaying = isPlaying,
+                        isCurrentSong = isCurrentSong,
+                        progress = if (isCurrentSong) progress else 0f,
+                        isDragging = isDragging,
+                        isSelected = isSelected,
+                        dragModifier = dragModifier,
+                        onClick = { onSongClick(index, item.mediaId) },
+                        onLongClick = { onSongLongClick(item.mediaId) },
+                        onTogglePlayPause = {
+                            if (isCurrentSong) {
+                                onTogglePlayPause()
+                            } else {
+                                onSongClick(index, item.mediaId)
+                            }
                         }
-                    }
+                    )
                 }
             }
         }

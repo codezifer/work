@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -42,7 +43,9 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     private val playingQueueRepository: PlayingQueueRepository by inject()
 
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+    // Scope for service-wide tasks, defaulting to Main.immediate to ensure
+    // thread-safe interaction with ExoPlayer and atomic StateFlow updates.
+    private val serviceScope = CoroutineScope(Dispatchers.Main.immediate + serviceJob)
 
     private var currentPlaylistIndex = -1
     private var currentLastPlaylistIndex = -1
@@ -69,6 +72,8 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     private val _playlist = MutableStateFlow<List<MediaItem>>(emptyList())
     val playlistStateFlow: StateFlow<List<MediaItem>> = _playlist.asStateFlow()
 
+    private var isCurrentSongCounted = false
+
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
@@ -84,7 +89,8 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                         reason: Int,
                     ) {
                         _currentSong.value = mediaItem
-                        _duration.value = exoPlayer?.duration ?: 0L
+                        _duration.value = exoPlayer.duration
+                        isCurrentSongCounted = false
                         // update current playlist index
                         mediaItem?.let {
                             currentPlaylistIndex =
@@ -92,7 +98,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                             currentLastPlaylistIndex = _playlist.value.lastIndex
                         }
                         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-                            _currentSong.value = exoPlayer?.currentMediaItem
+                            _currentSong.value = exoPlayer.currentMediaItem
                         }
                     }
 
@@ -101,7 +107,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                         val newState = playbackState
                         _playbackState.value = newState
                         if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
-                            _duration.value = exoPlayer?.duration ?: 0L
+                            _duration.value = exoPlayer.duration
                         }
                         if (playbackState == Player.STATE_ENDED) {
                             // TODO: handle repead mode here
@@ -124,13 +130,28 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             )
         }
 
-        // start a coroutine to periodically update current position
+        // Periodically update current position and check for play count threshold.
+        // This loop runs on Dispatchers.Main because ExoPlayer is not thread-safe
+        // and must be accessed from the thread it was created on (typically Main).
         serviceScope.launch {
-            while (true) {
+            while (isActive) {
                 if (_isPlaying.value) {
-                    _currentPosition.value = exoPlayer?.currentPosition ?: 0L
+                    val currentPos = exoPlayer.currentPosition
+                    val duration = exoPlayer.duration
+                    _currentPosition.value = currentPos
+
+                    // Check if 50% of the song has been played
+                    if (!isCurrentSongCounted && duration > 0 && currentPos >= duration / 2) {
+                        isCurrentSongCounted = true
+                        _currentSong.value?.mediaId?.let { songId ->
+                            // Database operations are offloaded to background threads (handled by Repositories)
+                            serviceScope.launch {
+                                musicRepository.recordPlay(songId)
+                            }
+                        }
+                    }
                 }
-                delay(500) // twice a second
+                delay(500) // Non-blocking delay (gives the thread back to other tasks)
             }
         }
 
@@ -167,12 +188,12 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         if (newPlaylist.isNotEmpty() && 0 <= startIndex && startIndex <= newPlaylist.size) {
             currentPlaylistIndex = startIndex
             currentLastPlaylistIndex = newPlaylist.lastIndex
-            exoPlayer?.setMediaItems(newPlaylist, startIndex, 0L)
-            exoPlayer?.prepare()
+            exoPlayer.setMediaItems(newPlaylist, startIndex, 0L)
+            exoPlayer.prepare()
         } else {
             // clear player if playlist is empty or start index invalid
-            exoPlayer?.clearMediaItems()
-            exoPlayer?.stop()
+            exoPlayer.clearMediaItems()
+            exoPlayer.stop()
             currentPlaylistIndex = -1
             currentLastPlaylistIndex = -1
             _currentSong.value = null
@@ -183,7 +204,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         val currentList = _playlist.value.toMutableList()
         currentList.add(mediaItem)
         _playlist.value = currentList
-        exoPlayer?.addMediaItem(mediaItem)
+        exoPlayer.addMediaItem(mediaItem)
     }
 
     fun playSongFromPlaylist(index: Int) {
@@ -194,13 +215,13 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             exoPlayer.playWhenReady = true // Ensure it plays
             exoPlayer.prepare() // Call prepare if not already prepared or after seek
             exoPlayer.play()
-            _currentSong.value = exoPlayer?.currentMediaItem // Update current song immediately
+            _currentSong.value = exoPlayer.currentMediaItem // Update current song immediately
         }
     }
 
     fun playContent(mediaItem: MediaItem) {
         setPlaylist(listOf(mediaItem))
-        exoPlayer?.play()
+        exoPlayer.play()
     }
 
     // --- Playback Control Functions ---
@@ -227,24 +248,24 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             // ExoPlayer's onMediaItemTransition will update currentPlaylistIndex and _currentSong
         } else {
             // Handle end of playlist: stop, loop, etc.
-            if (exoPlayer?.repeatMode == Player.REPEAT_MODE_OFF) {
+            if (exoPlayer.repeatMode == Player.REPEAT_MODE_OFF) {
                 handleSeekToDefault()
-            } else if (exoPlayer?.repeatMode == Player.REPEAT_MODE_ALL) {
-                exoPlayer?.seekToDefaultPosition(0)
+            } else if (exoPlayer.repeatMode == Player.REPEAT_MODE_ALL) {
+                exoPlayer.seekToDefaultPosition(0)
             }
         }
     }
 
     fun previous() {
-        if (exoPlayer?.hasPreviousMediaItem() == true) {
-            exoPlayer?.seekToPreviousMediaItem()
+        if (exoPlayer.hasPreviousMediaItem()) {
+            exoPlayer.seekToPreviousMediaItem()
             // ExoPlayer's onMediaItemTransition will update currentPlaylistIndex and _currentSong
         } else {
             // Handle beginning of playlist
-            if (exoPlayer?.repeatMode == Player.REPEAT_MODE_OFF) {
+            if (exoPlayer.repeatMode == Player.REPEAT_MODE_OFF) {
                 handleSeekToDefault()
-            } else if (exoPlayer?.repeatMode == Player.REPEAT_MODE_ALL) {
-                exoPlayer?.seekTo(currentLastPlaylistIndex, 0L)
+            } else if (exoPlayer.repeatMode == Player.REPEAT_MODE_ALL) {
+                exoPlayer.seekTo(currentLastPlaylistIndex, 0L)
             }
         }
     }
@@ -253,25 +274,25 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         // TODO: convert progess 0f..1f to positionMs
     }
 
-    fun isPlaying() = exoPlayer?.isPlaying ?: false
+    fun isPlaying() = exoPlayer.isPlaying ?: false
 
-    fun getCurrentPosition() = exoPlayer?.currentPosition ?: 0L
+    fun getCurrentPosition() = exoPlayer.currentPosition ?: 0L
 
-    fun getDuration() = exoPlayer?.duration ?: 0L
+    fun getDuration() = exoPlayer.duration ?: 0L
 
-    fun seekTo(position: Long) = exoPlayer?.seekTo(position)
+    fun seekTo(position: Long) = exoPlayer.seekTo(position)
 
     fun setRepeatMode(repeatMode: Int) { // Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ONE, Player.REPEAT_MODE_ALL
-        exoPlayer?.repeatMode = repeatMode
+        exoPlayer.repeatMode = repeatMode
     }
 
     fun setShuffleModeEnabled(shuffleModeEnabled: Boolean) {
-        exoPlayer?.shuffleModeEnabled = shuffleModeEnabled
+        exoPlayer.shuffleModeEnabled = shuffleModeEnabled
     }
 
     // --- private section ---
     private fun handleSeekToDefault() {
-        exoPlayer?.seekToDefaultPosition(0)
+        exoPlayer.seekToDefaultPosition(0)
         stop()
     }
 
@@ -288,7 +309,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
 
                 Pair(Player.STATE_IDLE, Player.STATE_READY) -> {
                     // This might happen if media is already buffered/short
-                    if (exoPlayer?.playWhenReady == true) {
+                    if (exoPlayer.playWhenReady) {
                         PlaybackStateTransition.IDLE_PLAYING // Or a more specific state
                     } else {
                         PlaybackStateTransition.IDLE_READY
@@ -296,7 +317,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                 }
 
                 Pair(Player.STATE_BUFFERING, Player.STATE_READY) -> {
-                    if (exoPlayer?.playWhenReady == true && exoPlayer?.isPlaying == true) {
+                    if (exoPlayer.playWhenReady && exoPlayer.isPlaying) {
                         // About to start playing or is already playing
                         PlaybackStateTransition.BUFFERING_PLAYING
                     } else {
@@ -342,7 +363,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                     // However, the 'isPlaying' status might have.
                     // This is better handled by onIsPlayingChanged, but if you want one central place:
                     val wasPlaying = _isPlaying.value // Value before onIsPlayingChanged updates it
-                    val isNowPlaying = exoPlayer?.isPlaying ?: false // Current actual status
+                    val isNowPlaying = exoPlayer.isPlaying ?: false // Current actual status
                     if (!wasPlaying && isNowPlaying) {
                         println("Transition: PAUSED (READY) -> PLAYING (READY)")
                         PlaybackStateTransition.PAUSED_PLAYING
@@ -375,9 +396,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                             }
 
                             Player.STATE_READY -> {
-                                if (exoPlayer?.isPlaying ==
-                                    true
-                                ) {
+                                if (exoPlayer.isPlaying) {
                                     PlaybackStateTransition.PLAYING_PLAYING
                                 } else {
                                     PlaybackStateTransition.PAUSED_PAUSED

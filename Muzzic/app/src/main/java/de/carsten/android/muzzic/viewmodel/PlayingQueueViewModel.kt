@@ -4,10 +4,12 @@ import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,11 +24,80 @@ class PlayingQueueViewModel(
     private val _currentPlayingQueue = MutableStateFlow<List<MediaItem>>(emptyList())
     val currentPlayingQueue: StateFlow<List<MediaItem>> = _currentPlayingQueue.asStateFlow()
 
+    private val _currentSong = MutableStateFlow<MediaItem?>(null)
+    val currentSong: StateFlow<MediaItem?> = _currentSong.asStateFlow()
+
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
+    private val _currentPosition = MutableStateFlow(0L)
+    val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
+
+    private val _duration = MutableStateFlow(0L)
+    val duration: StateFlow<Long> = _duration.asStateFlow()
+
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _isPlaying.value = isPlaying
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _currentSong.value = mediaItem
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            val b = mediaLibraryManager.browser.value ?: return
+            _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+        }
+    }
+
     init {
         viewModelScope.launch {
             repository.observePlayingQueue().collect {
                 _currentPlayingQueue.value = it
             }
+        }
+        viewModelScope.launch {
+            mediaLibraryManager.browser.collect { b ->
+                if (b != null) {
+                    b.addListener(playerListener)
+                    _isPlaying.value = b.isPlaying
+                    _currentSong.value = b.currentMediaItem
+                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                }
+            }
+        }
+        startProgressUpdater()
+    }
+
+    private fun startProgressUpdater() {
+        viewModelScope.launch {
+            while (true) {
+                val b = mediaLibraryManager.browser.value
+                if (b != null && b.isPlaying) {
+                    _currentPosition.value = b.currentPosition
+                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                }
+                delay(500)
+            }
+        }
+    }
+
+    fun togglePlayPause() {
+        val b = mediaLibraryManager.browser.value ?: return
+        if (b.isPlaying) {
+            b.pause()
+        } else {
+            b.play()
+        }
+    }
+
+    fun playSongAt(index: Int) {
+        val b = mediaLibraryManager.browser.value ?: return
+        if (index in _currentPlayingQueue.value.indices) {
+            b.seekToDefaultPosition(index)
+            b.prepare()
+            b.play()
         }
     }
 
