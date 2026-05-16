@@ -137,7 +137,7 @@ class SelectionViewModelTest {
         coEvery { artistRepository.getSongsByArtist("Artist 1") } returns listOf(song1)
         every { albumRepository.getSongsByAlbum("Artist 2", "Album 2") } returns flowOf(listOf(song2))
         coEvery { songRepository.getSongsByIds(*anyVararg()) } returns listOf(song1, song2, song3)
-        coEvery { playingQueueRepository.addSongs(any(), any()) } returns emptyList()
+        coEvery { playingQueueRepository.addSongs(any(), any()) } returns listOf(song1.toMediaItem(), song2.toMediaItem(), song3.toMediaItem())
 
         viewModel.toggleArtistSelection("Artist 1")
         testScheduler.advanceUntilIdle()
@@ -149,7 +149,7 @@ class SelectionViewModelTest {
         testScheduler.advanceUntilIdle()
 
         coVerify {
-            playingQueueRepository.addSongs(any())
+            playingQueueRepository.addSongs(any(), any())
         }
 
         // Selection is ENQUEUED after confirmation
@@ -161,7 +161,7 @@ class SelectionViewModelTest {
     fun `rollbackEnqueued removes recently added songs`() = runTest {
         val song1 = createSong("1", "Artist 1", "Album 1")
         coEvery { songRepository.getSongsByIds(*anyVararg()) } returns listOf(song1)
-        coEvery { playingQueueRepository.addSongs(any(), any()) } returns emptyList()
+        coEvery { playingQueueRepository.addSongs(any(), any()) } returns listOf(song1.toMediaItem())
         coEvery { playingQueueRepository.removeSongs(any()) } returns Unit
 
         viewModel.toggleSongSelection("1")

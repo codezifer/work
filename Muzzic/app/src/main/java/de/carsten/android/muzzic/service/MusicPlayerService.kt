@@ -43,6 +43,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     private val playingQueueRepository: PlayingQueueRepository by inject()
 
     private val serviceJob = SupervisorJob()
+
     // Scope for service-wide tasks, defaulting to Main.immediate to ensure
     // thread-safe interaction with ExoPlayer and atomic StateFlow updates.
     private val serviceScope = CoroutineScope(Dispatchers.Main.immediate + serviceJob)
@@ -123,7 +124,11 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                         reason: Int,
                     ) {
                         if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                            // TODO: update playlist STateFlow here if needed
+                            val playlist = mutableListOf<MediaItem>()
+                            for (i in 0 until exoPlayer.mediaItemCount) {
+                                playlist.add(exoPlayer.getMediaItemAt(i))
+                            }
+                            _playlist.value = playlist
                         }
                     }
                 },
@@ -170,6 +175,70 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                 playingQueueRepository
             )
         ).build()
+
+        loadPersistedQueue()
+        observePlayingQueue()
+        logger.info("MusicPlayerService created")
+    }
+
+    private fun observePlayingQueue() {
+        serviceScope.launch {
+            playingQueueRepository.observeEnqueued().collect { dbQueue ->
+                syncPlayerWithDb(dbQueue)
+            }
+        }
+    }
+
+    private fun syncPlayerWithDb(dbQueue: List<MediaItem>) {
+        val currentPlayerItems = mutableListOf<MediaItem>()
+        for (i in 0 until exoPlayer.mediaItemCount) {
+            currentPlayerItems.add(exoPlayer.getMediaItemAt(i))
+        }
+
+        if (currentPlayerItems.size == dbQueue.size &&
+            currentPlayerItems.zip(dbQueue).all { (p, d) -> p.mediaId == d.mediaId }
+        ) {
+            // Already in sync
+            return
+        }
+
+        logger.info("Syncing player with database queue (${dbQueue.size} items)")
+
+        // Simple strategy for now: if current song is in the new queue, preserve it
+        val currentMediaItem = exoPlayer.currentMediaItem
+        val currentPosition = exoPlayer.currentPosition
+        val wasPlaying = exoPlayer.isPlaying
+
+        val newIndex = if (currentMediaItem != null) {
+            dbQueue.indexOfFirst { it.mediaId == currentMediaItem.mediaId }
+        } else {
+            -1
+        }
+
+        if (newIndex != -1) {
+            exoPlayer.setMediaItems(dbQueue, newIndex, currentPosition)
+        } else {
+            exoPlayer.setMediaItems(dbQueue)
+        }
+
+        exoPlayer.prepare()
+        if (wasPlaying) {
+            exoPlayer.play()
+        }
+    }
+
+    private fun loadPersistedQueue() {
+        serviceScope.launch {
+            val queue = playingQueueRepository.getPlayingQueue()
+            if (queue.isNotEmpty()) {
+                setPlaylist(queue)
+                logger.info("Restored ${queue.size} items to the playing queue")
+            }
+        }
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+        return mediaLibrarySession
     }
 
     override fun onDestroy() {
@@ -185,11 +254,13 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         startIndex: Int = 0,
     ) {
         _playlist.value = newPlaylist
-        if (newPlaylist.isNotEmpty() && 0 <= startIndex && startIndex <= newPlaylist.size) {
+        if (newPlaylist.isNotEmpty() && 0 <= startIndex && startIndex < newPlaylist.size) {
             currentPlaylistIndex = startIndex
             currentLastPlaylistIndex = newPlaylist.lastIndex
             exoPlayer.setMediaItems(newPlaylist, startIndex, 0L)
-            exoPlayer.prepare()
+            if (exoPlayer.playbackState == Player.STATE_IDLE) {
+                exoPlayer.prepare()
+            }
         } else {
             // clear player if playlist is empty or start index invalid
             exoPlayer.clearMediaItems()
@@ -198,6 +269,10 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             currentLastPlaylistIndex = -1
             _currentSong.value = null
         }
+    }
+
+    fun clearPlaylist() {
+        this.setPlaylist(emptyList())
     }
 
     fun addMediaItemToPlaylist(mediaItem: MediaItem) {
@@ -416,9 +491,5 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                     }
                 }
             }
-    }
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
-        return mediaLibrarySession
     }
 }

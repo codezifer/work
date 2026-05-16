@@ -9,11 +9,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
 import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
+import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
-import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.service.MusicPlayerServiceCallback
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,6 @@ import org.koin.core.component.KoinComponent
 @OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
 open class PlayerViewModel(
     private val repository: MusicRepository,
-    private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
     application: Application,
 ) : AndroidViewModel(application),
@@ -84,7 +83,6 @@ open class PlayerViewModel(
     init {
         scanLibrary()
         startProgressUpdater()
-        loadPersistedQueue()
         viewModelScope.launch {
             browser.collect { b ->
                 if (b != null) {
@@ -167,14 +165,14 @@ open class PlayerViewModel(
     // Example of how to browse via MediaBrowser
     fun loadArtists(callback: (List<MediaItem>) -> Unit) {
         viewModelScope.launch {
-            val artists = mediaLibraryManager.getChildren(MusicPlayerServiceCallback.ARTISTS_ID)
+            val artists = mediaLibraryManager.getChildren(ARTISTS_ID)
             callback(artists)
         }
     }
 
     fun loadAlbums(callback: (List<MediaItem>) -> Unit) {
         viewModelScope.launch {
-            val albums = mediaLibraryManager.getChildren(MusicPlayerServiceCallback.ALBUMS_ID)
+            val albums = mediaLibraryManager.getChildren(ALBUMS_ID)
             callback(albums)
         }
     }
@@ -182,15 +180,6 @@ open class PlayerViewModel(
     fun search(query: String, callback: (List<MediaItem>) -> Unit) {
         val b = browser.value ?: return
         b.search(query, null)
-    }
-
-    private fun loadPersistedQueue() {
-        viewModelScope.launch {
-            val queue = playingQueueRepository.getPlayingQueue()
-            if (queue.isNotEmpty()) {
-                mediaLibraryManager.preparePlaylist(queue)
-            }
-        }
     }
 
     override fun onCleared() {

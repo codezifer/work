@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.R
@@ -35,15 +36,15 @@ import java.util.UUID
 @Composable
 fun PlayingQueueScreen(
     modifier: Modifier,
-    viewModel: PlayingQueueViewModel = koinViewModel(),
+    playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
-    val playingQueue by viewModel.currentPlayingQueue.collectAsState()
+    val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
     val selectionState by selectionViewModel.selectionState.collectAsState()
-    val currentSong by viewModel.currentSong.collectAsState()
-    val isPlaying by viewModel.isPlaying.collectAsState()
-    val currentPosition by viewModel.currentPosition.collectAsState()
-    val duration by viewModel.duration.collectAsState()
+    val currentSong by playingQueueViewModel.currentSong.collectAsState()
+    val isPlaying by playingQueueViewModel.isPlaying.collectAsState()
+    val currentPosition by playingQueueViewModel.currentPosition.collectAsState()
+    val duration by playingQueueViewModel.duration.collectAsState()
 
     val progress by remember {
         derivedStateOf {
@@ -63,11 +64,11 @@ fun PlayingQueueScreen(
             if (selectionState.isActive) {
                 selectionViewModel.toggleSongSelection(songId)
             } else {
-                viewModel.playSongAt(index)
+                playingQueueViewModel.playSongAt(index)
             }
         },
-        onMove = { from, to -> viewModel.moveSong(from, to) },
-        onTogglePlayPause = { viewModel.togglePlayPause() }
+        onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
+        onTogglePlayPause = { playingQueueViewModel.togglePlayPause() }
     )
 }
 

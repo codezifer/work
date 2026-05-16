@@ -31,6 +31,7 @@ data class PlayingQueue(
     val albumArt: String? = null,
     val genre: String? = null,
     val duration: Long? = null, // in milliseconds
+    val filePath: String? = null,
     var enqueued: Boolean? = null,
     val songId: String? = null,
     var queuePosition: Int = 0,
@@ -46,6 +47,7 @@ data class PlayingQueue(
                 albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
                 genre = mediaItem.mediaMetadata.genre?.toString(),
                 duration = mediaItem.mediaMetadata.durationMs,
+                filePath = mediaItem.localConfiguration?.uri?.toString(),
                 enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
                 songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
                     if (it.isNullOrBlank()) null else it
@@ -62,6 +64,7 @@ data class PlayingQueue(
         MediaItem
             .Builder()
             .setMediaId(id)
+            .setUri(filePath)
             .setMediaMetadata(
                 MediaMetadata
                     .Builder()
@@ -73,6 +76,8 @@ data class PlayingQueue(
                     .setArtworkUri(albumArt?.toUri())
                     .setGenre(genre)
                     .setDurationMs(duration)
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
                     .setExtras(getExtras())
                     .build(),
             ).build()

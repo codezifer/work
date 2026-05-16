@@ -9,7 +9,6 @@ val viewModelModule =
         viewModel {
             PlayerViewModel(
                 repository = get(),
-                playingQueueRepository = get(),
                 mediaLibraryManager = get(),
                 application = get()
             )

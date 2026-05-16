@@ -7,7 +7,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
-import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
+import de.carsten.android.muzzic.model.MediaKeys.ALBUM_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
+import de.carsten.android.muzzic.model.MediaKeys.ARTIST_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.CURRENT_QUEUE
+import de.carsten.android.muzzic.model.MediaKeys.GENRES_ID
+import de.carsten.android.muzzic.model.MediaKeys.PLAYLISTS_ID
+import de.carsten.android.muzzic.model.MediaKeys.SONGS_ID
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
@@ -44,26 +51,18 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
         return result.value ?: emptyList()
     }
 
-    suspend fun getArtists(): List<ArtistDto> =
-        getChildren(MusicPlayerServiceCallback.ARTISTS_ID).map { it.toArtistDto() }
-
-    suspend fun getAlbums(): List<AlbumDto> =
-        getChildren(MusicPlayerServiceCallback.ALBUMS_ID).map { it.toAlbumDto() }
-
-    suspend fun getSongs(): List<MediaItem> =
-        getChildren(MusicPlayerServiceCallback.SONGS_ID)
-
-    suspend fun getGenres(): List<GenreDto> =
-        getChildren(MusicPlayerServiceCallback.GENRES_ID).map { it.toGenreDto() }
-
-    suspend fun getPlaylists(): List<PlaylistDto> =
-        getChildren(MusicPlayerServiceCallback.PLAYLISTS_ID).map { it.toPlaylistDto() }
-
+    suspend fun getArtists(): List<ArtistDto> = getChildren(ARTISTS_ID).map { it.toArtistDto() }
+    suspend fun getAlbums(): List<AlbumDto> = getChildren(ALBUMS_ID).map { it.toAlbumDto() }
+    suspend fun getSongs(): List<MediaItem> = getChildren(SONGS_ID)
+    suspend fun getGenres(): List<GenreDto> = getChildren(GENRES_ID).map { it.toGenreDto() }
+    suspend fun getPlaylists(): List<PlaylistDto> = getChildren(PLAYLISTS_ID).map { it.toPlaylistDto() }
     suspend fun getAlbumsByArtist(artistName: String): List<AlbumDto> =
-        getChildren("${MediaKeys.ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
+        getChildren("${ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
+
+    suspend fun getPlayingQueue(): List<MediaItem> = getChildren(CURRENT_QUEUE)
 
     suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> =
-        getChildren("${MediaKeys.ALBUM_PREFIX}$artistName:$albumName")
+        getChildren("${ALBUM_PREFIX}$artistName:$albumName")
 
     fun playContent(mediaItem: MediaItem) {
         val browser = _browser.value ?: return
@@ -82,6 +81,12 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
     fun preparePlaylist(mediaItems: List<MediaItem>, startIndex: Int = 0) {
         val browser = _browser.value ?: return
         browser.setMediaItems(mediaItems, startIndex, 0L)
+        browser.prepare()
+    }
+
+    fun clearPlaylist() {
+        val browser = _browser.value ?: return
+        browser.setMediaItems(emptyList())
         browser.prepare()
     }
 }

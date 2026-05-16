@@ -11,8 +11,10 @@ import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -21,8 +23,8 @@ class PlayingQueueViewModel(
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    private val _currentPlayingQueue = MutableStateFlow<List<MediaItem>>(emptyList())
-    val currentPlayingQueue: StateFlow<List<MediaItem>> = _currentPlayingQueue.asStateFlow()
+    val currentPlayingQueue: StateFlow<List<MediaItem>> = repository.observePlayingQueue()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
     val currentSong: StateFlow<MediaItem?> = _currentSong.asStateFlow()
@@ -52,11 +54,6 @@ class PlayingQueueViewModel(
     }
 
     init {
-        viewModelScope.launch {
-            repository.observePlayingQueue().collect {
-                _currentPlayingQueue.value = it
-            }
-        }
         viewModelScope.launch {
             mediaLibraryManager.browser.collect { b ->
                 if (b != null) {
@@ -94,37 +91,49 @@ class PlayingQueueViewModel(
 
     fun playSongAt(index: Int) {
         val b = mediaLibraryManager.browser.value ?: return
-        if (index in _currentPlayingQueue.value.indices) {
-            b.seekToDefaultPosition(index)
-            b.prepare()
-            b.play()
+        if (index in currentPlayingQueue.value.indices) {
+            // Check if the current player items match our queue
+            val match = b.mediaItemCount == currentPlayingQueue.value.size &&
+                (0 until b.mediaItemCount).all { i ->
+                    b.getMediaItemAt(i).mediaId == currentPlayingQueue.value[i].mediaId
+                }
+
+            if (!match) {
+                // If they don't match, reload the whole queue into the player
+                mediaLibraryManager.playPlaylist(currentPlayingQueue.value, index)
+            } else {
+                // If they match, just seek to the correct item
+                b.seekToDefaultPosition(index)
+                b.prepare()
+                b.play()
+            }
         }
     }
 
     fun saveAsPlaylist(name: String) {
         viewModelScope.launch {
-            playlistRepository.createPlaylistFromSongs(name, _currentPlayingQueue.value)
+            playlistRepository.createPlaylistFromSongs(name, currentPlayingQueue.value)
         }
     }
 
     fun moveSong(fromIndex: Int, toIndex: Int) {
-        val currentList = _currentPlayingQueue.value.toMutableList()
-        if (fromIndex !in currentList.indices || toIndex !in currentList.indices) return
+        if (fromIndex !in currentPlayingQueue.value.indices || toIndex !in currentPlayingQueue.value.indices) return
 
-        val item = currentList.removeAt(fromIndex)
-        currentList.add(toIndex, item)
-        _currentPlayingQueue.value = currentList
+        val playlist = currentPlayingQueue.value.toMutableList()
+        val item = playlist.removeAt(fromIndex)
+        playlist.add(toIndex, item)
 
         // Update player
         mediaLibraryManager.browser.value?.moveMediaItem(fromIndex, toIndex)
 
         // Update persistence
         viewModelScope.launch {
-            repository.persistQueue(currentList)
+            repository.persistQueue(playlist)
         }
     }
 
     fun clear() {
+        mediaLibraryManager.clearPlaylist()
         viewModelScope.launch {
             repository.clear()
         }

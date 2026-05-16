@@ -13,23 +13,26 @@ class PlayingQueueRepository(
 
     suspend fun getCompleteQueue(): List<MediaItem> = playingQueueDao.findAll().map { it.toMediaItem() }
 
-    fun observePlayingQueue(): Flow<List<MediaItem>> =
-        playingQueueDao.observeAll().map { queue ->
-            queue.map { it.toMediaItem() }
-        }
+    fun observePlayingQueue(): Flow<List<MediaItem>> = playingQueueDao.observeAll().map { queue ->
+        queue.map { it.toMediaItem() }
+    }
+
+    fun observeEnqueued(): Flow<List<MediaItem>> = playingQueueDao.observeEnqueued().map { queue ->
+        queue.map { it.toMediaItem() }
+    }
 
     suspend fun clear() {
         playingQueueDao.clearQueue()
     }
 
-    suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<PlayingQueue> {
+    suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<MediaItem> {
         val entities = mediaItems.map { item ->
             PlayingQueue.fromMediaItem(item).apply {
                 this.enqueued = enqueued
             }
         }
         playingQueueDao.addSongs(entities)
-        return entities
+        return entities.map { it.toMediaItem() }
     }
 
     suspend fun removeSongs(mediaItems: List<MediaItem>) {

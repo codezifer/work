@@ -2,18 +2,27 @@ package de.carsten.android.muzzic.service
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionError
 import com.google.common.collect.ImmutableList
-import androidx.core.net.toUri
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import androidx.media3.common.util.UnstableApi
-import de.carsten.android.muzzic.persistence.entity.Playlist
-import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
+import de.carsten.android.muzzic.model.MediaKeys.ALBUM_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
+import de.carsten.android.muzzic.model.MediaKeys.ARTIST_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.CURRENT_QUEUE
+import de.carsten.android.muzzic.model.MediaKeys.GENRES_ID
+import de.carsten.android.muzzic.model.MediaKeys.GENRE_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.PLAYLISTS_ID
+import de.carsten.android.muzzic.model.MediaKeys.PLAYLIST_PREFIX
+import de.carsten.android.muzzic.model.MediaKeys.ROOT_ID
+import de.carsten.android.muzzic.model.MediaKeys.SONGS_ID
 import de.carsten.android.muzzic.persistence.entity.toMediaItem
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -22,10 +31,6 @@ import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
-import de.carsten.android.muzzic.ui.model.AlbumDto
-import de.carsten.android.muzzic.ui.model.ArtistDto
-import de.carsten.android.muzzic.ui.model.GenreDto
-import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.toMediaItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -42,15 +47,6 @@ class MusicPlayerServiceCallback(
     private val playlistRepository: PlaylistRepository,
     private val playingQueueRepository: PlayingQueueRepository,
 ) : MediaLibrarySession.Callback {
-
-    companion object {
-        const val ROOT_ID = "[ROOT]"
-        const val ARTISTS_ID = "[ARTISTS]"
-        const val ALBUMS_ID = "[ALBUMS]"
-        const val SONGS_ID = "[SONGS]"
-        const val PLAYLISTS_ID = "[PLAYLISTS]"
-        const val GENRES_ID = "[GENRES]"
-    }
 
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
@@ -85,28 +81,8 @@ class MusicPlayerServiceCallback(
                 SONGS_ID -> getAllSongs()
                 PLAYLISTS_ID -> getPlaylists()
                 GENRES_ID -> getGenres()
-                else -> {
-                    if (parentId.startsWith(MediaKeys.ARTIST_PREFIX)) {
-                        val artistName = parentId.removePrefix(MediaKeys.ARTIST_PREFIX)
-                        getAlbumsByArtist(artistName)
-                    } else if (parentId.startsWith(MediaKeys.ALBUM_PREFIX)) {
-                        // Expected format [ALBUM]:artistName:albumName
-                        val parts = parentId.removePrefix(MediaKeys.ALBUM_PREFIX).split(":", limit = 2)
-                        if (parts.size == 2) {
-                            getSongsByAlbum(parts[0], parts[1])
-                        } else {
-                            emptyList()
-                        }
-                    } else if (parentId.startsWith(MediaKeys.PLAYLIST_PREFIX)) {
-                        val playlistName = parentId.removePrefix(MediaKeys.PLAYLIST_PREFIX)
-                        getSongsByPlaylist(playlistName)
-                    } else if (parentId.startsWith(MediaKeys.GENRE_PREFIX)) {
-                        val genreName = parentId.removePrefix(MediaKeys.GENRE_PREFIX)
-                        getSongsByGenre(genreName)
-                    } else {
-                        emptyList()
-                    }
-                }
+                CURRENT_QUEUE -> getPlayingQueue(session.player)
+                else -> getSongs(parentId)
             }
             LibraryResult.ofItemList(items, params)
         }
@@ -231,6 +207,36 @@ class MusicPlayerServiceCallback(
         val playlists = playlistRepository.playlistDao.getAllPlaylists().first()
         return playlists.map { it.toMediaItem() }
     }
+
+    private fun getPlayingQueue(player: Player): List<MediaItem> {
+        val playlist = mutableListOf<MediaItem>()
+        for (i in 0 until player.mediaItemCount) {
+            playlist.add(player.getMediaItemAt(i))
+        }
+        return playlist
+    }
+
+    private suspend fun getSongs(parentId: String): List<MediaItem> =
+        if (parentId.startsWith(ARTIST_PREFIX)) {
+            val artistName = parentId.removePrefix(ARTIST_PREFIX)
+            getAlbumsByArtist(artistName)
+        } else if (parentId.startsWith(ALBUM_PREFIX)) {
+            // Expected format [ALBUM]:artistName:albumName
+            val parts = parentId.removePrefix(ALBUM_PREFIX).split(":", limit = 2)
+            if (parts.size == 2) {
+                getSongsByAlbum(parts[0], parts[1])
+            } else {
+                emptyList()
+            }
+        } else if (parentId.startsWith(PLAYLIST_PREFIX)) {
+            val playlistName = parentId.removePrefix(PLAYLIST_PREFIX)
+            getSongsByPlaylist(playlistName)
+        } else if (parentId.startsWith(GENRE_PREFIX)) {
+            val genreName = parentId.removePrefix(GENRE_PREFIX)
+            getSongsByGenre(genreName)
+        } else {
+            emptyList()
+        }
 
     private suspend fun getSongsByPlaylist(playlistName: String): List<MediaItem> {
         val playlist = playlistRepository.playlistDao.getAllPlaylists().first().find { it.name == playlistName }
