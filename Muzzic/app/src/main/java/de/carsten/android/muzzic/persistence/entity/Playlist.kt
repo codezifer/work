@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.persistence.entity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.room.Entity
+import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.model.MediaKeys
 
 @Entity(tableName = "playlists")

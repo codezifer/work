@@ -54,4 +54,10 @@ val viewModelModule =
                 mediaLibraryManager = get()
             )
         }
+        viewModel {
+            PlaylistViewModel(
+                repository = get(),
+                playingQueueRepository = get()
+            )
+        }
     }

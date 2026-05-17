@@ -41,6 +41,7 @@ import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
+import de.carsten.android.muzzic.viewmodel.PlaylistViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
@@ -52,8 +53,9 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MusicPlayerApp(
     selectionViewModel: SelectionViewModel = koinViewModel(),
-    queueViewModel: PlayingQueueViewModel = koinViewModel(),
+    playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     playerViewModel: PlayerViewModel = koinViewModel(),
+    playlistViewModel: PlaylistViewModel = koinViewModel(),
     appState: MusicAppState = rememberMusicAppState()
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
@@ -66,7 +68,7 @@ fun MusicPlayerApp(
             title = "Save Queue as Playlist",
             label = "Playlist Name",
             onConfirm = { name ->
-                queueViewModel.saveAsPlaylist(name)
+                playlistViewModel.persistCurrentQueueAsPlaylist(name)
                 showSavePlaylistDialog = false
                 appState.showSnackbar("Playlist '$name' saved")
             },
@@ -173,15 +175,15 @@ fun MusicPlayerApp(
                             appState.showSnackbar(info)
                         }
                     },
-                    onClearQueue = {
-                        queueViewModel.clear()
-                        appState.showSnackbar("Queue cleared")
+                    onClearQueue = { info ->
+                        playingQueueViewModel.clear()
+                        appState.showSnackbar(info)
                     },
-                    onPersistQueue = {
-                        queueViewModel.persistCurrentQueue()
-                        appState.showSnackbar("Queue persisted")
+                    onPersistQueue = { info ->
+                        playingQueueViewModel.persistCurrentQueue()
+                        appState.showSnackbar(info)
                     },
-                    onSaveAsPlaylist = {
+                    onSaveAsPlaylist = { info ->
                         showSavePlaylistDialog = true
                     }
                 )

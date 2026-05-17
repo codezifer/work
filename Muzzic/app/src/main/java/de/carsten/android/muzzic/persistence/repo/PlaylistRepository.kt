@@ -6,9 +6,9 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.toDto
+import de.carsten.android.muzzic.utils.mediaId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 
 class PlaylistRepository(
     val playlistDao: PlaylistDao,
@@ -22,8 +22,8 @@ class PlaylistRepository(
     suspend fun deletePlaylist(playlistId: String) = playlistDao.deletePlaylist(playlistId)
 
     suspend fun createPlaylistFromSongs(name: String, songs: List<MediaItem>) {
-        val playlistId = UUID.randomUUID().toString()
-        val playlist = Playlist(name = name).apply { id = playlistId }
+        val playlistId = mediaId(name).toString()
+        val playlist = Playlist(name).apply { id = playlistId }
         playlistDao.insertPlaylist(playlist)
 
         songs.forEachIndexed { index, mediaItem ->

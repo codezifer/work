@@ -7,6 +7,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import de.carsten.android.muzzic.EMPTY
+import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 
 @Entity(
     tableName = "playing_queue",
@@ -37,27 +40,40 @@ data class PlayingQueue(
     var queuePosition: Int = 0,
 ) : AbstractEntity() {
     companion object {
-        fun fromMediaItem(mediaItem: MediaItem): PlayingQueue =
-            PlayingQueue(
-                title = mediaItem.mediaMetadata.title?.toString(),
-                trackNumber = mediaItem.mediaMetadata.trackNumber,
-                totalTracks = mediaItem.mediaMetadata.totalTrackCount,
-                artist = mediaItem.mediaMetadata.artist?.toString(),
-                album = mediaItem.mediaMetadata.albumTitle?.toString(),
-                albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
-                genre = mediaItem.mediaMetadata.genre?.toString(),
-                duration = mediaItem.mediaMetadata.durationMs,
-                filePath = mediaItem.localConfiguration?.uri?.toString(),
-                enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
-                songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
-                    if (it.isNullOrBlank()) null else it
-                },
-                queuePosition = mediaItem.mediaMetadata.extras?.getInt("queuePosition") ?: 0,
-            ).apply {
-                if (mediaItem.mediaId.isNotBlank()) {
-                    id = mediaItem.mediaId
-                }
+        fun fromMediaItem(mediaItem: MediaItem) = PlayingQueue(
+            title = mediaItem.mediaMetadata.title?.toString(),
+            trackNumber = mediaItem.mediaMetadata.trackNumber,
+            totalTracks = mediaItem.mediaMetadata.totalTrackCount,
+            artist = mediaItem.mediaMetadata.artist?.toString(),
+            album = mediaItem.mediaMetadata.albumTitle?.toString(),
+            albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
+            genre = mediaItem.mediaMetadata.genre?.toString(),
+            duration = mediaItem.mediaMetadata.durationMs,
+            filePath = mediaItem.localConfiguration?.uri?.toString(),
+            enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
+            songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
+                if (it.isNullOrBlank()) null else it
+            },
+            queuePosition = mediaItem.mediaMetadata.extras?.getInt("queuePosition") ?: 0,
+        ).apply {
+            if (mediaItem.mediaId.isNotBlank()) {
+                id = mediaItem.mediaId
             }
+        }
+
+        fun fromDto(dto: PlayingQueueDto) = PlayingQueue(
+            title = dto.title,
+            trackNumber = dto.trackNumber,
+            totalTracks = dto.totalTracks,
+            artist = dto.artist,
+            album = dto.album,
+            albumArt = dto.albumArt,
+            genre = dto.genre,
+            duration = dto.duration,
+            filePath = dto.filePath,
+            enqueued = dto.enqueued,
+
+            )
     }
 
     fun toMediaItem(): MediaItem =
@@ -81,6 +97,22 @@ data class PlayingQueue(
                     .setExtras(getExtras())
                     .build(),
             ).build()
+
+    fun toDto() = PlayingQueueDto(
+        title = title ?: UNKNOWN,
+        trackNumber = trackNumber ?: -1,
+        totalTracks = totalTracks ?: -1,
+        artist = artist ?: UNKNOWN,
+        album = album ?: UNKNOWN,
+        albumArt = albumArt ?: UNKNOWN,
+        genre = genre ?: UNKNOWN,
+        duration = duration ?: -1L,
+        filePath = filePath ?: EMPTY,
+        enqueued = false,
+        queuePosition = queuePosition,
+        songId = songId ?: EMPTY,
+        mediaId = id,
+    )
 
     private fun getExtras(): Bundle =
         Bundle().apply {

@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui.component
+package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -27,14 +27,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
+import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 
 /**
  * A modern and stylish single item in the playing queue.
  */
 @Composable
 fun PlayingQueueItem(
-    item: MediaItem,
+    playingQueueDto: PlayingQueueDto,
     isPlaying: Boolean,
     isCurrentSong: Boolean,
     progress: Float,
@@ -83,7 +83,7 @@ fun PlayingQueueItem(
                     .padding(horizontal = 12.dp)
             ) {
                 Text(
-                    text = item.mediaMetadata.title?.toString() ?: "Unknown Title",
+                    text = playingQueueDto.title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium
                     ),
@@ -91,7 +91,7 @@ fun PlayingQueueItem(
                     maxLines = 1
                 )
                 Text(
-                    text = "${item.mediaMetadata.artist} • ${item.mediaMetadata.albumTitle}",
+                    text = "${playingQueueDto.artist} • ${playingQueueDto.album}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1

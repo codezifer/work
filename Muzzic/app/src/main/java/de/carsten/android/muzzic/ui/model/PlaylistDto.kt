@@ -5,7 +5,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.model.AlbumArt
 import de.carsten.android.muzzic.model.MediaKeys
-import de.carsten.android.muzzic.persistence.entity.UNKNOWN
+import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.persistence.entity.aggregation.PlaylistAggregation
 
 @Immutable

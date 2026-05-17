@@ -8,9 +8,11 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.utils.maxStars
 import de.carsten.android.muzzic.utils.mediaItemInstant
+import de.carsten.android.muzzic.utils.songId
 import java.time.Instant
 
 @Entity(tableName = "songs")
@@ -42,6 +44,11 @@ data class Song(
     @ColumnInfo(defaultValue = "0")
     val lastPlayed: Instant = Instant.ofEpochMilli(0L),
 ) : AbstractEntity() {
+
+    init {
+        this.id = songId(title, album, artist).toString()
+    }
+
     companion object {
         fun fromMediaItem(mediaItem: MediaItem): Song {
             val metadata = mediaItem.mediaMetadata

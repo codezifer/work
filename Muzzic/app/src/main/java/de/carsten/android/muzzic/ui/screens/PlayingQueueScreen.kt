@@ -19,19 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.component.PlayingQueueItem
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
+import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
-import java.util.UUID
 
 @Composable
 fun PlayingQueueScreen(
@@ -76,7 +74,7 @@ fun PlayingQueueScreen(
 fun PlayingQueueContent(
     modifier: Modifier,
     name: String = "Playing Queue",
-    playingQueue: List<MediaItem>,
+    playingQueue: List<PlayingQueueDto>,
     selectionState: SelectionState = SelectionState(),
     currentSong: MediaItem? = null,
     isPlaying: Boolean = false,
@@ -128,7 +126,7 @@ fun PlayingQueueContent(
                     val isCurrentSong = item.mediaId == currentSong?.mediaId
 
                     PlayingQueueItem(
-                        item = item,
+                        playingQueueDto = item,
                         isPlaying = isPlaying,
                         isCurrentSong = isCurrentSong,
                         progress = if (isCurrentSong) progress else 0f,
@@ -160,18 +158,17 @@ fun PlayingQueueScreenPreview() {
         name = "Test Queue",
         playingQueue =
             listOf(
-                MediaItem
-                    .Builder()
-                    .setMediaId(UUID.randomUUID().toString())
-                    .setMediaMetadata(
-                        MediaMetadata
-                            .Builder()
-                            .setTrackNumber(2)
-                            .setTitle("This is a test title")
-                            .setArtist("Test-Artist")
-                            .setAlbumTitle("Test-Album")
-                            .build(),
-                    ).build(),
+                PlayingQueueDto(
+                    title = "Puritania",
+                    album = "Puritanical Euphoric Misantropia",
+                    artist = "Dimmu Borgir",
+                    trackNumber = 5,
+                    totalTracks = 12,
+                    duration = 180000,
+                    genre = "Black Metal",
+                    queuePosition = 5,
+                    enqueued = true,
+                )
             ),
     )
 }

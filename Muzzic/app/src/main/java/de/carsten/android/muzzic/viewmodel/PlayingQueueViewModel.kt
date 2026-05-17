@@ -9,6 +9,7 @@ import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +24,7 @@ class PlayingQueueViewModel(
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val currentPlayingQueue: StateFlow<List<MediaItem>> = repository.observePlayingQueue()
+    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> = repository.observePlayingQueue()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
@@ -100,7 +101,7 @@ class PlayingQueueViewModel(
 
             if (!match) {
                 // If they don't match, reload the whole queue into the player
-                mediaLibraryManager.playPlaylist(currentPlayingQueue.value, index)
+                mediaLibraryManager.playPlaylist(currentPlayingQueue.value.map { it.toMediaItem() }, index)
             } else {
                 // If they match, just seek to the correct item
                 b.seekToDefaultPosition(index)
@@ -112,7 +113,7 @@ class PlayingQueueViewModel(
 
     fun saveAsPlaylist(name: String) {
         viewModelScope.launch {
-            playlistRepository.createPlaylistFromSongs(name, currentPlayingQueue.value)
+            playlistRepository.createPlaylistFromSongs(name, currentPlayingQueue.value.map { it.toMediaItem() })
         }
     }
 
@@ -128,7 +129,7 @@ class PlayingQueueViewModel(
 
         // Update persistence
         viewModelScope.launch {
-            repository.persistQueue(playlist)
+            repository.persistQueue(playlist.map { it.toMediaItem() })
         }
     }
 

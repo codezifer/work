@@ -1,8 +1,7 @@
 package de.carsten.android.muzzic.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
-import androidx.annotation.OptIn
-import androidx.media3.common.util.UnstableApi
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.map.Mapper
@@ -48,9 +47,8 @@ private fun getImageLoader(context: Context): ImageLoader {
         }.build()
 }
 
-@OptIn(UnstableApi::class)
-val uiModule =
-    module {
-        single { getImageLoader(get()) }
-        single { MediaLibraryManager(get()) }
-    }
+@SuppressLint("UnsafeOptInUsageError")
+val uiModule = module {
+    single { getImageLoader(get()) }
+    single { MediaLibraryManager(get()) }
+}

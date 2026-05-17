@@ -21,9 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -50,30 +47,17 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
 
     private var currentPlaylistIndex = -1
     private var currentLastPlaylistIndex = -1
+
     private var prevPlaybackState: Int = Player.STATE_IDLE
-
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlayingFlow: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    private val _currentSong = MutableStateFlow<MediaItem?>(null)
-    val currentSongFlow: StateFlow<MediaItem?> = _currentSong.asStateFlow()
-
-    private val _duration = MutableStateFlow(0L)
-    val durationFlow: StateFlow<Long> = _duration.asStateFlow()
-
-    private val _currentPosition = MutableStateFlow(0L)
-    val currentPositionFlow: StateFlow<Long> = _currentPosition.asStateFlow()
-
-    private val _playbackState = MutableStateFlow(Player.STATE_IDLE)
-    val playbackStateFlow: StateFlow<Int> = _playbackState.asStateFlow()
-
-    private val _playbackStateTransition = MutableStateFlow(PlaybackStateTransition.IDLE_IDLE)
-    val playbackStateTransitionFlow: StateFlow<PlaybackStateTransition> = _playbackStateTransition.asStateFlow()
-
-    private val _playlist = MutableStateFlow<List<MediaItem>>(emptyList())
-    val playlistStateFlow: StateFlow<List<MediaItem>> = _playlist.asStateFlow()
+    private var currPlaybackState: Int = Player.STATE_IDLE
+    private var playbackStateTransition: PlaybackStateTransition? = null
 
     private var isCurrentSongCounted = false
+    private var playing = false
+    private var playlist = emptyList<MediaItem>()
+    private var currentSong: MediaItem? = null
+    private var currentDuration: Long? = null
+    private var currentPosition: Long? = null
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
@@ -82,33 +66,32 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             addListener(
                 object : Player.Listener {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
-                        _isPlaying.value = isPlaying
+                        playing = isPlaying
                     }
 
                     override fun onMediaItemTransition(
                         mediaItem: MediaItem?,
                         reason: Int,
                     ) {
-                        _currentSong.value = mediaItem
-                        _duration.value = exoPlayer.duration
+                        currentSong = mediaItem
+                        currentDuration = exoPlayer.duration
                         isCurrentSongCounted = false
                         // update current playlist index
                         mediaItem?.let {
-                            currentPlaylistIndex =
-                                _playlist.value.indexOfFirst { item -> item.mediaId == it.mediaId }
-                            currentLastPlaylistIndex = _playlist.value.lastIndex
+                            currentPlaylistIndex = playlist.indexOfFirst { item -> item.mediaId == it.mediaId }
+                            currentLastPlaylistIndex = playlist.lastIndex
                         }
                         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-                            _currentSong.value = exoPlayer.currentMediaItem
+                            currentSong = exoPlayer.currentMediaItem
                         }
                     }
 
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         val oldState = prevPlaybackState
                         val newState = playbackState
-                        _playbackState.value = newState
+                        currPlaybackState = newState
                         if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
-                            _duration.value = exoPlayer.duration
+                            currentDuration = exoPlayer.duration
                         }
                         if (playbackState == Player.STATE_ENDED) {
                             // TODO: handle repead mode here
@@ -124,11 +107,11 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                         reason: Int,
                     ) {
                         if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                            val playlist = mutableListOf<MediaItem>()
+                            val mediaItems = mutableListOf<MediaItem>()
                             for (i in 0 until exoPlayer.mediaItemCount) {
-                                playlist.add(exoPlayer.getMediaItemAt(i))
+                                mediaItems.add(exoPlayer.getMediaItemAt(i))
                             }
-                            _playlist.value = playlist
+                            playlist = mediaItems
                         }
                     }
                 },
@@ -140,15 +123,15 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         // and must be accessed from the thread it was created on (typically Main).
         serviceScope.launch {
             while (isActive) {
-                if (_isPlaying.value) {
+                if (playing) {
                     val currentPos = exoPlayer.currentPosition
                     val duration = exoPlayer.duration
-                    _currentPosition.value = currentPos
+                    currentPosition = currentPos
 
                     // Check if 50% of the song has been played
                     if (!isCurrentSongCounted && duration > 0 && currentPos >= duration / 2) {
                         isCurrentSongCounted = true
-                        _currentSong.value?.mediaId?.let { songId ->
+                        currentSong?.mediaId?.let { songId ->
                             // Database operations are offloaded to background threads (handled by Repositories)
                             serviceScope.launch {
                                 musicRepository.recordPlay(songId)
@@ -253,7 +236,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         newPlaylist: List<MediaItem>,
         startIndex: Int = 0,
     ) {
-        _playlist.value = newPlaylist
+        playlist = newPlaylist
         if (newPlaylist.isNotEmpty() && 0 <= startIndex && startIndex < newPlaylist.size) {
             currentPlaylistIndex = startIndex
             currentLastPlaylistIndex = newPlaylist.lastIndex
@@ -267,7 +250,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
             exoPlayer.stop()
             currentPlaylistIndex = -1
             currentLastPlaylistIndex = -1
-            _currentSong.value = null
+            currentSong = null
         }
     }
 
@@ -276,21 +259,21 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     }
 
     fun addMediaItemToPlaylist(mediaItem: MediaItem) {
-        val currentList = _playlist.value.toMutableList()
+        val currentList = playlist.toMutableList()
         currentList.add(mediaItem)
-        _playlist.value = currentList
+        playlist = currentList
         exoPlayer.addMediaItem(mediaItem)
     }
 
     fun playSongFromPlaylist(index: Int) {
-        if (index >= 0 && index < _playlist.value.size) {
+        if (index >= 0 && index < playlist.size) {
             currentPlaylistIndex = index
-            currentLastPlaylistIndex = _playlist.value.lastIndex
+            currentLastPlaylistIndex = playlist.lastIndex
             exoPlayer.seekToDefaultPosition(index) // More robust way to switch within playlist
             exoPlayer.playWhenReady = true // Ensure it plays
             exoPlayer.prepare() // Call prepare if not already prepared or after seek
             exoPlayer.play()
-            _currentSong.value = exoPlayer.currentMediaItem // Update current song immediately
+            currentSong = exoPlayer.currentMediaItem // Update current song immediately
         }
     }
 
@@ -307,7 +290,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         // If there's a playlist and a valid index, ensure player is ready for that item
         if (exoPlayer.currentMediaItem == null &&
             currentPlaylistIndex != -1 &&
-            currentPlaylistIndex < _playlist.value.size
+            currentPlaylistIndex < playlist.size
         ) {
             exoPlayer.seekToDefaultPosition(currentPlaylistIndex)
             exoPlayer.prepare()
@@ -376,120 +359,119 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         newState: Int,
     ) {
         // --- Pattern matching for state transitions ---
-        _playbackStateTransition.value =
-            when (Pair(oldState, newState)) {
-                Pair(Player.STATE_IDLE, Player.STATE_BUFFERING) -> {
-                    PlaybackStateTransition.IDLE_BUFFERING
-                }
+        playbackStateTransition = when (Pair(oldState, newState)) {
+            Pair(Player.STATE_IDLE, Player.STATE_BUFFERING) -> {
+                PlaybackStateTransition.IDLE_BUFFERING
+            }
 
-                Pair(Player.STATE_IDLE, Player.STATE_READY) -> {
-                    // This might happen if media is already buffered/short
-                    if (exoPlayer.playWhenReady) {
-                        PlaybackStateTransition.IDLE_PLAYING // Or a more specific state
-                    } else {
-                        PlaybackStateTransition.IDLE_READY
-                    }
-                }
-
-                Pair(Player.STATE_BUFFERING, Player.STATE_READY) -> {
-                    if (exoPlayer.playWhenReady && exoPlayer.isPlaying) {
-                        // About to start playing or is already playing
-                        PlaybackStateTransition.BUFFERING_PLAYING
-                    } else {
-                        // Just became ready, but not necessarily playing yet
-                        PlaybackStateTransition.BUFFERING_READY
-                    }
-                }
-
-                Pair(Player.STATE_BUFFERING, Player.STATE_IDLE) -> {
-                    // e.g. error during buffering or stop() called
-                    PlaybackStateTransition.BUFFERING_IDLE
-                }
-
-                Pair(Player.STATE_READY, Player.STATE_ENDED) -> {
-                    PlaybackStateTransition.PLAYING_ENDED // Assuming it was playing before ending
-                }
-
-                Pair(Player.STATE_READY, Player.STATE_BUFFERING) -> {
-                    // e.g., rebuffering during playback
-                    PlaybackStateTransition.PLAYING_BUFFERING // Or PAUSED_BUFFERING
-                }
-
-                Pair(Player.STATE_READY, Player.STATE_IDLE) -> {
-                    // Player was stopped while in ready state
-                    PlaybackStateTransition.READY_IDLE // Could be from playing or paused
-                }
-
-                Pair(Player.STATE_ENDED, Player.STATE_BUFFERING) -> {
-                    // e.g., preparing next item after current one ended
-                    PlaybackStateTransition.ENDED_BUFFERING
-                }
-
-                Pair(Player.STATE_ENDED, Player.STATE_IDLE) -> {
-                    // e.g. playlist finished and player stopped
-                    PlaybackStateTransition.ENDED_IDLE
-                }
-
-                // Add more specific transitions as needed
-                // Case for when state doesn't actually change (e.g. READY -> READY)
-                // This is important if you want to also consider isPlaying changes
-                Pair(Player.STATE_READY, Player.STATE_READY) -> {
-                    // The playback state itself (IDLE, BUFFERING, READY, ENDED) hasn't changed.
-                    // However, the 'isPlaying' status might have.
-                    // This is better handled by onIsPlayingChanged, but if you want one central place:
-                    val wasPlaying = _isPlaying.value // Value before onIsPlayingChanged updates it
-                    val isNowPlaying = exoPlayer.isPlaying ?: false // Current actual status
-                    if (!wasPlaying && isNowPlaying) {
-                        println("Transition: PAUSED (READY) -> PLAYING (READY)")
-                        PlaybackStateTransition.PAUSED_PLAYING
-                    } else if (wasPlaying && !isNowPlaying) {
-                        println("Transition: PLAYING (READY) -> PAUSED (READY)")
-                        PlaybackStateTransition.PLAYING_PAUSED
-                    } else {
-                        // No change in playing status while READY
-                        PlaybackStateTransition.READY_READY
-                    }
-                }
-
-                else -> {
-                    logger.warning(
-                        "Unknown or Unhandled Transition: ${playbackStateToString(oldState)} -> ${
-                            playbackStateToString(
-                                newState,
-                            )
-                        }",
-                    )
-                    // Determine a default or current state transition
-                    if (oldState == newState) {
-                        when (newState) {
-                            Player.STATE_IDLE -> {
-                                PlaybackStateTransition.IDLE_IDLE
-                            }
-
-                            Player.STATE_BUFFERING -> {
-                                PlaybackStateTransition.BUFFERING_BUFFERING
-                            }
-
-                            Player.STATE_READY -> {
-                                if (exoPlayer.isPlaying) {
-                                    PlaybackStateTransition.PLAYING_PLAYING
-                                } else {
-                                    PlaybackStateTransition.PAUSED_PAUSED
-                                }
-                            }
-
-                            Player.STATE_ENDED -> {
-                                PlaybackStateTransition.ENDED_ENDED
-                            }
-
-                            else -> {
-                                PlaybackStateTransition.UNKNOWN
-                            }
-                        }
-                    } else {
-                        PlaybackStateTransition.UNKNOWN // Or a more specific default based on newState
-                    }
+            Pair(Player.STATE_IDLE, Player.STATE_READY) -> {
+                // This might happen if media is already buffered/short
+                if (exoPlayer.playWhenReady) {
+                    PlaybackStateTransition.IDLE_PLAYING // Or a more specific state
+                } else {
+                    PlaybackStateTransition.IDLE_READY
                 }
             }
+
+            Pair(Player.STATE_BUFFERING, Player.STATE_READY) -> {
+                if (exoPlayer.playWhenReady && exoPlayer.isPlaying) {
+                    // About to start playing or is already playing
+                    PlaybackStateTransition.BUFFERING_PLAYING
+                } else {
+                    // Just became ready, but not necessarily playing yet
+                    PlaybackStateTransition.BUFFERING_READY
+                }
+            }
+
+            Pair(Player.STATE_BUFFERING, Player.STATE_IDLE) -> {
+                // e.g. error during buffering or stop() called
+                PlaybackStateTransition.BUFFERING_IDLE
+            }
+
+            Pair(Player.STATE_READY, Player.STATE_ENDED) -> {
+                PlaybackStateTransition.PLAYING_ENDED // Assuming it was playing before ending
+            }
+
+            Pair(Player.STATE_READY, Player.STATE_BUFFERING) -> {
+                // e.g., rebuffering during playback
+                PlaybackStateTransition.PLAYING_BUFFERING // Or PAUSED_BUFFERING
+            }
+
+            Pair(Player.STATE_READY, Player.STATE_IDLE) -> {
+                // Player was stopped while in ready state
+                PlaybackStateTransition.READY_IDLE // Could be from playing or paused
+            }
+
+            Pair(Player.STATE_ENDED, Player.STATE_BUFFERING) -> {
+                // e.g., preparing next item after current one ended
+                PlaybackStateTransition.ENDED_BUFFERING
+            }
+
+            Pair(Player.STATE_ENDED, Player.STATE_IDLE) -> {
+                // e.g. playlist finished and player stopped
+                PlaybackStateTransition.ENDED_IDLE
+            }
+
+            // Add more specific transitions as needed
+            // Case for when state doesn't actually change (e.g. READY -> READY)
+            // This is important if you want to also consider isPlaying changes
+            Pair(Player.STATE_READY, Player.STATE_READY) -> {
+                // The playback state itself (IDLE, BUFFERING, READY, ENDED) hasn't changed.
+                // However, the 'isPlaying' status might have.
+                // This is better handled by onIsPlayingChanged, but if you want one central place:
+                val wasPlaying = playing // Value before onIsPlayingChanged updates it
+                val isNowPlaying = exoPlayer.isPlaying ?: false // Current actual status
+                if (!wasPlaying && isNowPlaying) {
+                    println("Transition: PAUSED (READY) -> PLAYING (READY)")
+                    PlaybackStateTransition.PAUSED_PLAYING
+                } else if (wasPlaying && !isNowPlaying) {
+                    println("Transition: PLAYING (READY) -> PAUSED (READY)")
+                    PlaybackStateTransition.PLAYING_PAUSED
+                } else {
+                    // No change in playing status while READY
+                    PlaybackStateTransition.READY_READY
+                }
+            }
+
+            else -> {
+                logger.warning(
+                    "Unknown or Unhandled Transition: ${playbackStateToString(oldState)} -> ${
+                        playbackStateToString(
+                            newState,
+                        )
+                    }",
+                )
+                // Determine a default or current state transition
+                if (oldState == newState) {
+                    when (newState) {
+                        Player.STATE_IDLE -> {
+                            PlaybackStateTransition.IDLE_IDLE
+                        }
+
+                        Player.STATE_BUFFERING -> {
+                            PlaybackStateTransition.BUFFERING_BUFFERING
+                        }
+
+                        Player.STATE_READY -> {
+                            if (exoPlayer.isPlaying) {
+                                PlaybackStateTransition.PLAYING_PLAYING
+                            } else {
+                                PlaybackStateTransition.PAUSED_PAUSED
+                            }
+                        }
+
+                        Player.STATE_ENDED -> {
+                            PlaybackStateTransition.ENDED_ENDED
+                        }
+
+                        else -> {
+                            PlaybackStateTransition.UNKNOWN
+                        }
+                    }
+                } else {
+                    PlaybackStateTransition.UNKNOWN // Or a more specific default based on newState
+                }
+            }
+        }
     }
 }

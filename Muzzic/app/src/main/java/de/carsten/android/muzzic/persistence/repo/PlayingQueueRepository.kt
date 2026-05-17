@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.persistence.repo
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
 import de.carsten.android.muzzic.persistence.entity.PlayingQueue
+import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -13,8 +14,8 @@ class PlayingQueueRepository(
 
     suspend fun getCompleteQueue(): List<MediaItem> = playingQueueDao.findAll().map { it.toMediaItem() }
 
-    fun observePlayingQueue(): Flow<List<MediaItem>> = playingQueueDao.observeAll().map { queue ->
-        queue.map { it.toMediaItem() }
+    fun observePlayingQueue(): Flow<List<PlayingQueueDto>> = playingQueueDao.observeAll().map { queue ->
+        queue.map { it.toDto() }
     }
 
     fun observeEnqueued(): Flow<List<MediaItem>> = playingQueueDao.observeEnqueued().map { queue ->
