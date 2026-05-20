@@ -33,6 +33,7 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.gradient1Color
 import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
+import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -40,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PlayerScreen(
     modifier: Modifier = Modifier,
+    appState: MusicAppState,
     viewModel: PlayerViewModel = koinViewModel(),
 ) {
     val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()

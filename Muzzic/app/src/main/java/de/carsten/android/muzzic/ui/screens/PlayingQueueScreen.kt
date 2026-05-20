@@ -24,6 +24,7 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
@@ -34,10 +35,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PlayingQueueScreen(
     modifier: Modifier,
+    appState: MusicAppState,
     playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
     val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
+    val playingQueueName by playingQueueViewModel.currentName.collectAsState()
     val selectionState by selectionViewModel.selectionState.collectAsState()
     val currentSong by playingQueueViewModel.currentSong.collectAsState()
     val isPlaying by playingQueueViewModel.isPlaying.collectAsState()
@@ -52,6 +55,7 @@ fun PlayingQueueScreen(
 
     PlayingQueueContent(
         modifier = modifier,
+        name = playingQueueName,
         playingQueue = playingQueue,
         selectionState = selectionState,
         currentSong = currentSong,

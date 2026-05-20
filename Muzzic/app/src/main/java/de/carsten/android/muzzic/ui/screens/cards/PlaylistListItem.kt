@@ -46,6 +46,7 @@ fun PlaylistListItem(
     modifier: Modifier = Modifier,
     showGenre: Boolean = false,
     iconColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    onPlaylistClick: () -> Unit = {},
     onPlayClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
 ) {
@@ -58,6 +59,7 @@ fun PlaylistListItem(
                 .clickable { /* Open playlist */ },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(8.dp),
+        onClick = { onPlaylistClick() }
     ) {
         Row(
             modifier =

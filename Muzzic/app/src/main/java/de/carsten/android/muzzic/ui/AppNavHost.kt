@@ -1,13 +1,12 @@
 package de.carsten.android.muzzic.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_ARGUMENT
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_SONGS
@@ -19,6 +18,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
+import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.AlbumSongsScreen
 import de.carsten.android.muzzic.ui.screens.ArtistAlbumsScreen
 import de.carsten.android.muzzic.ui.screens.LibraryScreen
@@ -31,17 +31,22 @@ import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
+    appState: MusicAppState,
     startDestination: String = PLAYER,
     selectionViewModel: SelectionViewModel,
 ) {
+    val navController = remember { appState.navController }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
     ) {
         composable(PLAYER) {
-            PlayerScreen(modifier = modifier)
+            PlayerScreen(
+                modifier = modifier,
+                appState = appState,
+            )
         }
 
         navigation(
@@ -51,6 +56,7 @@ fun AppNavHost(
             composable(LIBRARY) {
                 LibraryScreen(
                     modifier = modifier,
+                    appState = appState,
                     onArtistClick = { artistName ->
                         navController.navigate(AppDestinations.artistAlbums(artistName))
                     },
@@ -67,6 +73,7 @@ fun AppNavHost(
             ) {
                 ArtistAlbumsScreen(
                     modifier = modifier,
+                    appState = appState,
                     onAlbumClick = { artistName, albumName ->
                         navController.navigate(AppDestinations.albumSongs(artistName, albumName))
                     },
@@ -84,6 +91,7 @@ fun AppNavHost(
             ) {
                 AlbumSongsScreen(
                     modifier = modifier,
+                    appState = appState,
                     onBackClick = { navController.popBackStack() },
                     selectionViewModel = selectionViewModel
                 )
@@ -93,6 +101,7 @@ fun AppNavHost(
         composable(QUEUE) {
             PlayingQueueScreen(
                 modifier = modifier,
+                appState = appState,
                 selectionViewModel = selectionViewModel
             )
         }
@@ -100,6 +109,7 @@ fun AppNavHost(
         composable(PLAYLISTS) {
             PlaylistsScreen(
                 modifier = modifier,
+                appState = appState,
                 onPlayPlaylist = {
                     navController.navigate(PLAYER) {
                         popUpTo(PLAYER) { inclusive = true }
@@ -109,7 +119,10 @@ fun AppNavHost(
         }
 
         composable(STATISTICS) {
-            StatisticsScreen(modifier = modifier)
+            StatisticsScreen(
+                modifier = modifier,
+                appState = appState,
+            )
         }
     }
 }

@@ -24,8 +24,11 @@ class PlayingQueueViewModel(
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> = repository.observePlayingQueue()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> = repository.observePlayingQueue().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
     val currentSong: StateFlow<MediaItem?> = _currentSong.asStateFlow()
@@ -38,6 +41,9 @@ class PlayingQueueViewModel(
 
     private val _duration = MutableStateFlow(0L)
     val duration: StateFlow<Long> = _duration.asStateFlow()
+
+    private val _currentName = MutableStateFlow("Playing Queue")
+    val currentName = _currentName.asStateFlow()
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {

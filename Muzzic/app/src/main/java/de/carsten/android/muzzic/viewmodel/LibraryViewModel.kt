@@ -4,7 +4,6 @@ import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -101,6 +100,17 @@ class LibraryViewModel(
     fun deletePlaylist(playlistId: String) {
         viewModelScope.launch {
             playlistRepository.deletePlaylist(playlistId)
+        }
+    }
+
+    fun setIntoPlayingQueue(playlistId: String) {
+        viewModelScope.launch {
+            playingQueueRepository.clear()
+            playingQueueRepository.addSongs(
+                mediaItems = playlistRepository
+                    .getSongsInPlaylist(playlistId)
+                    .map { it.toMediaItem() }
+            )
         }
     }
 }

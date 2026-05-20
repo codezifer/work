@@ -4,6 +4,7 @@ import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
+import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.toDto
 import de.carsten.android.muzzic.utils.mediaId
@@ -15,11 +16,11 @@ class PlaylistRepository(
 ) {
     fun getPlaylistInformation(): Flow<List<PlaylistDto>> = playlistDao.getPlaylistAggregation().map { it.toDto() }
 
-    suspend fun searchPlaylists(query: String) = playlistDao.searchPlaylists(query)
+    suspend fun searchPlaylists(query: String): List<Playlist> = playlistDao.searchPlaylists(query)
 
-    suspend fun getSongsInPlaylist(playlistId: String) = playlistDao.getSongsInPlaylist(playlistId)
+    suspend fun getSongsInPlaylist(playlistId: String): List<Song> = playlistDao.getSongsInPlaylist(playlistId)
 
-    suspend fun deletePlaylist(playlistId: String) = playlistDao.deletePlaylist(playlistId)
+    suspend fun deletePlaylist(playlistId: String): Unit = playlistDao.deletePlaylist(playlistId)
 
     suspend fun createPlaylistFromSongs(name: String, songs: List<MediaItem>) {
         val playlistId = mediaId(name).toString()

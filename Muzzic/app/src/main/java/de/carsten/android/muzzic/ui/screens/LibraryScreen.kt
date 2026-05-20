@@ -37,6 +37,7 @@ import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
@@ -51,6 +52,7 @@ import java.time.Instant
 @Composable
 fun LibraryScreen(
     modifier: Modifier = Modifier,
+    appState: MusicAppState,
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     viewModel: LibraryViewModel = koinViewModel(),

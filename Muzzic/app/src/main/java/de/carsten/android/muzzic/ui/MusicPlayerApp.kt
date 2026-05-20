@@ -134,9 +134,9 @@ fun MusicPlayerApp(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             AppNavHost(
-                navController = appState.navController,
+                modifier = Modifier.fillMaxSize(),
+                appState = appState,
                 selectionViewModel = selectionViewModel,
-                modifier = Modifier.fillMaxSize()
             )
 
             // Contextual Floating Toolbar powered by State Machine logic

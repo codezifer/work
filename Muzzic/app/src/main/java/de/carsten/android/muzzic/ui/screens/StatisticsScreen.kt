@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.GenreStatsCard
 import de.carsten.android.muzzic.ui.screens.cards.MonthlyStatsCard
 import de.carsten.android.muzzic.ui.screens.cards.SongStatsCard
@@ -23,6 +24,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun StatisticsScreen(
     modifier: Modifier = Modifier,
+    appState: MusicAppState,
     viewModel: StatisticsViewModel = koinViewModel(),
 ) {
     LazyColumn(
