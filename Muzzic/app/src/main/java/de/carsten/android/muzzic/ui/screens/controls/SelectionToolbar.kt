@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.TooltipIconButton
 
 private val SPACE_WIDTH = 8.dp
 private val PADDING_H = 8.dp
@@ -93,11 +94,11 @@ fun SelectionToolbar(
         ) {
             when (mode) {
                 ToolbarMode.SELECTION -> {
-                    IconButton(onClick = {
-                        onCancel("Cancel Selection")
-                    }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel Selection")
-                    }
+                    TooltipIconButton(
+                        onClick = { onCancel("Cancel Selection") },
+                        icon = Icons.Default.Close,
+                        contentDescription = "Cancel Selection"
+                    )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     Text(
                         text = "$selectedCount selected",
@@ -105,37 +106,31 @@ fun SelectionToolbar(
                         modifier = Modifier.padding(horizontal = PADDING_H)
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    IconButton(onClick = {
-                        onConfirm(confirmLabel)
-                    }) {
-                        Icon(confirmIcon, contentDescription = confirmLabel)
-                    }
+                    TooltipIconButton(
+                        onClick = { onConfirm(confirmLabel) },
+                        icon = confirmIcon,
+                        contentDescription = confirmLabel
+                    )
                 }
 
                 ToolbarMode.QUEUE_MGMT -> {
-                    IconButton(onClick = {
-                        onClearQueue("Clear Queue")
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Clear Queue")
-                    }
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    IconButton(onClick = {
-                        onSaveAsPlaylist("Save as Playlist")
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Save as Playlist")
-                    }
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    Text(
-                        text = "Manage",
-                        fontSize = FONT_SIZE,
-                        modifier = Modifier.padding(horizontal = PADDING_H)
+                    TooltipIconButton(
+                        onClick = { onClearQueue("Clear Queue") },
+                        icon = Icons.Default.Delete,
+                        contentDescription = "Clear Queue"
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    IconButton(onClick = {
-                        onPersistQueue("Persist Queue")
-                    }) {
-                        Icon(Icons.Default.Save, contentDescription = "Persist Queue")
-                    }
+                    TooltipIconButton(
+                        onClick = { onSaveAsPlaylist("Save as Playlist") },
+                        icon = Icons.AutoMirrored.Filled.PlaylistAdd,
+                        contentDescription = "Save as Playlist"
+                    )
+                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                    TooltipIconButton(
+                        onClick = { onPersistQueue("Persist Queue") },
+                        icon = Icons.Default.Save,
+                        contentDescription = "Persist Queue"
+                    )
                 }
             }
         }

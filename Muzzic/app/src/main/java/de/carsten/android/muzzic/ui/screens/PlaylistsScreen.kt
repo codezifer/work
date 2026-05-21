@@ -29,6 +29,7 @@ import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistListItem
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.util.concurrent.TimeUnit
 
@@ -37,7 +38,8 @@ fun PlaylistsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     libraryViewModel: LibraryViewModel = koinViewModel(),
-    onPlayPlaylist: () -> Unit = {}
+    playingQueueViewModel: PlayingQueueViewModel,
+    onPlayPlaylist: () -> Unit = {},
 ) {
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     PlaylistScreenContent(
@@ -45,10 +47,12 @@ fun PlaylistsScreen(
         playlists = playlists,
         onPlaylistClick = {
             libraryViewModel.setIntoPlayingQueue(it.playlistId)
+            playingQueueViewModel.setPlayQueueName(it.playlistName)
             appState.showSnackbar("Set ${it.playlistName}")
         },
         onPlayClick = {
             libraryViewModel.playPlaylist(it.playlistId)
+            playingQueueViewModel.setPlayQueueName(it.playlistName)
             onPlayPlaylist()
             appState.showSnackbar("Play ${it.playlistName}")
         },

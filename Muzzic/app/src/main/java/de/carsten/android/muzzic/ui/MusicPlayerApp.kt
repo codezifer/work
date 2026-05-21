@@ -114,6 +114,7 @@ fun MusicPlayerApp(
                         appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
                     },
                     BottomNavItem.Queue.label to {
+                        // playingQueueViewModel.setPlayQueueName("Playing Queue")
                         appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
                     },
                     BottomNavItem.Playlists.label to {
@@ -137,6 +138,7 @@ fun MusicPlayerApp(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
                 selectionViewModel = selectionViewModel,
+                playingQueueViewModel = playingQueueViewModel,
             )
 
             // Contextual Floating Toolbar powered by State Machine logic
@@ -165,6 +167,7 @@ fun MusicPlayerApp(
                                 appState.showSnackbar("Removed from Queue")
                             }
                         } else {
+                            playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
                             selectionViewModel.confirmSelection { info ->
                                 appState.showSnackbar(info)
                             }
@@ -177,6 +180,7 @@ fun MusicPlayerApp(
                     },
                     onClearQueue = { info ->
                         playingQueueViewModel.clear()
+                        playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
                         appState.showSnackbar(info)
                     },
                     onPersistQueue = { info ->

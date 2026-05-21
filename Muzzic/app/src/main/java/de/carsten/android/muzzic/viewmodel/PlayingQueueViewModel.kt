@@ -9,6 +9,7 @@ import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.ui.PLAYING_QUEUE
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,7 @@ class PlayingQueueViewModel(
     private val _duration = MutableStateFlow(0L)
     val duration: StateFlow<Long> = _duration.asStateFlow()
 
-    private val _currentName = MutableStateFlow("Playing Queue")
+    private val _currentName = MutableStateFlow(PLAYING_QUEUE)
     val currentName = _currentName.asStateFlow()
 
     private val playerListener = object : Player.Listener {
@@ -161,6 +162,12 @@ class PlayingQueueViewModel(
     fun persistCurrentQueue() {
         viewModelScope.launch {
             repository.persistQueue(repository.getCompleteQueue())
+        }
+    }
+
+    fun setPlayQueueName(name: String) {
+        viewModelScope.launch {
+            _currentName.value = name
         }
     }
 }

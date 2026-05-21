@@ -14,7 +14,9 @@ class PlaylistViewModel(
 
     fun persistCurrentQueueAsPlaylist(name: String) {
         viewModelScope.launch {
-            repository.createPlaylistFromSongs(name, playingQueueRepository.getPlayingQueue())
+            val queued = playingQueueRepository.getCompleteQueue()
+            playingQueueRepository.persistQueue(queued)
+            repository.createPlaylistFromSongs(name, queued)
         }
     }
 }
