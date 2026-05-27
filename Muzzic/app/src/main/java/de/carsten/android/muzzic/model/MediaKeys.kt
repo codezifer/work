@@ -24,6 +24,8 @@ object MediaKeys {
     // Prefix constants for MediaItems
     const val ARTIST_PREFIX = "$ARTISTS_ID:"
     const val ALBUM_PREFIX = "$ALBUMS_ID:"
+
+    const val SONGS_PREFIX = "$SONGS_ID:"
     const val PLAYLIST_PREFIX = "$PLAYLISTS_ID:"
     const val GENRE_PREFIX = "$GENRES_ID:"
 

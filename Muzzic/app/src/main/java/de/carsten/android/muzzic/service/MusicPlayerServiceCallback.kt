@@ -23,6 +23,7 @@ import de.carsten.android.muzzic.model.MediaKeys.PLAYLISTS_ID
 import de.carsten.android.muzzic.model.MediaKeys.PLAYLIST_PREFIX
 import de.carsten.android.muzzic.model.MediaKeys.ROOT_ID
 import de.carsten.android.muzzic.model.MediaKeys.SONGS_ID
+import de.carsten.android.muzzic.model.MediaKeys.SONGS_PREFIX
 import de.carsten.android.muzzic.persistence.entity.toMediaItem
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -110,11 +111,10 @@ class MusicPlayerServiceCallback(
         params: MediaLibraryService.LibraryParams?
     ): ListenableFuture<LibraryResult<Void>> {
         return serviceScope.future {
-            val songs = songRepository.searchSongs(query)
-            val artists = artistRepository.searchArtists(query)
-            val albums = albumRepository.searchAlbums(query)
-            val playlists = playlistRepository.searchPlaylists(query)
-
+            val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query) else emptyList()
+            val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query) else emptyList()
+            val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query) else emptyList()
+            val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.searchPlaylists(query) else emptyList()
             val totalCount = songs.size + artists.size + albums.size + playlists.size
             session.notifySearchResultChanged(browser, query, totalCount, params)
             LibraryResult.ofVoid()
@@ -130,10 +130,10 @@ class MusicPlayerServiceCallback(
         params: MediaLibraryService.LibraryParams?
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
         return serviceScope.future {
-            val songs = songRepository.searchSongs(query).map { it.toMediaItem() }
-            val artists = artistRepository.searchArtists(query).map { it.toMediaItem() }
-            val albums = albumRepository.searchAlbums(query).map { it.toMediaItem() }
-            val playlists = playlistRepository.playlistDao.searchPlaylists(query).map { it.toMediaItem() }
+            val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query).map { it.toMediaItem() } else emptyList()
+            val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query).map { it.toMediaItem() } else emptyList()
+            val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query).map { it.toMediaItem() } else emptyList()
+            val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.playlistDao.searchPlaylists(query).map { it.toMediaItem() } else emptyList()
 
             val allItems = mutableListOf<MediaItem>()
             allItems.addAll(artists)

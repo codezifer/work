@@ -8,6 +8,7 @@ import de.carsten.android.muzzic.persistence.MuzzicDatabase
 import de.carsten.android.muzzic.persistence.databaseModule
 import de.carsten.android.muzzic.persistence.mock.DatabaseSeeder
 import de.carsten.android.muzzic.persistence.repoModule
+import de.carsten.android.muzzic.service.serviceModule
 import de.carsten.android.muzzic.ui.uiModule
 import de.carsten.android.muzzic.viewmodel.viewModelModule
 import org.koin.android.ext.android.get
@@ -29,6 +30,7 @@ class MuzzicPlayerApplication : Application(), SingletonImageLoader.Factory {
             modules(
                 databaseModule,
                 repoModule,
+                serviceModule,
                 viewModelModule,
                 uiModule,
             )
