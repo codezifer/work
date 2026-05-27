@@ -13,7 +13,11 @@ import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.screens.cards.GenreCard
 
 @Composable
-fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier) {
+fun GenreGrid(
+    genres: List<GenreDto>,
+    modifier: Modifier = Modifier,
+    onGenreClick: (GenreDto) -> Unit = {},
+) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 170.dp),
         modifier = modifier.padding(horizontal = 16.dp),
@@ -25,7 +29,12 @@ fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier) {
             key = { genre -> genre.genreName },
             contentType = { "Genre" }
         ) { genre ->
-            GenreCard(genre)
+            GenreCard(
+                genre = genre,
+                onClick = {
+                    onGenreClick(genre)
+                }
+            )
         }
     }
 }

@@ -45,7 +45,7 @@ class MusicAppStateMachine {
     fun reduce(
         currentState: AppUiState,
         event: NavigationEvent,
-        selectionState: SelectionState
+        selectionState: SelectionState = SelectionState()
     ): Pair<AppUiState, List<AppSideEffect>> {
         val sideEffects = mutableListOf<AppSideEffect>()
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ARGUMENT
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,12 +19,11 @@ class ArtistAlbumsViewModel(
     private val albumRepository: AlbumRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val artistName: String = checkNotNull(savedStateHandle["artistName"])
+    val artistName: String = checkNotNull(savedStateHandle[ARTIST_ARGUMENT])
 
-    val albums: StateFlow<List<AlbumDto>> =
-        albumRepository.getAlbumsByArtist(artistName).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val albums: StateFlow<List<AlbumDto>> = albumRepository.getAlbumsByArtist(artistName).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 }

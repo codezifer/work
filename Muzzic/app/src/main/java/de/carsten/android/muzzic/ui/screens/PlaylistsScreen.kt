@@ -39,7 +39,8 @@ fun PlaylistsScreen(
     appState: MusicAppState,
     libraryViewModel: LibraryViewModel = koinViewModel(),
     playingQueueViewModel: PlayingQueueViewModel,
-    onPlayPlaylist: () -> Unit = {},
+    onPlaylistClick: (PlaylistDto) -> Unit = {},
+    onPlayPlaylist: (PlaylistDto) -> Unit = {},
 ) {
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     PlaylistScreenContent(
@@ -48,12 +49,13 @@ fun PlaylistsScreen(
         onPlaylistClick = {
             libraryViewModel.setIntoPlayingQueue(it.playlistId)
             playingQueueViewModel.setPlayQueueName(it.playlistName)
+            onPlaylistClick(it)
             appState.showSnackbar("Set ${it.playlistName}")
         },
         onPlayClick = {
             libraryViewModel.playPlaylist(it.playlistId)
             playingQueueViewModel.setPlayQueueName(it.playlistName)
-            onPlayPlaylist()
+            onPlayPlaylist(it)
             appState.showSnackbar("Play ${it.playlistName}")
         },
         onDeleteClick = {

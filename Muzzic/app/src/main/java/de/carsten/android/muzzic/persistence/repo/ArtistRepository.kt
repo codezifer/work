@@ -21,4 +21,12 @@ class ArtistRepository(
     suspend fun getSongsByArtist(artistName: String): List<Song> = artistDao.getSongsByArtist(artistName)
 
     suspend fun searchArtists(query: String): List<ArtistDto> = artistDao.searchArtists(query).toDto()
+
+    /**
+     * Get artists by genre
+     *
+     * @param genreName genre name
+     * @return A list of [ArtistDto]
+     */
+    fun getArtistsByGenre(genreName: String): Flow<List<ArtistDto>> = artistDao.getArtistAggregationsByGenre(genreName).map { it.toDto() }
 }

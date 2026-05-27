@@ -48,4 +48,18 @@ interface ArtistDao {
         """,
     )
     fun getArtistAggregations(): Flow<List<ArtistAggregation>>
+
+    @Query(
+        """
+        SELECT
+            s.artist as artistName,
+            COUNT(DISTINCT s.album) as albumCount,
+            COUNT(s.id) as songCount,
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+        FROM songs s
+        WHERE s.genre = :genre
+        GROUP BY s.artist ORDER BY s.artist ASC
+        """
+    )
+    fun getArtistAggregationsByGenre(genre: String): Flow<List<ArtistAggregation>>
 }

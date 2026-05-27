@@ -12,6 +12,8 @@ import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_ARGUMENT
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_SONGS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ALBUMS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ARGUMENT
+import de.carsten.android.muzzic.ui.AppDestinations.GENRES
+import de.carsten.android.muzzic.ui.AppDestinations.GENRE_ARTISTS
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY_GRAPH
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
@@ -21,6 +23,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.AlbumSongsScreen
 import de.carsten.android.muzzic.ui.screens.ArtistAlbumsScreen
+import de.carsten.android.muzzic.ui.screens.GenresScreen
 import de.carsten.android.muzzic.ui.screens.LibraryScreen
 import de.carsten.android.muzzic.ui.screens.PlayerScreen
 import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
@@ -114,9 +117,26 @@ fun AppNavHost(
                 modifier = modifier,
                 appState = appState,
                 playingQueueViewModel = playingQueueViewModel,
+                onPlaylistClick = {
+                    navController.navigate(QUEUE) {
+                        popUpTo(PLAYLISTS) { inclusive = true }
+                    }
+                },
                 onPlayPlaylist = {
                     navController.navigate(PLAYER) {
                         popUpTo(PLAYER) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(GENRES) {
+            GenresScreen(
+                modifier = modifier,
+                appState = appState,
+                onGenreClick = {
+                    navController.navigate(GENRE_ARTISTS) {
+                        popUpTo(LIBRARY) { inclusive = true }
                     }
                 }
             )

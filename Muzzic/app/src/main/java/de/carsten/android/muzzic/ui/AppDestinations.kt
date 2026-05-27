@@ -6,12 +6,16 @@ object AppDestinations {
     const val LIBRARY = "library"
     const val QUEUE = "queue"
     const val PLAYLISTS = "playlists"
+
+    const val GENRES = "genres"
     const val STATISTICS = "statistics"
 
     const val ARTIST_ARGUMENT = "artistName"
     const val ARTIST_ALBUMS = "artist/{$ARTIST_ARGUMENT}/albums"
     const val ALBUM_ARGUMENT = "albumName"
     const val ALBUM_SONGS = "album/{$ARTIST_ARGUMENT}/{$ALBUM_ARGUMENT}/songs"
+    const val GENRE_ARGUMENT = "genreName"
+    const val GENRE_ARTISTS = "genre/{$GENRE_ARGUMENT}/artists"
 
     // Legacy constants if needed
     const val ARTIST = "artist"

@@ -5,11 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import de.carsten.android.muzzic.ui.AppDestinations
+import de.carsten.android.muzzic.ui.state.AppSideEffect
 import de.carsten.android.muzzic.ui.state.AppUiState
 import de.carsten.android.muzzic.ui.state.MusicAppStateMachine
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
@@ -51,7 +50,7 @@ class MusicAppState(
     /**
      * Processes a navigation event through the state machine.
      */
-    fun onNavigationEvent(event: NavigationEvent, selectionState: SelectionState) {
+    fun onNavigationEvent(event: NavigationEvent, selectionState: SelectionState = SelectionState()) {
         val (_, sideEffects) = stateMachine.reduce(
             currentState = AppUiState.Player, // Temp, will be refined if needed
             event = event,
@@ -61,7 +60,7 @@ class MusicAppState(
         sideEffects.forEach { effect ->
             // In a more advanced version, we would handle all side effects here
             // For now, we delegate the navigation back to the navigator
-            if (effect is de.carsten.android.muzzic.ui.state.AppSideEffect.Navigate) {
+            if (effect is AppSideEffect.Navigate) {
                 navigator.navigate(effect.event)
             }
         }

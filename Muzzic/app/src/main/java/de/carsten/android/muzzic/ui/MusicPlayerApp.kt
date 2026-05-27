@@ -114,7 +114,6 @@ fun MusicPlayerApp(
                         appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
                     },
                     BottomNavItem.Queue.label to {
-                        // playingQueueViewModel.setPlayQueueName("Playing Queue")
                         appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
                     },
                     BottomNavItem.Playlists.label to {
