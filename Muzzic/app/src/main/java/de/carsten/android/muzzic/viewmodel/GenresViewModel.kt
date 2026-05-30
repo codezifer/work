@@ -10,6 +10,7 @@ import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 
 class GenresViewModel(
@@ -17,7 +18,7 @@ class GenresViewModel(
     private val genreRepository: GenreRepository,
     private val artistRepository: ArtistRepository,
 ) : ViewModel() {
-    val genreName: String = checkNotNull(savedStateHandle[GENRE_ARGUMENT])
+    val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
 
     val genres: StateFlow<List<GenreDto>> = genreRepository.getGenreInformation().stateIn(
         scope = viewModelScope,
@@ -25,7 +26,9 @@ class GenresViewModel(
         initialValue = emptyList(),
     )
 
-    val artists: StateFlow<List<ArtistDto>> = artistRepository.getArtistsByGenre(genreName).stateIn(
+    val artists: StateFlow<List<ArtistDto>> = (genreName?.let {
+        artistRepository.getArtistsByGenre(it)
+    } ?: flowOf(emptyList())).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()

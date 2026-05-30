@@ -35,6 +35,14 @@ fun GenreArtistsScreen(
 ) {
     val artists by genresViewModel.artists.collectAsStateWithLifecycle()
 
+    GenreArtistsScreenContent(
+        modifier = modifier,
+        appState = appState,
+        genreName = genresViewModel.genreName ?: "",
+        artists = artists,
+        onArtistClick = onArtistClick,
+        onBackClick = onBackClick,
+    )
 }
 
 @Composable

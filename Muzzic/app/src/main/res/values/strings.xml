@@ -37,6 +37,7 @@
     <string name="my_playlists">Meine Playlists</string>
     <string name="create_playlist">Playlist erstellen</string>
     <string name="top_100_format">%s - Top 100</string>
+    <string name="add_playlists">Playlist hinzufügen</string>
 
     <!-- Stats -->
     <string name="monthly_plays">Monatliche Wiedergaben</string>

@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.ui.screens
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,11 +19,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistListItem
@@ -41,26 +43,15 @@ fun PlaylistsScreen(
     playingQueueViewModel: PlayingQueueViewModel,
     onPlaylistClick: (PlaylistDto) -> Unit = {},
     onPlayPlaylist: (PlaylistDto) -> Unit = {},
+    onDeletePlaylist: (PlaylistDto) -> Unit = {},
 ) {
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     PlaylistScreenContent(
         modifier = modifier,
         playlists = playlists,
-        onPlaylistClick = {
-            libraryViewModel.setIntoPlayingQueue(it.playlistId)
-            playingQueueViewModel.setPlayQueueName(it.playlistName)
-            onPlaylistClick(it)
-            appState.showSnackbar("Set ${it.playlistName}")
-        },
-        onPlayClick = {
-            libraryViewModel.playPlaylist(it.playlistId)
-            playingQueueViewModel.setPlayQueueName(it.playlistName)
-            onPlayPlaylist(it)
-            appState.showSnackbar("Play ${it.playlistName}")
-        },
-        onDeleteClick = {
-            libraryViewModel.deletePlaylist(it.playlistId)
-        }
+        onPlaylistClick = onPlaylistClick,
+        onPlayClick = onPlayPlaylist,
+        onDeleteClick = onDeletePlaylist,
     )
 }
 
@@ -88,7 +79,7 @@ fun PlaylistScreenContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Playlists",
+                text = stringResource(R.string.playlists),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -97,7 +88,7 @@ fun PlaylistScreenContent(
             IconButton(onClick = { /* Add playlist */ }) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Playlist",
+                    contentDescription = stringResource(R.string.add_playlists),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
@@ -112,7 +103,7 @@ fun PlaylistScreenContent(
         ) {
             item {
                 Text(
-                    text = "Automatische Genre-Playlists",
+                    text = stringResource(R.string.auto_playlists),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -172,7 +163,7 @@ fun PlaylistScreenContent(
 
 @Composable
 @Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun PlaylistsScreenPreview() {
     PlaylistScreenContent(
         Modifier.padding(2.dp),

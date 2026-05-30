@@ -31,6 +31,11 @@ sealed class NavigationEvent {
     data object ToStatistics : NavigationEvent()
 
     /**
+     * Navigates to the Genres screen.
+     */
+    data object ToGenres : NavigationEvent()
+
+    /**
      * Navigates back in the backstack.
      */
     data object Back : NavigationEvent()
@@ -47,4 +52,10 @@ sealed class NavigationEvent {
      * @property albumName The name of the album.
      */
     data class ToAlbumSongs(val artistName: String, val albumName: String) : NavigationEvent()
+
+    /**
+     * Navigates to the Genre Artists screen.
+     * @property genreName The name of the genre.
+     */
+    data class ToGenreArtists(val genreName: String) : NavigationEvent()
 }

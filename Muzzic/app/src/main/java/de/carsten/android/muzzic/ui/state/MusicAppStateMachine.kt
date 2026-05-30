@@ -76,6 +76,11 @@ class MusicAppStateMachine {
                 AppUiState.Statistics
             }
 
+            NavigationEvent.ToGenres -> {
+                sideEffects.add(AppSideEffect.Navigate(event))
+                AppUiState.Library(selectionActive = selectionState.isActive)
+            }
+
             NavigationEvent.Back -> {
                 sideEffects.add(AppSideEffect.Navigate(event))
                 // Note: Real state after back depends on NavController backstack,
@@ -83,7 +88,7 @@ class MusicAppStateMachine {
                 currentState
             }
 
-            is NavigationEvent.ToArtistAlbums, is NavigationEvent.ToAlbumSongs -> {
+            is NavigationEvent.ToArtistAlbums, is NavigationEvent.ToAlbumSongs, is NavigationEvent.ToGenreArtists -> {
                 sideEffects.add(AppSideEffect.Navigate(event))
                 AppUiState.Library(selectionActive = selectionState.isActive)
             }
@@ -98,7 +103,7 @@ class MusicAppStateMachine {
     fun fromRoute(route: String?, selectionActive: Boolean): AppUiState {
         return when (route) {
             AppDestinations.PLAYER -> AppUiState.Player
-            AppDestinations.LIBRARY, AppDestinations.LIBRARY_GRAPH, AppDestinations.ARTIST_ALBUMS, AppDestinations.ALBUM_SONGS -> {
+            AppDestinations.LIBRARY, AppDestinations.LIBRARY_GRAPH, AppDestinations.ARTIST_ALBUMS, AppDestinations.ALBUM_SONGS, AppDestinations.GENRES, AppDestinations.GENRE_ARTISTS -> {
                 AppUiState.Library(selectionActive)
             }
             AppDestinations.QUEUE -> AppUiState.Queue(isManaging = true)

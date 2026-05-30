@@ -60,4 +60,11 @@ val viewModelModule =
                 playingQueueRepository = get()
             )
         }
+        viewModel {
+            GenresViewModel(
+                savedStateHandle = get(),
+                genreRepository = get(),
+                artistRepository = get(),
+            )
+        }
     }

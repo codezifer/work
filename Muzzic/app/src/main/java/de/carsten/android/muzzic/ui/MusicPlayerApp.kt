@@ -39,6 +39,7 @@ import de.carsten.android.muzzic.ui.screens.controls.BottomNavigationBar
 import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
 import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
+import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.PlaylistViewModel
@@ -52,6 +53,7 @@ import org.koin.androidx.compose.koinViewModel
  */
 @Composable
 fun MusicPlayerApp(
+    libraryViewModel: LibraryViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel = koinViewModel(),
     playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     playerViewModel: PlayerViewModel = koinViewModel(),
@@ -136,6 +138,7 @@ fun MusicPlayerApp(
             AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
+                libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,
                 playingQueueViewModel = playingQueueViewModel,
             )

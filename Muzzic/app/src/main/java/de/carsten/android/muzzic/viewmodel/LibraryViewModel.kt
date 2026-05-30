@@ -31,40 +31,36 @@ class LibraryViewModel(
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val songs: StateFlow<List<Song>> =
-        musicRepository.getAllSongs().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
 
-    val artists: StateFlow<List<ArtistDto>> =
-        artistRepository.getArtistInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val songs: StateFlow<List<Song>> = musicRepository.getAllSongs().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 
-    val albums: StateFlow<List<AlbumDto>> =
-        albumRepository.getAlbumInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val artists: StateFlow<List<ArtistDto>> = artistRepository.getArtistInformation().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 
-    val genres: StateFlow<List<GenreDto>> =
-        genreRepository.getGenreInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val albums: StateFlow<List<AlbumDto>> = albumRepository.getAlbumInformation().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 
-    val playlists: StateFlow<List<PlaylistDto>> =
-        playlistRepository.getPlaylistInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val genres: StateFlow<List<GenreDto>> = genreRepository.getGenreInformation().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
+
+    val playlists: StateFlow<List<PlaylistDto>> = playlistRepository.getPlaylistInformation().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 
     fun playSong(song: Song) {
         mediaLibraryManager.playContent(song.toMediaItem())
@@ -112,5 +108,9 @@ class LibraryViewModel(
                     .map { it.toMediaItem() }
             )
         }
+    }
+
+    fun toggleGenre(genreDto: GenreDto) {
+
     }
 }

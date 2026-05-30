@@ -27,4 +27,5 @@ object AppDestinations {
     // For navigation helper
     fun artistAlbums(artistName: String) = "artist/$artistName/albums"
     fun albumSongs(artistName: String, albumName: String) = "album/$artistName/$albumName/songs"
+    fun genreArtists(genreName: String) = "genre/$genreName/artists"
 }

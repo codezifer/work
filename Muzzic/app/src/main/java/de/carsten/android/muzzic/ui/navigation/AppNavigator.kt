@@ -23,12 +23,16 @@ class AppNavigator(private val navController: NavHostController) {
             NavigationEvent.ToQueue -> navigateToRoot(AppDestinations.QUEUE)
             NavigationEvent.ToPlaylists -> navigateToRoot(AppDestinations.PLAYLISTS)
             NavigationEvent.ToStatistics -> navigateToRoot(AppDestinations.STATISTICS)
+            NavigationEvent.ToGenres -> navigateToRoot(AppDestinations.GENRES)
             NavigationEvent.Back -> navController.popBackStack()
             is NavigationEvent.ToArtistAlbums -> {
                 navController.navigate(AppDestinations.artistAlbums(event.artistName))
             }
             is NavigationEvent.ToAlbumSongs -> {
                 navController.navigate(AppDestinations.albumSongs(event.artistName, event.albumName))
+            }
+            is NavigationEvent.ToGenreArtists -> {
+                navController.navigate(AppDestinations.genreArtists(event.genreName))
             }
         }
     }

@@ -41,7 +41,7 @@ import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
-import de.carsten.android.muzzic.ui.screens.grids.PlaylistGridContent
+import de.carsten.android.muzzic.ui.screens.grids.PlaylistGrid
 import de.carsten.android.muzzic.ui.screens.grids.SongList
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
@@ -55,14 +55,16 @@ fun LibraryScreen(
     appState: MusicAppState,
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
-    viewModel: LibraryViewModel = koinViewModel(),
+    onGenreClick: (GenreDto) -> Unit = {},
+    onPlaylistClick: (PlaylistDto) -> Unit = {},
+    libraryViewModel: LibraryViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel,
 ) {
-    val artists by viewModel.artists.collectAsStateWithLifecycle()
-    val albums by viewModel.albums.collectAsStateWithLifecycle()
-    val songs by viewModel.songs.collectAsStateWithLifecycle()
-    val genres by viewModel.genres.collectAsStateWithLifecycle()
-    val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    val artists by libraryViewModel.artists.collectAsStateWithLifecycle()
+    val albums by libraryViewModel.albums.collectAsStateWithLifecycle()
+    val songs by libraryViewModel.songs.collectAsStateWithLifecycle()
+    val genres by libraryViewModel.genres.collectAsStateWithLifecycle()
+    val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     val filters =
@@ -102,10 +104,14 @@ fun LibraryScreen(
             if (selectionState.isActive) {
                 selectionViewModel.toggleSongSelection(song.id)
             } else {
-                viewModel.playSong(song)
+                libraryViewModel.playSong(song)
             }
         },
-        onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
+        onSongLongClick = {
+            selectionViewModel.toggleSongSelection(it.id)
+        },
+        onGenreClick = onGenreClick,
+        onPlaylistClick = onPlaylistClick,
         selectedArtists = selectionState.selectedArtists,
         selectedAlbums = selectionState.selectedAlbums,
         selectedSongs = selectionState.selectedSongs,
@@ -127,6 +133,8 @@ fun LibraryScreenContent(
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     onSongClick: (Song) -> Unit = {},
     onSongLongClick: (Song) -> Unit = {},
+    onGenreClick: (GenreDto) -> Unit = {},
+    onPlaylistClick: (PlaylistDto) -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
     selectedAlbums: Set<String> = emptySet(),
     selectedSongs: Set<String> = emptySet(),
@@ -196,8 +204,17 @@ fun LibraryScreenContent(
                 modifier = contentModifier,
             )
 
-            GENRE -> GenreGrid(genres, contentModifier)
-            PLAYLIST -> PlaylistGridContent(playlists, contentModifier)
+            GENRE -> GenreGrid(
+                genres = genres,
+                modifier = contentModifier,
+                onGenreClick = onGenreClick,
+            )
+
+            PLAYLIST -> PlaylistGrid(
+                playlists = playlists,
+                modifier = contentModifier,
+                onPlaylistClick = onPlaylistClick,
+            )
         }
     }
 }
@@ -209,97 +226,97 @@ fun LibraryScreenPreview() {
     AppTheme {
         LibraryScreenContent(
             filters =
-            listOf(
-                ARTIST to "Artists",
-                ALBUM to "Albums",
-                SONG to "Songs",
-                GENRE to "Genres",
-                PLAYLIST to "Playlists",
-            ),
+                listOf(
+                    ARTIST to "Artists",
+                    ALBUM to "Albums",
+                    SONG to "Songs",
+                    GENRE to "Genres",
+                    PLAYLIST to "Playlists",
+                ),
             artists =
-            listOf(
-                ArtistDto("Cradle Of Filth", 2, 13),
-                ArtistDto("Dimmu Borgir", 1, 10),
-                ArtistDto("Interpol", 1, 7),
-                ArtistDto("Jimmy Eat World", 1, 10),
-                ArtistDto("Marduk", 1, 23),
-                ArtistDto("Marilyn Masnon", 1, 21),
-            ),
+                listOf(
+                    ArtistDto("Cradle Of Filth", 2, 13),
+                    ArtistDto("Dimmu Borgir", 1, 10),
+                    ArtistDto("Interpol", 1, 7),
+                    ArtistDto("Jimmy Eat World", 1, 10),
+                    ArtistDto("Marduk", 1, 23),
+                    ArtistDto("Marilyn Masnon", 1, 21),
+                ),
             albums =
-            listOf(
-                AlbumDto(
-                    artistName = "Dimmu Borgir",
-                    albumName = "Enthrone Darkness Triumphant",
-                    albumYear = 1997,
-                    songCount = 21,
-                    albumDuration = 90 * 60 * 1000L,
-                ),
-                AlbumDto(
-                    artistName = "Jimmy Eat World",
-                    albumName = "Bleed American",
-                    albumYear = 2001,
-                    songCount = 12,
-                    albumDuration = 45 * 60 * 1000L,
-                ),
+                listOf(
+                    AlbumDto(
+                        artistName = "Dimmu Borgir",
+                        albumName = "Enthrone Darkness Triumphant",
+                        albumYear = 1997,
+                        songCount = 21,
+                        albumDuration = 90 * 60 * 1000L,
+                    ),
+                    AlbumDto(
+                        artistName = "Jimmy Eat World",
+                        albumName = "Bleed American",
+                        albumYear = 2001,
+                        songCount = 12,
+                        albumDuration = 45 * 60 * 1000L,
+                    ),
 
-            ),
+                    ),
             songs =
-            listOf(
-                Song(
-                    title = "This is just a Test",
-                    album = "Test-Album",
-                    artist = "Test-Artist",
-                    duration = 3 * 60 * 1000,
-                    genre = "Alternative",
-                    lastPlayed = Instant.now(),
-                    playCount = 3,
-                    rating = 5,
-                    totalTracks = 10,
-                    trackNumber = 3,
+                listOf(
+                    Song(
+                        title = "This is just a Test",
+                        album = "Test-Album",
+                        artist = "Test-Artist",
+                        duration = 3 * 60 * 1000,
+                        genre = "Alternative",
+                        lastPlayed = Instant.now(),
+                        playCount = 3,
+                        rating = 5,
+                        totalTracks = 10,
+                        trackNumber = 3,
+                    ),
+                    Song(
+                        title = "This is just a Test",
+                        album = "Test-Album",
+                        artist = "Test-Artist",
+                        duration = 3 * 60 * 1000,
+                        genre = "Alternative",
+                        lastPlayed = Instant.now(),
+                        playCount = 2,
+                        rating = 3,
+                        totalTracks = 10,
+                        trackNumber = 4,
+                    ),
                 ),
-                Song(
-                    title = "This is just a Test",
-                    album = "Test-Album",
-                    artist = "Test-Artist",
-                    duration = 3 * 60 * 1000,
-                    genre = "Alternative",
-                    lastPlayed = Instant.now(),
-                    playCount = 2,
-                    rating = 3,
-                    totalTracks = 10,
-                    trackNumber = 4,
-                ),
-            ),
             genres =
-            listOf(
-                GenreDto(
-                    genreName = "Alternative",
-                    artistCount = 120,
-                    albumCount = 980,
-                    songCount = 9900,
-                    genreDuration = 2 * 24 * 60 * 60 * 1000L,
+                listOf(
+                    GenreDto(
+                        genreName = "Alternative",
+                        artistCount = 120,
+                        albumCount = 980,
+                        songCount = 9900,
+                        genreDuration = 2 * 24 * 60 * 60 * 1000L,
+                    ),
+                    GenreDto(
+                        genreName = "Black Metal",
+                        artistCount = 60,
+                        albumCount = 450,
+                        songCount = 4200,
+                        genreDuration = 24 * 60 * 60 * 1000L,
+                    ),
                 ),
-                GenreDto(
-                    genreName = "Black Metal",
-                    artistCount = 60,
-                    albumCount = 450,
-                    songCount = 4200,
-                    genreDuration = 24 * 60 * 60 * 1000L,
-                ),
-            ),
             playlists =
-            listOf(
-                PlaylistDto(
-                    playlistId = "1",
-                    playlistName = "TopAlternative",
-                    playlistIsAutoGenerated = true,
-                    playlistGenre = "Alternative",
-                    artistCount = 25,
-                    albumCount = 40,
-                    songCount = 100,
-                    playlistDuration = 5 * 60 * 60 * 1000L,
+                listOf(
+                    PlaylistDto(
+                        playlistId = "1",
+                        playlistName = "TopAlternative",
+                        playlistIsAutoGenerated = true,
+                        playlistGenre = "Alternative",
+                        artistCount = 25,
+                        albumCount = 40,
+                        songCount = 100,
+                        playlistDuration = 5 * 60 * 60 * 1000L,
+                    ),
                 ),
-            ),
             onArtistClick = {},
             onArtistLongClick = {},
             onAlbumClick = { _, _ -> },
