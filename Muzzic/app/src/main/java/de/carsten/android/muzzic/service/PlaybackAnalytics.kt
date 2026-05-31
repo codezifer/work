@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.service
 
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +11,8 @@ import kotlinx.coroutines.launch
  * Handles recording play counts and other playback metrics.
  */
 class PlaybackAnalytics(
-    private val musicRepository: MusicRepository
+    private val musicRepository: MusicRepository,
+    private val playlistManager: AutomaticPlaylistManager,
 ) {
     private var isCurrentSongCounted = false
 
@@ -39,6 +39,7 @@ class PlaybackAnalytics(
                         currentSong?.mediaId?.let { songId ->
                             scope.launch {
                                 musicRepository.recordPlay(songId)
+                                playlistManager.triggerUpdate()
                             }
                         }
                     }

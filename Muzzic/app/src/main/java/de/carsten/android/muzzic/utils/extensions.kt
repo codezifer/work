@@ -4,10 +4,12 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -146,4 +148,33 @@ fun songId(
 fun mediaId(name: String, namespace: UUID = UUID.nameUUIDFromBytes(byteArrayOf())): UUID {
     val payload = bytesWithLen(name)
     return digestUUID(payload, namespace)
+}
+
+/**
+ * Converts a file path to a playable Uri, ensuring local files use the file:// scheme
+ * and are properly encoded.
+ */
+fun String?.toPlayableUri(): Uri? {
+    if (this == null) return null
+    return if (this.startsWith("/") || this.startsWith("file://")) {
+        val actualPath = if (this.startsWith("file://")) this.substring(7) else this
+        Uri.fromFile(File(actualPath))
+    } else {
+        this.toUri()
+    }
+}
+
+/**
+ * Infers the MIME type from a file path or URI string.
+ */
+fun String?.inferMimeType(): String? {
+    if (this == null) return null
+    val extension = this.substringAfterLast('.', "").lowercase()
+    return when (extension) {
+        "mp3" -> "audio/mpeg"
+        "ogg" -> "audio/ogg"
+        "flac" -> "audio/flac"
+        "mp4", "m4a" -> "audio/mp4"
+        else -> null
+    }
 }

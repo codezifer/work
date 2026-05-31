@@ -10,14 +10,15 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.logging.logger
+import kotlinx.coroutines.CancellationException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class MusicScanWorker(context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params), KoinComponent {
+class MusicScanWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params), KoinComponent {
+    private val logger = logger()
     private val repository: MusicRepository by inject()
-    private val notificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
         private const val CHANNEL_ID = "library_scan_channel"
@@ -48,7 +49,11 @@ class MusicScanWorker(context: Context, params: WorkerParameters) :
                 }
             }
             Result.success()
+        } catch (e: CancellationException) {
+            logger.error("An cancellation error occurred.", e)
+            throw e
         } catch (e: Exception) {
+            logger.error("Another error occurred.", e)
             Result.failure()
         }
     }

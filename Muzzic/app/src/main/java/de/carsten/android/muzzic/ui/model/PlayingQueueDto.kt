@@ -7,6 +7,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.EMPTY
 import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.utils.inferMimeType
+import de.carsten.android.muzzic.utils.toPlayableUri
 
 @Immutable
 data class PlayingQueueDto(
@@ -26,7 +28,8 @@ data class PlayingQueueDto(
 ) {
     fun toMediaItem() = MediaItem.Builder()
         .setMediaId(mediaId)
-        .setUri(filePath)
+        .setUri(filePath.toPlayableUri())
+        .setMimeType(filePath.inferMimeType())
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(title)

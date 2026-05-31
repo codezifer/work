@@ -10,9 +10,11 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.utils.inferMimeType
 import de.carsten.android.muzzic.utils.maxStars
 import de.carsten.android.muzzic.utils.mediaItemInstant
 import de.carsten.android.muzzic.utils.songId
+import de.carsten.android.muzzic.utils.toPlayableUri
 import java.time.Instant
 
 @Entity(tableName = "songs")
@@ -122,7 +124,8 @@ data class Song(
 
     fun toMediaItem(): MediaItem = MediaItem.Builder()
         .setMediaId(this.id)
-        .setUri(this.filePath)
+        .setUri(this.filePath.toPlayableUri())
+        .setMimeType(this.filePath.inferMimeType())
         .setMediaMetadata(
             MediaMetadata
                 .Builder()

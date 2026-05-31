@@ -10,6 +10,8 @@ import androidx.room.Index
 import de.carsten.android.muzzic.EMPTY
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.utils.inferMimeType
+import de.carsten.android.muzzic.utils.toPlayableUri
 
 @Entity(
     tableName = "playing_queue",
@@ -80,7 +82,8 @@ data class PlayingQueue(
         MediaItem
             .Builder()
             .setMediaId(id)
-            .setUri(filePath)
+            .setUri(filePath.toPlayableUri())
+            .setMimeType(filePath.inferMimeType())
             .setMediaMetadata(
                 MediaMetadata
                     .Builder()

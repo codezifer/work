@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.service
 
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
@@ -27,6 +28,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     private val queueManager: QueueManager by inject()
     private val analytics: PlaybackAnalytics by inject()
     private val stateManager: PlaybackStateManager by inject()
+    private val playlistManager: AutomaticPlaylistManager by inject()
 
     // Repositories for the Callback (consider moving these as well if possible)
     private val musicRepository: MusicRepository by inject()
@@ -67,6 +69,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
 
         queueManager.loadPersistedQueue(serviceScope, playbackManager.exoPlayer)
         queueManager.observeQueueChanges(serviceScope, playbackManager.exoPlayer)
+        playlistManager.startMonitoring(serviceScope)
         logger.info("MusicPlayerService created")
     }
 
@@ -76,7 +79,7 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
                 this@MusicPlayerService.isPlaying = isPlaying
             }
 
-            override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 analytics.onNewSong()
             }
 
