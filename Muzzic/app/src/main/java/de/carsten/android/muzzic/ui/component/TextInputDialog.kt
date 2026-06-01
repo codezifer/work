@@ -35,7 +35,7 @@ fun TextInputDialog(
     initialValue: String = "",
     label: String = "",
     confirmLabel: String = "Confirm",
-    dismissLabel: String = "Cancel"
+    dismissLabel: String = "Cancel",
 ) {
     var text by remember { mutableStateOf(initialValue) }
 
@@ -51,14 +51,14 @@ fun TextInputDialog(
                     onValueChange = { text = it },
                     label = { if (label.isNotEmpty()) Text(label) },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
                 )
             }
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(text) },
-                enabled = text.isNotBlank()
+                enabled = text.isNotBlank(),
             ) {
                 Text(confirmLabel)
             }
@@ -67,6 +67,6 @@ fun TextInputDialog(
             TextButton(onClick = onDismiss) {
                 Text(dismissLabel)
             }
-        }
+        },
     )
 }

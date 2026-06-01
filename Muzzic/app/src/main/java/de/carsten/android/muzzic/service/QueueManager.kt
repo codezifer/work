@@ -10,9 +10,7 @@ import kotlinx.coroutines.launch
 /**
  * Manages the playback queue and synchronizes it with the database.
  */
-class QueueManager(
-    private val playingQueueRepository: PlayingQueueRepository
-) {
+class QueueManager(private val playingQueueRepository: PlayingQueueRepository) {
     private val logger = logger()
 
     /**
@@ -58,11 +56,12 @@ class QueueManager(
         val currentPosition = player.currentPosition
         val wasPlaying = player.isPlaying
 
-        val newIndex = if (currentMediaItem != null) {
-            queue.indexOfFirst { it.mediaId == currentMediaItem.mediaId }
-        } else {
-            -1
-        }
+        val newIndex =
+            if (currentMediaItem != null) {
+                queue.indexOfFirst { it.mediaId == currentMediaItem.mediaId }
+            } else {
+                -1
+            }
 
         if (newIndex != -1) {
             player.setMediaItems(queue, newIndex, currentPosition)

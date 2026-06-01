@@ -10,8 +10,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.utils.MAX_STARS
 import de.carsten.android.muzzic.utils.inferMimeType
-import de.carsten.android.muzzic.utils.maxStars
 import de.carsten.android.muzzic.utils.mediaItemInstant
 import de.carsten.android.muzzic.utils.songId
 import de.carsten.android.muzzic.utils.toPlayableUri
@@ -46,7 +46,6 @@ data class Song(
     @ColumnInfo(defaultValue = "0")
     val lastPlayed: Instant = Instant.ofEpochMilli(0L),
 ) : AbstractEntity() {
-
     init {
         this.id = songId(title, album, artist).toString()
     }
@@ -63,7 +62,7 @@ data class Song(
                 filePath = mediaItem.localConfiguration?.uri?.toString(),
                 albumArt = metadata.artworkUri?.toString(),
                 albumYear = metadata.releaseYear ?: -1,
-                rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(maxStars, 0f)),
+                rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(MAX_STARS, 0f)),
                 genre = metadata.genre?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
                 duration = metadata.durationMs ?: 0L,
                 lastPlayed = mediaItem.mediaItemInstant(MediaKeys.LAST_PLAYED),
@@ -80,24 +79,23 @@ data class Song(
          * @param rating [Int] wmp9 rating (0..255) integer value
          * @return [StarRating] rating in the range 0f..5f
          */
-        fun getStarRating(rating: Int? = 128): StarRating =
-            StarRating(
-                maxStars,
-                when (rating) {
-                    0 -> 0f
-                    in 1..25 -> 0.5f
-                    in 25..51 -> 1.0f
-                    in 52..75 -> 1.5f
-                    in 76..102 -> 2.0f
-                    in 103..128 -> 2.5f
-                    in 129..153 -> 3.0f
-                    in 154..178 -> 3.5f
-                    in 179..204 -> 4.0f
-                    in 205..225 -> 4.5f
-                    in 226..255 -> 5.0f
-                    else -> 2.5f // default rating
-                },
-            )
+        fun getStarRating(rating: Int? = 128): StarRating = StarRating(
+            MAX_STARS,
+            when (rating) {
+                0 -> 0f
+                in 1..25 -> 0.5f
+                in 25..51 -> 1.0f
+                in 52..75 -> 1.5f
+                in 76..102 -> 2.0f
+                in 103..128 -> 2.5f
+                in 129..153 -> 3.0f
+                in 154..178 -> 3.5f
+                in 179..204 -> 4.0f
+                in 205..225 -> 4.5f
+                in 226..255 -> 5.0f
+                else -> 2.5f // default rating
+            },
+        )
 
         /**
          * gets wmp rating
@@ -105,24 +103,24 @@ data class Song(
          * @param starRating [StarRating] current star / float based rating (0..5f)
          * @return [Int] ]rating in the range of 0..255
          */
-        fun getWmpRating(starRating: StarRating): Int =
-            when (starRating.starRating) {
-                0f -> 0
-                in 0f..0.5f -> 25
-                in 0.6f..1.0f -> 51
-                in 1.1f..1.5f -> 75
-                in 1.6f..2.0f -> 102
-                in 2.1f..2.5f -> 128
-                in 2.6f..3.0f -> 153
-                in 3.1f..3.5f -> 178
-                in 3.6f..4.0f -> 204
-                in 4.1f..4.5f -> 225
-                in 4.6f..5.0f -> 255
-                else -> 128 // default rating
-            }
+        fun getWmpRating(starRating: StarRating): Int = when (starRating.starRating) {
+            0f -> 0
+            in 0f..0.5f -> 25
+            in 0.6f..1.0f -> 51
+            in 1.1f..1.5f -> 75
+            in 1.6f..2.0f -> 102
+            in 2.1f..2.5f -> 128
+            in 2.6f..3.0f -> 153
+            in 3.1f..3.5f -> 178
+            in 3.6f..4.0f -> 204
+            in 4.1f..4.5f -> 225
+            in 4.6f..5.0f -> 255
+            else -> 128 // default rating
+        }
     }
 
-    fun toMediaItem(): MediaItem = MediaItem.Builder()
+    fun toMediaItem(): MediaItem = MediaItem
+        .Builder()
         .setMediaId(this.id)
         .setUri(this.filePath.toPlayableUri())
         .setMimeType(this.filePath.inferMimeType())
@@ -146,12 +144,11 @@ data class Song(
                 .build(),
         ).build()
 
-    private fun getExtras(): Bundle =
-        bundleOf(
-            Pair("songId", this.id),
-            Pair(MediaKeys.PLAY_COUNT, this.playCount),
-            Pair(MediaKeys.LAST_PLAYED, this.lastPlayed.toEpochMilli()),
-            Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-            Pair(MediaKeys.UPDATED_AT, this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-        )
+    private fun getExtras(): Bundle = bundleOf(
+        Pair("songId", this.id),
+        Pair(MediaKeys.PLAY_COUNT, this.playCount),
+        Pair(MediaKeys.LAST_PLAYED, this.lastPlayed.toEpochMilli()),
+        Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+        Pair(MediaKeys.UPDATED_AT, this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
+    )
 }

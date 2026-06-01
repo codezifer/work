@@ -27,21 +27,22 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.model.TestingTags.Screens.CircularProgressIndicator
-import de.carsten.android.muzzic.model.TestingTags.Screens.FallbackPainter
-import de.carsten.android.muzzic.model.TestingTags.Screens.SuccessAsyncImage
+import de.carsten.android.muzzic.model.TestingTags.Screens.CIRCULAR_PROGRESS_INDICATOR
+import de.carsten.android.muzzic.model.TestingTags.Screens.FALLBACK_PAINTER
+import de.carsten.android.muzzic.model.TestingTags.Screens.SUCCESS_ASYNC_IMAGE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
 fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None) {
-    val coilModel = when (albumArtInput) {
-        is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
-        is AlbumArtInput.FromInputStream -> albumArtInput.inputStream
-        is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
-        else -> null
-    }
+    val coilModel =
+        when (albumArtInput) {
+            is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
+            is AlbumArtInput.FromInputStream -> albumArtInput.inputStream
+            is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
+            else -> null
+        }
 
     AppTheme {
         AlbumArtContent(coilModel)
@@ -52,13 +53,16 @@ fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None) {
 private fun AlbumArtContent(coilModel: Any?) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp)),
     ) {
         SubcomposeAsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model =
+            ImageRequest
+                .Builder(LocalContext.current)
                 .data(coilModel)
                 .crossfade(true)
                 .build(),
@@ -74,14 +78,16 @@ private fun AlbumArtContent(coilModel: Any?) {
 private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
     when (state) {
         is AsyncImagePainter.State.Empty,
-        is AsyncImagePainter.State.Loading -> {
+        is AsyncImagePainter.State.Loading,
+        -> {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.primary,
                 strokeWidth = 22.dp,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxSize()
                     .padding(22.dp)
-                    .testTag(CircularProgressIndicator),
+                    .testTag(CIRCULAR_PROGRESS_INDICATOR),
             )
         }
 
@@ -94,10 +100,11 @@ private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
                 painter = state.painter,
                 contentDescription = "Album Art",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
-                    .testTag(SuccessAsyncImage),
+                    .testTag(SUCCESS_ASYNC_IMAGE),
             )
         }
     }
@@ -109,12 +116,13 @@ private fun FallbackPainter() {
         painter = painterResource(R.drawable.disc),
         contentDescription = "Empty or error state fallback",
         contentScale = ContentScale.Crop,
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .aspectRatio(1.0f)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.background)
-            .testTag(FallbackPainter)
+            .testTag(FALLBACK_PAINTER),
     )
 }
 

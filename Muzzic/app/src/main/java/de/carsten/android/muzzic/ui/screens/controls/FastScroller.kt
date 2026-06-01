@@ -53,13 +53,7 @@ import kotlinx.coroutines.delay
  * @param activeLetter The letter currently visible in the list (controlled by the parent).
  */
 @Composable
-fun FastScroller(
-    alphabet: List<String>,
-    onLetterSelected: (String) -> Unit,
-    isScrolling: Boolean,
-    modifier: Modifier = Modifier,
-    activeLetter: String? = null,
-) {
+fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isScrolling: Boolean, modifier: Modifier = Modifier, activeLetter: String? = null) {
     // Stores the letter currently hovered by the finger while dragging
     var draggingLetter by remember { mutableStateOf<String?>(null) }
 
@@ -85,18 +79,20 @@ fun FastScroller(
 
     // Prioritize the currently dragged letter over the system-reported active letter
     val effectiveLetter = draggingLetter ?: activeLetter
-    val letterIndex = remember(effectiveLetter, alphabet) {
-        alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
-    }
+    val letterIndex =
+        remember(effectiveLetter, alphabet) {
+            alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
+        }
 
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
         exit = fadeOut() + slideOutHorizontally(targetOffsetX = { it }),
-        modifier = modifier.fillMaxHeight()
+        modifier = modifier.fillMaxHeight(),
     ) {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .width(40.dp)
                 // Measures the height of the bar once it's placed in the layout
                 .onGloballyPositioned { columnHeight = it.size.height }
@@ -104,9 +100,10 @@ fun FastScroller(
                 .pointerInput(alphabet) {
                     detectTapGestures { offset ->
                         if (columnHeight > 0) {
-                            val index = (offset.y / columnHeight * alphabet.size)
-                                .toInt()
-                                .coerceIn(0, alphabet.size - 1)
+                            val index =
+                                (offset.y / columnHeight * alphabet.size)
+                                    .toInt()
+                                    .coerceIn(0, alphabet.size - 1)
                             onLetterSelected(alphabet[index])
                         }
                     }
@@ -116,9 +113,10 @@ fun FastScroller(
                     detectDragGestures(
                         onDragStart = { offset ->
                             if (columnHeight > 0) {
-                                val index = (offset.y / columnHeight * alphabet.size)
-                                    .toInt()
-                                    .coerceIn(0, alphabet.size - 1)
+                                val index =
+                                    (offset.y / columnHeight * alphabet.size)
+                                        .toInt()
+                                        .coerceIn(0, alphabet.size - 1)
                                 draggingLetter = alphabet[index]
                                 onLetterSelected(alphabet[index])
                             }
@@ -127,9 +125,10 @@ fun FastScroller(
                         onDragCancel = { draggingLetter = null },
                         onDrag = { change, _ ->
                             if (columnHeight > 0) {
-                                val index = (change.position.y / columnHeight * alphabet.size)
-                                    .toInt()
-                                    .coerceIn(0, alphabet.size - 1)
+                                val index =
+                                    (change.position.y / columnHeight * alphabet.size)
+                                        .toInt()
+                                        .coerceIn(0, alphabet.size - 1)
                                 val letter = alphabet[index]
                                 // Only update if the letter under the finger has changed
                                 if (draggingLetter != letter) {
@@ -137,10 +136,10 @@ fun FastScroller(
                                     onLetterSelected(letter)
                                 }
                             }
-                        }
+                        },
                     )
                 },
-            contentAlignment = Alignment.TopCenter
+            contentAlignment = Alignment.TopCenter,
         ) {
             // The "handle" (colored indicator) showing the current position
             if (letterIndex != -1 && alphabet.isNotEmpty() && columnHeight > 0) {
@@ -153,44 +152,53 @@ fun FastScroller(
                 // Smoothly animates the handle movement between positions
                 val animatedOffset by animateDpAsState(
                     targetValue = handleOffsetDp - 12.dp, // -12dp to center the circle (24dp)
-                    label = "handleOffset"
+                    label = "handleOffset",
                 )
 
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .offset(y = animatedOffset)
                         .padding(horizontal = 8.dp)
                         .width(24.dp)
                         .height(24.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
                 )
             }
 
             // The vertical list of letters
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxHeight()
+                modifier =
+                Modifier
+                    .fillMaxHeight()
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(50)
-                    )
+                        shape = RoundedCornerShape(50),
+                    ),
             ) {
                 alphabet.forEach { letter ->
                     Box(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .weight(1f) // Distributes all letters evenly across the available height
                             .width(40.dp),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = letter,
                             fontSize = 12.sp,
                             fontWeight = if (effectiveLetter == letter) FontWeight.Bold else FontWeight.Normal,
-                            color = if (effectiveLetter == letter) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.6f
-                            )
+                            color =
+                            if (effectiveLetter == letter) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.6f,
+                                )
+                            },
                         )
                     }
                 }
@@ -199,18 +207,19 @@ fun FastScroller(
             // Large letter preview (bubble) that appears to the left of the bar while dragging
             draggingLetter?.let { letter ->
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .align(Alignment.CenterStart)
                         .offset(x = (-60).dp) // Positioning to the left of the FastScroller
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.inversePrimary),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = letter,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             }
@@ -226,6 +235,6 @@ fun FastScrollerPreview() {
         alphabet = listOf("A", "B", "C"),
         onLetterSelected = {},
         isScrolling = true,
-        activeLetter = "C"
+        activeLetter = "C",
     )
 }

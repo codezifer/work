@@ -18,7 +18,4 @@ import androidx.room.Index
         Index("songId"),
     ],
 )
-data class PlayHistory(
-    val songId: String,
-    val playedAt: Long = System.currentTimeMillis(),
-) : AbstractEntity()
+data class PlayHistory(val songId: String, val playedAt: Long = System.currentTimeMillis()) : AbstractEntity()

@@ -10,10 +10,7 @@ import kotlinx.coroutines.launch
 /**
  * Handles recording play counts and other playback metrics.
  */
-class PlaybackAnalytics(
-    private val musicRepository: MusicRepository,
-    private val playlistManager: AutomaticPlaylistManager,
-) {
+class PlaybackAnalytics(private val musicRepository: MusicRepository, private val playlistManager: AutomaticPlaylistManager) {
     private var isCurrentSongCounted = false
 
     /**

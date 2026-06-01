@@ -20,7 +20,9 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class MusicPlayerService : MediaLibraryService(), KoinComponent {
+class MusicPlayerService :
+    MediaLibraryService(),
+    KoinComponent {
     private val logger = logger()
     private lateinit var mediaLibrarySession: MediaLibrarySession
 
@@ -52,20 +54,22 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
         setupPlayerListeners()
         analytics.startMonitoring(serviceScope, playbackManager.exoPlayer)
 
-        mediaLibrarySession = MediaLibrarySession.Builder(
-            this,
-            playbackManager.exoPlayer,
-            MusicPlayerServiceCallback(
-                serviceScope,
-                musicRepository,
-                songRepository,
-                artistRepository,
-                albumRepository,
-                genreRepository,
-                playlistRepository,
-                playingQueueRepository
-            )
-        ).build()
+        mediaLibrarySession =
+            MediaLibrarySession
+                .Builder(
+                    this,
+                    playbackManager.exoPlayer,
+                    MusicPlayerServiceCallback(
+                        serviceScope,
+                        musicRepository,
+                        songRepository,
+                        artistRepository,
+                        albumRepository,
+                        genreRepository,
+                        playlistRepository,
+                        playingQueueRepository,
+                    ),
+                ).build()
 
         queueManager.loadPersistedQueue(serviceScope, playbackManager.exoPlayer)
         queueManager.observeQueueChanges(serviceScope, playbackManager.exoPlayer)
@@ -74,30 +78,30 @@ class MusicPlayerService : MediaLibraryService(), KoinComponent {
     }
 
     private fun setupPlayerListeners() {
-        playbackManager.exoPlayer.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                this@MusicPlayerService.isPlaying = isPlaying
-            }
+        playbackManager.exoPlayer.addListener(
+            object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    this@MusicPlayerService.isPlaying = isPlaying
+                }
 
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                analytics.onNewSong()
-            }
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    analytics.onNewSong()
+                }
 
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                stateManager.resolveTransition(
-                    playbackManager.exoPlayer,
-                    prevPlaybackState,
-                    playbackState,
-                    isPlaying
-                )
-                prevPlaybackState = playbackState
-            }
-        })
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    stateManager.resolveTransition(
+                        playbackManager.exoPlayer,
+                        prevPlaybackState,
+                        playbackState,
+                        isPlaying,
+                    )
+                    prevPlaybackState = playbackState
+                }
+            },
+        )
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
-        return mediaLibrarySession
-    }
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaLibrarySession
 
     override fun onDestroy() {
         super.onDestroy()

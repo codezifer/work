@@ -25,10 +25,7 @@ import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 
 @Composable
-fun PlaylistCard(
-    playlist: PlaylistDto,
-    onClick: () -> Unit = {},
-) {
+fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
     val palette by rememberPaletteState(playlist.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
     val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
@@ -37,15 +34,15 @@ fun PlaylistCard(
         header = {
             AlbumCoverCollage(
                 covers =
-                    if (playlist.lastAlbumArt == null) {
-                        emptyList()
-                    } else {
-                        listOf(CoverSource.FromPath(playlist.lastAlbumArt))
-                    },
+                if (playlist.lastAlbumArt == null) {
+                    emptyList()
+                } else {
+                    listOf(CoverSource.FromPath(playlist.lastAlbumArt))
+                },
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.2f),
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.2f),
                 useCard = false,
             )
         },

@@ -21,10 +21,7 @@ interface AlbumDao {
     suspend fun getAllAlbums(): List<ArtistAlbum>
 
     @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY trackNumber ASC, title ASC")
-    fun getSongsByAlbum(
-        album: String,
-        artist: String,
-    ): Flow<List<Song>>
+    fun getSongsByAlbum(album: String, artist: String): Flow<List<Song>>
 
     @Query(
         """

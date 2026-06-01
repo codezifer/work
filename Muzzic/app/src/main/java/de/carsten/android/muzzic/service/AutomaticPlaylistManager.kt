@@ -2,11 +2,11 @@ package de.carsten.android.muzzic.service
 
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Manages the automatic generation and updating of playlists.
@@ -14,9 +14,7 @@ import kotlin.time.Duration.Companion.seconds
  * This manager is responsible for keeping "Top 100" and other auto-generated
  * playlists up to date while the app is running.
  */
-class AutomaticPlaylistManager(
-    private val musicRepository: MusicRepository
-) {
+class AutomaticPlaylistManager(private val musicRepository: MusicRepository) {
     private val logger = logger()
 
     /**

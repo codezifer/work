@@ -13,11 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(UnstableApi::class)
-class AlbumSongsViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val albumRepository: AlbumRepository,
-    private val mediaLibraryManager: MediaLibraryManager,
-) : ViewModel() {
+class AlbumSongsViewModel(savedStateHandle: SavedStateHandle, private val albumRepository: AlbumRepository, private val mediaLibraryManager: MediaLibraryManager) : ViewModel() {
     val artistName: String = checkNotNull(savedStateHandle["artistName"])
     val albumName: String = checkNotNull(savedStateHandle["albumName"])
 

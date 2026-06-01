@@ -11,9 +11,7 @@ import de.carsten.android.muzzic.utils.mediaId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class PlaylistRepository(
-    val playlistDao: PlaylistDao,
-) {
+class PlaylistRepository(val playlistDao: PlaylistDao) {
     fun getPlaylistInformation(): Flow<List<PlaylistDto>> = playlistDao.getPlaylistAggregation().map { it.toDto() }
 
     suspend fun searchPlaylists(query: String): List<Playlist> = playlistDao.searchPlaylists(query)
@@ -33,8 +31,8 @@ class PlaylistRepository(
                 PlaylistSong(
                     playlistId = playlistId,
                     songId = songId,
-                    position = index
-                )
+                    position = index,
+                ),
             )
         }
     }

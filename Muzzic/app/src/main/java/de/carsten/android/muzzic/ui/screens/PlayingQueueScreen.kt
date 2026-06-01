@@ -34,12 +34,7 @@ import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayingQueueScreen(
-    modifier: Modifier,
-    appState: MusicAppState,
-    playingQueueViewModel: PlayingQueueViewModel,
-    selectionViewModel: SelectionViewModel = koinViewModel(),
-) {
+fun PlayingQueueScreen(modifier: Modifier, appState: MusicAppState, playingQueueViewModel: PlayingQueueViewModel, selectionViewModel: SelectionViewModel = koinViewModel()) {
     val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
     val playingQueueName by playingQueueViewModel.currentName.collectAsState()
     val selectionState by selectionViewModel.selectionState.collectAsState()
@@ -71,7 +66,7 @@ fun PlayingQueueScreen(
             }
         },
         onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
-        onTogglePlayPause = { playingQueueViewModel.togglePlayPause() }
+        onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
     )
 }
 
@@ -92,16 +87,16 @@ fun PlayingQueueContent(
     AppTheme {
         Column(
             modifier =
-                modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxSize()
-                    .padding(16.dp),
+            modifier
+                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize()
+                .padding(16.dp),
         ) {
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -123,9 +118,10 @@ fun PlayingQueueContent(
                     items = playingQueue,
                     onMove = onMove,
                     key = { _, item -> item.mediaId },
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .weight(1f)
-                        .padding(top = 8.dp)
+                        .padding(top = 8.dp),
                 ) { index, item, isDragging, dragModifier ->
                     val isSelected = selectionState.selectedSongs.contains(item.mediaId)
                     val isCurrentSong = item.mediaId == currentSong?.mediaId
@@ -146,7 +142,7 @@ fun PlayingQueueContent(
                             } else {
                                 onSongClick(index, item.mediaId)
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -162,18 +158,18 @@ fun PlayingQueueScreenPreview() {
         modifier = Modifier.padding(2.dp),
         name = "Test Queue",
         playingQueue =
-            listOf(
-                PlayingQueueDto(
-                    title = "Puritania",
-                    album = "Puritanical Euphoric Misantropia",
-                    artist = "Dimmu Borgir",
-                    trackNumber = 5,
-                    totalTracks = 12,
-                    duration = 180000,
-                    genre = "Black Metal",
-                    queuePosition = 5,
-                    enqueued = true,
-                )
+        listOf(
+            PlayingQueueDto(
+                title = "Puritania",
+                album = "Puritanical Euphoric Misantropia",
+                artist = "Dimmu Borgir",
+                trackNumber = 5,
+                totalTracks = 12,
+                duration = 180000,
+                genre = "Black Metal",
+                queuePosition = 5,
+                enqueued = true,
             ),
+        ),
     )
 }

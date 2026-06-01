@@ -53,10 +53,7 @@ fun VolumeControl(modifier: Modifier = Modifier) {
         DisposableEffect(Unit) {
             val receiver =
                 object : BroadcastReceiver() {
-                    override fun onReceive(
-                        context: Context,
-                        intent: Intent,
-                    ) {
+                    override fun onReceive(context: Context, intent: Intent) {
                         if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
                             val newVolume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", initialVolume)
                             volume = newVolume
@@ -89,15 +86,16 @@ fun VolumeControl(modifier: Modifier = Modifier) {
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
                 },
                 valueRange = 0f..maxVolume.toFloat(), // Wertebereich an System anpassen
-                modifier = Modifier
+                modifier =
+                Modifier
                     .width(150.dp) // Etwas mehr Platz für eine feinere Steuerung
                     .padding(horizontal = 8.dp),
                 colors =
-                    SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    ),
+                SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                ),
             )
 
             Icon(

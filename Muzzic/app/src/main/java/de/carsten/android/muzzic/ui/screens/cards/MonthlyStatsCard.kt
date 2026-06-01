@@ -58,13 +58,13 @@ fun MonthlyStatsCard(viewModel: StatisticsViewModel) {
 
                     Box(
                         modifier =
-                            Modifier
-                                .width(24.dp)
-                                .height(barHeight)
-                                .background(
-                                    Color(0xFF8B5CF6),
-                                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp),
-                                ),
+                        Modifier
+                            .width(24.dp)
+                            .height(barHeight)
+                            .background(
+                                Color(0xFF8B5CF6),
+                                RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp),
+                            ),
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))

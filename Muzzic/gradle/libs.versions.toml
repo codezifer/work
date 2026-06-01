@@ -16,6 +16,7 @@ junitVersion = "1.3.0"
 koin = "4.1.1"
 kotlin = "2.2.21"
 kotlinCoroutines = "1.10.2"
+ktlint = "14.2.0"
 ksp = "2.3.2"
 lifecycleKtx = "2.10.0"
 material = "1.13.0"
@@ -122,5 +123,6 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-room = { id = "androidx.room", version.ref = "room" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

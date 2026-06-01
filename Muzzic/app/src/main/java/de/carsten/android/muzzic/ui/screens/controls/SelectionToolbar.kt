@@ -15,8 +15,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +44,7 @@ enum class ToolbarMode {
     /**
      * Displayed when viewing the playing queue to manage its state.
      */
-    QUEUE_MGMT
+    QUEUE_MGMT,
 }
 
 /**
@@ -76,19 +74,22 @@ fun SelectionToolbar(
     onSaveAsPlaylist: (String) -> Unit = {},
 ) {
     Card(
-        modifier = modifier
+        modifier =
+        modifier
             .width(IntrinsicSize.Min)
             .widthIn(min = 200.dp)
             .padding(16.dp),
         shape = RoundedCornerShape(50),
-        colors = CardDefaults.cardColors(
+        colors =
+        CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
         Row(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .padding(horizontal = PADDING_H, vertical = PADDING_V),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -97,19 +98,19 @@ fun SelectionToolbar(
                     TooltipIconButton(
                         onClick = { onCancel("Cancel Selection") },
                         icon = Icons.Default.Close,
-                        contentDescription = "Cancel Selection"
+                        contentDescription = "Cancel Selection",
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     Text(
                         text = "$selectedCount selected",
                         fontSize = FONT_SIZE,
-                        modifier = Modifier.padding(horizontal = PADDING_H)
+                        modifier = Modifier.padding(horizontal = PADDING_H),
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     TooltipIconButton(
                         onClick = { onConfirm(confirmLabel) },
                         icon = confirmIcon,
-                        contentDescription = confirmLabel
+                        contentDescription = confirmLabel,
                     )
                 }
 
@@ -117,19 +118,19 @@ fun SelectionToolbar(
                     TooltipIconButton(
                         onClick = { onClearQueue("Clear Queue") },
                         icon = Icons.Default.Delete,
-                        contentDescription = "Clear Queue"
+                        contentDescription = "Clear Queue",
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     TooltipIconButton(
                         onClick = { onSaveAsPlaylist("Save as Playlist") },
                         icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                        contentDescription = "Save as Playlist"
+                        contentDescription = "Save as Playlist",
                     )
                     Spacer(modifier = Modifier.width(SPACE_WIDTH))
                     TooltipIconButton(
                         onClick = { onPersistQueue("Persist Queue") },
                         icon = Icons.Default.Save,
-                        contentDescription = "Persist Queue"
+                        contentDescription = "Persist Queue",
                     )
                 }
             }
@@ -143,7 +144,7 @@ fun SelectionToolbar(
 fun SelectionToolbarPreviewSelection() {
     SelectionToolbar(
         mode = ToolbarMode.SELECTION,
-        selectedCount = 12
+        selectedCount = 12,
     )
 }
 

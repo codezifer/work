@@ -24,14 +24,16 @@ data class PlayingQueueDto(
     val enqueued: Boolean = false,
     val queuePosition: Int = -1,
     val songId: String = EMPTY,
-    val mediaId: String = EMPTY
+    val mediaId: String = EMPTY,
 ) {
-    fun toMediaItem() = MediaItem.Builder()
+    fun toMediaItem() = MediaItem
+        .Builder()
         .setMediaId(mediaId)
         .setUri(filePath.toPlayableUri())
         .setMimeType(filePath.inferMimeType())
         .setMediaMetadata(
-            MediaMetadata.Builder()
+            MediaMetadata
+                .Builder()
                 .setTitle(title)
                 .setTrackNumber(trackNumber)
                 .setTotalTrackCount(totalTracks)
@@ -40,12 +42,12 @@ data class PlayingQueueDto(
                 .setGenre(genre)
                 .setDurationMs(duration)
                 .setArtworkUri(albumArt.toUri())
-                .setExtras(Bundle().apply {
-                    putBoolean("enqueued", enqueued)
-                    putInt("queuePosition", queuePosition)
-                    putString("songId", songId)
-                })
-                .build()
-        )
-        .build()
+                .setExtras(
+                    Bundle().apply {
+                        putBoolean("enqueued", enqueued)
+                        putInt("queuePosition", queuePosition)
+                        putString("songId", songId)
+                    },
+                ).build(),
+        ).build()
 }

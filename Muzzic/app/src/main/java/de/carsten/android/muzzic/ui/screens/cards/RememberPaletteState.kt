@@ -28,7 +28,8 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
         }
         val loader = ImageLoader(context)
         val request =
-            ImageRequest.Builder(context)
+            ImageRequest
+                .Builder(context)
                 .data(source)
                 .allowHardware(false) // Required for Palette to read pixels
                 .build()

@@ -45,72 +45,79 @@ fun PlayingQueueItem(
     onLongClick: () -> Unit,
     onTogglePlayPause: () -> Unit,
 ) {
-    val containerColor = when {
-        isDragging -> MaterialTheme.colorScheme.surfaceVariant
-        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-        isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
-    }
+    val containerColor =
+        when {
+            isDragging -> MaterialTheme.colorScheme.surfaceVariant
+            isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+            isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            else -> MaterialTheme.colorScheme.surfaceContainerLow
+        }
 
     Box(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor)
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
-            )
+                onLongClick = onLongClick,
+            ),
     ) {
         Row(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.DragHandle,
                 contentDescription = "Reorder",
-                modifier = dragModifier
+                modifier =
+                dragModifier
                     .size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             )
 
             Column(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 12.dp),
             ) {
                 Text(
                     text = playingQueueDto.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium
+                    style =
+                    MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
                     ),
                     color = if (isCurrentSong) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
+                    maxLines = 1,
                 )
                 Text(
                     text = "${playingQueueDto.artist} • ${playingQueueDto.album}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
                 )
             }
 
             IconButton(
                 onClick = onTogglePlayPause,
-                colors = if (isCurrentSong) {
+                colors =
+                if (isCurrentSong) {
                     IconButtonDefaults.filledTonalIconButtonColors()
                 } else {
                     IconButtonDefaults.iconButtonColors()
                 },
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     imageVector = if (isCurrentSong && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isCurrentSong && isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
@@ -118,7 +125,8 @@ fun PlayingQueueItem(
         if (isCurrentSong && progress > 0f) {
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .height(3.dp)
@@ -126,7 +134,7 @@ fun PlayingQueueItem(
                     .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                strokeCap = StrokeCap.Round
+                strokeCap = StrokeCap.Round,
             )
         }
     }

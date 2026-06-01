@@ -10,9 +10,7 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import kotlinx.coroutines.launch
 
-class StatisticsViewModel(
-    private val repository: MusicRepository,
-) : ViewModel() {
+class StatisticsViewModel(private val repository: MusicRepository) : ViewModel() {
     private val _monthlyStats = MutableLiveData<List<MonthlyPlayCount>>()
     val monthlyStats: LiveData<List<MonthlyPlayCount>> = _monthlyStats
 

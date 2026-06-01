@@ -24,16 +24,10 @@ interface SongDao {
     suspend fun getSongLetterPositon(letter: String): Int
 
     @Query("UPDATE songs SET playCount = playCount + 1, lastPlayed = :timestamp WHERE id = :songId")
-    suspend fun incrementPlayCount(
-        songId: String,
-        timestamp: Long = System.currentTimeMillis(),
-    )
+    suspend fun incrementPlayCount(songId: String, timestamp: Long = System.currentTimeMillis())
 
     @Query("UPDATE songs SET rating = :rating WHERE id = :songId")
-    suspend fun updateRating(
-        songId: String,
-        rating: Int,
-    )
+    suspend fun updateRating(songId: String, rating: Int)
 
     @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' OR album LIKE '%' || :query || '%'")
     suspend fun searchSongs(query: String): List<Song>

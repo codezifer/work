@@ -59,7 +59,7 @@ interface ArtistDao {
         FROM songs s
         WHERE s.genre = :genre
         GROUP BY s.artist ORDER BY s.artist ASC
-        """
+        """,
     )
     fun getArtistAggregationsByGenre(genre: String): Flow<List<ArtistAggregation>>
 }

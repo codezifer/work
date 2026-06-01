@@ -31,36 +31,40 @@ class LibraryViewModel(
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
+    val songs: StateFlow<List<Song>> =
+        musicRepository.getAllSongs().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val songs: StateFlow<List<Song>> = musicRepository.getAllSongs().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val artists: StateFlow<List<ArtistDto>> =
+        artistRepository.getArtistInformation().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val artists: StateFlow<List<ArtistDto>> = artistRepository.getArtistInformation().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val albums: StateFlow<List<AlbumDto>> =
+        albumRepository.getAlbumInformation().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val albums: StateFlow<List<AlbumDto>> = albumRepository.getAlbumInformation().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val genres: StateFlow<List<GenreDto>> =
+        genreRepository.getGenreInformation().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val genres: StateFlow<List<GenreDto>> = genreRepository.getGenreInformation().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
-
-    val playlists: StateFlow<List<PlaylistDto>> = playlistRepository.getPlaylistInformation().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val playlists: StateFlow<List<PlaylistDto>> =
+        playlistRepository.getPlaylistInformation().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
     fun playSong(song: Song) {
         mediaLibraryManager.playContent(song.toMediaItem())
@@ -70,21 +74,27 @@ class LibraryViewModel(
         viewModelScope.launch {
             val songs = playlistRepository.getSongsInPlaylist(playlistId)
             if (songs.isNotEmpty()) {
-                val mediaItems = songs.mapIndexed { index, song ->
-                    song.toMediaItem().buildUpon()
-                        .setMediaMetadata(
-                            song.toMediaItem().mediaMetadata.buildUpon()
-                                .setExtras(
-                                    (song.toMediaItem().mediaMetadata.extras
-                                        ?: android.os.Bundle()).apply {
-                                        putInt("queuePosition", index)
-                                        putString("songId", song.id)
-                                    }
-                                )
-                                .build()
-                        )
-                        .build()
-                }
+                val mediaItems =
+                    songs.mapIndexed { index, song ->
+                        song
+                            .toMediaItem()
+                            .buildUpon()
+                            .setMediaMetadata(
+                                song
+                                    .toMediaItem()
+                                    .mediaMetadata
+                                    .buildUpon()
+                                    .setExtras(
+                                        (
+                                            song.toMediaItem().mediaMetadata.extras
+                                                ?: android.os.Bundle()
+                                            ).apply {
+                                            putInt("queuePosition", index)
+                                            putString("songId", song.id)
+                                        },
+                                    ).build(),
+                            ).build()
+                    }
 
                 playingQueueRepository.clear()
                 playingQueueRepository.addSongs(mediaItems)
@@ -103,14 +113,14 @@ class LibraryViewModel(
         viewModelScope.launch {
             playingQueueRepository.clear()
             playingQueueRepository.addSongs(
-                mediaItems = playlistRepository
+                mediaItems =
+                playlistRepository
                     .getSongsInPlaylist(playlistId)
-                    .map { it.toMediaItem() }
+                    .map { it.toMediaItem() },
             )
         }
     }
 
     fun toggleGenre(genreDto: GenreDto) {
-
     }
 }

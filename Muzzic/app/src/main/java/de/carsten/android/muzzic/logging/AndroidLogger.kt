@@ -23,20 +23,19 @@ class AndroidLogger private constructor(private val tag: String) {
     /**
      * Get caller information from stack trace
      */
-    private fun getCallerInfo(): String =
-        try {
-            val stackTrace = Thread.currentThread().stackTrace
-            if (stackTrace.size > CALL_STACK_INDEX) {
-                val element = stackTrace[CALL_STACK_INDEX]
-                val className = element.className.substringAfterLast('.')
-                val methodName = element.methodName
-                "[$className::$methodName]"
-            } else {
-                "[Unknown::unknown]"
-            }
-        } catch (e: Exception) {
-            "[Error::getCallerInfo]"
+    private fun getCallerInfo(): String = try {
+        val stackTrace = Thread.currentThread().stackTrace
+        if (stackTrace.size > CALL_STACK_INDEX) {
+            val element = stackTrace[CALL_STACK_INDEX]
+            val className = element.className.substringAfterLast('.')
+            val methodName = element.methodName
+            "[$className::$methodName]"
+        } else {
+            "[Unknown::unknown]"
         }
+    } catch (e: Exception) {
+        "[Error::getCallerInfo]"
+    }
 
     /**
      * Format message with caller information
@@ -52,10 +51,7 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
-    fun debug(
-        message: String,
-        throwable: Throwable,
-    ) {
+    fun debug(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, formatMessage(message), throwable)
         }
@@ -70,10 +66,7 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
-    fun info(
-        message: String,
-        throwable: Throwable,
-    ) {
+    fun info(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.INFO)) {
             Log.i(tag, formatMessage(message), throwable)
         }
@@ -88,10 +81,7 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
-    fun warning(
-        message: String,
-        throwable: Throwable,
-    ) {
+    fun warning(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.WARN)) {
             Log.w(tag, formatMessage(message), throwable)
         }
@@ -106,10 +96,7 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
-    fun error(
-        message: String,
-        throwable: Throwable,
-    ) {
+    fun error(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.ERROR)) {
             Log.e(tag, formatMessage(message), throwable)
         }
@@ -139,10 +126,7 @@ class AndroidLogger private constructor(private val tag: String) {
 }
 
 /**
- * Extension functions for easier usage
- */
-
-/**
- * Get logger for any class
+ * Extension functions for easier usage.
+ * Get logger for any class.
  */
 inline fun <reified T> T.logger(): AndroidLogger = AndroidLogger.getLogger(T::class.java)

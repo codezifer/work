@@ -26,10 +26,7 @@ private const val TAG = "EXTENSIONS"
  * @param audioFilePath absolute audio file path
  * @return opt. Bitmap
  */
-fun extractAlbumArt(
-    context: Context,
-    audioFilePath: String?,
-): Bitmap? {
+fun extractAlbumArt(context: Context, audioFilePath: String?): Bitmap? {
     val retriever = MediaMetadataRetriever()
     try {
         retriever.setDataSource(context, audioFilePath?.toUri())
@@ -62,14 +59,13 @@ fun extractAlbumArt(
  * @param state player state as [Int]
  * @return state name as [String]
  */
-fun playbackStateToString(state: Int): String =
-    when (state) {
-        Player.STATE_IDLE -> "IDLE"
-        Player.STATE_BUFFERING -> "BUFFERING"
-        Player.STATE_READY -> "READY"
-        Player.STATE_ENDED -> "ENDED"
-        else -> "UNKNOWN$state"
-    }
+fun playbackStateToString(state: Int): String = when (state) {
+    Player.STATE_IDLE -> "IDLE"
+    Player.STATE_BUFFERING -> "BUFFERING"
+    Player.STATE_READY -> "READY"
+    Player.STATE_ENDED -> "ENDED"
+    else -> "UNKNOWN$state"
+}
 
 /**
  * Gets datetime from media item metadata extras
@@ -77,14 +73,13 @@ fun playbackStateToString(state: Int): String =
  * @param key key of the datetime
  * @return [Instant]
  */
-fun MediaItem.mediaItemInstant(key: String): Instant =
-    this.mediaMetadata.extras?.getLong(key).let { time ->
-        if (time == null) {
-            Instant.now()
-        } else {
-            Instant.ofEpochMilli(time)
-        }
+fun MediaItem.mediaItemInstant(key: String): Instant = this.mediaMetadata.extras?.getLong(key).let { time ->
+    if (time == null) {
+        Instant.now()
+    } else {
+        Instant.ofEpochMilli(time)
     }
+}
 
 // canonical serialization: length-prefixed UTF-8 bytes to avoid collisions
 fun bytesWithLen(s: String): ByteArray {
@@ -100,10 +95,12 @@ fun bytesWithLen(s: String): ByteArray {
  */
 fun digestUUID(payload: ByteArray, namespace: UUID): UUID {
     // build name input as namespace bytes + payload
-    val nsBytes = ByteBuffer.allocate(16)
-        .putLong(namespace.mostSignificantBits)
-        .putLong(namespace.leastSignificantBits)
-        .array()
+    val nsBytes =
+        ByteBuffer
+            .allocate(16)
+            .putLong(namespace.mostSignificantBits)
+            .putLong(namespace.leastSignificantBits)
+            .array()
 
     val md = MessageDigest.getInstance("SHA-1")
     md.update(nsBytes)
@@ -129,12 +126,7 @@ fun digestUUID(payload: ByteArray, namespace: UUID): UUID {
  * @param artist song artist as [String]
  * @return [UUID]
  */
-fun songId(
-    title: String,
-    album: String,
-    artist: String,
-    namespace: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
-): UUID {
+fun songId(title: String, album: String, artist: String, namespace: UUID = UUID.nameUUIDFromBytes(byteArrayOf())): UUID {
     val payload = bytesWithLen(artist) + bytesWithLen(album) + bytesWithLen(title)
     return digestUUID(payload, namespace)
 }

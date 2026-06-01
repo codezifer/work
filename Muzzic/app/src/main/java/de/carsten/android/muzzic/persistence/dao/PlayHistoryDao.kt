@@ -23,10 +23,7 @@ interface PlayHistoryDao {
     @Query(
         "SELECT s.*, COUNT(ph.id) as totalCount FROM songs s INNER JOIN play_history ph ON s.id = ph.songId WHERE ph.playedAt >= :fromTimestamp GROUP BY s.id ORDER BY totalCount DESC LIMIT :limit",
     )
-    suspend fun getTopSongs(
-        fromTimestamp: Long,
-        limit: Int = 50,
-    ): List<SongPlayCount>
+    suspend fun getTopSongs(fromTimestamp: Long, limit: Int = 50): List<SongPlayCount>
 
     @Insert
     suspend fun insertPlayHistory(playHistory: PlayHistory)

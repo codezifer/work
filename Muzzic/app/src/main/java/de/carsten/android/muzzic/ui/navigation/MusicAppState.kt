@@ -31,31 +31,35 @@ class MusicAppState(
     val snackbarHostState: SnackbarHostState,
     val coroutineScope: CoroutineScope,
     val navigator: AppNavigator,
-    val stateMachine: MusicAppStateMachine = MusicAppStateMachine()
+    val stateMachine: MusicAppStateMachine = MusicAppStateMachine(),
 ) {
     /**
      * Gets the current navigation route.
      */
     val currentRoute: String?
-        @Composable get() = navController.currentBackStackEntryAsState().value?.destination?.route
+        @Composable get() =
+            navController
+                .currentBackStackEntryAsState()
+                .value
+                ?.destination
+                ?.route
 
     /**
      * Derives the current UI state based on the navigation route and selection state.
      */
     @Composable
-    fun getUiState(selectionState: SelectionState): AppUiState {
-        return stateMachine.fromRoute(currentRoute, selectionState.isActive)
-    }
+    fun getUiState(selectionState: SelectionState): AppUiState = stateMachine.fromRoute(currentRoute, selectionState.isActive)
 
     /**
      * Processes a navigation event through the state machine.
      */
     fun onNavigationEvent(event: NavigationEvent, selectionState: SelectionState = SelectionState()) {
-        val (_, sideEffects) = stateMachine.reduce(
-            currentState = AppUiState.Player, // Temp, will be refined if needed
-            event = event,
-            selectionState = selectionState
-        )
+        val (_, sideEffects) =
+            stateMachine.reduce(
+                currentState = AppUiState.Player, // Temp, will be refined if needed
+                event = event,
+                selectionState = selectionState,
+            )
 
         sideEffects.forEach { effect ->
             // In a more advanced version, we would handle all side effects here
@@ -90,7 +94,7 @@ class MusicAppState(
 fun rememberMusicAppState(
     navController: NavHostController = rememberNavController(),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): MusicAppState {
     val navigator = remember(navController) { AppNavigator(navController) }
     return remember(navController, snackbarHostState, coroutineScope, navigator) {

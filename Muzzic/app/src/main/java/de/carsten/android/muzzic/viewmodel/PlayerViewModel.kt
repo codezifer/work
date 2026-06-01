@@ -25,11 +25,8 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
 @OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
-open class PlayerViewModel(
-    private val repository: MusicRepository,
-    private val mediaLibraryManager: MediaLibraryManager,
-    application: Application,
-) : AndroidViewModel(application),
+open class PlayerViewModel(private val repository: MusicRepository, private val mediaLibraryManager: MediaLibraryManager, application: Application) :
+    AndroidViewModel(application),
     KoinComponent {
     private val logger = this.logger()
 
@@ -63,22 +60,23 @@ open class PlayerViewModel(
             initialValue = emptyList(),
         )
 
-    private val playerListener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _isPlaying.value = isPlaying
-        }
+    private val playerListener =
+        object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                _isPlaying.value = isPlaying
+            }
 
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            _currentSong.value = mediaItem?.let { Song.fromMediaItem(it) }
-            _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_READY) {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                _currentSong.value = mediaItem?.let { Song.fromMediaItem(it) }
                 _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
             }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
+                }
+            }
         }
-    }
 
     init {
         scanLibrary()

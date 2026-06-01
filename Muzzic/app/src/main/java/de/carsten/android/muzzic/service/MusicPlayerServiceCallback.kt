@@ -48,21 +48,22 @@ class MusicPlayerServiceCallback(
     private val playlistRepository: PlaylistRepository,
     private val playingQueueRepository: PlayingQueueRepository,
 ) : MediaLibrarySession.Callback {
-
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
-        params: MediaLibraryService.LibraryParams?
+        params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<MediaItem>> {
-        val rootItem = MediaItem.Builder()
-            .setMediaId(ROOT_ID)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
+        val rootItem =
+            MediaItem
+                .Builder()
+                .setMediaId(ROOT_ID)
+                .setMediaMetadata(
+                    MediaMetadata
+                        .Builder()
+                        .setIsBrowsable(true)
+                        .setIsPlayable(false)
+                        .build(),
+                ).build()
         return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
     }
 
@@ -72,10 +73,10 @@ class MusicPlayerServiceCallback(
         parentId: String,
         page: Int,
         pageSize: Int,
-        params: MediaLibraryService.LibraryParams?
-    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-        return serviceScope.future {
-            val items = when (parentId) {
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = serviceScope.future {
+        val items =
+            when (parentId) {
                 ROOT_ID -> getRootChildren()
                 ARTISTS_ID -> getArtists()
                 ALBUMS_ID -> getAlbums()
@@ -85,22 +86,15 @@ class MusicPlayerServiceCallback(
                 CURRENT_QUEUE -> getPlayingQueue(session.player)
                 else -> getSongs(parentId)
             }
-            LibraryResult.ofItemList(items, params)
-        }
+        LibraryResult.ofItemList(items, params)
     }
 
-    override fun onGetItem(
-        session: MediaLibrarySession,
-        browser: MediaSession.ControllerInfo,
-        mediaId: String
-    ): ListenableFuture<LibraryResult<MediaItem>> {
-        return serviceScope.future {
-            val song = songRepository.getSongById(mediaId)
-            if (song != null) {
-                LibraryResult.ofItem(song.toMediaItem(), null)
-            } else {
-                LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
-            }
+    override fun onGetItem(session: MediaLibrarySession, browser: MediaSession.ControllerInfo, mediaId: String): ListenableFuture<LibraryResult<MediaItem>> = serviceScope.future {
+        val song = songRepository.getSongById(mediaId)
+        if (song != null) {
+            LibraryResult.ofItem(song.toMediaItem(), null)
+        } else {
+            LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
         }
     }
 
@@ -108,17 +102,15 @@ class MusicPlayerServiceCallback(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
         query: String,
-        params: MediaLibraryService.LibraryParams?
-    ): ListenableFuture<LibraryResult<Void>> {
-        return serviceScope.future {
-            val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query) else emptyList()
-            val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query) else emptyList()
-            val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query) else emptyList()
-            val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.searchPlaylists(query) else emptyList()
-            val totalCount = songs.size + artists.size + albums.size + playlists.size
-            session.notifySearchResultChanged(browser, query, totalCount, params)
-            LibraryResult.ofVoid()
-        }
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<Void>> = serviceScope.future {
+        val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query) else emptyList()
+        val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query) else emptyList()
+        val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query) else emptyList()
+        val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.searchPlaylists(query) else emptyList()
+        val totalCount = songs.size + artists.size + albums.size + playlists.size
+        session.notifySearchResultChanged(browser, query, totalCount, params)
+        LibraryResult.ofVoid()
     }
 
     override fun onGetSearchResult(
@@ -127,30 +119,25 @@ class MusicPlayerServiceCallback(
         query: String,
         page: Int,
         pageSize: Int,
-        params: MediaLibraryService.LibraryParams?
-    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-        return serviceScope.future {
-            val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query).map { it.toMediaItem() } else emptyList()
-            val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query).map { it.toMediaItem() } else emptyList()
-            val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query).map { it.toMediaItem() } else emptyList()
-            val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.playlistDao.searchPlaylists(query).map { it.toMediaItem() } else emptyList()
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = serviceScope.future {
+        val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query).map { it.toMediaItem() } else emptyList()
+        val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query).map { it.toMediaItem() } else emptyList()
+        val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query).map { it.toMediaItem() } else emptyList()
+        val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.playlistDao.searchPlaylists(query).map { it.toMediaItem() } else emptyList()
 
-            val allItems = mutableListOf<MediaItem>()
-            allItems.addAll(artists)
-            allItems.addAll(albums)
-            allItems.addAll(playlists)
-            allItems.addAll(songs)
+        val allItems = mutableListOf<MediaItem>()
+        allItems.addAll(artists)
+        allItems.addAll(albums)
+        allItems.addAll(playlists)
+        allItems.addAll(songs)
 
-            LibraryResult.ofItemList(ImmutableList.copyOf(allItems), params)
-        }
+        LibraryResult.ofItemList(ImmutableList.copyOf(allItems), params)
     }
 
     @Deprecated("Deprecated in Java")
-    override fun onPlaybackResumption(
-        mediaSession: MediaSession,
-        controller: MediaSession.ControllerInfo
-    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-        return serviceScope.future {
+    override fun onPlaybackResumption(mediaSession: MediaSession, controller: MediaSession.ControllerInfo): ListenableFuture<MediaSession.MediaItemsWithStartPosition> =
+        serviceScope.future {
             val queue = playingQueueRepository.getPlayingQueue()
             if (queue.isNotEmpty()) {
                 MediaSession.MediaItemsWithStartPosition(queue, 0, 0L)
@@ -159,49 +146,36 @@ class MusicPlayerServiceCallback(
                 MediaSession.MediaItemsWithStartPosition(allSongs, 0, 0L)
             }
         }
-    }
 
     // --- Helper methods to fetch data ---
 
-    private fun getRootChildren(): List<MediaItem> {
-        return listOf(
-            createBrowsableItem(ARTISTS_ID, "Artists"),
-            createBrowsableItem(ALBUMS_ID, "Albums"),
-            createBrowsableItem(SONGS_ID, "Songs"),
-            createBrowsableItem(PLAYLISTS_ID, "Playlists"),
-            createBrowsableItem(GENRES_ID, "Genres")
-        )
+    private fun getRootChildren(): List<MediaItem> = listOf(
+        createBrowsableItem(ARTISTS_ID, "Artists"),
+        createBrowsableItem(ALBUMS_ID, "Albums"),
+        createBrowsableItem(SONGS_ID, "Songs"),
+        createBrowsableItem(PLAYLISTS_ID, "Playlists"),
+        createBrowsableItem(GENRES_ID, "Genres"),
+    )
+
+    private suspend fun getArtists(): List<MediaItem> = artistRepository.getArtistInformation().first().map { it.toMediaItem() }
+
+    private suspend fun getAlbums(): List<MediaItem> = albumRepository.getAlbumInformation().first().map { it.toMediaItem() }
+
+    private suspend fun getAlbumsByArtist(artistName: String): List<MediaItem> = albumRepository.getAlbumsByArtist(artistName).first().map { it.toMediaItem() }
+
+    private suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> = albumRepository.getSongsByAlbum(artistName, albumName).first().map {
+        it.toMediaItem()
     }
 
-    private suspend fun getArtists(): List<MediaItem> {
-        return artistRepository.getArtistInformation().first().map { it.toMediaItem() }
-    }
+    private suspend fun getAllSongs(): List<MediaItem> = musicRepository.getAllSongs().first().map { it.toMediaItem() }
 
-    private suspend fun getAlbums(): List<MediaItem> {
-        return albumRepository.getAlbumInformation().first().map { it.toMediaItem() }
-    }
+    private suspend fun getGenres(): List<MediaItem> = genreRepository.getGenreInformation().first().map { it.toMediaItem() }
 
-    private suspend fun getAlbumsByArtist(artistName: String): List<MediaItem> {
-        return albumRepository.getAlbumsByArtist(artistName).first().map { it.toMediaItem() }
-    }
-
-    private suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> {
-        return albumRepository.getSongsByAlbum(artistName, albumName).first().map { it.toMediaItem() }
-    }
-
-    private suspend fun getAllSongs(): List<MediaItem> {
-        return musicRepository.getAllSongs().first().map { it.toMediaItem() }
-    }
-
-    private suspend fun getGenres(): List<MediaItem> {
-        return genreRepository.getGenreInformation().first().map { it.toMediaItem() }
-    }
-
-    private suspend fun getSongsByGenre(genreName: String): List<MediaItem> {
-        return musicRepository.getAllSongs().first()
-            .filter { it.genre == genreName }
-            .map { it.toMediaItem() }
-    }
+    private suspend fun getSongsByGenre(genreName: String): List<MediaItem> = musicRepository
+        .getAllSongs()
+        .first()
+        .filter { it.genre == genreName }
+        .map { it.toMediaItem() }
 
     private suspend fun getPlaylists(): List<MediaItem> {
         val playlists = playlistRepository.playlistDao.getAllPlaylists().first()
@@ -216,30 +190,33 @@ class MusicPlayerServiceCallback(
         return playlist
     }
 
-    private suspend fun getSongs(parentId: String): List<MediaItem> =
-        if (parentId.startsWith(ARTIST_PREFIX)) {
-            val artistName = parentId.removePrefix(ARTIST_PREFIX)
-            getAlbumsByArtist(artistName)
-        } else if (parentId.startsWith(ALBUM_PREFIX)) {
-            // Expected format [ALBUM]:artistName:albumName
-            val parts = parentId.removePrefix(ALBUM_PREFIX).split(":", limit = 2)
-            if (parts.size == 2) {
-                getSongsByAlbum(parts[0], parts[1])
-            } else {
-                emptyList()
-            }
-        } else if (parentId.startsWith(PLAYLIST_PREFIX)) {
-            val playlistName = parentId.removePrefix(PLAYLIST_PREFIX)
-            getSongsByPlaylist(playlistName)
-        } else if (parentId.startsWith(GENRE_PREFIX)) {
-            val genreName = parentId.removePrefix(GENRE_PREFIX)
-            getSongsByGenre(genreName)
+    private suspend fun getSongs(parentId: String): List<MediaItem> = if (parentId.startsWith(ARTIST_PREFIX)) {
+        val artistName = parentId.removePrefix(ARTIST_PREFIX)
+        getAlbumsByArtist(artistName)
+    } else if (parentId.startsWith(ALBUM_PREFIX)) {
+        // Expected format [ALBUM]:artistName:albumName
+        val parts = parentId.removePrefix(ALBUM_PREFIX).split(":", limit = 2)
+        if (parts.size == 2) {
+            getSongsByAlbum(parts[0], parts[1])
         } else {
             emptyList()
         }
+    } else if (parentId.startsWith(PLAYLIST_PREFIX)) {
+        val playlistName = parentId.removePrefix(PLAYLIST_PREFIX)
+        getSongsByPlaylist(playlistName)
+    } else if (parentId.startsWith(GENRE_PREFIX)) {
+        val genreName = parentId.removePrefix(GENRE_PREFIX)
+        getSongsByGenre(genreName)
+    } else {
+        emptyList()
+    }
 
     private suspend fun getSongsByPlaylist(playlistName: String): List<MediaItem> {
-        val playlist = playlistRepository.playlistDao.getAllPlaylists().first().find { it.name == playlistName }
+        val playlist =
+            playlistRepository.playlistDao
+                .getAllPlaylists()
+                .first()
+                .find { it.name == playlistName }
         return if (playlist != null) {
             playlistRepository.playlistDao.getSongsInPlaylist(playlist.id).map { it.toMediaItem() }
         } else {
@@ -247,16 +224,15 @@ class MusicPlayerServiceCallback(
         }
     }
 
-    private fun createBrowsableItem(id: String, title: String): MediaItem {
-        return MediaItem.Builder()
-            .setMediaId(id)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(title)
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-    }
+    private fun createBrowsableItem(id: String, title: String): MediaItem = MediaItem
+        .Builder()
+        .setMediaId(id)
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(title)
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .build(),
+        ).build()
 }

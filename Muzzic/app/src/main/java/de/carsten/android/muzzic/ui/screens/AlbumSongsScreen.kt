@@ -38,21 +38,23 @@ fun AlbumSongsScreen(
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     Column(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Column(modifier = Modifier.padding(start = 8.dp)) {
@@ -60,12 +62,12 @@ fun AlbumSongsScreen(
                     text = viewModel.albumName,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = viewModel.artistName,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
                 )
             }
         }

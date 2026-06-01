@@ -29,15 +29,16 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.ui.utils.parseId3Year
-import de.carsten.android.muzzic.utils.flac
-import de.carsten.android.muzzic.utils.m4a
-import de.carsten.android.muzzic.utils.mp3
-import de.carsten.android.muzzic.utils.mp4
-import de.carsten.android.muzzic.utils.ogg
-import de.carsten.android.muzzic.utils.top100
-import de.carsten.android.muzzic.utils.unknownAlbum
-import de.carsten.android.muzzic.utils.unknownArtist
-import de.carsten.android.muzzic.utils.unknownGenre
+import de.carsten.android.muzzic.utils.FLAC
+import de.carsten.android.muzzic.utils.M4A
+import de.carsten.android.muzzic.utils.MP3
+import de.carsten.android.muzzic.utils.MP4
+import de.carsten.android.muzzic.utils.OGG
+import de.carsten.android.muzzic.utils.TOP_100
+import de.carsten.android.muzzic.utils.UNKNOWN_ALBUM
+import de.carsten.android.muzzic.utils.UNKNOWN_ARTIST
+import de.carsten.android.muzzic.utils.UNKNOWN_GENRE
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -45,7 +46,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.io.File
 
 class MusicRepository(
     val songDao: SongDao,
@@ -67,20 +67,21 @@ class MusicRepository(
     suspend fun scanMusicLibrary() {
         try {
             val workManager = WorkManager.getInstance(context)
-            val scanRequest = OneTimeWorkRequestBuilder<MusicScanWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                        .setRequiresBatteryNotLow(true)
-                        .build()
-                )
-                .addTag(SCAN_WORK_NAME)
-                .build()
+            val scanRequest =
+                OneTimeWorkRequestBuilder<MusicScanWorker>()
+                    .setConstraints(
+                        Constraints
+                            .Builder()
+                            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                            .setRequiresBatteryNotLow(true)
+                            .build(),
+                    ).addTag(SCAN_WORK_NAME)
+                    .build()
 
             workManager.enqueueUniqueWork(
                 SCAN_WORK_NAME,
                 ExistingWorkPolicy.KEEP,
-                scanRequest
+                scanRequest,
             )
         } catch (e: Exception) {
             logger.error("Failed to enqueue music scan work", e)
@@ -89,9 +90,7 @@ class MusicRepository(
         }
     }
 
-    suspend fun performLibraryScan(
-        onProgress: ((String, Int) -> Unit)? = null
-    ) = coroutineScope {
+    suspend fun performLibraryScan(onProgress: ((String, Int) -> Unit)? = null) = coroutineScope {
         onProgress?.invoke(context.getString(de.carsten.android.muzzic.R.string.scan_status_scanning), 0)
         val musicFiles = scanForMusicFiles()
         val currentSongs = songDao.getAllSongs().first()
@@ -108,11 +107,13 @@ class MusicRepository(
             val chunkedFiles = newFiles.chunked(chunkSize)
 
             for (chunk in chunkedFiles) {
-                val songs = chunk.map { file ->
-                    async(Dispatchers.IO) {
-                        extractSongMetadata(file)
-                    }
-                }.awaitAll()
+                val songs =
+                    chunk
+                        .map { file ->
+                            async(Dispatchers.IO) {
+                                extractSongMetadata(file)
+                            }
+                        }.awaitAll()
 
                 withContext(Dispatchers.IO) {
                     songDao.insertSongs(songs)
@@ -122,7 +123,7 @@ class MusicRepository(
                 val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
                 onProgress?.invoke(
                     context.getString(de.carsten.android.muzzic.R.string.scan_status_metadata, progress),
-                    progress
+                    progress,
                 )
             }
             updateAutomaticPlaylists()
@@ -132,14 +133,15 @@ class MusicRepository(
         ensureActive()
         // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
         val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
-        val missingSongs = currentSongs.filter { song ->
-            val path = song.filePath
-            path != null &&
-                !path.startsWith("content://mock") &&
-                !path.startsWith("http://") &&
-                !path.startsWith("https://") &&
-                path !in existingFilesOnDisk
-        }
+        val missingSongs =
+            currentSongs.filter { song ->
+                val path = song.filePath
+                path != null &&
+                    !path.startsWith("content://mock") &&
+                    !path.startsWith("http://") &&
+                    !path.startsWith("https://") &&
+                    path !in existingFilesOnDisk
+            }
 
         if (missingSongs.isNotEmpty()) {
             withContext(Dispatchers.IO) {
@@ -155,7 +157,7 @@ class MusicRepository(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
             )
 
-        val supportedFormats = setOf(mp3, ogg, flac, mp4, m4a)
+        val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
         val musicFiles = mutableListOf<File>()
 
         musicFolders.forEach { folder ->
@@ -166,8 +168,7 @@ class MusicRepository(
                     .onEnter {
                         ensureActive()
                         true
-                    }
-                    .filter { it.isFile && it.extension.lowercase() in supportedFormats }
+                    }.filter { it.isFile && it.extension.lowercase() in supportedFormats }
                     .forEach {
                         ensureActive()
                         musicFiles.add(it)
@@ -178,68 +179,65 @@ class MusicRepository(
         musicFiles
     }
 
-    private fun extractSongMetadata(file: File): Song =
-        try {
-            if (file.extension.lowercase() == mp3) {
-                val mp3file = Mp3File(file)
-                val id3v2Tag = mp3file.id3v2Tag
+    private fun extractSongMetadata(file: File): Song = try {
+        if (file.extension.lowercase() == MP3) {
+            val mp3file = Mp3File(file)
+            val id3v2Tag = mp3file.id3v2Tag
+
+            Song(
+                title = id3v2Tag?.title?.trim() ?: file.nameWithoutExtension,
+                artist = id3v2Tag?.artist?.trim() ?: UNKNOWN_ARTIST,
+                album = id3v2Tag?.album?.trim() ?: UNKNOWN_ALBUM,
+                genre = id3v2Tag?.genreDescription?.trim() ?: UNKNOWN_GENRE,
+                duration = mp3file.lengthInMilliseconds,
+                filePath = file.absolutePath,
+                albumArt = saveAlbumArt(file),
+                albumYear = parseId3Year(id3v2Tag?.year),
+                rating = id3v2Tag?.wmpRating ?: 0,
+            )
+        } else {
+            // For other formats, use MediaMetadataRetriever
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(file.absolutePath)
 
                 Song(
-                    title = id3v2Tag?.title?.trim() ?: file.nameWithoutExtension,
-                    artist = id3v2Tag?.artist?.trim() ?: unknownArtist,
-                    album = id3v2Tag?.album?.trim() ?: unknownAlbum,
-                    genre = id3v2Tag?.genreDescription?.trim() ?: unknownGenre,
-                    duration = mp3file.lengthInMilliseconds,
+                    title =
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
+                        ?: file.nameWithoutExtension,
+                    artist =
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
+                        ?: UNKNOWN_ARTIST,
+                    album =
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
+                        ?: UNKNOWN_ALBUM,
+                    genre =
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
+                        ?: UNKNOWN_GENRE,
+                    duration =
+                    retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull() ?: 0L,
                     filePath = file.absolutePath,
                     albumArt = saveAlbumArt(file),
-                    albumYear = parseId3Year(id3v2Tag?.year),
-                    rating = id3v2Tag?.wmpRating ?: 0,
                 )
-            } else {
-                // For other formats, use MediaMetadataRetriever
-                val retriever = MediaMetadataRetriever()
-                try {
-                    retriever.setDataSource(file.absolutePath)
-
-                    Song(
-                        title =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
-                                ?: file.nameWithoutExtension,
-                        artist =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
-                                ?: unknownArtist,
-                        album =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
-                                ?: unknownAlbum,
-                        genre =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
-                                ?: unknownGenre,
-                        duration =
-                            retriever
-                                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                                ?.toLongOrNull() ?: 0L,
-                        filePath = file.absolutePath,
-                        albumArt = saveAlbumArt(file),
-                    )
-                } finally {
-                    retriever.release()
-                }
+            } finally {
+                retriever.release()
             }
-        } catch (e: Exception) {
-            // Fallback
-            Song(
-                title = file.nameWithoutExtension,
-                artist = unknownArtist,
-                album = unknownAlbum,
-                genre = unknownGenre,
-                duration = 0L,
-                filePath = file.absolutePath,
-            )
         }
+    } catch (e: Exception) {
+        // Fallback
+        Song(
+            title = file.nameWithoutExtension,
+            artist = UNKNOWN_ARTIST,
+            album = UNKNOWN_ALBUM,
+            genre = UNKNOWN_GENRE,
+            duration = 0L,
+            filePath = file.absolutePath,
+        )
+    }
 
-    private fun saveAlbumArt(
-        file: File,
-    ): String? = try {
+    private fun saveAlbumArt(file: File): String? = try {
         val (offset, size) = getAlbumArtOffsetAndSize(file)
         AlbumArtUri(file.absolutePath, offset, size).get()
     } catch (e: Exception) {
@@ -252,20 +250,22 @@ class MusicRepository(
         val currentPlaylists = playlistDao.getAllPlaylists().first()
 
         genres.forEach { genre ->
-            val playlistName = "$genre - $top100"
+            val playlistName = "$genre - $TOP_100"
             val existingPlaylist = currentPlaylists.find { it.name == playlistName && it.isAutoGenerated }
 
-            val playlistId = if (existingPlaylist == null) {
-                val playlist = Playlist(
-                    name = playlistName,
-                    isAutoGenerated = true,
-                    genre = genre,
-                )
-                playlistDao.insertPlaylist(playlist)
-                playlist.id
-            } else {
-                existingPlaylist.id
-            }
+            val playlistId =
+                if (existingPlaylist == null) {
+                    val playlist =
+                        Playlist(
+                            name = playlistName,
+                            isAutoGenerated = true,
+                            genre = genre,
+                        )
+                    playlistDao.insertPlaylist(playlist)
+                    playlist.id
+                } else {
+                    existingPlaylist.id
+                }
 
             // Update content
             val topSongs = genreDao.getTopSongsByGenre(genre, 100)
@@ -283,10 +283,7 @@ class MusicRepository(
         playHistoryDao.insertPlayHistory(PlayHistory(songId))
     }
 
-    suspend fun updateSongRating(
-        songId: String,
-        rating: Int,
-    ) {
+    suspend fun updateSongRating(songId: String, rating: Int) {
         songDao.updateRating(songId, rating)
     }
 
@@ -321,11 +318,12 @@ class MusicRepository(
 
                 // The image data starts inside the frame data.
                 // We use mp3agic's own PictureFrameData to calculate the internal offset.
-                val pictureData = if (apicFrame.id == "PIC") {
-                    ID3v2ObseletePictureFrameData(false, apicFrame.data)
-                } else {
-                    ID3v2PictureFrameData(false, apicFrame.data)
-                }
+                val pictureData =
+                    if (apicFrame.id == "PIC") {
+                        ID3v2ObseletePictureFrameData(false, apicFrame.data)
+                    } else {
+                        ID3v2PictureFrameData(false, apicFrame.data)
+                    }
 
                 // Calculation:
                 // Frame Offset in Tag + Frame Header (10 bytes) + Header fields inside APIC
@@ -351,4 +349,3 @@ class MusicRepository(
         return -1
     }
 }
-

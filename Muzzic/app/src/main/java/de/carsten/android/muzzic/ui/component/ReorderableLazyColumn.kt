@@ -25,9 +25,7 @@ import androidx.compose.ui.zIndex
 /**
  * A state object for managing reordering in a [ReorderableLazyColumn].
  */
-class ReorderableState(
-    val listState: LazyListState
-) {
+class ReorderableState(val listState: LazyListState) {
     var draggingItemIndex by mutableIntStateOf(-1)
     var dragOffset by mutableFloatStateOf(0f)
 
@@ -41,15 +39,16 @@ class ReorderableState(
         val currentItem = layoutInfo.visibleItemsInfo.firstOrNull { it.index == draggingItemIndex } ?: return
         val currentPosition = currentItem.offset + currentItem.size / 2 + dragOffset
 
-        val targetItem = if (dragOffset > 0) {
-            layoutInfo.visibleItemsInfo.findLast { item ->
-                item.index > draggingItemIndex && currentPosition > item.offset + item.size / 2
+        val targetItem =
+            if (dragOffset > 0) {
+                layoutInfo.visibleItemsInfo.findLast { item ->
+                    item.index > draggingItemIndex && currentPosition > item.offset + item.size / 2
+                }
+            } else {
+                layoutInfo.visibleItemsInfo.find { item ->
+                    item.index < draggingItemIndex && currentPosition < item.offset + item.size / 2
+                }
             }
-        } else {
-            layoutInfo.visibleItemsInfo.find { item ->
-                item.index < draggingItemIndex && currentPosition < item.offset + item.size / 2
-            }
-        }
 
         if (targetItem != null) {
             onMove(draggingItemIndex, targetItem.index)
@@ -68,9 +67,7 @@ class ReorderableState(
  * Creates and remembers a [ReorderableState].
  */
 @Composable
-fun rememberReorderableState(listState: LazyListState = rememberLazyListState()): ReorderableState {
-    return remember(listState) { ReorderableState(listState) }
-}
+fun rememberReorderableState(listState: LazyListState = rememberLazyListState()): ReorderableState = remember(listState) { ReorderableState(listState) }
 
 /**
  * A specialized [LazyColumn] that supports drag-and-drop reordering of its items.
@@ -88,36 +85,37 @@ fun <T> ReorderableLazyColumn(
     modifier: Modifier = Modifier,
     key: ((Int, T) -> Any)? = null,
     state: ReorderableState = rememberReorderableState(),
-    itemContent: @Composable LazyItemScope.(index: Int, item: T, isDragging: Boolean, dragModifier: Modifier) -> Unit
+    itemContent: @Composable LazyItemScope.(index: Int, item: T, isDragging: Boolean, dragModifier: Modifier) -> Unit,
 ) {
     LazyColumn(
         state = state.listState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         itemsIndexed(items, key = key) { index, item ->
             val currentIndex by rememberUpdatedState(index)
             val isDragging = index == state.draggingItemIndex
             val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "elevation")
 
-            val dragModifier = Modifier.pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { state.onDragStart(currentIndex) },
-                    onDragEnd = { state.onDragEnd() },
-                    onDragCancel = { state.onDragEnd() },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        state.onDrag(dragAmount.y, onMove)
-                    }
-                )
-            }
+            val dragModifier =
+                Modifier.pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { state.onDragStart(currentIndex) },
+                        onDragEnd = { state.onDragEnd() },
+                        onDragCancel = { state.onDragEnd() },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            state.onDrag(dragAmount.y, onMove)
+                        },
+                    )
+                }
 
             Box(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .graphicsLayer {
                         translationY = if (isDragging) state.dragOffset else 0f
-                    }
-                    .zIndex(if (isDragging) 1f else 0f)
-                    .shadow(elevation)
+                    }.zIndex(if (isDragging) 1f else 0f)
+                    .shadow(elevation),
             ) {
                 itemContent(index, item, isDragging, dragModifier)
             }

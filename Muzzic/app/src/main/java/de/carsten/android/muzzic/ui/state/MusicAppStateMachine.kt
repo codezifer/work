@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.ui.state
 
 import de.carsten.android.muzzic.ui.AppDestinations
 import de.carsten.android.muzzic.ui.navigation.NavigationEvent
-import de.carsten.android.muzzic.viewmodel.states.Selection
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 
 /**
@@ -11,9 +10,13 @@ import de.carsten.android.muzzic.viewmodel.states.SelectionState
  */
 sealed class AppUiState {
     data object Player : AppUiState()
+
     data class Library(val selectionActive: Boolean = false) : AppUiState()
+
     data class Queue(val isManaging: Boolean = true) : AppUiState()
+
     data object Playlists : AppUiState()
+
     data object Statistics : AppUiState()
 }
 
@@ -22,8 +25,11 @@ sealed class AppUiState {
  */
 sealed class AppSideEffect {
     data class Navigate(val event: NavigationEvent) : AppSideEffect()
+
     data class ShowSnackbar(val message: String) : AppSideEffect()
+
     data object LoadQueue : AppSideEffect()
+
     data object ClearSelection : AppSideEffect()
 }
 
@@ -33,7 +39,6 @@ sealed class AppSideEffect {
  * selection states interact.
  */
 class MusicAppStateMachine {
-
     /**
      * Reduces the current state and an incoming event to a new state and a list of side effects.
      *
@@ -42,57 +47,54 @@ class MusicAppStateMachine {
      * @param selectionState The current selection state from the ViewModel.
      * @return A pair of the new [AppUiState] and a list of [AppSideEffect]s.
      */
-    fun reduce(
-        currentState: AppUiState,
-        event: NavigationEvent,
-        selectionState: SelectionState = SelectionState()
-    ): Pair<AppUiState, List<AppSideEffect>> {
+    fun reduce(currentState: AppUiState, event: NavigationEvent, selectionState: SelectionState = SelectionState()): Pair<AppUiState, List<AppSideEffect>> {
         val sideEffects = mutableListOf<AppSideEffect>()
 
-        val newState = when (event) {
-            NavigationEvent.ToPlayer -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Player
-            }
+        val newState =
+            when (event) {
+                NavigationEvent.ToPlayer -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Player
+                }
 
-            NavigationEvent.ToLibrary -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Library(selectionActive = selectionState.isActive)
-            }
+                NavigationEvent.ToLibrary -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Library(selectionActive = selectionState.isActive)
+                }
 
-            NavigationEvent.ToQueue -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                sideEffects.add(AppSideEffect.LoadQueue)
-                AppUiState.Queue(isManaging = true)
-            }
+                NavigationEvent.ToQueue -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    sideEffects.add(AppSideEffect.LoadQueue)
+                    AppUiState.Queue(isManaging = true)
+                }
 
-            NavigationEvent.ToPlaylists -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Playlists
-            }
+                NavigationEvent.ToPlaylists -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Playlists
+                }
 
-            NavigationEvent.ToStatistics -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Statistics
-            }
+                NavigationEvent.ToStatistics -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Statistics
+                }
 
-            NavigationEvent.ToGenres -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Library(selectionActive = selectionState.isActive)
-            }
+                NavigationEvent.ToGenres -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Library(selectionActive = selectionState.isActive)
+                }
 
-            NavigationEvent.Back -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                // Note: Real state after back depends on NavController backstack,
-                // but for our toolbar logic, we derive it from the route.
-                currentState
-            }
+                NavigationEvent.Back -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    // Note: Real state after back depends on NavController backstack,
+                    // but for our toolbar logic, we derive it from the route.
+                    currentState
+                }
 
-            is NavigationEvent.ToArtistAlbums, is NavigationEvent.ToAlbumSongs, is NavigationEvent.ToGenreArtists -> {
-                sideEffects.add(AppSideEffect.Navigate(event))
-                AppUiState.Library(selectionActive = selectionState.isActive)
+                is NavigationEvent.ToArtistAlbums, is NavigationEvent.ToAlbumSongs, is NavigationEvent.ToGenreArtists -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Library(selectionActive = selectionState.isActive)
+                }
             }
-        }
 
         return newState to sideEffects
     }
@@ -100,16 +102,35 @@ class MusicAppStateMachine {
     /**
      * Maps a navigation route string to an [AppUiState].
      */
-    fun fromRoute(route: String?, selectionActive: Boolean): AppUiState {
-        return when (route) {
-            AppDestinations.PLAYER -> AppUiState.Player
-            AppDestinations.LIBRARY, AppDestinations.LIBRARY_GRAPH, AppDestinations.ARTIST_ALBUMS, AppDestinations.ALBUM_SONGS, AppDestinations.GENRES, AppDestinations.GENRE_ARTISTS -> {
-                AppUiState.Library(selectionActive)
-            }
-            AppDestinations.QUEUE -> AppUiState.Queue(isManaging = true)
-            AppDestinations.PLAYLISTS -> AppUiState.Playlists
-            AppDestinations.STATISTICS -> AppUiState.Statistics
-            else -> AppUiState.Player
+    fun fromRoute(route: String?, selectionActive: Boolean): AppUiState = when (route) {
+        AppDestinations.PLAYER -> {
+            AppUiState.Player
+        }
+
+        AppDestinations.LIBRARY,
+        AppDestinations.LIBRARY_GRAPH,
+        AppDestinations.ARTIST_ALBUMS,
+        AppDestinations.ALBUM_SONGS,
+        AppDestinations.GENRES,
+        AppDestinations.GENRE_ARTISTS,
+        -> {
+            AppUiState.Library(selectionActive)
+        }
+
+        AppDestinations.QUEUE -> {
+            AppUiState.Queue(isManaging = true)
+        }
+
+        AppDestinations.PLAYLISTS -> {
+            AppUiState.Playlists
+        }
+
+        AppDestinations.STATISTICS -> {
+            AppUiState.Statistics
+        }
+
+        else -> {
+            AppUiState.Player
         }
     }
 }

@@ -25,12 +25,7 @@ import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun ArtistCard(
-    artist: ArtistDto,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    isSelected: Boolean = false,
-) {
+fun ArtistCard(artist: ArtistDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
     val palette by rememberPaletteState(artist.lastAlbumArt)
     val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
     val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
@@ -41,12 +36,13 @@ fun ArtistCard(
                 // Album Cover Collage - Edge to Edge
                 AlbumCoverCollage(
                     covers =
-                        if (artist.lastAlbumArt == null) {
-                            emptyList()
-                        } else {
-                            listOf(CoverSource.FromPath(artist.lastAlbumArt))
-                        },
-                    modifier = Modifier
+                    if (artist.lastAlbumArt == null) {
+                        emptyList()
+                    } else {
+                        listOf(CoverSource.FromPath(artist.lastAlbumArt))
+                    },
+                    modifier =
+                    Modifier
                         .fillMaxWidth()
                         .aspectRatio(1.2f),
                     useCard = false,

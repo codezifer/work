@@ -9,24 +9,17 @@ import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenreAggregation
 
 @Immutable
-data class GenreDto(
-    val genreName: String,
-    val artistCount: Int,
-    val albumCount: Int,
-    val songCount: Int,
-    val genreDuration: Long,
-    override val lastAlbumArt: String? = null,
-) : AlbumArt
+data class GenreDto(val genreName: String, val artistCount: Int, val albumCount: Int, val songCount: Int, val genreDuration: Long, override val lastAlbumArt: String? = null) :
+    AlbumArt
 
-fun GenreAggregation.toDto() =
-    GenreDto(
-        genreName = this.genreName,
-        artistCount = this.artistCount,
-        albumCount = this.albumCount,
-        songCount = this.songCount,
-        genreDuration = this.genreDuration,
-        lastAlbumArt = this.lastAlbumArt,
-    )
+fun GenreAggregation.toDto() = GenreDto(
+    genreName = this.genreName,
+    artistCount = this.artistCount,
+    albumCount = this.albumCount,
+    songCount = this.songCount,
+    genreDuration = this.genreDuration,
+    lastAlbumArt = this.lastAlbumArt,
+)
 
 fun List<GenreAggregation>.toDto() = map { it.toDto() }
 
@@ -38,26 +31,26 @@ fun MediaItem.toGenreDto(): GenreDto {
         artistCount = extras.getInt(MediaKeys.ARTIST_COUNT),
         albumCount = extras.getInt(MediaKeys.ALBUM_COUNT),
         songCount = extras.getInt(MediaKeys.SONG_COUNT),
-        genreDuration = extras.getLong(MediaKeys.DURATION)
+        genreDuration = extras.getLong(MediaKeys.DURATION),
     )
 }
 
-fun GenreDto.toMediaItem(): MediaItem {
-    return MediaItem.Builder()
-        .setMediaId("${MediaKeys.GENRE_PREFIX}$genreName")
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(genreName)
-                .setArtworkUri(lastAlbumArt?.toUri())
-                .setExtras(android.os.Bundle().apply {
+fun GenreDto.toMediaItem(): MediaItem = MediaItem
+    .Builder()
+    .setMediaId("${MediaKeys.GENRE_PREFIX}$genreName")
+    .setMediaMetadata(
+        MediaMetadata
+            .Builder()
+            .setTitle(genreName)
+            .setArtworkUri(lastAlbumArt?.toUri())
+            .setExtras(
+                android.os.Bundle().apply {
                     putInt(MediaKeys.ARTIST_COUNT, artistCount)
                     putInt(MediaKeys.ALBUM_COUNT, albumCount)
                     putInt(MediaKeys.SONG_COUNT, songCount)
                     putLong(MediaKeys.DURATION, genreDuration)
-                })
-                .setIsBrowsable(true)
-                .setIsPlayable(false)
-                .build()
-        )
-        .build()
-}
+                },
+            ).setIsBrowsable(true)
+            .setIsPlayable(false)
+            .build(),
+    ).build()

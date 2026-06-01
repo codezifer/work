@@ -16,10 +16,10 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
-class MuzzicPlayerApplication : Application(), SingletonImageLoader.Factory {
-    override fun newImageLoader(context: Context): ImageLoader {
-        return get()
-    }
+class MuzzicPlayerApplication :
+    Application(),
+    SingletonImageLoader.Factory {
+    override fun newImageLoader(context: Context): ImageLoader = get()
 
     override fun onCreate() {
         super.onCreate()

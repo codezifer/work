@@ -15,8 +15,13 @@ max_line_length = 180
 [*.{kt,kts}]
 # Specifies the official Kotlin code style guide maintained by JetBrains.
 # Alternatively, you can use 'android_studio' for the Android Kotlin Style Guide.
-ktlint_code_style = kotlin_official
+ktlint_code_style = android_studio
 # Enables experimental rules. Set to 'disabled' if you prefer stability.
 ktlint_experimental = enabled
-# Disables specific rules if needed, e.g., ktlint_standard_no-wildcard-imports
-ktlint_disabled_rules = no-wildcard-imports
+
+# Enforce trailing commas
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Compose support: allow PascalCase for @Composable functions
+ktlint_function_naming_ignore_when_annotated_with = Composable

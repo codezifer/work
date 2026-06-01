@@ -16,12 +16,7 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.starColor
 
 @Composable
-fun StarRating(
-    rating: Int,
-    onRatingChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    size: Dp = 16.dp,
-) {
+fun StarRating(rating: Int, onRatingChanged: (Int) -> Unit, modifier: Modifier = Modifier, size: Dp = 16.dp) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -32,9 +27,9 @@ fun StarRating(
                 contentDescription = null,
                 tint = if (index < rating) starColor else Color.Gray,
                 modifier =
-                    Modifier
-                        .size(size)
-                        .clickable { onRatingChanged(index + 1) },
+                Modifier
+                    .size(size)
+                    .clickable { onRatingChanged(index + 1) },
             )
         }
     }

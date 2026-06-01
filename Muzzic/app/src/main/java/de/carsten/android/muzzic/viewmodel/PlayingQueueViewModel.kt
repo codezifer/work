@@ -25,11 +25,12 @@ class PlayingQueueViewModel(
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> = repository.observePlayingQueue().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> =
+        repository.observePlayingQueue().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
     val currentSong: StateFlow<MediaItem?> = _currentSong.asStateFlow()
@@ -46,20 +47,21 @@ class PlayingQueueViewModel(
     private val _currentName = MutableStateFlow(PLAYING_QUEUE)
     val currentName = _currentName.asStateFlow()
 
-    private val playerListener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _isPlaying.value = isPlaying
-        }
+    private val playerListener =
+        object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                _isPlaying.value = isPlaying
+            }
 
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            _currentSong.value = mediaItem
-        }
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                _currentSong.value = mediaItem
+            }
 
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            val b = mediaLibraryManager.browser.value ?: return
-            _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                val b = mediaLibraryManager.browser.value ?: return
+                _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+            }
         }
-    }
 
     init {
         viewModelScope.launch {
@@ -101,10 +103,11 @@ class PlayingQueueViewModel(
         val b = mediaLibraryManager.browser.value ?: return
         if (index in currentPlayingQueue.value.indices) {
             // Check if the current player items match our queue
-            val match = b.mediaItemCount == currentPlayingQueue.value.size &&
-                (0 until b.mediaItemCount).all { i ->
-                    b.getMediaItemAt(i).mediaId == currentPlayingQueue.value[i].mediaId
-                }
+            val match =
+                b.mediaItemCount == currentPlayingQueue.value.size &&
+                    (0 until b.mediaItemCount).all { i ->
+                        b.getMediaItemAt(i).mediaId == currentPlayingQueue.value[i].mediaId
+                    }
 
             if (!match) {
                 // If they don't match, reload the whole queue into the player

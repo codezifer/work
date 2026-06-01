@@ -39,11 +39,7 @@ import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayerScreen(
-    modifier: Modifier = Modifier,
-    appState: MusicAppState,
-    viewModel: PlayerViewModel = koinViewModel(),
-) {
+fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewModel: PlayerViewModel = koinViewModel()) {
     val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val progress by viewModel.progress.collectAsStateWithLifecycle()
@@ -82,18 +78,19 @@ fun PlayerScreenContent(
         ) {
             // Blurred Background Layer
             Box(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
+                            colors =
+                            listOf(
                                 gradient1Color,
                                 gradient2Color,
                                 gradient3Color,
                             ),
                         ),
-                    )
-                    .blur(40.dp)
+                    ).blur(40.dp),
             )
 
             // Glass Container
@@ -104,9 +101,8 @@ fun PlayerScreenContent(
                     .padding(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(28.dp)
-                    )
-                    .padding(16.dp),
+                        shape = RoundedCornerShape(28.dp),
+                    ).padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // HEADER

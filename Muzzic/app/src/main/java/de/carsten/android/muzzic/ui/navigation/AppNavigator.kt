@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.ui.AppDestinations
  * @property navController The [NavHostController] used for navigation.
  */
 class AppNavigator(private val navController: NavHostController) {
-
     /**
      * Processes a [NavigationEvent] and performs the corresponding navigation action.
      *
@@ -18,19 +17,42 @@ class AppNavigator(private val navController: NavHostController) {
      */
     fun navigate(event: NavigationEvent) {
         when (event) {
-            NavigationEvent.ToPlayer -> navigateToRoot(AppDestinations.PLAYER)
-            NavigationEvent.ToLibrary -> navigateToRoot(AppDestinations.LIBRARY_GRAPH)
-            NavigationEvent.ToQueue -> navigateToRoot(AppDestinations.QUEUE)
-            NavigationEvent.ToPlaylists -> navigateToRoot(AppDestinations.PLAYLISTS)
-            NavigationEvent.ToStatistics -> navigateToRoot(AppDestinations.STATISTICS)
-            NavigationEvent.ToGenres -> navigateToRoot(AppDestinations.GENRES)
-            NavigationEvent.Back -> navController.popBackStack()
+            NavigationEvent.ToPlayer -> {
+                navigateToRoot(AppDestinations.PLAYER)
+            }
+
+            NavigationEvent.ToLibrary -> {
+                navigateToRoot(AppDestinations.LIBRARY_GRAPH)
+            }
+
+            NavigationEvent.ToQueue -> {
+                navigateToRoot(AppDestinations.QUEUE)
+            }
+
+            NavigationEvent.ToPlaylists -> {
+                navigateToRoot(AppDestinations.PLAYLISTS)
+            }
+
+            NavigationEvent.ToStatistics -> {
+                navigateToRoot(AppDestinations.STATISTICS)
+            }
+
+            NavigationEvent.ToGenres -> {
+                navigateToRoot(AppDestinations.GENRES)
+            }
+
+            NavigationEvent.Back -> {
+                navController.popBackStack()
+            }
+
             is NavigationEvent.ToArtistAlbums -> {
                 navController.navigate(AppDestinations.artistAlbums(event.artistName))
             }
+
             is NavigationEvent.ToAlbumSongs -> {
                 navController.navigate(AppDestinations.albumSongs(event.artistName, event.albumName))
             }
+
             is NavigationEvent.ToGenreArtists -> {
                 navController.navigate(AppDestinations.genreArtists(event.genreName))
             }

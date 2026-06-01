@@ -33,26 +33,23 @@ import de.carsten.android.muzzic.ui.gradient3Color
 import de.carsten.android.muzzic.ui.model.CoverSource
 
 @Composable
-fun AlbumCoverCollage(
-    covers: List<CoverSource>,
-    modifier: Modifier = Modifier,
-    useCard: Boolean = true,
-) {
+fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, useCard: Boolean = true) {
     val columns = if (covers.size == 4) 2 else covers.size.coerceIn(1, 3)
 
     val content = @Composable {
         if (covers.isEmpty()) {
             Box(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxSize()
                     .background(
                         Brush.linearGradient(
                             colors =
-                                listOf(
-                                    gradient1Color,
-                                    gradient2Color,
-                                    gradient3Color,
-                                ),
+                            listOf(
+                                gradient1Color,
+                                gradient2Color,
+                                gradient3Color,
+                            ),
                         ),
                     ),
                 contentAlignment = Alignment.Center,
@@ -62,15 +59,17 @@ fun AlbumCoverCollage(
         } else {
             // Simplified grid replacement using Row/Column for better performance
             Column(modifier = Modifier.fillMaxSize()) {
-                val chunkedCovers = remember(covers, columns) {
-                    covers.chunked(columns)
-                }
+                val chunkedCovers =
+                    remember(covers, columns) {
+                        covers.chunked(columns)
+                    }
                 chunkedCovers.forEach { rowCovers ->
                     Row(modifier = Modifier.weight(1f)) {
                         rowCovers.forEach { cover ->
                             Box(
                                 contentAlignment = Alignment.Center,
-                                modifier = Modifier
+                                modifier =
+                                Modifier
                                     .weight(1f)
                                     .aspectRatio(1f)
                                     .border(0.5.dp, MaterialTheme.colorScheme.outline),
@@ -130,16 +129,16 @@ fun AlbumCoverCollage(
 fun AlbumCoverCollagePreview() {
     AlbumCoverCollage(
         covers =
-            listOf(
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-            ),
+        listOf(
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+        ),
     )
 }
 
@@ -149,11 +148,11 @@ fun AlbumCoverCollagePreview() {
 fun AlbumCoverCollagePreview4x4() {
     AlbumCoverCollage(
         covers =
-            listOf(
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-                CoverSource.FromVector(Icons.Default.MusicNote),
-            ),
+        listOf(
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+            CoverSource.FromVector(Icons.Default.MusicNote),
+        ),
     )
 }

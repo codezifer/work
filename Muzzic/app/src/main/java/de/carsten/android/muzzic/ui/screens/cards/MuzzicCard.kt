@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,18 +38,18 @@ fun MuzzicCard(
 ) {
     Card(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .combinedClickable(
-                    onClick = onClick ?: {},
-                    onLongClick = onLongClick
-                ),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = backgroundColor,
-                contentColor = contentColor,
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .combinedClickable(
+                onClick = onClick ?: {},
+                onLongClick = onLongClick,
             ),
+        colors =
+        CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+        ),
         shape = RoundedCornerShape(12.dp),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -60,9 +59,9 @@ fun MuzzicCard(
                 }
                 Column(
                     modifier =
-                        Modifier.Companion
-                            .padding(16.dp)
-                            .fillMaxWidth(),
+                    Modifier.Companion
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.Companion.CenterHorizontally,
                 ) {
                     content(contentColor)
@@ -72,25 +71,27 @@ fun MuzzicCard(
             if (isSelected) {
                 // Overlay for selected state
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .matchParentSize()
-                        .background(Color.Black.copy(alpha = 0.4f))
+                        .background(Color.Black.copy(alpha = 0.4f)),
                 )
 
                 // Check symbol
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
                         .size(24.dp)
                         .background(MaterialTheme.colorScheme.primary, CircleShape),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Selected",
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }

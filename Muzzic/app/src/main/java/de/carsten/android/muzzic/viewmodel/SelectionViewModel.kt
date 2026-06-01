@@ -22,7 +22,6 @@ class SelectionViewModel(
     private val songRepository: SongRepository,
     private val playingQueueRepository: PlayingQueueRepository,
 ) : ViewModel() {
-
     private val _selectionState = MutableStateFlow(SelectionState())
 
     /**
@@ -59,11 +58,12 @@ class SelectionViewModel(
                 newSongs.addAll(songIds)
             }
 
-            _selectionState.value = current.copy(
-                selectedSongs = newSongs,
-                selectedArtists = newArtists,
-                value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
-            )
+            _selectionState.value =
+                current.copy(
+                    selectedSongs = newSongs,
+                    selectedArtists = newArtists,
+                    value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
+                )
         }
     }
 
@@ -91,11 +91,12 @@ class SelectionViewModel(
                 newSongs.addAll(songIds)
             }
 
-            _selectionState.value = current.copy(
-                selectedSongs = newSongs,
-                selectedAlbums = newAlbums,
-                value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT
-            )
+            _selectionState.value =
+                current.copy(
+                    selectedSongs = newSongs,
+                    selectedAlbums = newAlbums,
+                    value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
+                )
         }
     }
 
@@ -112,10 +113,11 @@ class SelectionViewModel(
         } else {
             newSongs.add(songId)
         }
-        _selectionState.value = current.copy(
-            selectedSongs = newSongs,
-            value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
-        )
+        _selectionState.value =
+            current.copy(
+                selectedSongs = newSongs,
+                value = if (newSongs.isNotEmpty()) Selection.MARKED else Selection.DEFAULT,
+            )
     }
 
     /**
@@ -123,9 +125,10 @@ class SelectionViewModel(
      */
     fun toggleEnqueued() {
         val current = _selectionState.value
-        _selectionState.value = current.copy(
-            value = Selection.ENQUEUED
-        )
+        _selectionState.value =
+            current.copy(
+                value = Selection.ENQUEUED,
+            )
     }
 
     /**
@@ -165,9 +168,10 @@ class SelectionViewModel(
             val songIds = state.selectedSongs.toList()
 
             if (songIds.isNotEmpty()) {
-                val mediaItemsToRemove = songIds.map { id ->
-                    MediaItem.Builder().setMediaId(id).build()
-                }
+                val mediaItemsToRemove =
+                    songIds.map { id ->
+                        MediaItem.Builder().setMediaId(id).build()
+                    }
                 playingQueueRepository.removeSongs(mediaItemsToRemove)
             }
 
@@ -203,4 +207,3 @@ class SelectionViewModel(
         }
     }
 }
-

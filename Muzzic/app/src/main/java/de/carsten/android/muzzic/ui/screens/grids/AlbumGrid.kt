@@ -28,7 +28,7 @@ fun AlbumGrid(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     selectedAlbums: Set<String> = emptySet(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -55,7 +55,8 @@ fun AlbumGrid(
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(2),
-                modifier = Modifier
+                modifier =
+                Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -64,13 +65,13 @@ fun AlbumGrid(
                 items(
                     items = albums,
                     key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
-                    contentType = { "Album" }
+                    contentType = { "Album" },
                 ) { album ->
                     AlbumCard(
                         album = album,
                         onClick = { onAlbumClick(album.artistName, album.albumName) },
                         onLongClick = { onAlbumLongClick(album.artistName, album.albumName) },
-                        isSelected = selectedAlbums.contains("${album.artistName}|${album.albumName}")
+                        isSelected = selectedAlbums.contains("${album.artistName}|${album.albumName}"),
                     )
                 }
             }
@@ -87,7 +88,7 @@ fun AlbumGrid(
                                 gridState.scrollToItem(index)
                             }
                         }
-                    }
+                    },
                 )
             }
         }

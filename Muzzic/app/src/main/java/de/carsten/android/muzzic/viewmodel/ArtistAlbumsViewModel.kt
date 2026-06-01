@@ -14,16 +14,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(UnstableApi::class)
-class ArtistAlbumsViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val albumRepository: AlbumRepository,
-    private val mediaLibraryManager: MediaLibraryManager,
-) : ViewModel() {
+class ArtistAlbumsViewModel(savedStateHandle: SavedStateHandle, private val albumRepository: AlbumRepository, private val mediaLibraryManager: MediaLibraryManager) : ViewModel() {
     val artistName: String = checkNotNull(savedStateHandle[ARTIST_ARGUMENT])
 
-    val albums: StateFlow<List<AlbumDto>> = albumRepository.getAlbumsByArtist(artistName).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val albums: StateFlow<List<AlbumDto>> =
+        albumRepository.getAlbumsByArtist(artistName).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 }

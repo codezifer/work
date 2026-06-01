@@ -243,12 +243,7 @@ private val highContrastDarkColorScheme =
     )
 
 @Immutable
-data class ColorFamily(
-    val color: Color,
-    val onColor: Color,
-    val colorContainer: Color,
-    val onColorContainer: Color,
-)
+data class ColorFamily(val color: Color, val onColor: Color, val colorContainer: Color, val onColorContainer: Color)
 
 val unspecified_scheme =
     ColorFamily(
@@ -259,12 +254,7 @@ val unspecified_scheme =
     )
 
 @Composable
-fun AppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content:
-    @Composable()
-        () -> Unit,
-) {
+fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colorScheme =
         when {
             darkTheme -> darkScheme

@@ -37,7 +37,7 @@ import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
-import de.carsten.android.muzzic.utils.uiEmpty
+import de.carsten.android.muzzic.utils.UI_EMPTY
 
 @Composable
 fun PlayerScreenContext(
@@ -47,10 +47,10 @@ fun PlayerScreenContext(
     isPlaying: Boolean,
     progress: Float, // Value between 0f and 1f
     duration: Long,
-    onPlayPauseClicked: () -> Unit,
-    onNextClicked: () -> Unit,
-    onPreviousClicked: () -> Unit,
-    onProgressChanged: (Float) -> Unit, // Callback for when user scrubs the progress bar
+    onPlayPauseClicked: () -> Unit = {},
+    onNextClicked: () -> Unit = {},
+    onPreviousClicked: () -> Unit = {},
+    onProgressChanged: (Float) -> Unit = {}, // Callback for when user scrubs the progress bar
 ) {
     AppTheme {
         val textColor = MaterialTheme.colorScheme.onSurface
@@ -58,9 +58,7 @@ fun PlayerScreenContext(
         val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
 
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -70,14 +68,14 @@ fun PlayerScreenContext(
                     AlbumArtInput.None
                 } else {
                     AlbumArtInput.FromPath(albumArtPath)
-                }
+                },
             )
             Spacer(modifier = Modifier.height(24.dp))
 
             // Song Info
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = songTitle ?: uiEmpty,
+                    text = songTitle ?: UI_EMPTY,
                     color = textColor,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
@@ -85,7 +83,7 @@ fun PlayerScreenContext(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = artistName ?: uiEmpty,
+                    text = artistName ?: UI_EMPTY,
                     color = textColor.copy(alpha = 0.7f),
                     fontSize = 16.sp,
                     maxLines = 1,
@@ -102,17 +100,17 @@ fun PlayerScreenContext(
                     onValueChange = onProgressChanged,
                     modifier = Modifier.fillMaxWidth(),
                     colors =
-                        SliderDefaults.colors(
-                            thumbColor = textColor,
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                        ),
+                    SliderDefaults.colors(
+                        thumbColor = textColor,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                    ),
                 )
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
                     // Align with slider padding
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -136,7 +134,8 @@ fun PlayerScreenContext(
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxWidth()
                     .border(
                         width = 2.dp,
@@ -147,23 +146,24 @@ fun PlayerScreenContext(
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxWidth()
                         .padding(
-                            vertical = 8.dp
-                        )
+                            vertical = 8.dp,
+                        ),
                 ) {
-                    val circularButtonModifier = Modifier
-                        .size(40.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            shape = CircleShape,
-                        )
-                        .background(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            shape = CircleShape
-                        )
+                    val circularButtonModifier =
+                        Modifier
+                            .size(40.dp)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                shape = CircleShape,
+                            ).background(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                shape = CircleShape,
+                            )
                     // prev-button
                     IconButton(
                         onClick = onPreviousClicked,
@@ -181,12 +181,12 @@ fun PlayerScreenContext(
                     IconButton(
                         onClick = onPlayPauseClicked,
                         modifier =
-                            Modifier
-                                .size(72.dp) // Larger play/pause button
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    CircleShape,
-                                ),
+                        Modifier
+                            .size(72.dp) // Larger play/pause button
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                CircleShape,
+                            ),
                     ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -223,41 +223,26 @@ fun PlayerScreenContext(
 @Preview
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "PlayerScreenPreview_Playing_Dark")
 fun PlayerScreenPreview_Playing() {
-    // In a real app, you'd get this from a ViewModel or Coil/Glide
-    // For preview, using a placeholder icon if you don't have R.drawable.album_art_placeholder
-    MaterialTheme {
-        // Ensure MaterialTheme is applied for default styles
-        PlayerScreenContext(
-            albumArtPath = null,
-            songTitle = "The Greatest Show",
-            artistName = "Panic! At The Disco",
-            isPlaying = true,
-            progress = 0.45f,
-            duration = 225000,
-            onPlayPauseClicked = {},
-            onNextClicked = {},
-            onPreviousClicked = {},
-            onProgressChanged = {},
-        )
-    }
+    PlayerScreenContext(
+        albumArtPath = null,
+        songTitle = "The Greatest Show",
+        artistName = "Panic! At The Disco",
+        isPlaying = true,
+        progress = 0.45f,
+        duration = 225000,
+    )
 }
 
 @Composable
 @Preview
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "PlayerScreenPreview_Paused_Dark")
 fun PlayerScreenPreview_Paused() {
-    MaterialTheme {
-        PlayerScreenContext(
-            albumArtPath = null,
-            songTitle = "Bohemian Rhapsody (Remastered 2011)",
-            artistName = "Queen",
-            isPlaying = false,
-            progress = 0.15f,
-            duration = 225000,
-            onPlayPauseClicked = {},
-            onNextClicked = {},
-            onPreviousClicked = {},
-            onProgressChanged = {},
-        )
-    }
+    PlayerScreenContext(
+        albumArtPath = null,
+        songTitle = "Bohemian Rhapsody (Remastered 2011)",
+        artistName = "Queen",
+        isPlaying = false,
+        progress = 0.15f,
+        duration = 225000,
+    )
 }

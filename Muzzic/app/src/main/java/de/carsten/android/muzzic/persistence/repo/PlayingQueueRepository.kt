@@ -7,9 +7,7 @@ import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class PlayingQueueRepository(
-    private val playingQueueDao: PlayingQueueDao,
-) {
+class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     suspend fun getPlayingQueue(): List<MediaItem> = playingQueueDao.findEnqueued().map { song -> song.toMediaItem() }
 
     suspend fun getCompleteQueue(): List<MediaItem> = playingQueueDao.findAll().map { it.toMediaItem() }
@@ -27,11 +25,12 @@ class PlayingQueueRepository(
     }
 
     suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<MediaItem> {
-        val entities = mediaItems.map { item ->
-            PlayingQueue.fromMediaItem(item).apply {
-                this.enqueued = enqueued
+        val entities =
+            mediaItems.map { item ->
+                PlayingQueue.fromMediaItem(item).apply {
+                    this.enqueued = enqueued
+                }
             }
-        }
         playingQueueDao.addSongs(entities)
         return entities.map { it.toMediaItem() }
     }

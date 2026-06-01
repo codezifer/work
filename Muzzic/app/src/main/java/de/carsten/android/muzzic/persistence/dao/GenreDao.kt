@@ -9,10 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GenreDao {
     @Query("SELECT * FROM songs WHERE genre = :genre ORDER BY rating DESC, playCount DESC LIMIT :limit")
-    suspend fun getTopSongsByGenre(
-        genre: String,
-        limit: Int = 100,
-    ): List<Song>
+    suspend fun getTopSongsByGenre(genre: String, limit: Int = 100): List<Song>
 
     @Query("SELECT DISTINCT genre FROM songs ORDER BY genre ASC")
     suspend fun getAllGenres(): List<String>

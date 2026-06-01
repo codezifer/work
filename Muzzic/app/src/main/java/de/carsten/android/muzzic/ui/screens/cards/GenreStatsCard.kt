@@ -50,16 +50,16 @@ fun GenreStatsCard(viewModel: StatisticsViewModel) {
 
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
                     modifier =
-                        Modifier
-                            .size(12.dp)
-                            .background(color, CircleShape),
+                    Modifier
+                        .size(12.dp)
+                        .background(color, CircleShape),
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))

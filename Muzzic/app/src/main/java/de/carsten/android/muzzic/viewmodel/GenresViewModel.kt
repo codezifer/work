@@ -13,25 +13,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 
-class GenresViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val genreRepository: GenreRepository,
-    private val artistRepository: ArtistRepository,
-) : ViewModel() {
+class GenresViewModel(savedStateHandle: SavedStateHandle, private val genreRepository: GenreRepository, private val artistRepository: ArtistRepository) : ViewModel() {
     val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
 
-    val genres: StateFlow<List<GenreDto>> = genreRepository.getGenreInformation().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+    val genres: StateFlow<List<GenreDto>> =
+        genreRepository.getGenreInformation().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
-    val artists: StateFlow<List<ArtistDto>> = (genreName?.let {
-        artistRepository.getArtistsByGenre(it)
-    } ?: flowOf(emptyList())).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
+    val artists: StateFlow<List<ArtistDto>> =
+        (
+            genreName?.let {
+                artistRepository.getArtistsByGenre(it)
+            } ?: flowOf(emptyList())
+            ).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 }

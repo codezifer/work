@@ -25,10 +25,7 @@ import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.SUBTITLE_ICONSIZE
 
 @Composable
-fun SubtitleInformation(
-    iconTextPairs: List<Pair<ImageVector, String>>,
-    fontColor: Color = Color.Gray,
-) {
+fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color = Color.Gray) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),

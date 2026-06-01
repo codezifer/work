@@ -36,17 +36,18 @@ fun TooltipIconButton(
     tint: Color = LocalContentColor.current,
 ) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+        positionProvider =
+        TooltipDefaults.rememberTooltipPositionProvider(
             positioning = TooltipAnchorPosition.Above,
         ),
         tooltip = { PlainTooltip { Text(tooltipText) } },
-        state = rememberTooltipState()
+        state = rememberTooltipState(),
     ) {
         IconButton(onClick = onClick, modifier = modifier) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = tint
+                tint = tint,
             )
         }
     }

@@ -19,17 +19,11 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
-import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlinx.coroutines.launch
 
 @Composable
-fun SongList(
-    songs: List<Song>,
-    onSongClick: (Song) -> Unit = {},
-    onSongLongClick: (Song) -> Unit = {},
-    selectedSongs: Set<String> = emptySet(),
-    modifier: Modifier = Modifier
-) {
+fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClick: (Song) -> Unit = {}, selectedSongs: Set<String> = emptySet(), modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -54,7 +48,8 @@ fun SongList(
         Row(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -62,13 +57,13 @@ fun SongList(
                 items(
                     items = songs,
                     key = { song -> song.id },
-                    contentType = { "Song" }
+                    contentType = { "Song" },
                 ) { song ->
                     SongListItem(
                         song = song,
                         onClick = { onSongClick(song) },
                         onLongClick = { onSongLongClick(song) },
-                        isSelected = selectedSongs.contains(song.id)
+                        isSelected = selectedSongs.contains(song.id),
                     )
                 }
             }
@@ -85,7 +80,7 @@ fun SongList(
                                 listState.scrollToItem(index)
                             }
                         }
-                    }
+                    },
                 )
             }
         }

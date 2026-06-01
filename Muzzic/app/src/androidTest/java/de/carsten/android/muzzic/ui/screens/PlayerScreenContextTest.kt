@@ -14,7 +14,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PlayerScreenContextTest {
-
     @get:Rule
     val composeTestRule = createComposeRule() // Use the simple rule for isolated composable testing
 
@@ -42,7 +41,7 @@ class PlayerScreenContextTest {
 
         // then
         // Using assertIsDisplayed() is a direct and clear assertion
-        composeTestRule.onNodeWithTag(TestingTags.Screens.SuccessAsyncImage).assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestingTags.Screens.SUCCESS_ASYNC_IMAGE).assertIsDisplayed()
     }
 
     @Test
@@ -67,6 +66,6 @@ class PlayerScreenContextTest {
         }
 
         // then
-        composeTestRule.onNodeWithTag(TestingTags.Screens.FallbackPainter).assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestingTags.Screens.FALLBACK_PAINTER).assertIsDisplayed()
     }
 }

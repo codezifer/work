@@ -56,7 +56,8 @@ fun ArtistGrid(
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(2),
-                modifier = Modifier
+                modifier =
+                Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -65,13 +66,13 @@ fun ArtistGrid(
                 itemsIndexed(
                     items = artists,
                     key = { _, artist -> artist.artistName },
-                    contentType = { _, _ -> "Artist" }
+                    contentType = { _, _ -> "Artist" },
                 ) { _, artist ->
                     ArtistCard(
                         artist = artist,
                         onClick = { onArtistClick(artist.artistName) },
                         onLongClick = { onArtistLongClick(artist.artistName) },
-                        isSelected = selectedArtists.contains(artist.artistName)
+                        isSelected = selectedArtists.contains(artist.artistName),
                     )
                 }
             }
@@ -88,7 +89,7 @@ fun ArtistGrid(
                                 gridState.scrollToItem(index)
                             }
                         }
-                    }
+                    },
                 )
             }
         }
@@ -100,7 +101,8 @@ fun ArtistGrid(
 @Preview(uiMode = PREVIEW_DARK_MODE)
 fun ArtistGridPreview() {
     ArtistGrid(
-        artists = listOf(
+        artists =
+        listOf(
             ArtistDto("Cradle Of Filth", 2, 13),
             ArtistDto("Dimmu Borgir", 1, 10),
             ArtistDto("Interpol", 1, 7),

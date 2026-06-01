@@ -5,7 +5,7 @@ val rootKotlinVersion = "2.2"
 val rootTargetSdk = 36
 val rootJvmVersion = 17
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
-val buildVersion = "${rootTargetSdk}.0.0"
+val buildVersion = "$rootTargetSdk.0.0"
 
 plugins {
     alias(libs.plugins.android.application)
@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.android.room)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -64,6 +65,15 @@ kotlin {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    android = true
+    ignoreFailures = false
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
 }
 
 dependencies {

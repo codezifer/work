@@ -41,32 +41,28 @@ import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SongListItem(
-    song: Song,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    isSelected: Boolean = false,
-) {
+fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
     AppTheme {
         Card(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .combinedClickable(
-                        onClick = onClick,
-                        onLongClick = onLongClick
-                    ),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else containerColor
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
+            colors =
+            CardDefaults.cardColors(
+                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else containerColor,
             ),
             shape = RoundedCornerShape(8.dp),
         ) {
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Song Icon or Checkmark
@@ -77,9 +73,9 @@ fun SongListItem(
                     Card(
                         modifier = Modifier.fillMaxSize(),
                         colors =
-                            CardDefaults.cardColors(
-                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else containerColor,
-                            ),
+                        CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else containerColor,
+                        ),
                         shape = if (isSelected) CircleShape else RoundedCornerShape(8.dp),
                     ) {
                         Box(

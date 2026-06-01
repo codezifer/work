@@ -33,12 +33,7 @@ fun GenresScreen(
 }
 
 @Composable
-fun GenresScreenContent(
-    modifier: Modifier = Modifier,
-    appState: MusicAppState? = null,
-    genres: List<GenreDto>,
-    onGenreClick: (GenreDto) -> Unit = {},
-) {
+fun GenresScreenContent(modifier: Modifier = Modifier, appState: MusicAppState? = null, genres: List<GenreDto>, onGenreClick: (GenreDto) -> Unit = {}) {
     AppTheme {
         GenreGrid(genres, modifier, onGenreClick)
     }
@@ -49,10 +44,11 @@ fun GenresScreenContent(
 @Preview(uiMode = PREVIEW_DARK_MODE)
 fun GenreScreenPreview() {
     GenresScreenContent(
-        genres = listOf(
+        genres =
+        listOf(
             GenreDto("Black Metal", 10, 100, 1000, 50000),
             GenreDto("Alternative", 20, 200, 2000, 100000),
             GenreDto("Pagan Metal", 1, 5, 75, 5000),
-        )
+        ),
     )
 }

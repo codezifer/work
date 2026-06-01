@@ -20,8 +20,9 @@ class MainActivity : ComponentActivity() {
             requestPermissions(
                 arrayOf(
                     Manifest.permission.READ_MEDIA_AUDIO,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ), 1
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ),
+                1,
             )
         } else {
             requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)

@@ -50,9 +50,9 @@ fun SongStatsCard(viewModel: StatisticsViewModel) {
 
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(

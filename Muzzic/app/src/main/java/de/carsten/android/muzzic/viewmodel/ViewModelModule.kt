@@ -10,7 +10,7 @@ val viewModelModule =
             PlayerViewModel(
                 repository = get(),
                 mediaLibraryManager = get(),
-                application = get()
+                application = get(),
             )
         }
         viewModel {
@@ -21,7 +21,7 @@ val viewModelModule =
                 genreRepository = get(),
                 playlistRepository = get(),
                 playingQueueRepository = get(),
-                mediaLibraryManager = get()
+                mediaLibraryManager = get(),
             )
         }
         viewModelOf(::StatisticsViewModel)
@@ -29,7 +29,7 @@ val viewModelModule =
             PlayingQueueViewModel(
                 repository = get(),
                 playlistRepository = get(),
-                mediaLibraryManager = get()
+                mediaLibraryManager = get(),
             )
         }
         viewModel {
@@ -37,27 +37,27 @@ val viewModelModule =
                 artistRepository = get(),
                 albumRepository = get(),
                 songRepository = get(),
-                playingQueueRepository = get()
+                playingQueueRepository = get(),
             )
         }
         viewModel {
             ArtistAlbumsViewModel(
                 savedStateHandle = get(),
                 albumRepository = get(),
-                mediaLibraryManager = get()
+                mediaLibraryManager = get(),
             )
         }
         viewModel {
             AlbumSongsViewModel(
                 savedStateHandle = get(),
                 albumRepository = get(),
-                mediaLibraryManager = get()
+                mediaLibraryManager = get(),
             )
         }
         viewModel {
             PlaylistViewModel(
                 repository = get(),
-                playingQueueRepository = get()
+                playingQueueRepository = get(),
             )
         }
         viewModel {

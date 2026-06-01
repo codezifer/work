@@ -58,7 +58,7 @@ fun MusicPlayerApp(
     playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     playerViewModel: PlayerViewModel = koinViewModel(),
     playlistViewModel: PlaylistViewModel = koinViewModel(),
-    appState: MusicAppState = rememberMusicAppState()
+    appState: MusicAppState = rememberMusicAppState(),
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
     val uiState = appState.getUiState(selectionState)
@@ -74,7 +74,7 @@ fun MusicPlayerApp(
                 showSavePlaylistDialog = false
                 appState.showSnackbar("Playlist '$name' saved")
             },
-            onDismiss = { showSavePlaylistDialog = false }
+            onDismiss = { showSavePlaylistDialog = false },
         )
     }
 
@@ -89,16 +89,16 @@ fun MusicPlayerApp(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             text = data.visuals.message,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
@@ -107,7 +107,8 @@ fun MusicPlayerApp(
         bottomBar = {
             BottomNavigationBar(
                 navController = appState.navController,
-                clickHandlers = mapOf(
+                clickHandlers =
+                mapOf(
                     BottomNavItem.Player.label to {
                         appState.onNavigationEvent(NavigationEvent.ToPlayer, selectionState)
                     },
@@ -123,17 +124,18 @@ fun MusicPlayerApp(
                     },
                     BottomNavItem.Statistics.label to {
                         appState.onNavigationEvent(NavigationEvent.ToStatistics, selectionState)
-                    }
-                )
+                    },
+                ),
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
         ) {
             AppNavHost(
                 modifier = Modifier.fillMaxSize(),
@@ -144,19 +146,21 @@ fun MusicPlayerApp(
             )
 
             // Contextual Floating Toolbar powered by State Machine logic
-            val showSelectionToolbar = when (uiState) {
-                is AppUiState.Library -> uiState.selectionActive
-                is AppUiState.Queue -> true
-                else -> false
-            }
+            val showSelectionToolbar =
+                when (uiState) {
+                    is AppUiState.Library -> uiState.selectionActive
+                    is AppUiState.Queue -> true
+                    else -> false
+                }
 
             AnimatedVisibility(
                 visible = showSelectionToolbar,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-                modifier = Modifier
+                modifier =
+                Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
             ) {
                 SelectionToolbar(
                     mode = if (uiState is AppUiState.Queue) ToolbarMode.QUEUE_MGMT else ToolbarMode.SELECTION,
@@ -191,7 +195,7 @@ fun MusicPlayerApp(
                     },
                     onSaveAsPlaylist = { info ->
                         showSavePlaylistDialog = true
-                    }
+                    },
                 )
             }
         }

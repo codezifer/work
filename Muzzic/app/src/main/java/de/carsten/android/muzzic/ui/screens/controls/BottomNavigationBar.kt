@@ -28,25 +28,27 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String, var onClick: () -> Unit = {}) {
     object Player : BottomNavItem(AppDestinations.PLAYER, Icons.Default.PlayArrow, "Player")
+
     object Library : BottomNavItem(AppDestinations.LIBRARY_GRAPH, Icons.Default.LibraryMusic, "Library")
+
     object Queue : BottomNavItem(AppDestinations.QUEUE, Icons.Default.Queue, "Queue")
+
     object Playlists : BottomNavItem(AppDestinations.PLAYLISTS, Icons.AutoMirrored.Filled.PlaylistPlay, "Playlists")
+
     object Statistics : BottomNavItem(AppDestinations.STATISTICS, Icons.Default.BarChart, "Statistics")
 }
 
-val bottomNavItems = listOf(
-    BottomNavItem.Player,
-    BottomNavItem.Library,
-    BottomNavItem.Queue,
-    BottomNavItem.Playlists,
-    BottomNavItem.Statistics
-)
+val bottomNavItems =
+    listOf(
+        BottomNavItem.Player,
+        BottomNavItem.Library,
+        BottomNavItem.Queue,
+        BottomNavItem.Playlists,
+        BottomNavItem.Statistics,
+    )
 
 @Composable
-fun BottomNavigationBar(
-    navController: NavController,
-    clickHandlers: Map<String, () -> Unit> = HashMap()
-) {
+fun BottomNavigationBar(navController: NavController, clickHandlers: Map<String, () -> Unit> = HashMap()) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
 
@@ -74,7 +76,8 @@ fun BottomNavigationBar(
                     },
                     icon = { Icon(item.icon, contentDescription = item.label) },
                     label = { Text(item.label, fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
+                    colors =
+                    NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.primary,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         indicatorColor = MaterialTheme.colorScheme.inversePrimary,

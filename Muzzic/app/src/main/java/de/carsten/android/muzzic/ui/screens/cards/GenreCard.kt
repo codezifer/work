@@ -26,10 +26,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import kotlin.math.absoluteValue
 
 @Composable
-fun GenreCard(
-    genre: GenreDto,
-    onClick: () -> Unit = {},
-) {
+fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}) {
     val colors =
         listOf(
             listOf(Color(0xFFEF4444), Color(0xFFF97316)),
@@ -49,10 +46,10 @@ fun GenreCard(
             header = {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .background(Brush.horizontalGradient(colorPair)),
+                    Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .background(Brush.horizontalGradient(colorPair)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

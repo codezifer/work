@@ -35,10 +35,11 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
     val browser: StateFlow<MediaBrowser?> = _browser.asStateFlow()
 
     init {
-        val sessionToken = SessionToken(
-            context,
-            ComponentName(context, MusicPlayerService::class.java)
-        )
+        val sessionToken =
+            SessionToken(
+                context,
+                ComponentName(context, MusicPlayerService::class.java),
+            )
         val browserFuture = MediaBrowser.Builder(context, sessionToken).buildAsync()
         browserFuture.addListener({
             _browser.value = browserFuture.get()
@@ -52,17 +53,20 @@ class MediaLibraryManager(private val context: Context) : KoinComponent {
     }
 
     suspend fun getArtists(): List<ArtistDto> = getChildren(ARTISTS_ID).map { it.toArtistDto() }
+
     suspend fun getAlbums(): List<AlbumDto> = getChildren(ALBUMS_ID).map { it.toAlbumDto() }
+
     suspend fun getSongs(): List<MediaItem> = getChildren(SONGS_ID)
+
     suspend fun getGenres(): List<GenreDto> = getChildren(GENRES_ID).map { it.toGenreDto() }
+
     suspend fun getPlaylists(): List<PlaylistDto> = getChildren(PLAYLISTS_ID).map { it.toPlaylistDto() }
-    suspend fun getAlbumsByArtist(artistName: String): List<AlbumDto> =
-        getChildren("${ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
+
+    suspend fun getAlbumsByArtist(artistName: String): List<AlbumDto> = getChildren("${ARTIST_PREFIX}$artistName").map { it.toAlbumDto() }
 
     suspend fun getPlayingQueue(): List<MediaItem> = getChildren(CURRENT_QUEUE)
 
-    suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> =
-        getChildren("${ALBUM_PREFIX}$artistName:$albumName")
+    suspend fun getSongsByAlbum(artistName: String, albumName: String): List<MediaItem> = getChildren("${ALBUM_PREFIX}$artistName:$albumName")
 
     fun playContent(mediaItem: MediaItem) {
         val browser = _browser.value ?: return

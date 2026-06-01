@@ -21,11 +21,11 @@ import de.carsten.android.muzzic.utils.toPlayableUri
             parentColumns = ["id"],
             childColumns = ["songId"],
             onDelete = ForeignKey.CASCADE,
-        )
+        ),
     ],
     indices = [
         Index("songId"),
-    ]
+    ],
 )
 data class PlayingQueue(
     val title: String? = null,
@@ -53,7 +53,8 @@ data class PlayingQueue(
             duration = mediaItem.mediaMetadata.durationMs,
             filePath = mediaItem.localConfiguration?.uri?.toString(),
             enqueued = mediaItem.mediaMetadata.extras?.getBoolean("enqueued"),
-            songId = mediaItem.mediaMetadata.extras?.getString("songId").let {
+            songId =
+            mediaItem.mediaMetadata.extras?.getString("songId").let {
                 if (it.isNullOrBlank()) null else it
             },
             queuePosition = mediaItem.mediaMetadata.extras?.getInt("queuePosition") ?: 0,
@@ -74,32 +75,30 @@ data class PlayingQueue(
             duration = dto.duration,
             filePath = dto.filePath,
             enqueued = dto.enqueued,
-
-            )
+        )
     }
 
-    fun toMediaItem(): MediaItem =
-        MediaItem
-            .Builder()
-            .setMediaId(id)
-            .setUri(filePath.toPlayableUri())
-            .setMimeType(filePath.inferMimeType())
-            .setMediaMetadata(
-                MediaMetadata
-                    .Builder()
-                    .setTitle(title)
-                    .setTrackNumber(trackNumber)
-                    .setTotalTrackCount(totalTracks)
-                    .setArtist(artist)
-                    .setAlbumTitle(album)
-                    .setArtworkUri(albumArt?.toUri())
-                    .setGenre(genre)
-                    .setDurationMs(duration)
-                    .setIsPlayable(true)
-                    .setIsBrowsable(false)
-                    .setExtras(getExtras())
-                    .build(),
-            ).build()
+    fun toMediaItem(): MediaItem = MediaItem
+        .Builder()
+        .setMediaId(id)
+        .setUri(filePath.toPlayableUri())
+        .setMimeType(filePath.inferMimeType())
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(title)
+                .setTrackNumber(trackNumber)
+                .setTotalTrackCount(totalTracks)
+                .setArtist(artist)
+                .setAlbumTitle(album)
+                .setArtworkUri(albumArt?.toUri())
+                .setGenre(genre)
+                .setDurationMs(duration)
+                .setIsPlayable(true)
+                .setIsBrowsable(false)
+                .setExtras(getExtras())
+                .build(),
+        ).build()
 
     fun toDto() = PlayingQueueDto(
         title = title ?: UNKNOWN,
@@ -117,12 +116,11 @@ data class PlayingQueue(
         mediaId = id,
     )
 
-    private fun getExtras(): Bundle =
-        Bundle().apply {
-            putInt("queuePosition", queuePosition)
-            putBoolean("enqueued", enqueued ?: false)
-            putString("songId", songId ?: "")
-            putLong("createdAt", createdAt?.toEpochMilli() ?: 0L)
-            putLong("updatedAt", updatedAt?.toEpochMilli() ?: 0L)
-        }
+    private fun getExtras(): Bundle = Bundle().apply {
+        putInt("queuePosition", queuePosition)
+        putBoolean("enqueued", enqueued ?: false)
+        putString("songId", songId ?: "")
+        putLong("createdAt", createdAt?.toEpochMilli() ?: 0L)
+        putLong("updatedAt", updatedAt?.toEpochMilli() ?: 0L)
+    }
 }
