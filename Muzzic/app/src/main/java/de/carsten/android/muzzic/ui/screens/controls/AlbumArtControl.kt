@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
@@ -35,7 +36,7 @@ import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None) {
+fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier: Modifier = Modifier) {
     val coilModel =
         when (albumArtInput) {
             is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
@@ -45,16 +46,16 @@ fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None) {
         }
 
     AppTheme {
-        AlbumArtContent(coilModel)
+        AlbumArtContent(coilModel, modifier)
     }
 }
 
 @Composable
-private fun AlbumArtContent(coilModel: Any?) {
+private fun AlbumArtContent(coilModel: Any?, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
         modifier =
-        Modifier
+        modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .clip(RoundedCornerShape(12.dp)),
@@ -66,7 +67,8 @@ private fun AlbumArtContent(coilModel: Any?) {
                 .data(coilModel)
                 .crossfade(true)
                 .build(),
-            contentDescription = "Album Art",
+            contentDescription = stringResource(R.string.album_art),
+            modifier = Modifier.fillMaxSize(),
         ) {
             val state by painter.state.collectAsState()
             HandleAsyncImageState(state)
@@ -98,10 +100,11 @@ private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
         is AsyncImagePainter.State.Success -> {
             Image(
                 painter = state.painter,
-                contentDescription = "Album Art",
+                contentDescription = stringResource(R.string.album_art),
                 contentScale = ContentScale.Crop,
                 modifier =
                 Modifier
+                    .fillMaxSize()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
                     .testTag(SUCCESS_ASYNC_IMAGE),

@@ -59,4 +59,5 @@
     <string name="statistics">Statistiken</string>
     <string name="clear_all">Alle löschen</string>
     <string name="empty_pq">Leere Warteschlange</string>
+    <string name="album_art">Album Art</string>
 </resources>

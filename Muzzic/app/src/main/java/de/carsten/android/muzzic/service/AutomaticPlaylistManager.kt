@@ -1,8 +1,8 @@
 package de.carsten.android.muzzic.service
 
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -31,8 +31,8 @@ class AutomaticPlaylistManager(private val musicRepository: MusicRepository) {
                 } catch (e: Exception) {
                     logger.error("Failed to refresh automatic playlists periodically", e)
                 }
-                // Refresh every 1 seconds
-                delay(1.seconds)
+                // Refresh every duration interval
+                delay(AppConfig.Service.PLAYLIST_SYNC_DURATION)
             }
         }
     }

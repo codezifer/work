@@ -5,6 +5,7 @@ package de.carsten.android.muzzic.model
  */
 object MediaKeys {
     // Shared counts and metadata
+    const val ALBUM_ART = "album_art"
     const val ALBUM_COUNT = "album_count"
     const val ARTIST_COUNT = "artist_count"
     const val SONG_COUNT = "song_count"

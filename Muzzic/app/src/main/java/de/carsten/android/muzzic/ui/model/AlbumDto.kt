@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.model
 
+import android.os.Bundle
 import androidx.compose.runtime.Immutable
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -25,7 +26,7 @@ fun List<AlbumAggregation>.toDto() = map { it.toDto() }
 
 fun MediaItem.toAlbumDto(): AlbumDto {
     val metadata = mediaMetadata
-    val extras = metadata.extras ?: android.os.Bundle.EMPTY
+    val extras = metadata.extras ?: Bundle.EMPTY
     return AlbumDto(
         artistName = metadata.artist?.toString() ?: "",
         albumName = metadata.title?.toString() ?: "",
@@ -47,7 +48,7 @@ fun AlbumDto.toMediaItem(): MediaItem = MediaItem
             .setReleaseYear(albumYear)
             .setArtworkUri(lastAlbumArt?.toUri())
             .setExtras(
-                android.os.Bundle().apply {
+                Bundle().apply {
                     putInt(MediaKeys.SONG_COUNT, songCount)
                     putLong(MediaKeys.DURATION, albumDuration)
                 },

@@ -35,7 +35,6 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
-import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.utils.UI_EMPTY
 
@@ -52,170 +51,168 @@ fun PlayerScreenContext(
     onPreviousClicked: () -> Unit = {},
     onProgressChanged: (Float) -> Unit = {}, // Callback for when user scrubs the progress bar
 ) {
-    AppTheme {
-        val textColor = MaterialTheme.colorScheme.onSurface
-        val leftDuration: String = formatDuration((duration * progress).toLong())
-        val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val leftDuration: String = formatDuration((duration * progress).toLong())
+    val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            // Album Cover
-            AlbumArtControl(
-                if (albumArtPath == null) {
-                    AlbumArtInput.None
-                } else {
-                    AlbumArtInput.FromPath(albumArtPath)
-                },
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        // Album Cover
+        AlbumArtControl(
+            if (albumArtPath == null) {
+                AlbumArtInput.None
+            } else {
+                AlbumArtInput.FromPath(albumArtPath)
+            },
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Song Info
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = songTitle ?: UI_EMPTY,
+                color = textColor,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = artistName ?: UI_EMPTY,
+                color = textColor.copy(alpha = 0.7f),
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
 
-            // Song Info
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Progress Bar
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Slider(
+                value = progress,
+                onValueChange = onProgressChanged,
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                SliderDefaults.colors(
+                    thumbColor = textColor,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                ),
+            )
+            Row(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                // Align with slider padding
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // You'd replace these with actual formatted time
                 Text(
-                    text = songTitle ?: UI_EMPTY,
-                    color = textColor,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = artistName ?: UI_EMPTY,
+                    text = leftDuration,
                     color = textColor.copy(alpha = 0.7f),
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 12.sp,
+                )
+                Text(
+                    rightDuration,
+                    color = textColor.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-            // Progress Bar
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Slider(
-                    value = progress,
-                    onValueChange = onProgressChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors =
-                    SliderDefaults.colors(
-                        thumbColor = textColor,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                    ),
-                )
-                Row(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    // Align with slider padding
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    // You'd replace these with actual formatted time
-                    Text(
-                        text = leftDuration,
-                        color = textColor.copy(alpha = 0.7f),
-                        fontSize = 12.sp,
-                    )
-                    Text(
-                        rightDuration,
-                        color = textColor.copy(alpha = 0.7f),
-                        fontSize = 12.sp,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Controls
+        // Controls
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+            Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    shape = CircleShape,
+                ),
+        ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        shape = CircleShape,
+                    .padding(
+                        vertical = 8.dp,
                     ),
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
+                val circularButtonModifier =
+                    Modifier
+                        .size(40.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            shape = CircleShape,
+                        ).background(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            shape = CircleShape,
+                        )
+                // prev-button
+                IconButton(
+                    onClick = onPreviousClicked,
+                    modifier = circularButtonModifier,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.SkipPrevious,
+                        contentDescription = "Previous Track",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(40.dp),
+                    )
+                }
+
+                // play-pause-button
+                IconButton(
+                    onClick = onPlayPauseClicked,
                     modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            vertical = 8.dp,
+                        .size(72.dp) // Larger play/pause button
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            CircleShape,
                         ),
                 ) {
-                    val circularButtonModifier =
-                        Modifier
-                            .size(40.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                shape = CircleShape,
-                            ).background(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                shape = CircleShape,
-                            )
-                    // prev-button
-                    IconButton(
-                        onClick = onPreviousClicked,
-                        modifier = circularButtonModifier,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.SkipPrevious,
-                            contentDescription = "Previous Track",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(40.dp),
-                        )
-                    }
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(44.dp),
+                    )
+                }
 
-                    // play-pause-button
-                    IconButton(
-                        onClick = onPlayPauseClicked,
-                        modifier =
-                        Modifier
-                            .size(72.dp) // Larger play/pause button
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                CircleShape,
-                            ),
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(44.dp),
-                        )
-                    }
-
-                    // next-button
-                    IconButton(
-                        onClick = onNextClicked,
-                        modifier = circularButtonModifier,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.SkipNext,
-                            contentDescription = "Next Track",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(40.dp),
-                        )
-                    }
+                // next-button
+                IconButton(
+                    onClick = onNextClicked,
+                    modifier = circularButtonModifier,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.SkipNext,
+                        contentDescription = "Next Track",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(40.dp),
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // volume
-            VolumeControl()
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // volume
+        VolumeControl()
     }
 }
 
