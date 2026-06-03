@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -30,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,8 +37,20 @@ import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.theme.ListItemLeadingShape
 import de.carsten.android.muzzic.ui.utils.formatDuration
 
+/**
+ * A list item representing a playlist.
+ *
+ * @param playlist The [PlaylistDto] to display.
+ * @param modifier The [Modifier] to be applied to the layout.
+ * @param showGenre Whether to show the playlist's genre.
+ * @param iconColor The color of the icons in the list item.
+ * @param onPlaylistClick Callback triggered when the playlist item is clicked.
+ * @param onPlayClick Callback triggered when the play button is clicked.
+ * @param onDeleteClick Callback triggered when the delete option is selected.
+ */
 @Composable
 fun PlaylistListItem(
     playlist: PlaylistDto,
@@ -58,13 +67,10 @@ fun PlaylistListItem(
     }
 
     Card(
-        modifier =
-        modifier
-            .fillMaxWidth()
-            .clickable { /* Open playlist */ },
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(8.dp),
-        onClick = { onPlaylistClick() },
+        onClick = onPlaylistClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -75,29 +81,7 @@ fun PlaylistListItem(
                 covers = collageCovers,
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(
-                        GenericShape { size, _ ->
-                            val radius = 8.dp.value * size.height / 56.dp.value
-                            moveTo(radius, 0f)
-                            lineTo(size.width, 0f)
-                            lineTo(size.width, size.height)
-                            lineTo(radius, size.height)
-                            arcTo(
-                                rect = Rect(0f, size.height - 2 * radius, 2 * radius, size.height),
-                                startAngleDegrees = 90f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false,
-                            )
-                            lineTo(0f, radius)
-                            arcTo(
-                                rect = Rect(0f, 0f, 2 * radius, 2 * radius),
-                                startAngleDegrees = 180f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false,
-                            )
-                            close()
-                        },
-                    ),
+                    .clip(ListItemLeadingShape),
                 useCard = false,
             )
 
