@@ -9,4 +9,5 @@ data class GenreAggregation(
     val songCount: Int,
     val genreDuration: Long,
     override val lastAlbumArt: String? = null,
+    val allAlbumArts: String? = null,
 ) : AlbumArt

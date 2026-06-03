@@ -29,7 +29,7 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
 
     val alphabet by remember(songs) {
         derivedStateOf {
-            songs.mapNotNull { it.title?.take(1)?.uppercase() }.distinct().sorted()
+            songs.mapNotNull { it.title.take(1)?.uppercase() }.distinct().sorted()
         }
     }
 
@@ -37,7 +37,7 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
         derivedStateOf {
             val index = listState.firstVisibleItemIndex
             if (index in songs.indices) {
-                songs[index].title?.take(1)?.uppercase()
+                songs[index].title.take(1).uppercase()
             } else {
                 null
             }
@@ -55,7 +55,7 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
-                    items = songs,
+                    items = songs.sorted(),
                     key = { song -> song.id },
                     contentType = { "Song" },
                 ) { song ->
@@ -93,7 +93,7 @@ fun SongListPreview() {
     SongList(
         listOf(
             Song(
-                title = "This is just a Test",
+                title = "This is just a Test 1",
                 album = "Test-Album",
                 artist = "Test-Artist",
                 duration = 3 * 60 * 1000,
@@ -105,7 +105,7 @@ fun SongListPreview() {
                 trackNumber = 3,
             ),
             Song(
-                title = "This is just a Test",
+                title = "This is just a Test 2",
                 album = "Test-Album",
                 artist = "Test-Artist",
                 duration = 3 * 60 * 1000,

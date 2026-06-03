@@ -11,8 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -23,24 +23,28 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun ArtistCard(artist: ArtistDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
     val palette by rememberPaletteState(artist.lastAlbumArt)
-    val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val colors = palette.extractColors(
+        defaultBackground = MaterialTheme.colorScheme.primaryContainer,
+        defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    val backgroundColor = colors.backgroundColor
+    val contentColor = colors.contentColor
+
+    val collageCovers = remember(artist.albumArts) {
+        artist.albumArts.map { CoverSource.FromPath(it) }
+    }
 
     AppTheme {
         MuzzicCard(
             header = {
                 // Album Cover Collage - Edge to Edge
                 AlbumCoverCollage(
-                    covers =
-                    if (artist.lastAlbumArt == null) {
-                        emptyList()
-                    } else {
-                        listOf(CoverSource.FromPath(artist.lastAlbumArt))
-                    },
+                    covers = collageCovers,
                     modifier =
                     Modifier
                         .fillMaxWidth()

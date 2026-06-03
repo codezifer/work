@@ -9,8 +9,19 @@ import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenreAggregation
 
 @Immutable
-data class GenreDto(val genreName: String, val artistCount: Int, val albumCount: Int, val songCount: Int, val genreDuration: Long, override val lastAlbumArt: String? = null) :
-    AlbumArt
+data class GenreDto(
+    val genreName: String,
+    val artistCount: Int,
+    val albumCount: Int,
+    val songCount: Int,
+    val genreDuration: Long,
+    override val lastAlbumArt: String? = null,
+    override val albumArts: List<String> = emptyList(),
+) : AlbumArt,
+    Comparable<GenreDto> {
+
+    override fun compareTo(other: GenreDto): Int = this.genreName.compareTo(other.genreName)
+}
 
 fun GenreAggregation.toDto() = GenreDto(
     genreName = this.genreName,
@@ -19,6 +30,7 @@ fun GenreAggregation.toDto() = GenreDto(
     songCount = this.songCount,
     genreDuration = this.genreDuration,
     lastAlbumArt = this.lastAlbumArt,
+    albumArts = this.allAlbumArts?.split(",") ?: listOfNotNull(lastAlbumArt),
 )
 
 fun List<GenreAggregation>.toDto() = map { it.toDto() }

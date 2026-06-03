@@ -45,7 +45,8 @@ data class Song(
     val playCount: Int = 0,
     @ColumnInfo(defaultValue = "0")
     val lastPlayed: Instant = Instant.ofEpochMilli(0L),
-) : AbstractEntity() {
+) : AbstractEntity(),
+    Comparable<Song> {
     init {
         this.id = songId(title, album, artist).toString()
     }
@@ -116,6 +117,36 @@ data class Song(
             in 4.1f..4.5f -> 225
             in 4.6f..5.0f -> 255
             else -> 128 // default rating
+        }
+    }
+
+    override fun compareTo(other: Song): Int {
+        val c1 = this.artist.compareTo(other.artist)
+        return if (c1 != 0) {
+            c1
+        } else {
+            val c2 = this.album.compareTo(other.album)
+            if (c2 != 0) {
+                c2
+            } else {
+                val c3 = if (this.albumYear > other.albumYear) {
+                    1
+                } else if (this.albumYear < other.albumYear) {
+                    -1
+                } else {
+                    0
+                }
+                if (c3 != 0) {
+                    c3
+                } else {
+                    val c4 = this.trackNumber.compareTo(other.trackNumber)
+                    if (c4 != 0) {
+                        c4
+                    } else {
+                        this.title.compareTo(other.title)
+                    }
+                }
+            }
         }
     }
 

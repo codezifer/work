@@ -15,9 +15,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
@@ -90,4 +92,24 @@ fun GenreArtistsScreenContent(
             )
         }
     }
+}
+
+@Composable
+@Preview(uiMode = PREVIEW_DARK_MODE)
+fun GenreArtistsScreenContentPreview() {
+    GenreArtistsScreenContent(
+        genreName = "Black Metal",
+        artists = listOf(
+            ArtistDto(
+                artistName = "Dimmu Borgir",
+                songCount = 100,
+                albumCount = 10,
+            ),
+            ArtistDto(
+                artistName = "Cradle Of Filth",
+                songCount = 100,
+                albumCount = 10,
+            ),
+        ),
+    )
 }

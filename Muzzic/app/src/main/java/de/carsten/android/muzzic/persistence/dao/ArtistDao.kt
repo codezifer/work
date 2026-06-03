@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistAggregation
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,8 @@ interface ArtistDao {
             s.artist AS artistName,
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
-            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         WHERE s.artist LIKE '%' || :query || '%'
         GROUP BY s.artist ORDER BY s.artist ASC
@@ -42,7 +44,8 @@ interface ArtistDao {
             s.artist AS artistName,
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
-            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         GROUP BY s.artist ORDER BY s.artist ASC
         """,
@@ -55,7 +58,8 @@ interface ArtistDao {
             s.artist as artistName,
             COUNT(DISTINCT s.album) as albumCount,
             COUNT(s.id) as songCount,
-            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         WHERE s.genre = :genre
         GROUP BY s.artist ORDER BY s.artist ASC

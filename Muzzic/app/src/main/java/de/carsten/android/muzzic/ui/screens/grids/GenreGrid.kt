@@ -21,7 +21,7 @@ fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClic
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(
-            items = genres,
+            items = genres.sorted(),
             key = { genre -> genre.genreName },
             contentType = { "Genre" },
         ) { genre ->

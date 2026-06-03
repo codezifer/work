@@ -25,7 +25,27 @@ data class PlayingQueueDto(
     val queuePosition: Int = -1,
     val songId: String = EMPTY,
     val mediaId: String = EMPTY,
-) {
+) : Comparable<PlayingQueueDto> {
+
+    override fun compareTo(other: PlayingQueueDto): Int {
+        val c1 = this.genre.compareTo(other.genre)
+        return if (c1 != 0) {
+            c1
+        } else {
+            val c2 = this.artist.compareTo(other.artist)
+            if (c2 != 0) {
+                c2
+            } else {
+                val c3 = this.album.compareTo(other.album)
+                if (c3 != 0) {
+                    c3
+                } else {
+                    this.title.compareTo(other.title)
+                }
+            }
+        }
+    }
+
     fun toMediaItem() = MediaItem
         .Builder()
         .setMediaId(mediaId)

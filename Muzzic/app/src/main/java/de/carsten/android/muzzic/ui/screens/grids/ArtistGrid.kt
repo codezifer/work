@@ -64,7 +64,7 @@ fun ArtistGrid(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 itemsIndexed(
-                    items = artists,
+                    items = artists.sorted(),
                     key = { _, artist -> artist.artistName },
                     contentType = { _, _ -> "Artist" },
                 ) { _, artist ->

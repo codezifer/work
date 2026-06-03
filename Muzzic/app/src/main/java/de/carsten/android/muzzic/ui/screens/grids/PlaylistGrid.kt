@@ -50,7 +50,7 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 items(
-                    items = autoPlaylists,
+                    items = autoPlaylists.sorted(),
                     key = { playlist -> "${playlist.playlistName}_${playlist.playlistGenre}" },
                     contentType = { "Playlist" },
                 ) { playlist ->
@@ -90,7 +90,7 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 items(
-                    items = myPlaylists,
+                    items = myPlaylists.sorted(),
                     key = { playlist -> "${playlist.playlistName}_${playlist.playlistGenre}" },
                     contentType = { "Playlist" },
                 ) { playlist ->

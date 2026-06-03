@@ -5,4 +5,6 @@ package de.carsten.android.muzzic.model
  */
 interface AlbumArt {
     val lastAlbumArt: String?
+    val albumArts: List<String>
+        get() = listOfNotNull(lastAlbumArt)
 }

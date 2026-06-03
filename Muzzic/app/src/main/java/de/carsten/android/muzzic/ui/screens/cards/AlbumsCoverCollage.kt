@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,79 +31,54 @@ import de.carsten.android.muzzic.ui.gradient2Color
 import de.carsten.android.muzzic.ui.gradient3Color
 import de.carsten.android.muzzic.ui.model.CoverSource
 
+/**
+ * A collage of album covers displayed in a grid.
+ *
+ * @param covers The list of [CoverSource]s to display in the collage. Up to 9 covers will be shown.
+ * @param modifier The modifier to be applied to the layout.
+ * @param useCard Whether to wrap the collage in a [Card]. Defaults to true.
+ */
 @Composable
 fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, useCard: Boolean = true) {
-    val columns = if (covers.size == 4) 2 else covers.size.coerceIn(1, 3)
+    val displayedCovers = remember(covers) { covers.take(9) }
+
+    // Logic to determine grid dimensions for a square look
+    val (rows, columns) =
+        remember(displayedCovers.size) {
+            when (displayedCovers.size) {
+                1 -> 1 to 1
+                2 -> 1 to 2
+                3, 4 -> 2 to 2
+                5, 6 -> 2 to 3
+                else -> 3 to 3
+            }
+        }
+
+    val placeholderBrush =
+        remember {
+            Brush.linearGradient(
+                colors =
+                listOf(
+                    gradient1Color,
+                    gradient2Color,
+                    gradient3Color,
+                ),
+            )
+        }
 
     val content = @Composable {
-        if (covers.isEmpty()) {
+        if (displayedCovers.isEmpty()) {
             Box(
                 modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors =
-                            listOf(
-                                gradient1Color,
-                                gradient2Color,
-                                gradient3Color,
-                            ),
-                        ),
-                    ),
+                    .background(placeholderBrush),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Placeholder")
             }
         } else {
-            // Simplified grid replacement using Row/Column for better performance
-            Column(modifier = Modifier.fillMaxSize()) {
-                val chunkedCovers =
-                    remember(covers, columns) {
-                        covers.chunked(columns)
-                    }
-                chunkedCovers.forEach { rowCovers ->
-                    Row(modifier = Modifier.weight(1f)) {
-                        rowCovers.forEach { cover ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .border(0.5.dp, MaterialTheme.colorScheme.outline),
-                            ) {
-                                when (cover) {
-                                    is CoverSource.FromPath -> {
-                                        AsyncImage(
-                                            model = cover.path,
-                                            contentDescription = "Album Art",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop,
-                                            placeholder = painterResource(R.drawable.disc),
-                                            error = painterResource(R.drawable.disc),
-                                        )
-                                    }
-
-                                    is CoverSource.FromVector -> {
-                                        Icon(
-                                            imageVector = cover.imageVector,
-                                            contentDescription = "Placeholder Icon",
-                                            modifier = Modifier.fillMaxSize(0.5f),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        // Fill empty slots in the last row if necessary
-                        if (rowCovers.size < columns) {
-                            repeat(columns - rowCovers.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-            }
+            CollageGrid(displayedCovers, rows, columns)
         }
     }
 
@@ -119,6 +93,80 @@ fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, 
     } else {
         Box(modifier = modifier) {
             content()
+        }
+    }
+}
+
+/**
+ * Renders the grid layout for the collage.
+ */
+@Composable
+private fun CollageGrid(displayedCovers: List<CoverSource>, rows: Int, columns: Int) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        val chunkedCovers =
+            remember(displayedCovers, columns) {
+                displayedCovers.chunked(columns)
+            }
+        chunkedCovers.forEach { rowCovers ->
+            Row(modifier = Modifier.weight(1f)) {
+                rowCovers.forEach { cover ->
+                    CollageItem(
+                        cover = cover,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                // Fill empty slots in the last row if necessary to maintain layout
+                if (rowCovers.size < columns) {
+                    repeat(columns - rowCovers.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+        // If there are fewer rows than planned, add empty rows to keep square proportion
+        if (chunkedCovers.size < rows) {
+            repeat(rows - chunkedCovers.size) {
+                Row(modifier = Modifier.weight(1f)) {
+                    repeat(columns) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Renders a single item within the collage grid.
+ */
+@Composable
+private fun CollageItem(cover: CoverSource, modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+        modifier
+            .fillMaxSize()
+            .border(0.5.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        when (cover) {
+            is CoverSource.FromPath -> {
+                AsyncImage(
+                    model = cover.path,
+                    contentDescription = "Album Art",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.disc),
+                    error = painterResource(R.drawable.disc),
+                )
+            }
+
+            is CoverSource.FromVector -> {
+                Icon(
+                    imageVector = cover.imageVector,
+                    contentDescription = "Placeholder Icon",
+                    modifier = Modifier.fillMaxSize(0.5f),
+                )
+            }
         }
     }
 }

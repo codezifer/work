@@ -12,8 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -23,22 +23,26 @@ import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
     val palette by rememberPaletteState(playlist.lastAlbumArt)
-    val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.getDominantSwatch()?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val colors = palette.extractColors(
+        defaultBackground = MaterialTheme.colorScheme.primaryContainer,
+        defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    val backgroundColor = colors.backgroundColor
+    val contentColor = colors.contentColor
+
+    val collageCovers = remember(playlist.albumArts) {
+        playlist.albumArts.map { CoverSource.FromPath(it) }
+    }
 
     MuzzicCard(
         header = {
             AlbumCoverCollage(
-                covers =
-                if (playlist.lastAlbumArt == null) {
-                    emptyList()
-                } else {
-                    listOf(CoverSource.FromPath(playlist.lastAlbumArt))
-                },
+                covers = collageCovers,
                 modifier =
                 Modifier
                     .fillMaxWidth()

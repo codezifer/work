@@ -22,7 +22,19 @@ data class PlaylistDto(
     val songCount: Int,
     val playlistDuration: Long,
     override val lastAlbumArt: String? = null,
-) : AlbumArt
+    override val albumArts: List<String> = emptyList(),
+) : AlbumArt,
+    Comparable<PlaylistDto> {
+
+    override fun compareTo(other: PlaylistDto): Int {
+        val c1 = this.playlistName.compareTo(other.playlistName)
+        return if (c1 != 0) {
+            c1
+        } else {
+            this.playlistDuration.compareTo(other.playlistDuration)
+        }
+    }
+}
 
 fun PlaylistAggregation.toDto() = PlaylistDto(
     playlistId = this.playlistId,
@@ -34,6 +46,7 @@ fun PlaylistAggregation.toDto() = PlaylistDto(
     songCount = this.songCount,
     playlistDuration = this.playlistDuration,
     lastAlbumArt = this.lastAlbumArt,
+    albumArts = this.allAlbumArts?.split(",") ?: listOfNotNull(lastAlbumArt),
 )
 
 fun List<PlaylistAggregation>.toDto() = map { it.toDto() }

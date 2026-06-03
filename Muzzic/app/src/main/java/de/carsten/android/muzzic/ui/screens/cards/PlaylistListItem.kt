@@ -53,6 +53,9 @@ fun PlaylistListItem(
     onDeleteClick: () -> Unit = {},
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val collageCovers = remember(playlist.albumArts) {
+        playlist.albumArts.map { CoverSource.FromPath(it) }
+    }
 
     Card(
         modifier =
@@ -69,12 +72,7 @@ fun PlaylistListItem(
         ) {
             // Playlist Icon
             AlbumCoverCollage(
-                covers =
-                if (playlist.lastAlbumArt == null) {
-                    emptyList()
-                } else {
-                    listOf(CoverSource.FromPath(playlist.lastAlbumArt))
-                },
+                covers = collageCovers,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(

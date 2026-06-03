@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,12 +29,17 @@ import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
     val palette by rememberPaletteState(album.lastAlbumArt)
-    val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val colors = palette.extractColors(
+        defaultBackground = MaterialTheme.colorScheme.primaryContainer,
+        defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    val backgroundColor = colors.backgroundColor
+    val contentColor = colors.contentColor
 
     AppTheme {
         MuzzicCard(

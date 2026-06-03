@@ -63,7 +63,7 @@ fun AlbumGrid(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 items(
-                    items = albums,
+                    items = albums.sorted(),
                     key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
                     contentType = { "Album" },
                 ) { album ->

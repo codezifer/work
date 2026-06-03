@@ -9,13 +9,24 @@ import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistAggregation
 
 @Immutable
-data class ArtistDto(val artistName: String, val albumCount: Int, val songCount: Int, override val lastAlbumArt: String? = null) : AlbumArt
+data class ArtistDto(
+    val artistName: String,
+    val albumCount: Int,
+    val songCount: Int,
+    override val lastAlbumArt: String? = null,
+    override val albumArts: List<String> = emptyList(),
+) : AlbumArt,
+    Comparable<ArtistDto> {
+
+    override fun compareTo(other: ArtistDto): Int = this.artistName.compareTo(other.artistName)
+}
 
 fun ArtistAggregation.toDto() = ArtistDto(
     artistName = this.artistName,
     albumCount = this.albumCount,
     songCount = this.songCount,
     lastAlbumArt = this.lastAlbumArt,
+    albumArts = this.allAlbumArts?.split(",") ?: listOfNotNull(lastAlbumArt),
 )
 
 fun List<ArtistAggregation>.toDto() = map { it.toDto() }

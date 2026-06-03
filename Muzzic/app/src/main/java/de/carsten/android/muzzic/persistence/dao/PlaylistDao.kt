@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -51,7 +52,14 @@ interface PlaylistDao {
              JOIN playlist_songs ps2 ON s2.id = ps2.songId
              WHERE ps2.playlistId = p.id
              ORDER BY s2.createdAt DESC
-             LIMIT 1) as lastAlbumArt
+             LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt)
+             FROM (SELECT DISTINCT s3.albumArt
+                   FROM songs s3
+                   JOIN playlist_songs ps3 ON s3.id = ps3.songId
+                   WHERE ps3.playlistId = p.id AND s3.albumArt IS NOT NULL
+                   ORDER BY s3.createdAt DESC
+                   LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM playlists p
         LEFT JOIN playlist_songs ps ON ps.playlistId = p.id
         LEFT JOIN songs s ON s.id = ps.songId

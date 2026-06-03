@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -12,58 +11,57 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
-import kotlin.math.absoluteValue
+import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}) {
-    val colors =
-        listOf(
-            listOf(Color(0xFFEF4444), Color(0xFFF97316)),
-            listOf(Color(0xFFEC4899), Color(0xFF8B5CF6)),
-            listOf(Color(0xFF3B82F6), Color(0xFF4F46E5)),
-            listOf(Color(0xFF10B981), Color(0xFF059669)),
-            listOf(Color(0xFFF59E0B), Color(0xFFD97706)),
-        )
-
-    val colorPair = colors[genre.hashCode().absoluteValue % colors.size]
     val palette by rememberPaletteState(genre.lastAlbumArt)
-    val backgroundColor = Color(palette?.getDominantColor(MaterialTheme.colorScheme.primaryContainer.hashCode()) ?: MaterialTheme.colorScheme.primaryContainer.hashCode())
-    val contentColor = Color(palette?.dominantSwatch?.bodyTextColor ?: MaterialTheme.colorScheme.onPrimaryContainer.hashCode())
+    val colors = palette.extractColors(
+        defaultBackground = MaterialTheme.colorScheme.primaryContainer,
+        defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    val backgroundColor = colors.backgroundColor
+    val contentColor = colors.contentColor
+
+    val collageCovers = remember(genre.albumArts) {
+        genre.albumArts.map { CoverSource.FromPath(it) }
+    }
 
     AppTheme {
         MuzzicCard(
             header = {
-                Box(
+                AlbumCoverCollage(
+                    covers = collageCovers,
                     modifier =
                     Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
-                        .background(Brush.horizontalGradient(colorPair)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = genre.genreName,
-                        color = Color.White,
-                        fontSize = MAINTITLE_FONTSIZE,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+                        .height(120.dp),
+                    useCard = false,
+                )
             },
             backgroundColor = backgroundColor,
             contentColor = contentColor,
             onClick = onClick,
         ) {
+            Text(
+                text = genre.genreName,
+                color = it,
+                fontSize = MAINTITLE_FONTSIZE,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             SubtitleInformation(
                 listOf(
                     Pair(Icons.Default.Person, "${genre.artistCount} Artists"),

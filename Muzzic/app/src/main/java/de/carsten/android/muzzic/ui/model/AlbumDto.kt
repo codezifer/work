@@ -11,7 +11,32 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.AlbumAggregation
 
 @Immutable
 data class AlbumDto(val albumName: String, val albumYear: Int, val artistName: String, val songCount: Int, val albumDuration: Long, override val lastAlbumArt: String? = null) :
-    AlbumArt
+    AlbumArt,
+    Comparable<AlbumDto> {
+
+    override fun compareTo(other: AlbumDto): Int {
+        // ascending order
+        val c1 = this.artistName.compareTo(other.artistName)
+        return if (c1 != 0) {
+            c1
+        } else {
+            // descending order
+            val c2 = if (this.albumYear > other.albumYear) {
+                1
+            } else if (this.albumYear < other.albumYear) {
+                -1
+            } else {
+                0
+            }
+            if (c2 != 0) {
+                c2
+            } else {
+                // ascending order
+                this.albumName.compareTo(other.albumName)
+            }
+        }
+    }
+}
 
 fun AlbumAggregation.toDto() = AlbumDto(
     albumName = this.albumName,

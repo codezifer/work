@@ -12,4 +12,5 @@ data class PlaylistAggregation(
     val songCount: Int,
     val playlistDuration: Long,
     override val lastAlbumArt: String? = null,
+    val allAlbumArts: String? = null,
 ) : AlbumArt
