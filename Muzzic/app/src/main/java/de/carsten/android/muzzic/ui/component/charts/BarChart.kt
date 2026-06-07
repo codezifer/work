@@ -33,6 +33,9 @@ enum class BarChartOrientation { Vertical, Horizontal }
  * @param orientation The orientation of the bars (Vertical or Horizontal).
  * @param barSpacing The spacing between bars.
  * @param cornerRadius The corner radius for the bars.
+ * @param showValuesInside Whether to show the numeric values inside the bars.
+ * @param labelSpacing The spacing for item labels.
+ * @param axisSpacing The spacing for the numeric axis.
  * @param textStyle The style for labels and axis text.
  */
 @Composable
@@ -46,6 +49,7 @@ fun MuzzicBarChart(
     orientation: BarChartOrientation = BarChartOrientation.Vertical,
     barSpacing: Dp = 8.dp,
     cornerRadius: Dp = 4.dp,
+    showValuesInside: Boolean = false,
     labelSpacing: Dp = 20.dp,
     axisSpacing: Dp = 40.dp,
     textStyle: TextStyle = MaterialTheme.typography.labelSmall,
@@ -62,6 +66,7 @@ fun MuzzicBarChart(
         val cornerRadiusPx = cornerRadius.toPx()
 
         // Padding for labels and axis
+        val txtPaddingPx = 4.dp.toPx()
         val labelPaddingPx = labelSpacing.toPx()
         val axisPaddingPx = if (showAxis) axisSpacing.toPx() else 0f
 
@@ -89,7 +94,7 @@ fun MuzzicBarChart(
                         textMeasurer = textMeasurer,
                         text = value.toString(),
                         style = textStyle.copy(color = textColor.copy(alpha = 0.8f)),
-                        topLeft = Offset(axisPaddingPx - measuredValue.size.width - 8.dp.toPx(), y - measuredValue.size.height / 2f),
+                        topLeft = Offset(axisPaddingPx - measuredValue.size.width - (2 * txtPaddingPx), y - measuredValue.size.height / 2f),
                     )
                 }
             }
@@ -107,6 +112,23 @@ fun MuzzicBarChart(
                     cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
                 )
 
+                // Draw value inside
+                if (showValuesInside) {
+                    val valueText = value.roundToInt().toString()
+                    val measuredValue = textMeasurer.measure(valueText, textStyle)
+                    if (barHeight > measuredValue.size.height + txtPaddingPx) {
+                        drawText(
+                            textMeasurer = textMeasurer,
+                            text = valueText,
+                            style = textStyle.copy(color = Color.White), // Fixed white for contrast on primary bars
+                            topLeft = Offset(
+                                left + (barWidth - measuredValue.size.width) / 2,
+                                chartHeight - barHeight + txtPaddingPx,
+                            ),
+                        )
+                    }
+                }
+
                 labels?.getOrNull(index)?.let { label ->
                     val measuredText = textMeasurer.measure(label, textStyle)
                     drawText(
@@ -115,7 +137,7 @@ fun MuzzicBarChart(
                         style = textStyle.copy(color = textColor),
                         topLeft = Offset(
                             left + (barWidth - measuredText.size.width) / 2,
-                            chartHeight + 4.dp.toPx(),
+                            chartHeight + txtPaddingPx,
                         ),
                     )
                 }
@@ -143,7 +165,7 @@ fun MuzzicBarChart(
                         textMeasurer = textMeasurer,
                         text = value.toString(),
                         style = textStyle.copy(color = textColor.copy(alpha = 0.8f)),
-                        topLeft = Offset(x - measuredValue.size.width / 2f, chartHeight + 4.dp.toPx()),
+                        topLeft = Offset(x - measuredValue.size.width / 2f, chartHeight + txtPaddingPx),
                     )
                 }
             }
@@ -161,6 +183,23 @@ fun MuzzicBarChart(
                     cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
                 )
 
+                // Draw value inside
+                if (showValuesInside) {
+                    val valueText = value.roundToInt().toString()
+                    val measuredValue = textMeasurer.measure(valueText, textStyle)
+                    if (barWidth > measuredValue.size.width + (2 * txtPaddingPx)) {
+                        drawText(
+                            textMeasurer = textMeasurer,
+                            text = valueText,
+                            style = textStyle.copy(color = Color.White),
+                            topLeft = Offset(
+                                labelPaddingPx + barWidth - measuredValue.size.width - txtPaddingPx,
+                                top + (barHeight - measuredValue.size.height) / 2,
+                            ),
+                        )
+                    }
+                }
+
                 labels?.getOrNull(index)?.let { label ->
                     val measuredText = textMeasurer.measure(label, textStyle)
                     drawText(
@@ -168,7 +207,7 @@ fun MuzzicBarChart(
                         text = label,
                         style = textStyle.copy(color = textColor),
                         topLeft = Offset(
-                            labelPaddingPx - measuredText.size.width - 4.dp.toPx(),
+                            labelPaddingPx - measuredText.size.width - txtPaddingPx,
                             top + (barHeight - measuredText.size.height) / 2,
                         ),
                     )
@@ -227,6 +266,35 @@ fun MuzzicBarChartHorizontalWithLabelsPreview() {
             data = listOf(10f, 50f, 30f, 80f, 20f),
             colors = listOf(Color.Cyan),
             labels = listOf("A", "B", "C", "D", "E"),
+            showAxis = true,
+            modifier = Modifier.size(300.dp, 200.dp),
+            orientation = BarChartOrientation.Horizontal,
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+fun MuzzicBarChartVerticalWithValuesInsidePreview() {
+    Column(Modifier.padding(16.dp)) {
+        MuzzicBarChart(
+            data = listOf(10f, 50f, 30f, 80f, 20f),
+            colors = listOf(Color.Blue),
+            showValuesInside = true,
+            modifier = Modifier.size(300.dp, 200.dp),
+            orientation = BarChartOrientation.Vertical,
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+fun MuzzicBarChartHorizontalWithValuesInsidePreview() {
+    Column(Modifier.padding(16.dp)) {
+        MuzzicBarChart(
+            data = listOf(10f, 50f, 30f, 80f, 20f),
+            colors = listOf(Color.Green),
+            showValuesInside = true,
             showAxis = true,
             modifier = Modifier.size(300.dp, 200.dp),
             orientation = BarChartOrientation.Horizontal,

@@ -81,8 +81,8 @@ fun BottomNavigationBar(navController: NavController, clickHandlers: Map<String,
                         selectedIconColor = MaterialTheme.colorScheme.primary,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         indicatorColor = MaterialTheme.colorScheme.inversePrimary,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
+                        unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                        unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
                     ),
                 )
             }

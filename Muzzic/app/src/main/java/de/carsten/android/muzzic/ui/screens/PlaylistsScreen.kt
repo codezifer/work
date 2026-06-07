@@ -30,6 +30,7 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistListItem
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import java.util.concurrent.TimeUnit
@@ -46,13 +47,15 @@ fun PlaylistsScreen(
     onDeletePlaylist: (PlaylistDto) -> Unit = {},
 ) {
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
-    PlaylistScreenContent(
-        modifier = modifier,
-        playlists = playlists,
-        onPlaylistClick = onPlaylistClick,
-        onPlayClick = onPlayPlaylist,
-        onDeleteClick = onDeletePlaylist,
-    )
+    AppTheme {
+        PlaylistScreenContent(
+            modifier = modifier,
+            playlists = playlists,
+            onPlaylistClick = onPlaylistClick,
+            onPlayClick = onPlayPlaylist,
+            onDeleteClick = onDeletePlaylist,
+        )
+    }
 }
 
 @Composable
@@ -164,18 +167,20 @@ fun PlaylistScreenContent(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun PlaylistsScreenPreview() {
-    PlaylistScreenContent(
-        Modifier.padding(2.dp),
-        listOf(
-            PlaylistDto("1", "Playlist 1", true, "Genre 1", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-            PlaylistDto("2", "Playlist 2", false, "Genre 2", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-            PlaylistDto("3", "Playlist 3", true, "Genre 3", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-            PlaylistDto("4", "Playlist 4", false, "Genre 4", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-            PlaylistDto("5", "Playlist 5", true, "Genre 5", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-            PlaylistDto("6", "Playlist 6", false, "Genre 6", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
-        ),
-    )
+    AppTheme {
+        PlaylistScreenContent(
+            Modifier.padding(2.dp),
+            listOf(
+                PlaylistDto("1", "Playlist 1", true, "Genre 1", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+                PlaylistDto("2", "Playlist 2", false, "Genre 2", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+                PlaylistDto("3", "Playlist 3", true, "Genre 3", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+                PlaylistDto("4", "Playlist 4", false, "Genre 4", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+                PlaylistDto("5", "Playlist 5", true, "Genre 5", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+                PlaylistDto("6", "Playlist 6", false, "Genre 6", 50, 500, 5000, TimeUnit.DAYS.toMillis(5)),
+            ),
+        )
+    }
 }

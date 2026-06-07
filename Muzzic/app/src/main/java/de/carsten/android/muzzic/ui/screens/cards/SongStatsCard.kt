@@ -5,27 +5,28 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.theme.CustomColors
 
 @Composable
 fun SongStatsCard(topSongs: List<SongPlayCount>) {
     AppTheme {
         MuzzicCard(
-            backgroundColor = Color(0xFF1F2937),
-            contentColor = Color.White,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ) {
             Text(
                 text = "Top 5 Songs diesen Monat",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 16.dp),
@@ -46,7 +47,7 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
                 ) {
                     Text(
                         text = "#${index + 1}",
-                        color = Color(0xFF8B5CF6),
+                        color = CustomColors.chartBar,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.width(32.dp),
@@ -55,14 +56,14 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = title,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
 
                         Text(
                             text = artist,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontSize = 12.sp,
                         )
                     }
@@ -72,7 +73,7 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
                     ) {
                         Text(
                             text = "$playCount Plays",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                         )

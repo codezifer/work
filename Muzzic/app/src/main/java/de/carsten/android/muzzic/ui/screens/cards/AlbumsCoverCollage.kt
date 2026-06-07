@@ -26,10 +26,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.gradient1Color
-import de.carsten.android.muzzic.ui.gradient2Color
-import de.carsten.android.muzzic.ui.gradient3Color
 import de.carsten.android.muzzic.ui.model.CoverSource
+import de.carsten.android.muzzic.ui.theme.CustomColors
 
 /**
  * A collage of album covers displayed in a grid.
@@ -54,14 +52,17 @@ fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, 
             }
         }
 
+    val g1 = CustomColors.gradient1
+    val g2 = CustomColors.gradient2
+    val g3 = CustomColors.gradient3
     val placeholderBrush =
-        remember {
+        remember(g1, g2, g3) {
             Brush.linearGradient(
                 colors =
                 listOf(
-                    gradient1Color,
-                    gradient2Color,
-                    gradient3Color,
+                    g1,
+                    g2,
+                    g3,
                 ),
             )
         }

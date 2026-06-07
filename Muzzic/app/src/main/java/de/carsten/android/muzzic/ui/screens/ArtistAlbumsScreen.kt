@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.ArtistAlbumsViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -38,46 +39,48 @@ fun ArtistAlbumsScreen(
     val albums by viewModel.albums.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        Row(
+    AppTheme {
+        Column(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface,
+            Row(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                Text(
+                    text = viewModel.artistName,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
-            Text(
-                text = viewModel.artistName,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 8.dp),
+
+            AlbumGrid(
+                albums = albums,
+                onAlbumClick = { artist, album ->
+                    if (selectionState.isActive) {
+                        selectionViewModel.toggleAlbumSelection(artist, album)
+                    } else {
+                        onAlbumClick(artist, album)
+                    }
+                },
+                onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
+                selectedAlbums = selectionState.selectedAlbums,
             )
         }
-
-        AlbumGrid(
-            albums = albums,
-            onAlbumClick = { artist, album ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleAlbumSelection(artist, album)
-                } else {
-                    onAlbumClick(artist, album)
-                }
-            },
-            onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
-            selectedAlbums = selectionState.selectedAlbums,
-        )
     }
 }

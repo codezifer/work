@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.SongList
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.AlbumSongsViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -37,52 +38,54 @@ fun AlbumSongsScreen(
     val songs by viewModel.songs.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        Row(
+    AppTheme {
+        Column(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(
-                    text = viewModel.albumName,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = viewModel.artistName,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
-                )
-            }
-        }
-
-        SongList(
-            songs = songs,
-            onSongClick = { song ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleSongSelection(song.id)
-                } else {
-                    viewModel.playSong(song, songs)
+            Row(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
-            },
-            onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
-            selectedSongs = selectionState.selectedSongs,
-        )
+                Column(modifier = Modifier.padding(start = 8.dp)) {
+                    Text(
+                        text = viewModel.albumName,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = viewModel.artistName,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
+
+            SongList(
+                songs = songs,
+                onSongClick = { song ->
+                    if (selectionState.isActive) {
+                        selectionViewModel.toggleSongSelection(song.id)
+                    } else {
+                        viewModel.playSong(song, songs)
+                    }
+                },
+                onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
+                selectedSongs = selectionState.selectedSongs,
+            )
+        }
     }
 }

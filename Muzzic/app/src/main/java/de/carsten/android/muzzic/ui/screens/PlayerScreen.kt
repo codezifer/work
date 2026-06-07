@@ -30,11 +30,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
-import de.carsten.android.muzzic.ui.gradient1Color
-import de.carsten.android.muzzic.ui.gradient2Color
-import de.carsten.android.muzzic.ui.gradient3Color
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -85,9 +83,9 @@ fun PlayerScreenContent(
                         Brush.verticalGradient(
                             colors =
                             listOf(
-                                gradient1Color,
-                                gradient2Color,
-                                gradient3Color,
+                                CustomColors.gradient1,
+                                CustomColors.gradient2,
+                                CustomColors.gradient3,
                             ),
                         ),
                     ).blur(40.dp),
@@ -116,12 +114,12 @@ fun PlayerScreenContent(
                         Icon(
                             Icons.Default.MusicNote,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp),
                         )
                         Text(
                             text = appName,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 8.dp),

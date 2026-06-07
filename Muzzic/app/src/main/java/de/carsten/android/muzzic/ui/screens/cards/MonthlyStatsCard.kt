@@ -47,6 +47,7 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
                         .fillMaxWidth()
                         .height(80.dp),
                     barSpacing = 16.dp,
+                    showValuesInside = true,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

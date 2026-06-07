@@ -76,46 +76,48 @@ fun LibraryScreen(
             PLAYLIST to stringResource(R.string.playlists),
         )
 
-    LibraryScreenContent(
-        modifier = modifier,
-        filters = filters,
-        artists = artists,
-        albums = albums,
-        songs = songs,
-        genres = genres,
-        playlists = playlists,
-        onArtistClick = { artist ->
-            if (selectionState.isActive) {
-                selectionViewModel.toggleArtistSelection(artist)
-            } else {
-                onArtistClick(artist)
-            }
-        },
-        onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
-        onAlbumClick = { artist, album ->
-            if (selectionState.isActive) {
-                selectionViewModel.toggleAlbumSelection(artist, album)
-            } else {
-                onAlbumClick(artist, album)
-            }
-        },
-        onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
-        onSongClick = { song ->
-            if (selectionState.isActive) {
-                selectionViewModel.toggleSongSelection(song.id)
-            } else {
-                libraryViewModel.playSong(song)
-            }
-        },
-        onSongLongClick = {
-            selectionViewModel.toggleSongSelection(it.id)
-        },
-        onGenreClick = onGenreClick,
-        onPlaylistClick = onPlaylistClick,
-        selectedArtists = selectionState.selectedArtists,
-        selectedAlbums = selectionState.selectedAlbums,
-        selectedSongs = selectionState.selectedSongs,
-    )
+    AppTheme {
+        LibraryScreenContent(
+            modifier = modifier,
+            filters = filters,
+            artists = artists,
+            albums = albums,
+            songs = songs,
+            genres = genres,
+            playlists = playlists,
+            onArtistClick = { artist ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleArtistSelection(artist)
+                } else {
+                    onArtistClick(artist)
+                }
+            },
+            onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
+            onAlbumClick = { artist, album ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleAlbumSelection(artist, album)
+                } else {
+                    onAlbumClick(artist, album)
+                }
+            },
+            onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
+            onSongClick = { song ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleSongSelection(song.id)
+                } else {
+                    libraryViewModel.playSong(song)
+                }
+            },
+            onSongLongClick = {
+                selectionViewModel.toggleSongSelection(it.id)
+            },
+            onGenreClick = onGenreClick,
+            onPlaylistClick = onPlaylistClick,
+            selectedArtists = selectionState.selectedArtists,
+            selectedAlbums = selectionState.selectedAlbums,
+            selectedSongs = selectionState.selectedSongs,
+        )
+    }
 }
 
 @Composable
@@ -231,8 +233,8 @@ fun LibraryScreenContent(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun LibraryScreenPreview() {
     AppTheme {
         LibraryScreenContent(

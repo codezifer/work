@@ -222,6 +222,24 @@ val surfaceContainerHighestDarkHighContrast = Color(0xFF44474C)
 val chartBarLight = Color(0xFF8B5CF6)
 val chartBarDark = Color(0xFFAA94DE)
 
+val starColorLight = Color(0xFFFBBF24)
+val starColorDark = Color(0xFFFCD34D)
+
+val autoPlaylistsLight = Color(0xFF3B82F6)
+val autoPlaylistsDark = Color(0xFF60A5FA)
+
+val myPlaylistsLight = Color(0xFF10B981)
+val myPlaylistsDark = Color(0xFF34D399)
+
+val gradient1Light = Color(0xFF581C87)
+val gradient1Dark = Color(0xFF7E22CE)
+
+val gradient2Light = Color(0xFF1E40AF)
+val gradient2Dark = Color(0xFF3B82F6)
+
+val gradient3Light = Color(0xFF4338CA)
+val gradient3Dark = Color(0xFF6366F1)
+
 val genre1ColorLight = Color(0xFFAA11AA)
 val genre1ColorDark = Color(0xFFEC80EC)
 

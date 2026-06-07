@@ -49,25 +49,27 @@ fun PlayingQueueScreen(modifier: Modifier, appState: MusicAppState, playingQueue
         }
     }
 
-    PlayingQueueContent(
-        modifier = modifier,
-        name = playingQueueName,
-        playingQueue = playingQueue,
-        selectionState = selectionState,
-        currentSong = currentSong,
-        isPlaying = isPlaying,
-        progress = progress,
-        onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
-        onSongClick = { index, songId ->
-            if (selectionState.isActive) {
-                selectionViewModel.toggleSongSelection(songId)
-            } else {
-                playingQueueViewModel.playSongAt(index)
-            }
-        },
-        onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
-        onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
-    )
+    AppTheme {
+        PlayingQueueContent(
+            modifier = modifier,
+            name = playingQueueName,
+            playingQueue = playingQueue,
+            selectionState = selectionState,
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            progress = progress,
+            onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
+            onSongClick = { index, songId ->
+                if (selectionState.isActive) {
+                    selectionViewModel.toggleSongSelection(songId)
+                } else {
+                    playingQueueViewModel.playSongAt(index)
+                }
+            },
+            onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
+            onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
+        )
+    }
 }
 
 @Composable
@@ -84,14 +86,13 @@ fun PlayingQueueContent(
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onTogglePlayPause: () -> Unit = {},
 ) {
-    AppTheme {
-        Column(
-            modifier =
-            modifier
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
+    Column(
+        modifier =
+        modifier
+            .background(MaterialTheme.colorScheme.background)
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
             Row(
                 modifier =
                 Modifier
@@ -147,29 +148,30 @@ fun PlayingQueueContent(
                 }
             }
         }
-    }
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun PlayingQueueScreenPreview() {
-    PlayingQueueContent(
-        modifier = Modifier.padding(2.dp),
-        name = "Test Queue",
-        playingQueue =
-        listOf(
-            PlayingQueueDto(
-                title = "Puritania",
-                album = "Puritanical Euphoric Misantropia",
-                artist = "Dimmu Borgir",
-                trackNumber = 5,
-                totalTracks = 12,
-                duration = 180000,
-                genre = "Black Metal",
-                queuePosition = 5,
-                enqueued = true,
+    AppTheme {
+        PlayingQueueContent(
+            modifier = Modifier.padding(2.dp),
+            name = "Test Queue",
+            playingQueue =
+            listOf(
+                PlayingQueueDto(
+                    title = "Puritania",
+                    album = "Puritanical Euphoric Misantropia",
+                    artist = "Dimmu Borgir",
+                    trackNumber = 5,
+                    totalTracks = 12,
+                    duration = 180000,
+                    genre = "Black Metal",
+                    queuePosition = 5,
+                    enqueued = true,
+                ),
             ),
-        ),
-    )
+        )
+    }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistCard
+import de.carsten.android.muzzic.ui.theme.CustomColors
 
 @Composable
 fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, onPlaylistClick: (PlaylistDto) -> Unit = {}) {
@@ -31,7 +32,7 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
         item {
             Text(
                 text = stringResource(R.string.auto_playlists),
-                color = Color(0xFF3B82F6),
+                color = CustomColors.autoPlaylists,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 12.dp),
@@ -71,7 +72,7 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
         item {
             Text(
                 text = stringResource(R.string.my_playlists),
-                color = Color(0xFF10B981),
+                color = CustomColors.myPlaylists,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 12.dp),

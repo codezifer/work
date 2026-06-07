@@ -37,14 +37,16 @@ fun GenreArtistsScreen(
 ) {
     val artists by genresViewModel.artists.collectAsStateWithLifecycle()
 
-    GenreArtistsScreenContent(
-        modifier = modifier,
-        appState = appState,
-        genreName = genresViewModel.genreName ?: "",
-        artists = artists,
-        onArtistClick = onArtistClick,
-        onBackClick = onBackClick,
-    )
+    AppTheme {
+        GenreArtistsScreenContent(
+            modifier = modifier,
+            appState = appState,
+            genreName = genresViewModel.genreName ?: "",
+            artists = artists,
+            onArtistClick = onArtistClick,
+            onBackClick = onBackClick,
+        )
+    }
 }
 
 @Composable
@@ -56,13 +58,12 @@ fun GenreArtistsScreenContent(
     onArtistClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
 ) {
-    AppTheme {
-        Column(
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-        ) {
+    Column(
+        modifier =
+        Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    ) {
             Row(
                 modifier =
                 Modifier
@@ -91,25 +92,27 @@ fun GenreArtistsScreenContent(
                 onArtistClick = onArtistClick,
             )
         }
-    }
 }
 
 @Composable
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun GenreArtistsScreenContentPreview() {
-    GenreArtistsScreenContent(
-        genreName = "Black Metal",
-        artists = listOf(
-            ArtistDto(
-                artistName = "Dimmu Borgir",
-                songCount = 100,
-                albumCount = 10,
+    AppTheme {
+        GenreArtistsScreenContent(
+            genreName = "Black Metal",
+            artists = listOf(
+                ArtistDto(
+                    artistName = "Dimmu Borgir",
+                    songCount = 100,
+                    albumCount = 10,
+                ),
+                ArtistDto(
+                    artistName = "Cradle Of Filth",
+                    songCount = 100,
+                    albumCount = 10,
+                ),
             ),
-            ArtistDto(
-                artistName = "Cradle Of Filth",
-                songCount = 100,
-                albumCount = 10,
-            ),
-        ),
-    )
+        )
+    }
 }

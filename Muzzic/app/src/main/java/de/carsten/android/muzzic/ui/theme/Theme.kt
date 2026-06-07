@@ -253,6 +253,12 @@ data class ColorFamily(val color: Color, val onColor: Color, val colorContainer:
 @Immutable
 data class CustomColorScheme(
     val chartBar: Color = Color.Unspecified,
+    val starColor: Color = Color.Unspecified,
+    val autoPlaylists: Color = Color.Unspecified,
+    val myPlaylists: Color = Color.Unspecified,
+    val gradient1: Color = Color.Unspecified,
+    val gradient2: Color = Color.Unspecified,
+    val gradient3: Color = Color.Unspecified,
     val genre1: Color = Color.Unspecified,
     val genre2: Color = Color.Unspecified,
     val genre3: Color = Color.Unspecified,
@@ -262,6 +268,12 @@ data class CustomColorScheme(
 
 val lightCustomColorScheme = CustomColorScheme(
     chartBar = chartBarLight,
+    starColor = starColorLight,
+    autoPlaylists = autoPlaylistsLight,
+    myPlaylists = myPlaylistsLight,
+    gradient1 = gradient1Light,
+    gradient2 = gradient2Light,
+    gradient3 = gradient3Light,
     genre1 = genre1ColorLight,
     genre2 = genre2ColorLight,
     genre3 = genre3ColorLight,
@@ -271,6 +283,12 @@ val lightCustomColorScheme = CustomColorScheme(
 
 val darkCustomColorScheme = CustomColorScheme(
     chartBar = chartBarDark,
+    starColor = starColorDark,
+    autoPlaylists = autoPlaylistsDark,
+    myPlaylists = myPlaylistsDark,
+    gradient1 = gradient1Dark,
+    gradient2 = gradient2Dark,
+    gradient3 = gradient3Dark,
     genre1 = genre1ColorDark,
     genre2 = genre2ColorDark,
     genre3 = genre3ColorDark,
@@ -287,6 +305,30 @@ object CustomColors {
     val chartBar: Color
         @Composable
         get() = LocalCustomColorScheme.current.chartBar
+
+    val starColor: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.starColor
+
+    val autoPlaylists: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.autoPlaylists
+
+    val myPlaylists: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.myPlaylists
+
+    val gradient1: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.gradient1
+
+    val gradient2: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.gradient2
+
+    val gradient3: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.gradient3
 
     val genre1: Color
         @Composable

@@ -24,31 +24,33 @@ fun GenresScreen(
 ) {
     val genres by genreViewModel.genres.collectAsStateWithLifecycle()
 
-    GenresScreenContent(
-        modifier = modifier,
-        appState = appState,
-        genres = genres,
-        onGenreClick = onGenreClick,
-    )
-}
-
-@Composable
-fun GenresScreenContent(modifier: Modifier = Modifier, appState: MusicAppState? = null, genres: List<GenreDto>, onGenreClick: (GenreDto) -> Unit = {}) {
     AppTheme {
-        GenreGrid(genres, modifier, onGenreClick)
+        GenresScreenContent(
+            modifier = modifier,
+            appState = appState,
+            genres = genres,
+            onGenreClick = onGenreClick,
+        )
     }
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+fun GenresScreenContent(modifier: Modifier = Modifier, appState: MusicAppState? = null, genres: List<GenreDto>, onGenreClick: (GenreDto) -> Unit = {}) {
+    GenreGrid(genres, modifier, onGenreClick)
+}
+
+@Composable
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun GenreScreenPreview() {
-    GenresScreenContent(
-        genres =
-        listOf(
-            GenreDto("Black Metal", 10, 100, 1000, 50000),
-            GenreDto("Alternative", 20, 200, 2000, 100000),
-            GenreDto("Pagan Metal", 1, 5, 75, 5000),
-        ),
-    )
+    AppTheme {
+        GenresScreenContent(
+            genres =
+            listOf(
+                GenreDto("Black Metal", 10, 100, 1000, 50000),
+                GenreDto("Alternative", 20, 200, 2000, 100000),
+                GenreDto("Pagan Metal", 1, 5, 75, 5000),
+            ),
+        )
+    }
 }
