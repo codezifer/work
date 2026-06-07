@@ -5,7 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 private val lightScheme =
@@ -245,6 +247,68 @@ private val highContrastDarkColorScheme =
 @Immutable
 data class ColorFamily(val color: Color, val onColor: Color, val colorContainer: Color, val onColorContainer: Color)
 
+/**
+ * Custom color scheme for colors that are not part of the standard Material 3 ColorScheme.
+ */
+@Immutable
+data class CustomColorScheme(
+    val chartBar: Color = Color.Unspecified,
+    val genre1: Color = Color.Unspecified,
+    val genre2: Color = Color.Unspecified,
+    val genre3: Color = Color.Unspecified,
+    val genre4: Color = Color.Unspecified,
+    val genre5: Color = Color.Unspecified,
+)
+
+val lightCustomColorScheme = CustomColorScheme(
+    chartBar = chartBarLight,
+    genre1 = genre1ColorLight,
+    genre2 = genre2ColorLight,
+    genre3 = genre3ColorLight,
+    genre4 = genre4ColorLight,
+    genre5 = genre5ColorLight,
+)
+
+val darkCustomColorScheme = CustomColorScheme(
+    chartBar = chartBarDark,
+    genre1 = genre1ColorDark,
+    genre2 = genre2ColorDark,
+    genre3 = genre3ColorDark,
+    genre4 = genre4ColorDark,
+    genre5 = genre5ColorDark,
+)
+
+val LocalCustomColorScheme = staticCompositionLocalOf { CustomColorScheme() }
+
+/**
+ * Object to access custom colors.
+ */
+object CustomColors {
+    val chartBar: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.chartBar
+
+    val genre1: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.genre1
+
+    val genre2: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.genre2
+
+    val genre3: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.genre3
+
+    val genre4: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.genre4
+
+    val genre5: Color
+        @Composable
+        get() = LocalCustomColorScheme.current.genre5
+}
+
 val unspecified_scheme =
     ColorFamily(
         Color.Unspecified,
@@ -261,9 +325,17 @@ fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable ()
             else -> lightScheme
         }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content,
-    )
+    val customColorScheme =
+        when {
+            darkTheme -> darkCustomColorScheme
+            else -> lightCustomColorScheme
+        }
+
+    CompositionLocalProvider(LocalCustomColorScheme provides customColorScheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            content = content,
+        )
+    }
 }

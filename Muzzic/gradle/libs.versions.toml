@@ -2,7 +2,6 @@
 activityCompose = "1.12.1"
 agp = "9.2.1"
 appcompat = "1.7.1"
-charts = "v3.1.0"
 coil3 = "3.3.0"
 composeBom = "2025.12.00"
 coreKtx = "1.17.0"
@@ -91,9 +90,6 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 
 # permissions
 permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "permissions" }
-
-# charts
-charts = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "charts" }
 
 # id3
 mp3agic = { group = "com.mpatric", name = "mp3agic", version.ref = "mp3agic" }

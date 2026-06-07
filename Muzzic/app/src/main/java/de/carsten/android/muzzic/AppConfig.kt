@@ -10,4 +10,8 @@ object AppConfig {
     object Service {
         val PLAYLIST_SYNC_DURATION = 5.minutes
     }
+
+    object Ui {
+        const val NUM_OF_TOP_SONGS = 5
+    }
 }

@@ -299,7 +299,7 @@ class MusicRepository(
 
     suspend fun getTopSongs(): List<SongPlayCount> {
         val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
-        return playHistoryDao.getTopSongs(oneMonthAgo, 50)
+        return playHistoryDao.getTopSongs(oneMonthAgo)
     }
 
     private fun getAlbumArtOffsetAndSize(file: File): Pair<Long, Long> {

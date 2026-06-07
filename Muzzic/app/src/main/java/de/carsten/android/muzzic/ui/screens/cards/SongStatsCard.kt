@@ -7,20 +7,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.ui.theme.AppTheme
-import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
 
 @Composable
-fun SongStatsCard(viewModel: StatisticsViewModel) {
-    val songPlayCountsState = viewModel.topSongs.observeAsState(emptyList())
-
+fun SongStatsCard(topSongs: List<SongPlayCount>) {
     AppTheme {
         MuzzicCard(
             backgroundColor = Color(0xFF1F2937),
@@ -34,19 +31,11 @@ fun SongStatsCard(viewModel: StatisticsViewModel) {
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            val demoTopSongs =
-                listOf(
-                    "Stairway to Heaven" to "Led Zeppelin" to 87 to 5,
-                    "Hotel California" to "Eagles" to 76 to 5,
-                    "Bohemian Rhapsody" to "Queen" to 72 to 5,
-                    "Sweet Child O' Mine" to "Guns N' Roses" to 65 to 4,
-                    "November Rain" to "Guns N' Roses" to 58 to 4,
-                )
-
-            demoTopSongs.forEachIndexed { index, songData ->
-                val (titleArtistAndPlayCount, rating) = songData
-                val (titleAndArtist, playCount) = titleArtistAndPlayCount
-                val (title, artist) = titleAndArtist
+            topSongs.forEachIndexed { index, songPlayCount ->
+                val title = songPlayCount.song.title
+                val artist = songPlayCount.song.artist
+                val playCount = songPlayCount.song.playCount
+                val rating = songPlayCount.song.rating
 
                 Row(
                     modifier =

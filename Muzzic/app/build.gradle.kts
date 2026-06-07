@@ -132,9 +132,6 @@ dependencies {
     // okhttp
     implementation(libs.okhttp)
 
-    // charts
-    implementation(libs.charts)
-
     // mp3agic
     implementation(libs.mp3agic)
 

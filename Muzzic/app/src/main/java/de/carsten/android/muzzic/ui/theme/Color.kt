@@ -217,3 +217,22 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF1D2024)
 val surfaceContainerDarkHighContrast = Color(0xFF2E3135)
 val surfaceContainerHighDarkHighContrast = Color(0xFF393C40)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF44474C)
+
+// Custom Colors
+val chartBarLight = Color(0xFF8B5CF6)
+val chartBarDark = Color(0xFFAA94DE)
+
+val genre1ColorLight = Color(0xFFAA11AA)
+val genre1ColorDark = Color(0xFFEC80EC)
+
+val genre2ColorLight = Color(0xFF11AA56)
+val genre2ColorDark = Color(0xFF54E5AB)
+
+val genre3ColorLight = Color(0xFF1168AA)
+val genre3ColorDark = Color(0xFF46B9DC)
+
+val genre4ColorLight = Color(0xFFB26726)
+val genre4ColorDark = Color(0xFFDA8C61)
+
+val genre5ColorLight = Color(0xFFAA1111)
+val genre5ColorDark = Color(0xFFD76565)
