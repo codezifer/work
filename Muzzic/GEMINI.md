@@ -340,6 +340,14 @@ fun UserCard(user: User, onClick: () -> Unit) {
         Text(text = user.name)
     }
 }
+
+// ✅ Self-contained screens: wrap screen-level composables in AppTheme
+@Composable
+fun UserProfileScreen(viewModel: UserViewModel = koinViewModel()) {
+    AppTheme {
+        UserProfileContent(...)
+    }
+}
 ```
 
 ### State in Compose
@@ -353,6 +361,20 @@ var expanded by remember { mutableStateOf(false) }
 
 // ✅ Use rememberSaveable to survive config changes
 var inputText by rememberSaveable { mutableStateOf("") }
+```
+
+### Previews
+
+```kotlin
+// ✅ Use AppTheme and showBackground for consistent previews
+@Composable
+@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+fun UserProfilePreview() {
+    AppTheme {
+        UserProfileContent(...)
+    }
+}
 ```
 
 ### Performance
