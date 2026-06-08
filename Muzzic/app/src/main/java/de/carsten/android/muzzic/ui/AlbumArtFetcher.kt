@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
+import android.util.Log
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -23,7 +24,16 @@ import okio.buffer
 import okio.sink
 
 class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Options, private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher {
-    override suspend fun fetch(): FetchResult {
+    companion object {
+        private const val TAG = "AlbumArtFetcher"
+    }
+
+    override suspend fun fetch(): FetchResult? {
+        if (data.size <= 0) {
+            Log.d(TAG, "Skipping fetch: size is 0 for ${data.filePath}")
+            return null
+        }
+        Log.d(TAG, "Fetching: ${data.filePath} offset=${data.offset} size=${data.size}")
         if (data.filePath.startsWith("http")) {
             return handleHttpFile()
         }
@@ -34,16 +44,44 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
-                val randomAccessFile = RandomAccessFile(data.filePath, "r")
+                val file = File(data.filePath)
+                if (!file.exists()) {
+                    Log.e(TAG, "File does not exist: ${data.filePath}")
+                    return@withContext null
+                }
+
+                val randomAccessFile = RandomAccessFile(file, "r")
+                val fileLength = file.length()
+
+                if (data.offset < 0 || data.offset >= fileLength) {
+                    Log.e(TAG, "Invalid offset: ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                    randomAccessFile.close()
+                    return@withContext null
+                }
+
+                if (data.offset + data.size > fileLength) {
+                    Log.e(TAG, "Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                    randomAccessFile.close()
+                    return@withContext null
+                }
+
                 randomAccessFile.seek(data.offset)
                 val bytes = ByteArray(data.size.toInt())
                 randomAccessFile.readFully(bytes)
+
+                // Magic Number Check (Sanity check for common image formats)
+                if (bytes.size > 4) {
+                    val header = bytes.take(4).joinToString("") { "%02x".format(it) }
+                    Log.d(TAG, "Magic Number Header: $header for ${data.filePath}")
+                    // JPEG: ffd8ffe0, PNG: 89504e47, etc.
+                }
+
                 randomAccessFile.close()
 
                 Buffer().apply {
                     write(bytes)
                 }
-            }
+            } ?: throw IllegalArgumentException("Failed to read image data from ${data.filePath}")
 
         return SourceFetchResult(
             source =

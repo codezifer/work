@@ -8,11 +8,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.mpatric.mp3agic.BufferTools
-import com.mpatric.mp3agic.ID3v2ObseletePictureFrameData
-import com.mpatric.mp3agic.ID3v2PictureFrameData
-import com.mpatric.mp3agic.ID3v2TagWithOffset
 import com.mpatric.mp3agic.Mp3File
+import de.carsten.android.muzzic.utils.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.dao.AlbumDao
@@ -238,8 +235,12 @@ class MusicRepository(
     }
 
     private fun saveAlbumArt(file: File): String? = try {
-        val (offset, size) = getAlbumArtOffsetAndSize(file)
-        AlbumArtUri(file.absolutePath, offset, size).get()
+        val albumArtOffset = Id3TagParser.getAlbumArtOffsetAndSize(file)
+        if (albumArtOffset.isValid) {
+            AlbumArtUri(file.absolutePath, albumArtOffset.offset, albumArtOffset.size).get()
+        } else {
+            null
+        }
     } catch (e: Exception) {
         logger.error("An error occurred while saving album art for ${file.name}", e)
         null
@@ -300,42 +301,6 @@ class MusicRepository(
     suspend fun getTopSongs(): List<SongPlayCount> {
         val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
         return playHistoryDao.getTopSongs(oneMonthAgo)
-    }
-
-    private fun getAlbumArtOffsetAndSize(file: File): Pair<Long, Long> {
-        return try {
-            file.inputStream().use { input ->
-                val header = ByteArray(10)
-                if (input.read(header) != 10 || String(header, 0, 3) != "ID3") return Pair(0L, 0L)
-                // Get tag length (synchsafe integer at offset 6)
-                val tagLength = BufferTools.unpackSynchsafeInteger(header[6], header[7], header[8], header[9])
-                val tagBytes = ByteArray(tagLength + 10)
-                System.arraycopy(header, 0, tagBytes, 0, 10)
-                input.read(tagBytes, 10, tagLength)
-
-                val offsetTag = ID3v2TagWithOffset(tagBytes)
-                val apicFrame = offsetTag.getApicFrame() ?: return Pair(0L, 0L)
-
-                // The image data starts inside the frame data.
-                // We use mp3agic's own PictureFrameData to calculate the internal offset.
-                val pictureData =
-                    if (apicFrame.id == "PIC") {
-                        ID3v2ObseletePictureFrameData(false, apicFrame.data)
-                    } else {
-                        ID3v2PictureFrameData(false, apicFrame.data)
-                    }
-
-                // Calculation:
-                // Frame Offset in Tag + Frame Header (10 bytes) + Header fields inside APIC
-                val internalOffset = apicFrame.data.size - pictureData.imageData.size
-                val finalOffset = apicFrame.offsetInTag.toLong() + 10L + internalOffset.toLong()
-                val size = pictureData.imageData.size.toLong()
-
-                Pair(finalOffset, size)
-            }
-        } catch (e: Exception) {
-            Pair(0L, 0L)
-        }
     }
 
     private fun indexOf(data: ByteArray, search: ByteArray): Int {

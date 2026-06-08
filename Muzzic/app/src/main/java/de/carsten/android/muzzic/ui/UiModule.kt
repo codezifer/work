@@ -9,10 +9,12 @@ import coil3.memory.MemoryCache
 import coil3.request.Options
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import java.util.concurrent.TimeUnit
+import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
+import de.carsten.android.muzzic.utils.IMAGE_CACHE
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
+import java.util.concurrent.TimeUnit
 
 private fun getImageLoader(context: Context): ImageLoader {
     val okHttpClient =
@@ -28,7 +30,7 @@ private fun getImageLoader(context: Context): ImageLoader {
             add(
                 object : Mapper<String, AlbumArtUri> {
                     override fun map(data: String, options: Options): AlbumArtUri? {
-                        if (data.startsWith("file://") && data.contains("offset=")) {
+                        if (data.startsWith(ALBUMART_SCHEME)) {
                             return AlbumArtUri.parse(data)
                         }
                         return null
@@ -44,7 +46,7 @@ private fun getImageLoader(context: Context): ImageLoader {
         }.diskCache {
             DiskCache
                 .Builder()
-                .directory(context.cacheDir.resolve("image_cache").toOkioPath())
+                .directory(context.cacheDir.resolve(IMAGE_CACHE).toOkioPath())
                 .maxSizePercent(0.02)
                 .build()
         }.build()
