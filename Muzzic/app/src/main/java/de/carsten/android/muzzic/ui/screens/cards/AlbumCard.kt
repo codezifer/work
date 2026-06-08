@@ -22,9 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
+import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
@@ -66,6 +67,7 @@ fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit
             onClick = onClick,
             onLongClick = onLongClick,
             isSelected = isSelected,
+            contentHeight = CARD_CONTENT_HEIGHT,
         ) {
             Text(
                 text = album.albumName,
@@ -73,11 +75,11 @@ fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit
                 fontSize = MAINTITLE_FONTSIZE,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(CARD_CONTENT_SPACING))
 
             SubtitleInformation(
                 listOf(

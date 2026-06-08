@@ -28,4 +28,7 @@ interface PlayHistoryDao {
 
     @Insert
     suspend fun insertPlayHistory(playHistory: PlayHistory)
+
+    @Insert
+    suspend fun insertPlayHistories(playHistories: List<PlayHistory>)
 }

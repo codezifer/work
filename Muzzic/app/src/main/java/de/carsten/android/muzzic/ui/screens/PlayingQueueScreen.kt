@@ -93,61 +93,61 @@ fun PlayingQueueContent(
             .fillMaxSize()
             .padding(16.dp),
     ) {
-            Row(
+        Row(
+            modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+
+        if (playingQueue.isEmpty()) {
+            Text(
+                text = stringResource(R.string.empty_pq),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
+        } else {
+            ReorderableLazyColumn(
+                items = playingQueue,
+                onMove = onMove,
+                key = { _, item -> item.mediaId },
                 modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+                    .weight(1f)
+                    .padding(top = 8.dp),
+            ) { index, item, isDragging, dragModifier ->
+                val isSelected = selectionState.selectedSongs.contains(item.mediaId)
+                val isCurrentSong = item.mediaId == currentSong?.mediaId
 
-            if (playingQueue.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.empty_pq),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                PlayingQueueItem(
+                    playingQueueDto = item,
+                    isPlaying = isPlaying,
+                    isCurrentSong = isCurrentSong,
+                    progress = if (isCurrentSong) progress else 0f,
+                    isDragging = isDragging,
+                    isSelected = isSelected,
+                    dragModifier = dragModifier,
+                    onClick = { onSongClick(index, item.mediaId) },
+                    onLongClick = { onSongLongClick(item.mediaId) },
+                    onTogglePlayPause = {
+                        if (isCurrentSong) {
+                            onTogglePlayPause()
+                        } else {
+                            onSongClick(index, item.mediaId)
+                        }
+                    },
                 )
-            } else {
-                ReorderableLazyColumn(
-                    items = playingQueue,
-                    onMove = onMove,
-                    key = { _, item -> item.mediaId },
-                    modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(top = 8.dp),
-                ) { index, item, isDragging, dragModifier ->
-                    val isSelected = selectionState.selectedSongs.contains(item.mediaId)
-                    val isCurrentSong = item.mediaId == currentSong?.mediaId
-
-                    PlayingQueueItem(
-                        playingQueueDto = item,
-                        isPlaying = isPlaying,
-                        isCurrentSong = isCurrentSong,
-                        progress = if (isCurrentSong) progress else 0f,
-                        isDragging = isDragging,
-                        isSelected = isSelected,
-                        dragModifier = dragModifier,
-                        onClick = { onSongClick(index, item.mediaId) },
-                        onLongClick = { onSongLongClick(item.mediaId) },
-                        onTogglePlayPause = {
-                            if (isCurrentSong) {
-                                onTogglePlayPause()
-                            } else {
-                                onSongClick(index, item.mediaId)
-                            }
-                        },
-                    )
-                }
             }
         }
+    }
 }
 
 @Composable

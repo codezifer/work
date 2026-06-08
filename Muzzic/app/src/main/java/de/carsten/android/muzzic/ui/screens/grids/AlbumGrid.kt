@@ -16,7 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
+import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
@@ -58,9 +59,9 @@ fun AlbumGrid(
                 modifier =
                 Modifier
                     .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(horizontal = GRID_HORIZONTAL_PADDING),
+                verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
+                horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 items(
                     items = albums.sorted(),
@@ -101,8 +102,8 @@ fun AlbumGridPreview() {
     AlbumGrid(
         listOf(
             AlbumDto(
-                artistName = "Dimmu Borgir",
-                albumName = "Enthrone Darkness Triumphant",
+                artistName = "Orchestra of the Infinite Void",
+                albumName = "Echoes from the Ancient Labyrinth",
                 albumYear = 1997,
                 songCount = 21,
                 albumDuration = 90 * 60 * 1000L,

@@ -16,7 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
+import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
@@ -59,9 +60,9 @@ fun ArtistGrid(
                 modifier =
                 Modifier
                     .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(horizontal = GRID_HORIZONTAL_PADDING),
+                verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
+                horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 itemsIndexed(
                     items = artists.sorted(),

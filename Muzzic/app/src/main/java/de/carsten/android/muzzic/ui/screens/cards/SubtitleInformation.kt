@@ -19,17 +19,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.BULLET_POINT
 import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.SUBTITLE_ICONSIZE
+import de.carsten.android.muzzic.ui.SUBTITLE_ICON_TEXT_SPACING
+import de.carsten.android.muzzic.ui.SUBTITLE_SPACING
 
 @Composable
 fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color = Color.Gray) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING),
     ) {
         iconTextPairs.forEachIndexed { idx, (img, text) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -39,7 +40,7 @@ fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColo
                     modifier = Modifier.size(SUBTITLE_ICONSIZE),
                     contentDescription = "icon",
                 )
-                Spacer(modifier = Modifier.width(2.dp))
+                Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
                 Text(
                     text = text,
                     color = fontColor,

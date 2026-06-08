@@ -56,7 +56,7 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    monthlyPlayCounts.forEach { month ->
+                    monthlyPlayCounts.sorted().forEach { month ->
                         Text(
                             text = month.month,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),

@@ -10,9 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -25,14 +27,14 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ) {
             Text(
-                text = "Top 5 Songs diesen Monat",
+                text = stringResource(R.string.songs_distribution),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            topSongs.forEachIndexed { index, songPlayCount ->
+            topSongs.sorted().forEachIndexed { index, songPlayCount ->
                 val title = songPlayCount.song.title
                 val artist = songPlayCount.song.artist
                 val playCount = songPlayCount.song.playCount

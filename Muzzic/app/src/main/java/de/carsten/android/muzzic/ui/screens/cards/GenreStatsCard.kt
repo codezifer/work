@@ -51,7 +51,7 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
             )
 
             val allGenresCount = genreStats.sumOf { it.count }
-            val genresWithColor = genreStats.mapIndexed { index, genrePlayCount ->
+            val genresWithColor = genreStats.sorted().mapIndexed { index, genrePlayCount ->
                 val colorIndex = index % colors.size
                 val genreColor = colors[colorIndex]
                 Pair(genrePlayCount, genreColor)

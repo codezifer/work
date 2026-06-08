@@ -29,6 +29,9 @@ interface SongDao {
     @Query("UPDATE songs SET rating = :rating WHERE id = :songId")
     suspend fun updateRating(songId: String, rating: Int)
 
+    @Query("UPDATE songs SET playCount = :playCount WHERE id = :songId")
+    suspend fun updatePlayCount(songId: String, playCount: Int)
+
     @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' OR album LIKE '%' || :query || '%'")
     suspend fun searchSongs(query: String): List<Song>
 

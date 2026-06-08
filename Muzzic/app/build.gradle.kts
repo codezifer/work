@@ -40,8 +40,15 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         debug {
+            var shouldSeed = "false"
+            val deviceName = project.findProperty("android.injected.device.serial")?.toString()?.lowercase()
+                ?: project.findProperty("android.injected.device.model")?.toString()?.lowercase()
+
+            if (deviceName != null && (deviceName.contains("emulator") || deviceName.startsWith("127.0.0.1"))) {
+                shouldSeed = "true"
+            }
             // Added buildConfigField manually to avoid dependency on automatic generation if it fails
-            buildConfigField("boolean", "SEED_DATABASE", "true")
+            buildConfigField("boolean", "SEED_DATABASE", shouldSeed)
         }
     }
 

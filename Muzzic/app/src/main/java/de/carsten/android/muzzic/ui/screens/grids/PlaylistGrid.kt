@@ -13,13 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
+import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistCard
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -27,7 +28,7 @@ import de.carsten.android.muzzic.ui.theme.CustomColors
 @Composable
 fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, onPlaylistClick: (PlaylistDto) -> Unit = {}) {
     LazyColumn(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier.padding(horizontal = GRID_HORIZONTAL_PADDING),
     ) {
         item {
             Text(
@@ -47,8 +48,8 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.heightIn(100.dp, 400.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
+                horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 items(
                     items = autoPlaylists.sorted(),
@@ -87,8 +88,8 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, on
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.heightIn(100.dp, 400.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
+                horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 items(
                     items = myPlaylists.sorted(),

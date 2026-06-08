@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -14,8 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
+import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.CoverSource
@@ -45,22 +48,25 @@ fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}) {
                     modifier =
                     Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
+                        .aspectRatio(1.2f),
                     useCard = false,
                 )
             },
             backgroundColor = backgroundColor,
             contentColor = contentColor,
             onClick = onClick,
+            contentHeight = CARD_CONTENT_HEIGHT,
         ) {
             Text(
                 text = genre.genreName,
                 color = it,
                 fontSize = MAINTITLE_FONTSIZE,
                 fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(CARD_CONTENT_SPACING))
 
             SubtitleInformation(
                 listOf(
