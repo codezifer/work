@@ -9,7 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.mpatric.mp3agic.Mp3File
-import de.carsten.android.muzzic.utils.id3.Id3TagParser
+import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.dao.AlbumDao

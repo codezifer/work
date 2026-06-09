@@ -51,11 +51,15 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
+    fun d(message: String) = this.debug(message)
+
     fun debug(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, formatMessage(message), throwable)
         }
     }
+
+    fun d(message: String, throwable: Throwable) = this.debug(message, throwable)
 
     /**
      * Info level logging
@@ -66,11 +70,15 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
+    fun i(message: String) = this.info(message)
+
     fun info(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.INFO)) {
             Log.i(tag, formatMessage(message), throwable)
         }
     }
+
+    fun i(message: String, throwable: Throwable) = this.info(message, throwable)
 
     /**
      * Warning level logging
@@ -81,11 +89,15 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
+    fun w(message: String) = this.warning(message)
+
     fun warning(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.WARN)) {
             Log.w(tag, formatMessage(message), throwable)
         }
     }
+
+    fun w(message: String, throwable: Throwable) = this.warning(message, throwable)
 
     /**
      * Error level logging
@@ -96,11 +108,15 @@ class AndroidLogger private constructor(private val tag: String) {
         }
     }
 
+    fun e(message: String) = this.error(message)
+
     fun error(message: String, throwable: Throwable) {
         if (Log.isLoggable(tag, Log.ERROR)) {
             Log.e(tag, formatMessage(message), throwable)
         }
     }
+
+    fun e(message: String, throwable: Throwable) = this.error(message, throwable)
 
     // Additional convenience methods
 

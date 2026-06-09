@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
-import android.util.Log
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -9,6 +8,7 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import java.io.File
 import java.io.RandomAccessFile
@@ -24,16 +24,14 @@ import okio.buffer
 import okio.sink
 
 class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Options, private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher {
-    companion object {
-        private const val TAG = "AlbumArtFetcher"
-    }
+    private val logger = logger()
 
     override suspend fun fetch(): FetchResult? {
         if (data.size <= 0) {
-            Log.d(TAG, "Skipping fetch: size is 0 for ${data.filePath}")
+            logger.debug("Skipping fetch: size is 0 for ${data.filePath}")
             return null
         }
-        Log.d(TAG, "Fetching: ${data.filePath} offset=${data.offset} size=${data.size}")
+        logger.debug("Fetching: ${data.filePath} offset=${data.offset} size=${data.size}")
         if (data.filePath.startsWith("http")) {
             return handleHttpFile()
         }
@@ -46,7 +44,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
             withContext(Dispatchers.IO) {
                 val file = File(data.filePath)
                 if (!file.exists()) {
-                    Log.e(TAG, "File does not exist: ${data.filePath}")
+                    logger.error("File does not exist: ${data.filePath}")
                     return@withContext null
                 }
 
@@ -54,13 +52,13 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                 val fileLength = file.length()
 
                 if (data.offset < 0 || data.offset >= fileLength) {
-                    Log.e(TAG, "Invalid offset: ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                    logger.error("Invalid offset: ${data.offset} (File size: $fileLength) for ${data.filePath}")
                     randomAccessFile.close()
                     return@withContext null
                 }
 
                 if (data.offset + data.size > fileLength) {
-                    Log.e(TAG, "Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                    logger.error("Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.filePath}")
                     randomAccessFile.close()
                     return@withContext null
                 }
@@ -72,7 +70,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                 // Magic Number Check (Sanity check for common image formats)
                 if (bytes.size > 4) {
                     val header = bytes.take(4).joinToString("") { "%02x".format(it) }
-                    Log.d(TAG, "Magic Number Header: $header for ${data.filePath}")
+                    logger.debug("Magic Number Header: $header for ${data.filePath}")
                     // JPEG: ffd8ffe0, PNG: 89504e47, etc.
                 }
 

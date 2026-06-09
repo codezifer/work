@@ -21,6 +21,26 @@ data class GenreDto(
     Comparable<GenreDto> {
 
     override fun compareTo(other: GenreDto): Int = this.genreName.compareTo(other.genreName)
+
+    fun toMediaItem() = MediaItem
+        .Builder()
+        .setMediaId("${MediaKeys.GENRE_PREFIX}$genreName")
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(genreName)
+                .setArtworkUri(lastAlbumArt?.toUri())
+                .setExtras(
+                    android.os.Bundle().apply {
+                        putInt(MediaKeys.ARTIST_COUNT, artistCount)
+                        putInt(MediaKeys.ALBUM_COUNT, albumCount)
+                        putInt(MediaKeys.SONG_COUNT, songCount)
+                        putLong(MediaKeys.DURATION, genreDuration)
+                    },
+                ).setIsBrowsable(true)
+                .setIsPlayable(false)
+                .build(),
+        ).build()
 }
 
 fun GenreAggregation.toDto() = GenreDto(
@@ -46,23 +66,3 @@ fun MediaItem.toGenreDto(): GenreDto {
         genreDuration = extras.getLong(MediaKeys.DURATION),
     )
 }
-
-fun GenreDto.toMediaItem(): MediaItem = MediaItem
-    .Builder()
-    .setMediaId("${MediaKeys.GENRE_PREFIX}$genreName")
-    .setMediaMetadata(
-        MediaMetadata
-            .Builder()
-            .setTitle(genreName)
-            .setArtworkUri(lastAlbumArt?.toUri())
-            .setExtras(
-                android.os.Bundle().apply {
-                    putInt(MediaKeys.ARTIST_COUNT, artistCount)
-                    putInt(MediaKeys.ALBUM_COUNT, albumCount)
-                    putInt(MediaKeys.SONG_COUNT, songCount)
-                    putLong(MediaKeys.DURATION, genreDuration)
-                },
-            ).setIsBrowsable(true)
-            .setIsPlayable(false)
-            .build(),
-    ).build()

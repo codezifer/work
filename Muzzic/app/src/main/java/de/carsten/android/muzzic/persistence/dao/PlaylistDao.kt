@@ -54,11 +54,12 @@ interface PlaylistDao {
              ORDER BY s2.createdAt DESC
              LIMIT 1) as lastAlbumArt,
             (SELECT GROUP_CONCAT(albumArt)
-             FROM (SELECT DISTINCT s3.albumArt
+             FROM (SELECT MIN(s3.albumArt) as albumArt
                    FROM songs s3
                    JOIN playlist_songs ps3 ON s3.id = ps3.songId
                    WHERE ps3.playlistId = p.id AND s3.albumArt IS NOT NULL
-                   ORDER BY s3.createdAt DESC
+                   GROUP BY s3.artist, s3.album
+                   ORDER BY MAX(s3.createdAt) DESC
                    LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM playlists p
         LEFT JOIN playlist_songs ps ON ps.playlistId = p.id

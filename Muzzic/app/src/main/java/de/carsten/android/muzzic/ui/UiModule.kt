@@ -11,10 +11,10 @@ import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
 import de.carsten.android.muzzic.utils.IMAGE_CACHE
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
-import java.util.concurrent.TimeUnit
 
 private fun getImageLoader(context: Context): ImageLoader {
     val okHttpClient =

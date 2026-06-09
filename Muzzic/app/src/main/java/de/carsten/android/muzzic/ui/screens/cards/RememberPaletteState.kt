@@ -22,8 +22,8 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
     val paletteState = remember(source) { mutableStateOf<Palette?>(null) }
 
     LaunchedEffect(source) {
+        paletteState.value = null // Reset immediately when source changes
         if (source == null) {
-            paletteState.value = null
             return@LaunchedEffect
         }
         val loader = ImageLoader(context)

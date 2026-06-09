@@ -3,12 +3,11 @@ package de.carsten.android.muzzic.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +46,7 @@ fun PlayerScreenContext(
     isPlaying: Boolean,
     progress: Float, // Value between 0f and 1f
     duration: Long,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -58,17 +59,23 @@ fun PlayerScreenContext(
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         // Album Cover
-        AlbumArtControl(
-            if (albumArtPath == null) {
-                AlbumArtInput.None
-            } else {
-                AlbumArtInput.FromPath(albumArtPath)
-            },
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            AlbumArtControl(
+                albumArtInput = if (albumArtPath == null) {
+                    AlbumArtInput.None
+                } else {
+                    AlbumArtInput.FromPath(albumArtPath)
+                },
+            )
+        }
 
         // Song Info
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -89,8 +96,6 @@ fun PlayerScreenContext(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Progress Bar
         Column(modifier = Modifier.fillMaxWidth()) {
             Slider(
@@ -99,8 +104,8 @@ fun PlayerScreenContext(
                 modifier = Modifier.fillMaxWidth(),
                 colors =
                 SliderDefaults.colors(
-                    thumbColor = textColor,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    thumbColor = accentColor,
+                    activeTrackColor = accentColor,
                     inactiveTrackColor = textColor.copy(alpha = 0.3f),
                 ),
             )
@@ -125,8 +130,6 @@ fun PlayerScreenContext(
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // Controls
         Row(
@@ -182,7 +185,7 @@ fun PlayerScreenContext(
                     Modifier
                         .size(72.dp) // Larger play/pause button
                         .background(
-                            MaterialTheme.colorScheme.primary,
+                            accentColor,
                             CircleShape,
                         ),
                 ) {
@@ -208,8 +211,6 @@ fun PlayerScreenContext(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // volume
         VolumeControl()

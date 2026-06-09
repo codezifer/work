@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.utils.id3
+package de.carsten.android.muzzic.id3
 
 import com.mpatric.mp3agic.BufferTools
 import de.carsten.android.muzzic.logging.logger
@@ -17,15 +17,13 @@ object Id3TagParser {
      * @param file The MP3 file to parse.
      * @return An [AlbumArtOffset] containing the location and size, or (0, 0) if not found.
      */
-    fun getAlbumArtOffsetAndSize(file: File): AlbumArtOffset {
-        return try {
-            file.inputStream().use { input ->
-                parseFromStream(input)
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to extract album art offset for ${file.absolutePath}", e)
-            AlbumArtOffset(0L, 0L)
+    fun getAlbumArtOffsetAndSize(file: File): AlbumArtOffset = try {
+        file.inputStream().use { input ->
+            parseFromStream(input)
         }
+    } catch (e: Exception) {
+        logger.error("Failed to extract album art offset for ${file.absolutePath}", e)
+        AlbumArtOffset(0L, 0L)
     }
 
     private fun parseFromStream(input: InputStream): AlbumArtOffset {

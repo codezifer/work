@@ -36,6 +36,26 @@ data class AlbumDto(val albumName: String, val albumYear: Int, val artistName: S
             }
         }
     }
+
+    fun toMediaItem() = MediaItem
+        .Builder()
+        .setMediaId("${MediaKeys.ALBUM_PREFIX}$artistName:$albumName")
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(albumName)
+                .setArtist(artistName)
+                .setReleaseYear(albumYear)
+                .setArtworkUri(lastAlbumArt?.toUri())
+                .setExtras(
+                    Bundle().apply {
+                        putInt(MediaKeys.SONG_COUNT, songCount)
+                        putLong(MediaKeys.DURATION, albumDuration)
+                    },
+                ).setIsBrowsable(true)
+                .setIsPlayable(false)
+                .build(),
+        ).build()
 }
 
 fun AlbumAggregation.toDto() = AlbumDto(
@@ -61,23 +81,3 @@ fun MediaItem.toAlbumDto(): AlbumDto {
         lastAlbumArt = metadata.artworkUri?.toString(),
     )
 }
-
-fun AlbumDto.toMediaItem(): MediaItem = MediaItem
-    .Builder()
-    .setMediaId("${MediaKeys.ALBUM_PREFIX}$artistName:$albumName")
-    .setMediaMetadata(
-        MediaMetadata
-            .Builder()
-            .setTitle(albumName)
-            .setArtist(artistName)
-            .setReleaseYear(albumYear)
-            .setArtworkUri(lastAlbumArt?.toUri())
-            .setExtras(
-                Bundle().apply {
-                    putInt(MediaKeys.SONG_COUNT, songCount)
-                    putLong(MediaKeys.DURATION, albumDuration)
-                },
-            ).setIsBrowsable(true)
-            .setIsPlayable(false)
-            .build(),
-    ).build()

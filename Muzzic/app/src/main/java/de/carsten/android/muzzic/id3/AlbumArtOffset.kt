@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.utils.id3
+package de.carsten.android.muzzic.id3
 
 /**
  * Represents the location and size of embedded album art within a file.
@@ -6,10 +6,7 @@ package de.carsten.android.muzzic.utils.id3
  * @property offset The byte offset where the image data starts.
  * @property size The size of the image data in bytes.
  */
-data class AlbumArtOffset(
-    val offset: Long,
-    val size: Long
-) {
+data class AlbumArtOffset(val offset: Long, val size: Long) {
     /**
      * Checks if the offset and size represent a valid image location.
      */

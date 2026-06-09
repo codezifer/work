@@ -19,6 +19,24 @@ data class ArtistDto(
     Comparable<ArtistDto> {
 
     override fun compareTo(other: ArtistDto): Int = this.artistName.compareTo(other.artistName)
+
+    fun toMediaItem() = MediaItem
+        .Builder()
+        .setMediaId("${MediaKeys.ARTIST_PREFIX}$artistName")
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(artistName)
+                .setArtworkUri(lastAlbumArt?.toUri())
+                .setExtras(
+                    android.os.Bundle().apply {
+                        putInt(MediaKeys.ALBUM_COUNT, albumCount)
+                        putInt(MediaKeys.SONG_COUNT, songCount)
+                    },
+                ).setIsBrowsable(true)
+                .setIsPlayable(false)
+                .build(),
+        ).build()
 }
 
 fun ArtistAggregation.toDto() = ArtistDto(
@@ -41,21 +59,3 @@ fun MediaItem.toArtistDto(): ArtistDto {
         lastAlbumArt = metadata.artworkUri?.toString(),
     )
 }
-
-fun ArtistDto.toMediaItem(): MediaItem = MediaItem
-    .Builder()
-    .setMediaId("${MediaKeys.ARTIST_PREFIX}$artistName")
-    .setMediaMetadata(
-        MediaMetadata
-            .Builder()
-            .setTitle(artistName)
-            .setArtworkUri(lastAlbumArt?.toUri())
-            .setExtras(
-                android.os.Bundle().apply {
-                    putInt(MediaKeys.ALBUM_COUNT, albumCount)
-                    putInt(MediaKeys.SONG_COUNT, songCount)
-                },
-            ).setIsBrowsable(true)
-            .setIsPlayable(false)
-            .build(),
-    ).build()

@@ -30,7 +30,7 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         WHERE s.artist LIKE '%' || :query || '%'
         GROUP BY s.artist ORDER BY s.artist ASC
@@ -45,7 +45,7 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         GROUP BY s.artist ORDER BY s.artist ASC
         """,
@@ -59,7 +59,7 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) as albumCount,
             COUNT(s.id) as songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT DISTINCT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL ORDER BY s2.createdAt DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
         FROM songs s
         WHERE s.genre = :genre
         GROUP BY s.artist ORDER BY s.artist ASC
