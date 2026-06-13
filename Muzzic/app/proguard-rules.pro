@@ -36,9 +36,11 @@
 -keep class com.google.android.exoplayer2.** { *; }
 -dontwarn com.google.android.exoplayer2.**
 
-# MP3Agic
--keep class com.mpatric.mp3agic.** { *; }
--dontwarn com.mpatric.mp3agic.**
+# JAudioTagger - Modern version (net.jthink)
+-dontwarn org.jaudiotagger.**
+-dontwarn java.awt.**
+-dontwarn javax.imageio.**
+-keep class org.jaudiotagger.** { *; }
 
 # Coil
 -keep class coil.** { *; }

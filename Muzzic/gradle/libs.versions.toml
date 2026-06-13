@@ -21,7 +21,7 @@ lifecycleKtx = "2.10.0"
 material = "1.13.0"
 media = "1.7.1"
 mediaSession = "1.10.0"
-mp3agic = "0.9.1"
+jaudiotagger = "3.0.1"
 mockk = "1.13.13"
 robolectric = "4.16.1"
 turbine = "1.2.0"
@@ -92,7 +92,7 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "permissions" }
 
 # id3
-mp3agic = { group = "com.mpatric", name = "mp3agic", version.ref = "mp3agic" }
+jaudiotagger = { group = "net.jthink", name = "jaudiotagger", version.ref = "jaudiotagger" }
 
 # paging
 androidx-paging = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }

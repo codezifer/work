@@ -139,8 +139,8 @@ dependencies {
     // okhttp
     implementation(libs.okhttp)
 
-    // mp3agic
-    implementation(libs.mp3agic)
+    // jaudiotagger
+    implementation(libs.jaudiotagger)
 
     // paging
     implementation(libs.androidx.paging)

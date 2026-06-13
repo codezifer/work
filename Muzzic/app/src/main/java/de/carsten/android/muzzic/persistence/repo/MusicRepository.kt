@@ -8,7 +8,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.mpatric.mp3agic.Mp3File
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.audio.mp3.MP3File
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
@@ -178,25 +179,25 @@ class MusicRepository(
 
     private fun extractSongMetadata(file: File): Song = try {
         if (file.extension.lowercase() == MP3) {
-            val mp3file = Mp3File(file)
-            val id3v2Tag = mp3file.id3v2Tag
+            val audioFile = AudioFileIO.read(file)
+            val tag = if (audioFile is MP3File) audioFile.iD3v2Tag else audioFile.tag
 
-            val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(id3v2Tag?.track)
-            val extended = id3v2Tag?.let { Id3TagParser.extractExtendedMetadata(it) }
+            val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(tag?.getFirst(org.jaudiotagger.tag.FieldKey.TRACK))
+            val extended = Id3TagParser.extractExtendedMetadata(tag)
 
             Song(
-                title = id3v2Tag?.title?.trim() ?: file.nameWithoutExtension,
-                artist = id3v2Tag?.artist?.trim() ?: UNKNOWN_ARTIST,
-                album = id3v2Tag?.album?.trim() ?: UNKNOWN_ALBUM,
-                genre = id3v2Tag?.genreDescription?.trim() ?: UNKNOWN_GENRE,
-                duration = mp3file.lengthInMilliseconds,
+                title = tag?.getFirst(org.jaudiotagger.tag.FieldKey.TITLE)?.trim() ?: file.nameWithoutExtension,
+                artist = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ARTIST)?.trim() ?: UNKNOWN_ARTIST,
+                album = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ALBUM)?.trim() ?: UNKNOWN_ALBUM,
+                genre = tag?.getFirst(org.jaudiotagger.tag.FieldKey.GENRE)?.trim() ?: UNKNOWN_GENRE,
+                duration = audioFile.audioHeader.trackLength.toLong() * 1000L,
                 filePath = file.absolutePath,
                 albumArt = saveAlbumArt(file),
-                albumYear = extended?.year ?: -1,
+                albumYear = extended.year,
                 trackNumber = trackNumber.coerceAtLeast(0),
                 totalTracks = totalTracks.coerceAtLeast(0),
-                rating = extended?.rating ?: 0,
-                playCount = extended?.playCount ?: 0,
+                rating = extended.rating,
+                playCount = extended.playCount,
             )
         } else {
             // For other formats, use MediaMetadataRetriever
@@ -316,16 +317,5 @@ class MusicRepository(
     suspend fun getTopSongs(): List<SongPlayCount> {
         val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
         return playHistoryDao.getTopSongs(oneMonthAgo)
-    }
-
-    private fun indexOf(data: ByteArray, search: ByteArray): Int {
-        if (search.isEmpty()) return 0
-        startloop@ for (i in 0 until data.size - search.size + 1) {
-            for (j in search.indices) {
-                if (data[i + j] != search[j]) continue@startloop
-            }
-            return i
-        }
-        return -1
     }
 }
