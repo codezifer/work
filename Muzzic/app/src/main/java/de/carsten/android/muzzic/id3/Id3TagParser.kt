@@ -169,8 +169,16 @@ object Id3TagParser {
     }
 
     private fun parseFromStream(input: InputStream): AlbumArtOffset {
+        // ID3 header: "ID3" (3 bytes), version (2 bytes), flags (1 byte), size (4 bytes)
         val header = ByteArray(10)
-        if (input.read(header) != 10 || String(header, 0, 3) != ID_ID3) {
+        val bytesReadHeader = input.read(header)
+        if (bytesReadHeader != 10) {
+            logger.debug("Could not read ID3 header (read $bytesReadHeader bytes)")
+            return AlbumArtOffset(0L, 0L)
+        }
+        // Validate ID3 identifier
+        if (String(header, 0, 3) != ID_ID3) {
+            logger.debug("No ID3 tag found in file")
             return AlbumArtOffset(0L, 0L)
         }
 
@@ -178,20 +186,36 @@ object Id3TagParser {
         val tagFlags = header[5].toInt()
         val extendedHeader = (tagFlags and 0x40) != 0
 
+        // The size is a 32-bit synchsafe integer (7 bits per byte)
         val tagLength = BufferTools.unpackSynchsafeInteger(header[6], header[7], header[8], header[9])
         val tagBytes = ByteArray(tagLength)
-        if (input.read(tagBytes) != tagLength) {
+        var totalBytesRead = 0
+        while (totalBytesRead < tagLength) {
+            val read = input.read(tagBytes, totalBytesRead, tagLength - totalBytesRead)
+            if (read == -1) break
+            totalBytesRead += read
+        }
+
+        if (totalBytesRead != tagLength) {
+            logger.error("Failed to read full ID3 tag (expected $tagLength, read $totalBytesRead)")
             return AlbumArtOffset(0L, 0L)
         }
 
         var offset = 0
         if (extendedHeader) {
-            val extHeaderSize = if (majorVersion == 4) {
-                BufferTools.unpackSynchsafeInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3])
-            } else {
-                BufferTools.unpackInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3]) + 4
+            try {
+                val extHeaderSize = if (majorVersion == 4) {
+                    // ID3v2.4 extended header size is a synchsafe integer
+                    BufferTools.unpackSynchsafeInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3])
+                } else {
+                    // ID3v2.3 extended header size is a regular integer
+                    BufferTools.unpackInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3]) + 4
+                }
+                offset += extHeaderSize
+            } catch (e: Exception) {
+                logger.error("Error parsing extended header", e)
+                return AlbumArtOffset(0L, 0L)
             }
-            offset += extHeaderSize
         }
 
         while (offset + 10 < tagLength) {
@@ -199,63 +223,98 @@ object Id3TagParser {
             val frameSize: Int
             val frameHeaderSize: Int
 
-            if (majorVersion == 2) {
-                frameId = String(tagBytes, offset, 3)
-                frameSize = BufferTools.unpackInteger(0.toByte(), tagBytes[offset + 3], tagBytes[offset + 4], tagBytes[offset + 5])
-                frameHeaderSize = 6
-            } else {
-                frameId = String(tagBytes, offset, 4)
-                frameSize = if (majorVersion == 4) {
-                    BufferTools.unpackSynchsafeInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+            try {
+                if (majorVersion == 2) {
+                    // ID3v2.2 frame header: 3-byte ID, 3-byte size
+                    frameId = String(tagBytes, offset, 3)
+                    frameSize = BufferTools.unpackInteger(0.toByte(), tagBytes[offset + 3], tagBytes[offset + 4], tagBytes[offset + 5])
+                    frameHeaderSize = 6
                 } else {
-                    BufferTools.unpackInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+                    // ID3v2.3/4 frame header: 4-byte ID, 4-byte size, 2-byte flags
+                    frameId = String(tagBytes, offset, 4)
+                    frameSize = if (majorVersion == 4) {
+                        // ID3v2.4 uses synchsafe integers for frame sizes
+                        BufferTools.unpackSynchsafeInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+                    } else {
+                        // ID3v2.3 uses regular integers for frame sizes
+                        BufferTools.unpackInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+                    }
+                    frameHeaderSize = 10
                 }
-                frameHeaderSize = 10
+            } catch (e: Exception) {
+                logger.error("Error parsing frame header at offset $offset", e)
+                break
             }
 
             if (frameId == ID_APIC || frameId == ID_PIC) {
-                val frameData = ByteArray(frameSize)
-                System.arraycopy(tagBytes, offset + frameHeaderSize, frameData, 0, frameSize)
-
-                // Calculate internal offset within APIC/PIC frame
-                var internalOffset = 1 // Skip Text Encoding byte
-
-                if (majorVersion == 2) {
-                    internalOffset += 3 // Skip 3-byte image format
-                } else {
-                    // Skip MIME type
-                    while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
-                        internalOffset++
+                try {
+                    if (offset + frameHeaderSize + frameSize > tagLength) {
+                        logger.error("Frame $frameId exceeds tag length (offset: $offset, size: $frameSize, tagLength: $tagLength)")
+                        return AlbumArtOffset(0L, 0L)
                     }
-                    internalOffset++ // Skip null terminator
-                }
 
-                internalOffset++ // Skip Picture Type byte
+                    val frameData = ByteArray(frameSize)
+                    System.arraycopy(tagBytes, offset + frameHeaderSize, frameData, 0, frameSize)
 
-                // Skip Description
-                val encoding = frameData[0].toInt()
-                if (encoding == 1 || encoding == 2) { // UTF-16
-                    while (internalOffset + 1 < frameSize && (frameData[internalOffset] != 0.toByte() || frameData[internalOffset + 1] != 0.toByte())) {
+                    // Calculate internal offset within APIC/PIC frame
+                    var internalOffset = 1 // Skip Text Encoding byte
+
+                    if (majorVersion == 2) {
+                        internalOffset += 3 // Skip 3-byte image format (e.g. "JPG")
+                    } else {
+                        // Skip MIME type (null-terminated string)
+                        while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
+                            internalOffset++
+                        }
+                        internalOffset++ // Skip null terminator
+                    }
+
+                    if (internalOffset >= frameSize) {
+                        logger.error("Malformed APIC/PIC frame: internal offset $internalOffset exceeds frame size $frameSize")
+                        return AlbumArtOffset(0L, 0L)
+                    }
+
+                    internalOffset++ // Skip Picture Type byte (e.g. 0x03 for Front Cover)
+
+                    // Skip Description (null-terminated string)
+                    val encoding = frameData[0].toInt()
+                    if (encoding == 1 || encoding == 2) { // UTF-16 (two null bytes terminator)
+                        while (internalOffset + 1 < frameSize && (frameData[internalOffset] != 0.toByte() || frameData[internalOffset + 1] != 0.toByte())) {
+                            internalOffset += 2
+                        }
                         internalOffset += 2
-                    }
-                    internalOffset += 2
-                } else { // ISO-8859-1 or UTF-8
-                    while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
+                    } else { // ISO-8859-1 or UTF-8 (single null byte terminator)
+                        while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
+                            internalOffset++
+                        }
                         internalOffset++
                     }
-                    internalOffset++
+
+                    if (internalOffset >= frameSize) {
+                        logger.error("Malformed APIC/PIC frame: internal offset after description $internalOffset exceeds frame size $frameSize")
+                        return AlbumArtOffset(0L, 0L)
+                    }
+
+                    val finalOffset = 10L + offset + frameHeaderSize + internalOffset
+                    val finalSize = frameSize - internalOffset.toLong()
+
+                    if (finalSize <= 0) {
+                        logger.error("Invalid final image size calculated: $finalSize")
+                        return AlbumArtOffset(0L, 0L)
+                    }
+
+                    return AlbumArtOffset(finalOffset, finalSize)
+                } catch (e: Exception) {
+                    logger.error("Error extracting album art from $frameId frame", e)
+                    return AlbumArtOffset(0L, 0L)
                 }
-
-                val finalOffset = 10L + offset + frameHeaderSize + internalOffset
-                val finalSize = frameSize - internalOffset.toLong()
-
-                return AlbumArtOffset(finalOffset, finalSize)
             }
 
             if (frameSize <= 0) break
             offset += frameHeaderSize + frameSize
         }
 
+        logger.debug("No APIC/PIC frame found in ID3 tag")
         return AlbumArtOffset(0L, 0L)
     }
 }

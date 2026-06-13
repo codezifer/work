@@ -253,6 +253,7 @@ class MusicRepository(
         if (albumArtOffset.isValid) {
             AlbumArtUri(file.absolutePath, albumArtOffset.offset, albumArtOffset.size).get()
         } else {
+            logger.debug("No valid album art offset found for ${file.name}")
             null
         }
     } catch (e: Exception) {

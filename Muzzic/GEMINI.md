@@ -138,6 +138,7 @@ fun processData(input: String): Result { ... }
 - **Stateless Components**: Keep shared components as stateless as possible by hoisting state to the caller.
 - **Custom UI Shapes**: Avoid inline definitions of `GenericShape` with manual path drawing for common geometric patterns. Instead, use idiomatic `Shape` implementations (`RoundedCornerShape`, `CutCornerShape`) with `CornerSize` (percentage or absolute). Centralize reusable shapes in `ui/theme/Shapes.kt` to ensure design consistency.
 - **Avoid Magic Numbers**: Never use hardcoded "magic numbers" for dimensions, ratios, or colors. Define reusable constants with descriptive names. For proportional rounding (percentage-based `CornerSize`), document the base dimensions used for the calculation to ensure maintainability.
+- **Byte Operations & Low-level Logic**: Always document byte-level operations, bit-shifting, and manual buffer parsing. These operations are hard to read and require explicit comments explaining the structure being parsed (e.g., "Extracts the synchsafe integer from bytes 6-9 representing the tag size").
 
 ---
 

@@ -25,8 +25,7 @@ data class PaletteColors(val backgroundColor: Color, val contentColor: Color)
 fun Palette?.extractColors(defaultBackground: Color, defaultContent: Color): PaletteColors {
     if (this == null) return PaletteColors(defaultBackground, defaultContent)
 
-    // Prioritize vibrant colors as they usually represent the "character" of the art better
-    // than the dominant color (which is often just a background or border).
+    // Strictly prioritize vibrant colors to better capture the visual character of album art.
     val swatch = vibrantSwatch
         ?: lightVibrantSwatch
         ?: darkVibrantSwatch
