@@ -33,6 +33,7 @@ data class PlayingQueue(
     val totalTracks: Int? = null,
     val artist: String? = null,
     val album: String? = null,
+    val albumYear: Int? = null,
     val albumArt: String? = null,
     val genre: String? = null,
     val duration: Long? = null, // in milliseconds
@@ -48,6 +49,7 @@ data class PlayingQueue(
             totalTracks = mediaItem.mediaMetadata.totalTrackCount,
             artist = mediaItem.mediaMetadata.artist?.toString(),
             album = mediaItem.mediaMetadata.albumTitle?.toString(),
+            albumYear = mediaItem.mediaMetadata.releaseYear,
             albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
             genre = mediaItem.mediaMetadata.genre?.toString(),
             duration = mediaItem.mediaMetadata.durationMs,
@@ -70,6 +72,7 @@ data class PlayingQueue(
             totalTracks = dto.totalTracks,
             artist = dto.artist,
             album = dto.album,
+            albumYear = dto.albumYear,
             albumArt = dto.albumArt,
             genre = dto.genre,
             duration = dto.duration,
@@ -91,6 +94,7 @@ data class PlayingQueue(
                 .setTotalTrackCount(totalTracks)
                 .setArtist(artist)
                 .setAlbumTitle(album)
+                .setReleaseYear(albumYear)
                 .setArtworkUri(albumArt?.toUri())
                 .setGenre(genre)
                 .setDurationMs(duration)
@@ -106,6 +110,7 @@ data class PlayingQueue(
         totalTracks = totalTracks ?: -1,
         artist = artist ?: UNKNOWN,
         album = album ?: UNKNOWN,
+        albumYear = albumYear ?: -1,
         albumArt = albumArt ?: UNKNOWN,
         genre = genre ?: UNKNOWN,
         duration = duration ?: -1L,

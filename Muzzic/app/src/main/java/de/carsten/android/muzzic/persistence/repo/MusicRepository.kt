@@ -9,6 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.mpatric.mp3agic.Mp3File
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
@@ -25,7 +26,6 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
-import de.carsten.android.muzzic.ui.utils.parseId3Year
 import de.carsten.android.muzzic.utils.FLAC
 import de.carsten.android.muzzic.utils.M4A
 import de.carsten.android.muzzic.utils.MP3
@@ -35,7 +35,6 @@ import de.carsten.android.muzzic.utils.TOP_100
 import de.carsten.android.muzzic.utils.UNKNOWN_ALBUM
 import de.carsten.android.muzzic.utils.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.utils.UNKNOWN_GENRE
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -43,6 +42,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MusicRepository(
     val songDao: SongDao,
@@ -88,7 +88,7 @@ class MusicRepository(
     }
 
     suspend fun performLibraryScan(onProgress: ((String, Int) -> Unit)? = null) = coroutineScope {
-        onProgress?.invoke(context.getString(de.carsten.android.muzzic.R.string.scan_status_scanning), 0)
+        onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
         val musicFiles = scanForMusicFiles()
         val currentSongs = songDao.getAllSongs().first()
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
@@ -104,7 +104,7 @@ class MusicRepository(
             val chunkedFiles = newFiles.chunked(chunkSize)
 
             for (chunk in chunkedFiles) {
-                val songs =
+                val songs: List<Song> =
                     chunk
                         .map { file ->
                             async(Dispatchers.IO) {
@@ -119,14 +119,14 @@ class MusicRepository(
                 processedFiles += chunk.size
                 val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
                 onProgress?.invoke(
-                    context.getString(de.carsten.android.muzzic.R.string.scan_status_metadata, progress),
+                    context.getString(R.string.scan_status_metadata, progress),
                     progress,
                 )
             }
             updateAutomaticPlaylists()
         }
 
-        onProgress?.invoke(context.getString(de.carsten.android.muzzic.R.string.scan_status_cleaning), 100)
+        onProgress?.invoke(context.getString(R.string.scan_status_cleaning), 100)
         ensureActive()
         // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
         val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
@@ -181,6 +181,9 @@ class MusicRepository(
             val mp3file = Mp3File(file)
             val id3v2Tag = mp3file.id3v2Tag
 
+            val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(id3v2Tag?.track)
+            val extended = id3v2Tag?.let { Id3TagParser.extractExtendedMetadata(it) }
+
             Song(
                 title = id3v2Tag?.title?.trim() ?: file.nameWithoutExtension,
                 artist = id3v2Tag?.artist?.trim() ?: UNKNOWN_ARTIST,
@@ -189,14 +192,22 @@ class MusicRepository(
                 duration = mp3file.lengthInMilliseconds,
                 filePath = file.absolutePath,
                 albumArt = saveAlbumArt(file),
-                albumYear = parseId3Year(id3v2Tag?.year),
-                rating = id3v2Tag?.wmpRating ?: 0,
+                albumYear = extended?.year ?: -1,
+                trackNumber = trackNumber.coerceAtLeast(0),
+                totalTracks = totalTracks.coerceAtLeast(0),
+                rating = extended?.rating ?: 0,
+                playCount = extended?.playCount ?: 0,
             )
         } else {
             // For other formats, use MediaMetadataRetriever
             val retriever = MediaMetadataRetriever()
             try {
                 retriever.setDataSource(file.absolutePath)
+
+                val trackString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
+                val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(trackString)
+                val yearString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)
+                    ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
 
                 Song(
                     title =
@@ -217,6 +228,9 @@ class MusicRepository(
                         ?.toLongOrNull() ?: 0L,
                     filePath = file.absolutePath,
                     albumArt = saveAlbumArt(file),
+                    trackNumber = trackNumber.coerceAtLeast(0),
+                    totalTracks = totalTracks.coerceAtLeast(0),
+                    albumYear = Id3TagParser.parseId3Year(yearString),
                 )
             } finally {
                 retriever.release()

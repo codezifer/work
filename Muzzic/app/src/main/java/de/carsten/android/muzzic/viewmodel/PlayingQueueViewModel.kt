@@ -173,4 +173,32 @@ class PlayingQueueViewModel(
             _currentName.value = name
         }
     }
+
+    fun shuffleQueue() {
+        val shuffled = currentPlayingQueue.value.shuffled()
+        updateQueue(shuffled)
+    }
+
+    fun sortQueueByMetadata() {
+        val sorted = currentPlayingQueue.value.sortedWith(
+            compareBy<PlayingQueueDto> { it.artist }
+                .thenBy { it.albumYear }
+                .thenBy { it.trackNumber },
+        )
+        updateQueue(sorted)
+    }
+
+    private fun updateQueue(newQueue: List<PlayingQueueDto>) {
+        val mediaItems = newQueue.map { it.toMediaItem() }
+
+        // Update player
+        val b = mediaLibraryManager.browser.value ?: return
+        b.setMediaItems(mediaItems)
+        b.prepare()
+
+        // Update persistence
+        viewModelScope.launch {
+            repository.persistQueue(mediaItems)
+        }
+    }
 }

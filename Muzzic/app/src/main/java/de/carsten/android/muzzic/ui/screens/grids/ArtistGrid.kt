@@ -35,17 +35,33 @@ fun ArtistGrid(
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
 
-    val alphabet by remember(artists) {
+    val sortedArtists = remember(artists) {
+        artists.sorted()
+    }
+
+    val alphabet by remember(sortedArtists) {
         derivedStateOf {
-            artists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
+            sortedArtists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
         }
     }
 
-    val activeLetter by remember(artists) {
+    val letterToIndexMap by remember(sortedArtists) {
+        derivedStateOf {
+            sortedArtists.foldIndexed(mutableMapOf<String, Int>()) { index, map, artist ->
+                val letter = artist.artistName.take(1).uppercase()
+                if (!map.containsKey(letter)) {
+                    map[letter] = index
+                }
+                map
+            }
+        }
+    }
+
+    val activeLetter by remember(sortedArtists) {
         derivedStateOf {
             val index = gridState.firstVisibleItemIndex
-            if (index in artists.indices) {
-                artists[index].artistName.take(1).uppercase()
+            if (index in sortedArtists.indices) {
+                sortedArtists[index].artistName.take(1).uppercase()
             } else {
                 null
             }
@@ -65,7 +81,7 @@ fun ArtistGrid(
                 horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 itemsIndexed(
-                    items = artists.sorted(),
+                    items = sortedArtists,
                     key = { _, artist -> artist.artistName },
                     contentType = { _, _ -> "Artist" },
                 ) { _, artist ->
@@ -84,8 +100,7 @@ fun ArtistGrid(
                     activeLetter = activeLetter,
                     isScrolling = gridState.isScrollInProgress,
                     onLetterSelected = { letter ->
-                        val index = artists.indexOfFirst { it.artistName.startsWith(letter, ignoreCase = true) }
-                        if (index != -1) {
+                        letterToIndexMap[letter]?.let { index ->
                             scope.launch {
                                 gridState.scrollToItem(index)
                             }

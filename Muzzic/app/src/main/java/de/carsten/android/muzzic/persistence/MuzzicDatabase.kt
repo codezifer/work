@@ -29,7 +29,7 @@ import de.carsten.android.muzzic.persistence.utils.Converters
         PlayingQueue::class,
     ],
     exportSchema = true,
-    version = 7,
+    version = 8,
     autoMigrations = [],
 )
 @TypeConverters(Converters::class)

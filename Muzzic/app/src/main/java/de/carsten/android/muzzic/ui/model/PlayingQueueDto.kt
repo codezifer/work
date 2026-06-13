@@ -17,6 +17,7 @@ data class PlayingQueueDto(
     val totalTracks: Int = -1,
     val artist: String = UNKNOWN,
     val album: String = UNKNOWN,
+    val albumYear: Int = -1,
     val albumArt: String = UNKNOWN,
     val genre: String = UNKNOWN,
     val duration: Long = -1,
@@ -59,6 +60,7 @@ data class PlayingQueueDto(
                 .setTotalTrackCount(totalTracks)
                 .setArtist(artist)
                 .setAlbumTitle(album)
+                .setReleaseYear(albumYear)
                 .setGenre(genre)
                 .setDurationMs(duration)
                 .setArtworkUri(albumArt.toUri())

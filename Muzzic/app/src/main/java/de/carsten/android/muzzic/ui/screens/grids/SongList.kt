@@ -27,17 +27,33 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    val alphabet by remember(songs) {
+    val sortedSongs = remember(songs) {
+        songs.sorted()
+    }
+
+    val alphabet by remember(sortedSongs) {
         derivedStateOf {
-            songs.mapNotNull { it.title.take(1)?.uppercase() }.distinct().sorted()
+            sortedSongs.map { it.title.take(1).uppercase() }.distinct().sorted()
         }
     }
 
-    val activeLetter by remember(songs) {
+    val letterToIndexMap by remember(sortedSongs) {
+        derivedStateOf {
+            sortedSongs.foldIndexed(mutableMapOf<String, Int>()) { index, map, song ->
+                val letter = song.title.take(1).uppercase()
+                if (!map.containsKey(letter)) {
+                    map[letter] = index
+                }
+                map
+            }
+        }
+    }
+
+    val activeLetter by remember(sortedSongs) {
         derivedStateOf {
             val index = listState.firstVisibleItemIndex
-            if (index in songs.indices) {
-                songs[index].title.take(1).uppercase()
+            if (index in sortedSongs.indices) {
+                sortedSongs[index].title.take(1).uppercase()
             } else {
                 null
             }
@@ -55,7 +71,7 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
-                    items = songs.sorted(),
+                    items = sortedSongs,
                     key = { song -> song.id },
                     contentType = { "Song" },
                 ) { song ->
@@ -74,8 +90,7 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
                     activeLetter = activeLetter,
                     isScrolling = listState.isScrollInProgress,
                     onLetterSelected = { letter ->
-                        val index = songs.indexOfFirst { it.title?.startsWith(letter, ignoreCase = true) == true }
-                        if (index != -1) {
+                        letterToIndexMap[letter]?.let { index ->
                             scope.launch {
                                 listState.scrollToItem(index)
                             }

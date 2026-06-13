@@ -180,27 +180,11 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                     ),
             ) {
                 alphabet.forEach { letter ->
-                    Box(
-                        modifier =
-                        Modifier
-                            .weight(1f) // Distributes all letters evenly across the available height
-                            .width(40.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = letter,
-                            fontSize = 12.sp,
-                            fontWeight = if (effectiveLetter == letter) FontWeight.Bold else FontWeight.Normal,
-                            color =
-                            if (effectiveLetter == letter) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.6f,
-                                )
-                            },
-                        )
-                    }
+                    FastScrollerLetter(
+                        letter = letter,
+                        isActive = effectiveLetter == letter,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
 
@@ -224,6 +208,30 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        modifier =
+        modifier
+            .width(40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = letter,
+            fontSize = 12.sp,
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+            color =
+            if (isActive) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.6f,
+                )
+            },
+        )
     }
 }
 
