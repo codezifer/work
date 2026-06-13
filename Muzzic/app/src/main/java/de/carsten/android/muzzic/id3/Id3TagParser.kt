@@ -1,13 +1,15 @@
 package de.carsten.android.muzzic.id3
 
 import de.carsten.android.muzzic.logging.logger
+import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
+import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.ID3v24Frames
+import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT
+import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM
 import java.io.File
 import java.io.InputStream
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 
 /**
  * Utility for parsing ID3 tags and extracting metadata like album art offsets.
@@ -37,6 +39,36 @@ object Id3TagParser {
     }
 
     /**
+     * Extracts all relevant metadata from an [AudioFile].
+     *
+     * @param audioFile The audio file to extract from.
+     * @return An [ExtendedMetadata] object containing the extracted values.
+     */
+    fun extractMetadata(audioFile: AudioFile): ExtendedMetadata {
+        val tag = audioFile.tag
+        if (tag == null) return ExtendedMetadata()
+
+        val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
+        val year = parseId3Year(yearString)
+
+        val trackString = tag.getFirst(FieldKey.TRACK)
+        val (trackNumber, totalTracksFromTrack) = parseTrackString(trackString)
+        val totalTracksField = tag.getFirst(FieldKey.TRACK_TOTAL).trim().toIntOrNull() ?: -1
+        val totalTracks = if (totalTracksField != -1) totalTracksField else totalTracksFromTrack
+
+        val rating = extractRating(tag)
+        val playCount = extractPlayCount(tag)
+
+        return ExtendedMetadata(
+            year = year,
+            rating = rating,
+            playCount = playCount,
+            trackNumber = trackNumber,
+            totalTracks = totalTracks,
+        )
+    }
+
+    /**
      * Extracts extended metadata (Year, Rating, Play Count) from an ID3v2 tag.
      *
      * @param tag The tag to extract from.
@@ -47,6 +79,12 @@ object Id3TagParser {
 
         val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
         val year = parseId3Year(yearString)
+
+        val trackString = tag.getFirst(FieldKey.TRACK)
+        val (trackNumber, totalTracksFromTrack) = parseTrackString(trackString)
+        val totalTracksField = tag.getFirst(FieldKey.TRACK_TOTAL).trim().toIntOrNull() ?: -1
+        val totalTracks = if (totalTracksField != -1) totalTracksField else totalTracksFromTrack
+
         val rating = extractRating(tag)
         val playCount = extractPlayCount(tag)
 
@@ -54,85 +92,46 @@ object Id3TagParser {
             year = year,
             rating = rating,
             playCount = playCount,
+            trackNumber = trackNumber,
+            totalTracks = totalTracks,
         )
     }
 
     private fun extractRating(tag: Tag): Int {
-        // JAudioTagger's way of getting POPM frame
+        // Try POPM frame first (ID3v2 standard for rating)
         val frame = tag.getFirstField(ID_RATING)
-        if (frame != null) {
-            frame.rawContent?.let { content ->
-                // POPM frame format: <email> <00> <rating> <optional counter>
-                // We find the null terminator of the email string
-                var nullIndex = -1
-                for (i in content.indices) {
-                    if (content[i] == 0.toByte()) {
-                        nullIndex = i
-                        break
-                    }
-                }
-                if (nullIndex != -1 && nullIndex + 1 < content.size) {
-                    return content[nullIndex + 1].toInt() and 0xFF
-                }
+        if (frame is AbstractID3v2Frame) {
+            val body = frame.body
+            if (body is FrameBodyPOPM) {
+                return body.rating.toInt() and 0xFF
             }
         }
-        return 0
+
+        // Fallback to general FieldKey.RATING (works for many formats in JAudioTagger)
+        val ratingStr = tag.getFirst(FieldKey.RATING)
+        return ratingStr.toIntOrNull() ?: 0
     }
 
     private fun extractPlayCount(tag: Tag): Int {
         // Try POPM counter first
         val popmFrame = tag.getFirstField(ID_RATING)
-        if (popmFrame != null) {
-            val content = popmFrame.rawContent
-            if (content != null) {
-                var nullIndex = -1
-                for (i in content.indices) {
-                    if (content[i] == 0.toByte()) {
-                        nullIndex = i
-                        break
-                    }
-                }
-                // Counter starts after email (null-terminated) and rating (1 byte)
-                val counterIndex = nullIndex + 2
-                if (nullIndex != -1 && counterIndex < content.size) {
-                    val counterBytes = content.copyOfRange(counterIndex, content.size)
-                    return when (counterBytes.size) {
-                        1 -> counterBytes[0].toInt() and 0xFF
-                        2 -> ByteBuffer.wrap(counterBytes).short.toInt() and 0xFFFF
-                        3 -> {
-                            val buf = ByteBuffer.allocate(4)
-                            buf.put(0.toByte())
-                            buf.put(counterBytes)
-                            buf.rewind()
-                            buf.int
-                        }
-                        4 -> ByteBuffer.wrap(counterBytes).int
-                        else -> 0
-                    }
-                }
+        if (popmFrame is AbstractID3v2Frame) {
+            val body = popmFrame.body
+            if (body is FrameBodyPOPM) {
+                val counter = body.counter
+                if (counter > 0) return counter.toInt()
             }
         }
 
         // Fallback to PCNT frame
         val pcntFrame = tag.getFirstField(ID_PLAY_COUNT)
-        if (pcntFrame != null) {
-            val content = pcntFrame.rawContent
-            if (content != null && content.isNotEmpty()) {
-                return when (content.size) {
-                    1 -> content[0].toInt() and 0xFF
-                    2 -> ByteBuffer.wrap(content).short.toInt() and 0xFFFF
-                    3 -> {
-                        val buf = ByteBuffer.allocate(4)
-                        buf.put(0.toByte())
-                        buf.put(content)
-                        buf.rewind()
-                        buf.int
-                    }
-                    4 -> ByteBuffer.wrap(content).int
-                    else -> 0
-                }
+        if (pcntFrame is AbstractID3v2Frame) {
+            val body = pcntFrame.body
+            if (body is FrameBodyPCNT) {
+                return body.counter.toInt()
             }
         }
+
         return 0
     }
 
@@ -163,9 +162,11 @@ object Id3TagParser {
     fun parseTrackString(track: String?): Pair<Int, Int> {
         if (track.isNullOrBlank()) return Pair(-1, -1)
 
+        val separators = listOf("/", "\\", "-", ":")
         return try {
-            if (track.contains("/")) {
-                val parts = track.split("/")
+            val separator = separators.find { track.contains(it) }
+            if (separator != null) {
+                val parts = track.split(separator)
                 val trackNum = parts.getOrNull(0)?.trim()?.toIntOrNull() ?: -1
                 val totalTracks = parts.getOrNull(1)?.trim()?.toIntOrNull() ?: -1
                 Pair(trackNum, totalTracks)

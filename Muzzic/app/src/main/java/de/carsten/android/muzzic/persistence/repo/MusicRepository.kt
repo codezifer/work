@@ -9,7 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.audio.mp3.MP3File
+import org.jaudiotagger.tag.FieldKey
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
@@ -178,75 +178,70 @@ class MusicRepository(
     }
 
     private fun extractSongMetadata(file: File): Song = try {
-        if (file.extension.lowercase() == MP3) {
-            val audioFile = AudioFileIO.read(file)
-            val tag = if (audioFile is MP3File) audioFile.iD3v2Tag else audioFile.tag
+        val audioFile = AudioFileIO.read(file)
+        val tag = audioFile.tag
+        val extended = Id3TagParser.extractMetadata(audioFile)
 
-            val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(tag?.getFirst(org.jaudiotagger.tag.FieldKey.TRACK))
-            val extended = Id3TagParser.extractExtendedMetadata(tag)
+        Song(
+            title = tag?.getFirst(FieldKey.TITLE)?.trim() ?: file.nameWithoutExtension,
+            artist = tag?.getFirst(FieldKey.ARTIST)?.trim() ?: UNKNOWN_ARTIST,
+            album = tag?.getFirst(FieldKey.ALBUM)?.trim() ?: UNKNOWN_ALBUM,
+            genre = tag?.getFirst(FieldKey.GENRE)?.trim() ?: UNKNOWN_GENRE,
+            duration = audioFile.audioHeader.trackLength.toLong() * 1000L,
+            filePath = file.absolutePath,
+            albumArt = saveAlbumArt(file),
+            albumYear = extended.year,
+            trackNumber = extended.trackNumber.coerceAtLeast(0),
+            totalTracks = extended.totalTracks.coerceAtLeast(0),
+            rating = extended.rating,
+            playCount = extended.playCount,
+        )
+    } catch (e: Exception) {
+        // Fallback to MediaMetadataRetriever if JAudioTagger fails
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(file.absolutePath)
+
+            val trackString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
+            val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(trackString)
+            val yearString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)
+                ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
 
             Song(
-                title = tag?.getFirst(org.jaudiotagger.tag.FieldKey.TITLE)?.trim() ?: file.nameWithoutExtension,
-                artist = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ARTIST)?.trim() ?: UNKNOWN_ARTIST,
-                album = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ALBUM)?.trim() ?: UNKNOWN_ALBUM,
-                genre = tag?.getFirst(org.jaudiotagger.tag.FieldKey.GENRE)?.trim() ?: UNKNOWN_GENRE,
-                duration = audioFile.audioHeader.trackLength.toLong() * 1000L,
+                title =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
+                    ?: file.nameWithoutExtension,
+                artist =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
+                    ?: UNKNOWN_ARTIST,
+                album =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
+                    ?: UNKNOWN_ALBUM,
+                genre =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
+                    ?: UNKNOWN_GENRE,
+                duration =
+                retriever
+                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    ?.toLongOrNull() ?: 0L,
                 filePath = file.absolutePath,
                 albumArt = saveAlbumArt(file),
-                albumYear = extended.year,
                 trackNumber = trackNumber.coerceAtLeast(0),
                 totalTracks = totalTracks.coerceAtLeast(0),
-                rating = extended.rating,
-                playCount = extended.playCount,
+                albumYear = Id3TagParser.parseId3Year(yearString),
             )
-        } else {
-            // For other formats, use MediaMetadataRetriever
-            val retriever = MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(file.absolutePath)
-
-                val trackString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
-                val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(trackString)
-                val yearString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)
-                    ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
-
-                Song(
-                    title =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
-                        ?: file.nameWithoutExtension,
-                    artist =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
-                        ?: UNKNOWN_ARTIST,
-                    album =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
-                        ?: UNKNOWN_ALBUM,
-                    genre =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
-                        ?: UNKNOWN_GENRE,
-                    duration =
-                    retriever
-                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull() ?: 0L,
-                    filePath = file.absolutePath,
-                    albumArt = saveAlbumArt(file),
-                    trackNumber = trackNumber.coerceAtLeast(0),
-                    totalTracks = totalTracks.coerceAtLeast(0),
-                    albumYear = Id3TagParser.parseId3Year(yearString),
-                )
-            } finally {
-                retriever.release()
-            }
+        } catch (e: Exception) {
+            Song(
+                title = file.nameWithoutExtension,
+                artist = UNKNOWN_ARTIST,
+                album = UNKNOWN_ALBUM,
+                genre = UNKNOWN_GENRE,
+                duration = 0L,
+                filePath = file.absolutePath,
+            )
+        } finally {
+            retriever.release()
         }
-    } catch (e: Exception) {
-        // Fallback
-        Song(
-            title = file.nameWithoutExtension,
-            artist = UNKNOWN_ARTIST,
-            album = UNKNOWN_ALBUM,
-            genre = UNKNOWN_GENRE,
-            duration = 0L,
-            filePath = file.absolutePath,
-        )
     }
 
     private fun saveAlbumArt(file: File): String? = try {
