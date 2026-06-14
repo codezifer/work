@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +44,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import kotlin.math.roundToInt
 
@@ -50,7 +52,7 @@ import kotlin.math.roundToInt
 @Composable
 fun VolumeControl(
     modifier: Modifier = Modifier,
-    accentColor: Color = MaterialTheme.colorScheme.primary
+    accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     AppTheme {
         val context = LocalContext.current
@@ -84,7 +86,9 @@ fun VolumeControl(
         }
 
         Box(modifier = modifier) {
-            IconButton(onClick = { showSlider = !showSlider }) {
+            IconButton(
+                onClick = { showSlider = !showSlider }
+            ) {
                 val icon = when {
                     volume == 0 -> Icons.AutoMirrored.Filled.VolumeMute
                     volume < maxVolume / 2 -> Icons.AutoMirrored.Filled.VolumeDown
@@ -94,48 +98,78 @@ fun VolumeControl(
                     imageVector = icon,
                     contentDescription = stringResource(R.string.volume),
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
 
             if (showSlider) {
                 Popup(
                     alignment = Alignment.TopCenter,
-                    onDismissRequest = { showSlider = false },
+                    onDismissRequest = {
+                        showSlider = false
+                    },
                     properties = PopupProperties(focusable = true),
-                    offset = IntOffset(0, -220) // Adjust as needed
+                    offset = IntOffset(0, -220), // Adjust as needed
                 ) {
-                    Surface(
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(200.dp),
-                        shape = RoundedCornerShape(25.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        tonalElevation = 8.dp
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Surface(
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(200.dp),
+                            shape = RoundedCornerShape(25.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            tonalElevation = 8.dp,
                         ) {
-                            Slider(
-                                value = volume.toFloat(),
-                                onValueChange = { newVolume ->
-                                    volume = newVolume.roundToInt()
-                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-                                },
-                                valueRange = 0f..maxVolume.toFloat(),
-                                modifier = Modifier
-                                    .graphicsLayer {
-                                        rotationZ = -90f
-                                    }
-                                    .width(180.dp) // Increased to fill more of the 200dp height
-                                    .height(50.dp), // Height of the slider (which is width after rotation)
-                                colors = SliderDefaults.colors(
-                                    thumbColor = accentColor,
-                                    activeTrackColor = accentColor,
-                                    inactiveTrackColor = accentColor.copy(alpha = 0.3f),
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                IndicatorSlider(
+                                    value = volume.toFloat(),
+                                    onValueChange = { newVal ->
+                                        val newVolume = newVal.roundToInt()
+                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+                                        volume = newVolume
+                                    },
+                                    onValueChangeFinished = { /* Managed by component */ },
+                                    valueRange = 0f..maxVolume.toFloat(),
+                                    modifier = Modifier
+                                        .graphicsLayer {
+                                            rotationZ = -90f
+                                        }
+                                        .layout { measurable, constraints ->
+                                            // Swap constraints for rotation
+                                            val placeable = measurable.measure(
+                                                constraints.copy(
+                                                    minWidth = constraints.minHeight,
+                                                    maxWidth = constraints.maxHeight,
+                                                    minHeight = constraints.minWidth,
+                                                    maxHeight = constraints.maxWidth,
+                                                )
+                                            )
+                                            layout(placeable.height, placeable.width) {
+                                                placeable.place(
+                                                    x = -(placeable.width / 2 - placeable.height / 2),
+                                                    y = -(placeable.height / 2 - placeable.width / 2)
+                                                )
+                                            }
+                                        }
+                                        .fillMaxSize()
+                                        .padding(horizontal = 24.dp),
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = accentColor,
+                                        activeTrackColor = accentColor,
+                                        inactiveTrackColor = accentColor.copy(alpha = 0.3f),
+                                    ),
+                                    indicatorFormatter = { valPos ->
+                                        val percentage = ((valPos / maxVolume) * 100).roundToInt()
+                                        "$percentage%"
+                                    },
+                                    indicatorColor = accentColor,
+                                    indicatorAlignment = Alignment.BottomCenter,
+                                    indicatorOffsetY = 15.dp
                                 )
-                            )
+                            }
                         }
                     }
                 }

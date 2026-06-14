@@ -23,22 +23,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
@@ -65,8 +63,11 @@ fun PlayerScreenContext(
     onToggleRepeat: () -> Unit = {},
 ) {
     val textColor = MaterialTheme.colorScheme.onSurface
-    val leftDuration: String = formatDuration((duration * progress).toLong())
-    val rightDuration: String = formatDuration((duration - (duration * progress)).toLong())
+
+    // We don't need local scrubbing state anymore as IndicatorSlider handles it
+    // But we need it for the duration text below the slider if we want those to update too
+    // Let's keep a simplified version or just accept that those labels only update on finish
+    // User asked for "numerische Position" to be displayed, which we do in the bubble.
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -110,16 +111,20 @@ fun PlayerScreenContext(
 
         // Progress Bar
         Column(modifier = Modifier.fillMaxWidth()) {
-            Slider(
+            IndicatorSlider(
                 value = progress,
-                onValueChange = onProgressChanged,
+                onValueChange = { /* handled by indicator internal state */ },
+                onValueChangeFinished = { newVal ->
+                    onProgressChanged(newVal)
+                },
                 modifier = Modifier.fillMaxWidth(),
-                colors =
-                SliderDefaults.colors(
+                colors = SliderDefaults.colors(
                     thumbColor = accentColor,
                     activeTrackColor = accentColor,
                     inactiveTrackColor = textColor.copy(alpha = 0.3f),
                 ),
+                indicatorFormatter = { valPos -> formatDuration((duration * valPos).toLong()) },
+                indicatorColor = accentColor
             )
             Row(
                 modifier =
@@ -129,14 +134,13 @@ fun PlayerScreenContext(
                 // Align with slider padding
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                // You'd replace these with actual formatted time
                 Text(
-                    text = leftDuration,
+                    text = formatDuration((duration * progress).toLong()),
                     color = textColor.copy(alpha = 0.7f),
                     fontSize = 12.sp,
                 )
                 Text(
-                    rightDuration,
+                    text = formatDuration((duration - (duration * progress)).toLong()),
                     color = textColor.copy(alpha = 0.7f),
                     fontSize = 12.sp,
                 )
