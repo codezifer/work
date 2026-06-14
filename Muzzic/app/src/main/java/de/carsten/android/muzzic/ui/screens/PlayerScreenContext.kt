@@ -14,8 +14,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,14 +27,17 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
@@ -38,6 +45,7 @@ import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.utils.UI_EMPTY
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreenContext(
     albumArtPath: String?,
@@ -46,11 +54,15 @@ fun PlayerScreenContext(
     isPlaying: Boolean,
     progress: Float, // Value between 0f and 1f
     duration: Long,
+    shuffleModeEnabled: Boolean = false,
+    repeatMode: Int = Player.REPEAT_MODE_OFF,
     accentColor: Color = MaterialTheme.colorScheme.primary,
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
     onProgressChanged: (Float) -> Unit = {}, // Callback for when user scrubs the progress bar
+    onToggleShuffle: () -> Unit = {},
+    onToggleRepeat: () -> Unit = {},
 ) {
     val textColor = MaterialTheme.colorScheme.onSurface
     val leftDuration: String = formatDuration((duration * progress).toLong())
@@ -165,6 +177,20 @@ fun PlayerScreenContext(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             shape = CircleShape,
                         )
+
+                // shuffle-button
+                IconButton(
+                    onClick = onToggleShuffle,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (shuffleModeEnabled) accentColor else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+
                 // prev-button
                 IconButton(
                     onClick = onPreviousClicked,
@@ -209,11 +235,28 @@ fun PlayerScreenContext(
                         modifier = Modifier.size(40.dp),
                     )
                 }
+
+                // repeat-button
+                IconButton(
+                    onClick = onToggleRepeat,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    val repeatIcon = when (repeatMode) {
+                        Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
+                        else -> Icons.Filled.Repeat
+                    }
+                    Icon(
+                        imageVector = repeatIcon,
+                        contentDescription = "Repeat",
+                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) accentColor else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
         }
 
         // volume
-        VolumeControl()
+        VolumeControl(accentColor = accentColor)
     }
 }
 
@@ -228,6 +271,8 @@ fun PlayerScreenPreview_Playing() {
         isPlaying = true,
         progress = 0.45f,
         duration = 225000,
+        shuffleModeEnabled = true,
+        repeatMode = Player.REPEAT_MODE_ALL,
     )
 }
 
@@ -242,5 +287,7 @@ fun PlayerScreenPreview_Paused() {
         isPlaying = false,
         progress = 0.15f,
         duration = 225000,
+        shuffleModeEnabled = false,
+        repeatMode = Player.REPEAT_MODE_OFF,
     )
 }

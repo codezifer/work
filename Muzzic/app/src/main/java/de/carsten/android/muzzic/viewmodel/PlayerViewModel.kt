@@ -50,6 +50,12 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress.asStateFlow()
 
+    private val _shuffleModeEnabled = MutableStateFlow(false)
+    val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled.asStateFlow()
+
+    private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
+    val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
+
     private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
     val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
 
@@ -76,6 +82,14 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
                     _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
                 }
             }
+
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                _shuffleModeEnabled.value = shuffleModeEnabled
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                _repeatMode.value = repeatMode
+            }
         }
 
     init {
@@ -90,6 +104,8 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
                     _isPlaying.value = b.isPlaying
                     _currentSong.value = b.currentMediaItem?.let { Song.fromMediaItem(it) }
                     _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                    _shuffleModeEnabled.value = b.shuffleModeEnabled
+                    _repeatMode.value = b.repeatMode
                     logger.debug("MediaBrowser connected")
                 }
             }
@@ -136,6 +152,22 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
 
     fun onNextClicked() {
         browser.value?.seekToNextMediaItem()
+    }
+
+    fun toggleShuffle() {
+        val b = browser.value ?: return
+        b.shuffleModeEnabled = !b.shuffleModeEnabled
+    }
+
+    fun toggleRepeatMode() {
+        val b = browser.value ?: return
+        val nextMode = when (b.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+            else -> Player.REPEAT_MODE_OFF
+        }
+        b.repeatMode = nextMode
     }
 
     fun onProgressChanged(progress: Float) {

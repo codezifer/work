@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -54,6 +55,8 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewMod
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val progress by viewModel.progress.collectAsStateWithLifecycle()
     val duration by viewModel.duration.collectAsStateWithLifecycle()
+    val shuffleModeEnabled by viewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
+    val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
 
     val palette by rememberPaletteState(currentSong?.albumArt)
     val isDark = isSystemInDarkTheme()
@@ -68,11 +71,15 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewMod
         isPlaying = isPlaying,
         progress = progress,
         duration = duration,
+        shuffleModeEnabled = shuffleModeEnabled,
+        repeatMode = repeatMode,
         accentColor = accentColor,
         onPrevClicked = viewModel::onPrevClicked,
         onNextClicked = viewModel::onNextClicked,
         onPlayPauseClicked = viewModel::togglePlayPause,
         onProgressChanged = viewModel::onProgressChanged,
+        onToggleShuffle = viewModel::toggleShuffle,
+        onToggleRepeat = viewModel::toggleRepeatMode,
     )
 }
 
@@ -83,11 +90,15 @@ fun PlayerScreenContent(
     isPlaying: Boolean,
     progress: Float,
     duration: Long,
+    shuffleModeEnabled: Boolean,
+    repeatMode: Int,
     accentColor: Color = MaterialTheme.colorScheme.primary,
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onProgressChanged: (Float) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleRepeat: () -> Unit,
 ) {
     val appName = stringResource(R.string.app_name)
 
@@ -145,11 +156,15 @@ fun PlayerScreenContent(
                     isPlaying = isPlaying,
                     progress = progress,
                     duration = duration,
+                    shuffleModeEnabled = shuffleModeEnabled,
+                    repeatMode = repeatMode,
                     accentColor = accentColor,
                     onPreviousClicked = onPrevClicked,
                     onPlayPauseClicked = onPlayPauseClicked,
                     onNextClicked = onNextClicked,
                     onProgressChanged = onProgressChanged,
+                    onToggleShuffle = onToggleShuffle,
+                    onToggleRepeat = onToggleRepeat,
                 )
             }
         }
@@ -218,9 +233,13 @@ fun PlayerScreenPreview() {
         isPlaying = true,
         progress = 0.45f,
         duration = 225000L,
+        shuffleModeEnabled = false,
+        repeatMode = Player.REPEAT_MODE_OFF,
         onPrevClicked = {},
         onPlayPauseClicked = {},
         onNextClicked = {},
         onProgressChanged = { value -> },
+        onToggleShuffle = {},
+        onToggleRepeat = {},
     )
 }

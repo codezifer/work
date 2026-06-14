@@ -5,38 +5,53 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VolumeControl(modifier: Modifier = Modifier) {
+fun VolumeControl(
+    modifier: Modifier = Modifier,
+    accentColor: Color = MaterialTheme.colorScheme.primary
+) {
     AppTheme {
         val context = LocalContext.current
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -47,6 +62,7 @@ fun VolumeControl(modifier: Modifier = Modifier) {
 
         // Den Zustand des Sliders verwalten
         var volume by remember { mutableIntStateOf(initialVolume) }
+        var showSlider by remember { mutableStateOf(false) }
 
         // BroadcastReceiver, um auf externe Lautstärkeänderungen zu reagieren
         // (z.B. durch die Hardware-Tasten am Gerät)
@@ -67,43 +83,63 @@ fun VolumeControl(modifier: Modifier = Modifier) {
             }
         }
 
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.VolumeDown,
-                contentDescription = stringResource(R.string.volume),
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp),
-            )
+        Box(modifier = modifier) {
+            IconButton(onClick = { showSlider = !showSlider }) {
+                val icon = when {
+                    volume == 0 -> Icons.AutoMirrored.Filled.VolumeMute
+                    volume < maxVolume / 2 -> Icons.AutoMirrored.Filled.VolumeDown
+                    else -> Icons.AutoMirrored.Filled.VolumeUp
+                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = stringResource(R.string.volume),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-            Slider(
-                value = volume.toFloat(),
-                onValueChange = { newVolume ->
-                    volume = newVolume.roundToInt()
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-                },
-                valueRange = 0f..maxVolume.toFloat(), // Wertebereich an System anpassen
-                modifier =
-                Modifier
-                    .width(150.dp) // Etwas mehr Platz für eine feinere Steuerung
-                    .padding(horizontal = 8.dp),
-                colors =
-                SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                ),
-            )
-
-            Icon(
-                Icons.AutoMirrored.Filled.VolumeUp,
-                contentDescription = stringResource(R.string.volume),
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp),
-            )
+            if (showSlider) {
+                Popup(
+                    alignment = Alignment.TopCenter,
+                    onDismissRequest = { showSlider = false },
+                    properties = PopupProperties(focusable = true),
+                    offset = IntOffset(0, -220) // Adjust as needed
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(200.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        tonalElevation = 8.dp
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Slider(
+                                value = volume.toFloat(),
+                                onValueChange = { newVolume ->
+                                    volume = newVolume.roundToInt()
+                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
+                                },
+                                valueRange = 0f..maxVolume.toFloat(),
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        rotationZ = -90f
+                                    }
+                                    .width(180.dp) // Increased to fill more of the 200dp height
+                                    .height(50.dp), // Height of the slider (which is width after rotation)
+                                colors = SliderDefaults.colors(
+                                    thumbColor = accentColor,
+                                    activeTrackColor = accentColor,
+                                    inactiveTrackColor = accentColor.copy(alpha = 0.3f),
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
