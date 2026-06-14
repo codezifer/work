@@ -1,6 +1,8 @@
 package de.carsten.android.muzzic.logging
 
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 
 /**
  * Android Logger that implements Java Logger interface with automatic caller detection
@@ -146,3 +148,18 @@ class AndroidLogger private constructor(private val tag: String) {
  * Get logger for any class.
  */
 inline fun <reified T> T.logger(): AndroidLogger = AndroidLogger.getLogger(T::class.java)
+
+/**
+ * Get logger for any tag
+ *
+ * @param tag logger tag as [String]
+ */
+fun logger(tag: String): AndroidLogger = AndroidLogger.getLogger(tag)
+
+/**
+ * Get composable logger for any tag
+ *
+ * @param tag logger tag [String]
+ */
+@Composable
+fun rememberLogger(tag: String): AndroidLogger = remember { logger(tag) }

@@ -79,7 +79,7 @@ fun PlayerScreenContext(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             AlbumArtControl(
                 albumArtInput = if (albumArtPath == null) {
@@ -124,7 +124,7 @@ fun PlayerScreenContext(
                     inactiveTrackColor = textColor.copy(alpha = 0.3f),
                 ),
                 indicatorFormatter = { valPos -> formatDuration((duration * valPos).toLong()) },
-                indicatorColor = accentColor
+                indicatorColor = accentColor,
             )
             Row(
                 modifier =

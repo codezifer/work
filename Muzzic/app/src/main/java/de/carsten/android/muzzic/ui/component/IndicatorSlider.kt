@@ -49,7 +49,7 @@ fun IndicatorSlider(
     indicatorFormatter: (Float) -> String,
     indicatorColor: Color = MaterialTheme.colorScheme.primary,
     indicatorAlignment: Alignment = Alignment.TopCenter,
-    indicatorOffsetY: Dp = (-40).dp
+    indicatorOffsetY: Dp = (-40).dp,
 ) {
     var scrubbingProgress by remember { mutableFloatStateOf(-1f) }
     val displayValue = if (scrubbingProgress >= 0f) scrubbingProgress else value
@@ -77,13 +77,13 @@ fun IndicatorSlider(
                     IntOffset(0, with(density) { indicatorOffsetY.roundToPx() })
                 },
                 color = indicatorColor,
-                shape = RoundedCornerShape(4.dp)
+                shape = RoundedCornerShape(4.dp),
             ) {
                 Text(
                     text = indicatorFormatter(scrubbingProgress),
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 12.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
         }

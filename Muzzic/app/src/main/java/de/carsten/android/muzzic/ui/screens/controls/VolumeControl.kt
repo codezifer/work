@@ -50,10 +50,7 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VolumeControl(
-    modifier: Modifier = Modifier,
-    accentColor: Color = MaterialTheme.colorScheme.primary,
-) {
+fun VolumeControl(modifier: Modifier = Modifier, accentColor: Color = MaterialTheme.colorScheme.primary) {
     AppTheme {
         val context = LocalContext.current
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -87,7 +84,7 @@ fun VolumeControl(
 
         Box(modifier = modifier) {
             IconButton(
-                onClick = { showSlider = !showSlider }
+                onClick = { showSlider = !showSlider },
             ) {
                 val icon = when {
                     volume == 0 -> Icons.AutoMirrored.Filled.VolumeMute
@@ -145,12 +142,12 @@ fun VolumeControl(
                                                     maxWidth = constraints.maxHeight,
                                                     minHeight = constraints.minWidth,
                                                     maxHeight = constraints.maxWidth,
-                                                )
+                                                ),
                                             )
                                             layout(placeable.height, placeable.width) {
                                                 placeable.place(
                                                     x = -(placeable.width / 2 - placeable.height / 2),
-                                                    y = -(placeable.height / 2 - placeable.width / 2)
+                                                    y = -(placeable.height / 2 - placeable.width / 2),
                                                 )
                                             }
                                         }
@@ -167,7 +164,7 @@ fun VolumeControl(
                                     },
                                     indicatorColor = accentColor,
                                     indicatorAlignment = Alignment.BottomCenter,
-                                    indicatorOffsetY = 15.dp
+                                    indicatorOffsetY = 15.dp,
                                 )
                             }
                         }

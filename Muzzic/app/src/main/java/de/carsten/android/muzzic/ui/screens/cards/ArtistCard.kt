@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
@@ -28,7 +29,7 @@ import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun ArtistCard(artist: ArtistDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
-    val palette by rememberPaletteState(artist.lastAlbumArt)
+    val palette by rememberPaletteState(artist.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
         defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,

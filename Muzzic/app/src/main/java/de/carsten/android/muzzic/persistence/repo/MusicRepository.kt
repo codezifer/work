@@ -8,8 +8,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.tag.FieldKey
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
@@ -36,6 +34,7 @@ import de.carsten.android.muzzic.utils.TOP_100
 import de.carsten.android.muzzic.utils.UNKNOWN_ALBUM
 import de.carsten.android.muzzic.utils.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.utils.UNKNOWN_GENRE
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -43,7 +42,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.io.File
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.tag.FieldKey
 
 class MusicRepository(
     val songDao: SongDao,
@@ -245,9 +245,9 @@ class MusicRepository(
     }
 
     private fun saveAlbumArt(file: File): String? = try {
-        val albumArtOffset = Id3TagParser.getAlbumArtOffsetAndSize(file)
+        val albumArtOffset = Id3TagParser.getAlbumArtMetadata(file)
         if (albumArtOffset.isValid) {
-            AlbumArtUri(file.absolutePath, albumArtOffset.offset, albumArtOffset.size).get()
+            AlbumArtUri(file.absolutePath, albumArtOffset.offset, albumArtOffset.size, albumArtOffset.hashCode).get()
         } else {
             logger.debug("No valid album art offset found for ${file.name}")
             null

@@ -1,6 +1,8 @@
 package de.carsten.android.muzzic.id3
 
 import de.carsten.android.muzzic.logging.logger
+import java.io.File
+import java.io.InputStream
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
@@ -8,8 +10,6 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.ID3v24Frames
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM
-import java.io.File
-import java.io.InputStream
 
 /**
  * Utility for parsing ID3 tags and extracting metadata like album art offsets.
@@ -23,19 +23,23 @@ object Id3TagParser {
     private const val ID_APIC = "APIC"
     private const val ID_PIC = "PIC"
 
+    private const val ID3_HEADER_SIZE = 10
+    private const val FRAME_HEADER_SIZE_V22 = 6
+    private const val FRAME_HEADER_SIZE_V23V24 = 10
+
     /**
      * Extracts the album art offset and size from an MP3 file.
      *
      * @param file The MP3 file to parse.
-     * @return An [AlbumArtOffset] containing the location and size, or (0, 0) if not found.
+     * @return An [AlbumArtMetadata] containing the location and size, or (0, 0) if not found.
      */
-    fun getAlbumArtOffsetAndSize(file: File): AlbumArtOffset = try {
+    fun getAlbumArtMetadata(file: File): AlbumArtMetadata = try {
         file.inputStream().use { input ->
             parseFromStream(input)
         }
     } catch (e: Exception) {
         logger.error("Failed to extract album art offset for ${file.absolutePath}", e)
-        AlbumArtOffset(0L, 0L)
+        AlbumArtMetadata(0L, 0L)
     }
 
     /**
@@ -45,8 +49,7 @@ object Id3TagParser {
      * @return An [ExtendedMetadata] object containing the extracted values.
      */
     fun extractMetadata(audioFile: AudioFile): ExtendedMetadata {
-        val tag = audioFile.tag
-        if (tag == null) return ExtendedMetadata()
+        val tag = audioFile.tag ?: return ExtendedMetadata()
 
         val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
         val year = parseId3Year(yearString)
@@ -179,167 +182,151 @@ object Id3TagParser {
         }
     }
 
-    private fun parseFromStream(input: InputStream): AlbumArtOffset {
-        // ID3 header: "ID3" (3 bytes), version (2 bytes), flags (1 byte), size (4 bytes)
-        val header = ByteArray(10)
-        val bytesReadHeader = input.read(header)
-        if (bytesReadHeader != 10) {
-            logger.debug("Could not read ID3 header (read $bytesReadHeader bytes)")
-            return AlbumArtOffset(0L, 0L)
-        }
-        // Validate ID3 identifier
-        if (String(header, 0, 3) != ID_ID3) {
-            logger.debug("No ID3 tag found in file")
-            return AlbumArtOffset(0L, 0L)
+    private fun parseFromStream(input: InputStream): AlbumArtMetadata {
+        val header = ByteArray(ID3_HEADER_SIZE)
+        if (input.read(header) != ID3_HEADER_SIZE || String(header, 0, 3) != ID_ID3) {
+            return AlbumArtMetadata(0L, 0L)
         }
 
         val majorVersion = header[3].toInt()
-        val tagFlags = header[5].toInt()
-        val extendedHeader = (tagFlags and 0x40) != 0
-
-        // The size is a 32-bit synchsafe integer (7 bits per byte)
+        val extendedHeader = (header[5].toInt() and 0x40) != 0
         val tagLength = unpackSynchsafeInteger(header[6], header[7], header[8], header[9])
-        val tagBytes = ByteArray(tagLength)
-        var totalBytesRead = 0
-        while (totalBytesRead < tagLength) {
-            val read = input.read(tagBytes, totalBytesRead, tagLength - totalBytesRead)
-            if (read == -1) break
-            totalBytesRead += read
-        }
 
-        if (totalBytesRead != tagLength) {
-            logger.error("Failed to read full ID3 tag (expected $tagLength, read $totalBytesRead)")
-            return AlbumArtOffset(0L, 0L)
-        }
+        val tagBytes = readFully(input, tagLength) ?: return AlbumArtMetadata(0L, 0L)
 
-        var offset = 0
-        if (extendedHeader) {
-            try {
-                val extHeaderSize = if (majorVersion == 4) {
-                    // ID3v2.4 extended header size is a synchsafe integer
-                    unpackSynchsafeInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3])
-                } else {
-                    // ID3v2.3 extended header size is a regular integer
-                    unpackInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3]) + 4
-                }
-                offset += extHeaderSize
-            } catch (e: Exception) {
-                logger.error("Error parsing extended header", e)
-                return AlbumArtOffset(0L, 0L)
-            }
-        }
+        var offset = if (extendedHeader) calculateExtendedHeaderSize(tagBytes, majorVersion) else 0
 
         while (offset + 10 < tagLength) {
-            val frameId: String
-            val frameSize: Int
-            val frameHeaderSize: Int
-
-            try {
-                if (majorVersion == 2) {
-                    // ID3v2.2 frame header: 3-byte ID, 3-byte size
-                    frameId = String(tagBytes, offset, 3)
-                    frameSize = unpackInteger(0.toByte(), tagBytes[offset + 3], tagBytes[offset + 4], tagBytes[offset + 5])
-                    frameHeaderSize = 6
-                } else {
-                    // ID3v2.3/4 frame header: 4-byte ID, 4-byte size, 2-byte flags
-                    frameId = String(tagBytes, offset, 4)
-                    frameSize = if (majorVersion == 4) {
-                        // ID3v2.4 uses synchsafe integers for frame sizes
-                        unpackSynchsafeInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
-                    } else {
-                        // ID3v2.3 uses regular integers for frame sizes
-                        unpackInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
-                    }
-                    frameHeaderSize = 10
-                }
-            } catch (e: Exception) {
-                logger.error("Error parsing frame header at offset $offset", e)
-                break
-            }
+            val (frameId, frameSize, frameHeaderSize) = parseFrameHeader(tagBytes, offset, majorVersion)
+                ?: break
 
             if (frameId == ID_APIC || frameId == ID_PIC) {
-                try {
-                    if (offset + frameHeaderSize + frameSize > tagLength) {
-                        logger.error("Frame $frameId exceeds tag length (offset: $offset, size: $frameSize, tagLength: $tagLength)")
-                        return AlbumArtOffset(0L, 0L)
-                    }
-
-                    val frameData = ByteArray(frameSize)
-                    System.arraycopy(tagBytes, offset + frameHeaderSize, frameData, 0, frameSize)
-
-                    // Calculate internal offset within APIC/PIC frame
-                    var internalOffset = 1 // Skip Text Encoding byte
-
-                    if (majorVersion == 2) {
-                        internalOffset += 3 // Skip 3-byte image format (e.g. "JPG")
-                    } else {
-                        // Skip MIME type (null-terminated string)
-                        while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
-                            internalOffset++
-                        }
-                        internalOffset++ // Skip null terminator
-                    }
-
-                    if (internalOffset >= frameSize) {
-                        logger.error("Malformed APIC/PIC frame: internal offset $internalOffset exceeds frame size $frameSize")
-                        return AlbumArtOffset(0L, 0L)
-                    }
-
-                    internalOffset++ // Skip Picture Type byte (e.g. 0x03 for Front Cover)
-
-                    // Skip Description (null-terminated string)
-                    val encoding = frameData[0].toInt()
-                    if (encoding == 1 || encoding == 2) { // UTF-16 (two null bytes terminator)
-                        while (internalOffset + 1 < frameSize && (frameData[internalOffset] != 0.toByte() || frameData[internalOffset + 1] != 0.toByte())) {
-                            internalOffset += 2
-                        }
-                        internalOffset += 2
-                    } else { // ISO-8859-1 or UTF-8 (single null byte terminator)
-                        while (internalOffset < frameSize && frameData[internalOffset] != 0.toByte()) {
-                            internalOffset++
-                        }
-                        internalOffset++
-                    }
-
-                    if (internalOffset >= frameSize) {
-                        logger.error("Malformed APIC/PIC frame: internal offset after description $internalOffset exceeds frame size $frameSize")
-                        return AlbumArtOffset(0L, 0L)
-                    }
-
-                    val finalOffset = 10L + offset + frameHeaderSize + internalOffset
-                    val finalSize = frameSize - internalOffset.toLong()
-
-                    if (finalSize <= 0) {
-                        logger.error("Invalid final image size calculated: $finalSize")
-                        return AlbumArtOffset(0L, 0L)
-                    }
-
-                    return AlbumArtOffset(finalOffset, finalSize)
-                } catch (e: Exception) {
-                    logger.error("Error extracting album art from $frameId frame", e)
-                    return AlbumArtOffset(0L, 0L)
-                }
+                return extractAlbumArtFromFrame(tagBytes, offset, frameHeaderSize, frameSize, majorVersion)
             }
 
             if (frameSize <= 0) break
             offset += frameHeaderSize + frameSize
         }
 
-        logger.debug("No APIC/PIC frame found in ID3 tag")
-        return AlbumArtOffset(0L, 0L)
+        return AlbumArtMetadata(0L, 0L)
     }
 
-    private fun unpackSynchsafeInteger(b1: Byte, b2: Byte, b3: Byte, b4: Byte): Int {
-        return (b1.toInt() and 0x7F shl 21) or
-                (b2.toInt() and 0x7F shl 14) or
-                (b3.toInt() and 0x7F shl 7) or
-                (b4.toInt() and 0x7F)
+    private fun readFully(input: InputStream, length: Int): ByteArray? {
+        val bytes = ByteArray(length)
+        var totalRead = 0
+        while (totalRead < length) {
+            val read = input.read(bytes, totalRead, length - totalRead)
+            if (read == -1) break
+            totalRead += read
+        }
+        return if (totalRead == length) {
+            bytes
+        } else {
+            logger.error("Failed to read full ID3 tag (expected $length, read $totalRead)")
+            null
+        }
     }
 
-    private fun unpackInteger(b1: Byte, b2: Byte, b3: Byte, b4: Byte): Int {
-        return (b1.toInt() and 0xFF shl 24) or
-                (b2.toInt() and 0xFF shl 16) or
-                (b3.toInt() and 0xFF shl 8) or
-                (b4.toInt() and 0xFF)
+    private fun calculateExtendedHeaderSize(tagBytes: ByteArray, majorVersion: Int): Int = try {
+        if (majorVersion == 4) {
+            unpackSynchsafeInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3])
+        } else {
+            unpackInteger(tagBytes[0], tagBytes[1], tagBytes[2], tagBytes[3]) + 4
+        }
+    } catch (e: Exception) {
+        logger.error("Error parsing extended header", e)
+        0
     }
+
+    private data class FrameHeaderInfo(val id: String, val size: Int, val headerSize: Int)
+
+    private fun parseFrameHeader(tagBytes: ByteArray, offset: Int, majorVersion: Int): FrameHeaderInfo? = try {
+        if (majorVersion == 2) {
+            val id = String(tagBytes, offset, 3)
+            val size = unpackInteger(0.toByte(), tagBytes[offset + 3], tagBytes[offset + 4], tagBytes[offset + 5])
+            FrameHeaderInfo(id, size, FRAME_HEADER_SIZE_V22)
+        } else {
+            val id = String(tagBytes, offset, 4)
+            val size = if (majorVersion == 4) {
+                unpackSynchsafeInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+            } else {
+                unpackInteger(tagBytes[offset + 4], tagBytes[offset + 5], tagBytes[offset + 6], tagBytes[offset + 7])
+            }
+            FrameHeaderInfo(id, size, FRAME_HEADER_SIZE_V23V24)
+        }
+    } catch (e: Exception) {
+        logger.error("Error parsing frame header at offset $offset", e)
+        null
+    }
+
+    private fun extractAlbumArtFromFrame(tagBytes: ByteArray, offset: Int, frameHeaderSize: Int, frameSize: Int, majorVersion: Int): AlbumArtMetadata {
+        try {
+            if (offset + frameHeaderSize + frameSize > tagBytes.size) {
+                return AlbumArtMetadata(0L, 0L)
+            }
+
+            val frameData = ByteArray(frameSize)
+            System.arraycopy(tagBytes, offset + frameHeaderSize, frameData, 0, frameSize)
+
+            val internalOffset = calculateInternalFrameOffset(frameData, frameSize, majorVersion)
+            if (internalOffset == -1) return AlbumArtMetadata(0L, 0L)
+
+            val finalOffset = ID3_HEADER_SIZE.toLong() + offset + frameHeaderSize + internalOffset
+            val finalSize = frameSize - internalOffset.toLong()
+
+            if (finalSize <= 0) return AlbumArtMetadata(0L, 0L)
+
+            val hashCode = calculateImageHashCode(tagBytes, offset + frameHeaderSize + internalOffset, finalSize.toInt())
+            return AlbumArtMetadata(finalOffset, finalSize, hashCode)
+        } catch (e: Exception) {
+            logger.error("Error extracting album art", e)
+            return AlbumArtMetadata(0L, 0L)
+        }
+    }
+
+    private fun calculateInternalFrameOffset(frameData: ByteArray, frameSize: Int, majorVersion: Int): Int {
+        var pos = 1 // Skip Text Encoding byte
+
+        if (majorVersion == 2) {
+            pos += 3 // Skip 3-byte image format (e.g. "JPG")
+        } else {
+            // Skip MIME type (null-terminated string)
+            while (pos < frameSize && frameData[pos] != 0.toByte()) pos++
+            pos++ // Skip null terminator
+        }
+
+        if (pos >= frameSize) return -1
+        pos++ // Skip Picture Type byte
+
+        // Skip Description (null-terminated string)
+        val encoding = frameData[0].toInt()
+        if (encoding == 1 || encoding == 2) { // UTF-16
+            while (pos + 1 < frameSize && (frameData[pos] != 0.toByte() || frameData[pos + 1] != 0.toByte())) pos += 2
+            pos += 2
+        } else { // ISO-8859-1 or UTF-8
+            while (pos < frameSize && frameData[pos] != 0.toByte()) pos++
+            pos++
+        }
+
+        return if (pos < frameSize) pos else -1
+    }
+
+    private fun calculateImageHashCode(tagBytes: ByteArray, offset: Int, size: Int): Int = try {
+        val imageBytes = ByteArray(size)
+        System.arraycopy(tagBytes, offset, imageBytes, 0, size)
+        imageBytes.contentHashCode()
+    } catch (e: Exception) {
+        logger.error("Failed to calculate hash code for album art", e)
+        0
+    }
+
+    private fun unpackSynchsafeInteger(b1: Byte, b2: Byte, b3: Byte, b4: Byte): Int = (b1.toInt() and 0x7F shl 21) or
+        (b2.toInt() and 0x7F shl 14) or
+        (b3.toInt() and 0x7F shl 7) or
+        (b4.toInt() and 0x7F)
+
+    private fun unpackInteger(b1: Byte, b2: Byte, b3: Byte, b4: Byte): Int = (b1.toInt() and 0xFF shl 24) or
+        (b2.toInt() and 0xFF shl 16) or
+        (b3.toInt() and 0xFF shl 8) or
+        (b4.toInt() and 0xFF)
 }

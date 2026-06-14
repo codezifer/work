@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
@@ -35,7 +36,7 @@ import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
 fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
-    val palette by rememberPaletteState(album.lastAlbumArt)
+    val palette by rememberPaletteState(album.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
         defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,

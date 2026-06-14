@@ -25,17 +25,19 @@ fun Color.adjustForTheme(isDark: Boolean): Color {
             this.copy(
                 red = (red + DARK_LUMINANCE_FACTOR).coerceAtMost(MAX_LUMINANCE),
                 green = (green + DARK_LUMINANCE_FACTOR).coerceAtMost(MAX_LUMINANCE),
-                blue = (blue + DARK_LUMINANCE_FACTOR).coerceAtMost(MAX_LUMINANCE)
+                blue = (blue + DARK_LUMINANCE_FACTOR).coerceAtMost(MAX_LUMINANCE),
             )
         }
+
         !isDark && lum > LIGHT_LUMINANCE_FACTOR -> {
             // Darken the color in light theme if it's too light
             this.copy(
                 red = (red * DARKEN_FACTOR),
                 green = (green * DARKEN_FACTOR),
-                blue = (blue * DARKEN_FACTOR)
+                blue = (blue * DARKEN_FACTOR),
             )
         }
+
         else -> this
     }
 }

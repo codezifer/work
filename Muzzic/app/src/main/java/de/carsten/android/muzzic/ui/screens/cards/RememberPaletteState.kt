@@ -14,22 +14,23 @@ import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
-import de.carsten.android.muzzic.logging.AndroidLogger
-import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.logging.rememberLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberPaletteState(source: Any?): State<Palette?> {
     val context = LocalContext.current
+    // We can now use source as a key again because AlbumArtUri has stable equality
     val paletteState = remember(source) { mutableStateOf<Palette?>(null) }
-    val logger = remember { AndroidLogger.getLogger("RememberPaletteState") }
+    val logger = rememberLogger("RememberPaletteState")
 
     LaunchedEffect(source) {
-        paletteState.value = null // Reset immediately when source changes
         if (source == null) {
+            paletteState.value = null
             return@LaunchedEffect
         }
+
         val loader = SingletonImageLoader.get(context)
         val request =
             ImageRequest
@@ -42,11 +43,12 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
         if (result is SuccessResult) {
             val bitmap = result.image.asDrawable(context.resources).toBitmap()
             withContext(Dispatchers.Default) {
-                paletteState.value =
-                    Palette
-                        .from(bitmap)
-                        .maximumColorCount(24) // Increase color count for better vibrant detection
-                        .generate()
+                val newPalette = Palette
+                    .from(bitmap)
+                    .maximumColorCount(24)
+                    .generate()
+
+                paletteState.value = newPalette
             }
         } else if (result is ErrorResult) {
             logger.error("Failed to load image for palette: $source", result.throwable)

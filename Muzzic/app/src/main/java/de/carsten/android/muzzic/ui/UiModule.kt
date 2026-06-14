@@ -4,12 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import coil3.ImageLoader
 import coil3.disk.DiskCache
-import coil3.map.Mapper
 import coil3.memory.MemoryCache
-import coil3.request.Options
-import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
 import de.carsten.android.muzzic.utils.IMAGE_CACHE
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
@@ -27,16 +23,7 @@ private fun getImageLoader(context: Context): ImageLoader {
     return ImageLoader
         .Builder(context)
         .components {
-            add(
-                object : Mapper<String, AlbumArtUri> {
-                    override fun map(data: String, options: Options): AlbumArtUri? {
-                        if (data.startsWith(ALBUMART_SCHEME)) {
-                            return AlbumArtUri.parse(data)
-                        }
-                        return null
-                    }
-                },
-            )
+            add(AlbumArtFetcher.Mapper())
             add(AlbumArtFetcher.Factory(context, okHttpClient))
         }.memoryCache {
             MemoryCache

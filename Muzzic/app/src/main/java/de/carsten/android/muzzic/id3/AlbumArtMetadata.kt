@@ -5,8 +5,9 @@ package de.carsten.android.muzzic.id3
  *
  * @property offset The byte offset where the image data starts.
  * @property size The size of the image data in bytes.
+ * @property hashCode The byte hashCode for equals check.
  */
-data class AlbumArtOffset(val offset: Long, val size: Long) {
+data class AlbumArtMetadata(val offset: Long, val size: Long, val hashCode: Int = 0) {
     /**
      * Checks if the offset and size represent a valid image location.
      */

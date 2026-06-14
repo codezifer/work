@@ -10,6 +10,7 @@ import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
+import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
 import java.io.File
 import java.io.RandomAccessFile
 import java.security.MessageDigest
@@ -28,11 +29,11 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
 
     override suspend fun fetch(): FetchResult? {
         if (data.size <= 0) {
-            logger.debug("Skipping fetch: size is 0 for ${data.filePath}")
+            logger.debug("Skipping fetch: size is 0 for ${data.albumArt}")
             return null
         }
-        logger.debug("Fetching: ${data.filePath} offset=${data.offset} size=${data.size}")
-        if (data.filePath.startsWith("http")) {
+        logger.debug("Fetching: ${data.albumArt} offset=${data.offset} size=${data.size}")
+        if (data.albumArt.startsWith("http")) {
             return handleHttpFile()
         }
 
@@ -42,23 +43,23 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
-                val file = File(data.filePath)
+                val file = File(data.albumArt)
                 if (!file.exists()) {
-                    logger.error("File does not exist: ${data.filePath}")
+                    logger.error("File does not exist: ${data.albumArt}")
                     return@withContext null
                 }
 
                 val randomAccessFile = RandomAccessFile(file, "r")
                 val fileLength = file.length()
 
-                if (data.offset < 0 || data.offset >= fileLength) {
-                    logger.error("Invalid offset: ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                if (data.offset !in 0..<fileLength) {
+                    logger.error("Invalid offset: ${data.offset} (File size: $fileLength) for ${data.albumArt}")
                     randomAccessFile.close()
                     return@withContext null
                 }
 
                 if (data.offset + data.size > fileLength) {
-                    logger.error("Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.filePath}")
+                    logger.error("Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.albumArt}")
                     randomAccessFile.close()
                     return@withContext null
                 }
@@ -70,7 +71,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                 // Magic Number Check (Sanity check for common image formats)
                 if (bytes.size > 4) {
                     val header = bytes.take(4).joinToString("") { "%02x".format(it) }
-                    logger.debug("Magic Number Header: $header for ${data.filePath}")
+                    logger.debug("Magic Number Header: $header for ${data.albumArt}")
                     // JPEG: ffd8ffe0, PNG: 89504e47, etc.
                 }
 
@@ -79,7 +80,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                 Buffer().apply {
                     write(bytes)
                 }
-            } ?: throw IllegalArgumentException("Failed to read image data from ${data.filePath}")
+            } ?: throw IllegalArgumentException("Failed to read image data from ${data.albumArt}")
 
         return SourceFetchResult(
             source =
@@ -93,7 +94,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     }
 
     private suspend fun handleHttpFile(): FetchResult {
-        val url = data.filePath
+        val url = data.albumArt
         val (path, mimeType) =
             withContext(Dispatchers.IO) {
                 val cacheFile = cacheFile(url)
@@ -158,5 +159,14 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
 
     class Factory(private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher.Factory<AlbumArtUri> {
         override fun create(data: AlbumArtUri, options: Options, imageLoader: ImageLoader): Fetcher = AlbumArtFetcher(data, options, context, okHttpClient)
+    }
+
+    class Mapper : coil3.map.Mapper<String, AlbumArtUri> {
+        override fun map(data: String, options: Options): AlbumArtUri? {
+            if (data.startsWith(ALBUMART_SCHEME)) {
+                return AlbumArtUri.parse(data)
+            }
+            return null
+        }
     }
 }

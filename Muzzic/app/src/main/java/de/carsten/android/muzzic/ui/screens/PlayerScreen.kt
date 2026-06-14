@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.rememberPaletteState
@@ -58,11 +59,11 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewMod
     val shuffleModeEnabled by viewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
     val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
 
-    val palette by rememberPaletteState(currentSong?.albumArt)
+    val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
     val isDark = isSystemInDarkTheme()
     val accentColor = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primary,
-        defaultContent = MaterialTheme.colorScheme.onPrimary
+        defaultContent = MaterialTheme.colorScheme.onPrimary,
     ).backgroundColor.adjustForTheme(isDark)
 
     PlayerScreenContent(
@@ -178,10 +179,7 @@ fun PlayerScreenContent(
  * @param blurRadius The radius of the blur effect.
  */
 @Composable
-fun PlayerBackground(
-    albumArtPath: String?,
-    blurRadius: Dp,
-) {
+fun PlayerBackground(albumArtPath: String?, blurRadius: Dp) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Base Gradient (fallback if no image is available)
         Box(
