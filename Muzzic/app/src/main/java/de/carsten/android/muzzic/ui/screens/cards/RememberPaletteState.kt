@@ -24,8 +24,13 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
     // We can now use source as a key again because AlbumArtUri has stable equality
     val paletteState = remember(source) { mutableStateOf<Palette?>(null) }
     val logger = rememberLogger("RememberPaletteState")
+    val lastSource = remember { mutableStateOf<Any?>(null) }
 
     LaunchedEffect(source) {
+        if (source == lastSource.value) {
+            return@LaunchedEffect
+        }
+
         if (source == null) {
             paletteState.value = null
             return@LaunchedEffect
@@ -53,6 +58,8 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
         } else if (result is ErrorResult) {
             logger.error("Failed to load image for palette: $source", result.throwable)
         }
+
+        lastSource.value = source
     }
     return paletteState
 }
