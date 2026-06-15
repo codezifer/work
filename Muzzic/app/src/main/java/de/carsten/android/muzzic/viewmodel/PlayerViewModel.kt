@@ -8,6 +8,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
 import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
@@ -95,6 +96,10 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
     init {
         scanLibrary()
         startProgressUpdater()
+        setupBrowserObservation()
+    }
+
+    open fun setupBrowserObservation() {
         viewModelScope.launch {
             browser.collect { b ->
                 if (b != null) {
@@ -112,7 +117,7 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
         }
     }
 
-    private fun startProgressUpdater() {
+    open fun startProgressUpdater() {
         viewModelScope.launch {
             while (true) {
                 val b = browser.value
@@ -124,7 +129,7 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
                         _progress.value = pos.toFloat() / dur
                     }
                 }
-                delay(500)
+                delay(AppConfig.Service.PROGRESS_DELAY)
             }
         }
     }
@@ -147,11 +152,23 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
     }
 
     fun onPrevClicked() {
-        browser.value?.seekToPreviousMediaItem()
+        browser.value?.let { player ->
+            if (player.hasPreviousMediaItem()) {
+                player.seekToPreviousMediaItem()
+            } else if (player.mediaItemCount > 0) {
+                player.seekToDefaultPosition(player.mediaItemCount - 1)
+            }
+        }
     }
 
     fun onNextClicked() {
-        browser.value?.seekToNextMediaItem()
+        browser.value?.let { player ->
+            if (player.hasNextMediaItem()) {
+                player.seekToNextMediaItem()
+            } else if (player.mediaItemCount > 0) {
+                player.seekToDefaultPosition(0)
+            }
+        }
     }
 
     fun toggleShuffle() {
@@ -186,7 +203,7 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
         }
     }
 
-    fun scanLibrary() {
+    open fun scanLibrary() {
         viewModelScope.launch {
             repository.scanMusicLibrary()
         }
@@ -212,7 +229,4 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
         b.search(query, null)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-    }
 }
