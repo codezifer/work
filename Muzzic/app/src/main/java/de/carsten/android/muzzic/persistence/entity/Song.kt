@@ -66,6 +66,7 @@ data class Song(
                 rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(MAX_STARS, 0f)),
                 genre = metadata.genre?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
                 duration = metadata.durationMs ?: 0L,
+                playCount = metadata.extras?.getInt(MediaKeys.PLAY_COUNT) ?: 0,
                 lastPlayed = mediaItem.mediaItemInstant(MediaKeys.LAST_PLAYED),
             ).apply {
                 id = mediaItem.mediaId

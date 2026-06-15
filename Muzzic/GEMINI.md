@@ -5,6 +5,8 @@
 ---
 
 ## 🧭 Core Philosophy
+**Intent**: Establish a unified, forward-looking development standard based on Google's Modern Android Development (MAD) recommendations.
+**Optimization Purpose**: Reduce technical debt, improve code readability for human and AI collaborators, and leverage the latest compiler and framework optimizations.
 
 - Always prefer **idiomatic Kotlin** over Java-style patterns.
 - Follow **Modern Android Development (MAD)** principles at all times.
@@ -16,6 +18,8 @@
 ---
 
 ## 📁 Project Structure
+**Intent**: Enforce a strict separation of concerns via Clean Architecture to make the codebase modular and testable.
+**Optimization Purpose**: Minimize build times through decoupled modules and prevent circular dependencies.
 
 ```
 app/
@@ -42,6 +46,8 @@ app/
 ---
 
 ## 🔤 Kotlin Language Rules
+**Intent**: Ensure code consistency and safety using Kotlin's expressive features.
+**Optimization Purpose**: Maximize null safety and performance by using appropriate language constructs and reducing boilerplate.
 
 ### Naming Conventions
 
@@ -108,6 +114,7 @@ createRequest(url = "https://api.example.com", retries = 5)
 
 // ✅ Use extension functions to extend existing types cleanly
 fun String.isValidEmail(): Boolean = android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+```
 
 ### Documentation (KDoc)
 
@@ -131,6 +138,8 @@ fun processData(input: String): Result { ... }
 ---
 
 ## ♻️ Reusability & Generalization
+**Intent**: Promote DRY (Don't Repeat Yourself) through highly generalized and decoupled UI/Logic components.
+**Optimization Purpose**: Reduce binary size and maintainability overhead by consolidating shared patterns into atomic components.
 
 - **Favor Generalized Components**: Avoid screen-specific implementations for common UI patterns (e.g., Drag-and-Drop, Loading states, Error handling).
 - **DRY Principle**: Logic or UI patterns appearing more than once, or complex enough to be isolated, MUST be moved to `ui/component/` or `utils/`.
@@ -143,6 +152,8 @@ fun processData(input: String): Result { ... }
 ---
 
 ### Data Classes & Sealed Classes
+**Intent**: Represent state and domain models explicitly and securely using Kotlin's type system.
+**Optimization Purpose**: Enable exhaustive `when` expressions for state management and reduce runtime errors.
 
 ```kotlin
 // ✅ Domain models as data classes
@@ -161,6 +172,8 @@ sealed interface Result<out T> {
 ```
 
 ### Scope Functions
+**Intent**: Improve code readability and chainability by using idiomatic scope functions.
+**Optimization Purpose**: Reduce the need for temporary variables and clearly define the scope of operations.
 
 ```kotlin
 // let  → nullable transformation / side effect block
@@ -188,6 +201,8 @@ val list = mutableListOf(1, 2, 3).also { log("List created: $it") }
 ---
 
 ## ⚡ Coroutines & Flow
+**Intent**: Handle asynchronous operations and reactive data streams using structured concurrency.
+**Optimization Purpose**: Prevent memory leaks and ensure UI responsiveness by offloading heavy work to appropriate background dispatchers.
 
 ### Coroutine Scopes
 
@@ -258,6 +273,8 @@ val users: Flow<List<User>> = userDao.observeAll()
 ---
 
 ## 🏗️ Architecture: MVVM + Clean Architecture
+**Intent**: Structure the application into distinct layers to isolate business logic from UI and data concerns.
+**Optimization Purpose**: Facilitate unit testing, enable parallel development, and simplify maintenance as the project grows.
 
 ### ViewModel
 
@@ -319,6 +336,8 @@ class UserRepositoryImpl @Inject constructor(
 ---
 
 ## 🎨 Jetpack Compose
+**Intent**: Build intuitive, high-performance UIs using a declarative programming model.
+**Optimization Purpose**: Reduce recompositions through proper state management and optimized Composable design.
 
 ### Composable Rules
 
@@ -400,21 +419,26 @@ UserList(
 ```
 
 ### Side Effects
+**Intent**: Bridge the gap between the declarative UI and imperative lifecycle/system events.
+**Optimization Purpose**: Ensure cleanup of resources and prevent redundant executions of side-logic.
 
 ```kotlin
-// LaunchedEffect: for coroutines triggered by key changes
+// ✅ LaunchedEffect: for coroutines triggered by key changes.
+// ALWAYS document the purpose of the effect with a concise comment.
 LaunchedEffect(userId) {
     viewModel.loadUser(userId)
 }
 
-// DisposableEffect: for cleanup on leave
+// DisposableEffect: for cleanup on leave.
+// ALWAYS document the purpose of the effect with a concise comment.
 DisposableEffect(lifecycleOwner) {
     val observer = LifecycleEventObserver { _, event -> }
     lifecycleOwner.lifecycle.addObserver(observer)
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
 }
 
-// SideEffect: sync Compose state to non-Compose systems
+// SideEffect: sync Compose state to non-Compose systems.
+// ALWAYS document the purpose of the effect with a concise comment.
 SideEffect {
     systemUiController.setStatusBarColor(color = MaterialTheme.colorScheme.primary)
 }
@@ -423,6 +447,8 @@ SideEffect {
 ---
 
 ## 🗄️ Room Database
+**Intent**: Provide a reliable, reactive local storage solution using Room.
+**Optimization Purpose**: Minimize disk I/O on the main thread and ensure data consistency through schema migrations.
 
 ```kotlin
 // ✅ Entities use data classes
@@ -471,6 +497,8 @@ class Converters {
 ---
 
 ## 🌐 Networking with Retrofit
+**Intent**: Implement type-safe HTTP clients for remote data fetching.
+**Optimization Purpose**: Centralize API handling and enable easy integration of interceptors for logging, auth, and caching.
 
 ```kotlin
 // ✅ Suspend functions in service interfaces
@@ -524,6 +552,8 @@ suspend fun <T> safeApiCall(call: suspend () -> Response<T>): Result<T> {
 ---
 
 ## 💉 Dependency Injection with Koin
+**Intent**: Decouple component creation from usage to enhance modularity and testability.
+**Optimization Purpose**: Reduce memory overhead by using appropriate scopes (single, factory, viewModel).
 
 ```kotlin
 // ✅ Module per concern
@@ -570,6 +600,8 @@ val repoModule = module {
 ---
 
 ## 🧪 Testing
+**Intent**: Verify application logic and UI behavior through automated test suites.
+**Optimization Purpose**: Catch regressions early and document expected behavior through executable specifications.
 
 ```kotlin
 // ✅ Unit test ViewModels with TestCoroutineDispatcher
@@ -608,6 +640,8 @@ class UserViewModelTest {
 ---
 
 ## 🔐 Security & Privacy
+**Intent**: Protect user data and application integrity against common threats.
+**Optimization Purpose**: Maintain user trust and comply with privacy regulations by minimizing data exposure.
 
 - Never log sensitive data (tokens, passwords, PII).
 - Store secrets in `local.properties` or encrypted SharedPreferences — never in code.
@@ -635,6 +669,8 @@ val sharedPreferences = EncryptedSharedPreferences.create(
 ---
 
 ## ♿ Accessibility
+**Intent**: Ensure the application is usable by everyone, including people with disabilities.
+**Optimization Purpose**: Improve user experience and reach a wider audience by following Material Design accessibility guidelines.
 
 ```kotlin
 // ✅ Always provide content descriptions for images
@@ -661,6 +697,8 @@ IconButton(
 ---
 
 ## 🚀 Performance
+**Intent**: Optimize the application's speed, efficiency, and resource consumption.
+**Optimization Purpose**: Provide a smooth user experience (60/120 FPS) and minimize battery drain.
 
 - Use `R8` full mode and enable shrinking in release builds.
 - Avoid memory leaks: never hold Activity/Context references in long-lived objects.
@@ -686,6 +724,8 @@ AsyncImage(
 ---
 
 ## 🔧 Build & Tooling
+**Intent**: Maintain a modern and efficient build system using Gradle and Kotlin DSL.
+**Optimization Purpose**: Ensure consistent dependency management and faster incremental builds.
 
 ```kotlin
 // ✅ Use Version Catalog (libs.versions.toml)
@@ -722,6 +762,8 @@ android {
 ---
 
 ## ❌ Anti-Patterns to Avoid
+**Intent**: Prevent common mistakes and outdated patterns that hinder quality and performance.
+**Optimization Purpose**: Guide developers towards safer, more maintainable alternatives.
 
 | Anti-Pattern                            | Correct Alternative                   |
 |-----------------------------------------|---------------------------------------|
@@ -739,6 +781,8 @@ android {
 ---
 
 ## ✅ Pre-Commit Checklist
+**Intent**: Ensure final code quality and adherence to rules before merging.
+**Optimization Purpose**: Reduce review overhead and prevent common issues from entering the main branch.
 
 - [ ] No `!!` without justification
 - [ ] No hardcoded strings — use `strings.xml`

@@ -21,10 +21,11 @@ class StatisticsViewModel(private val repository: MusicRepository) : ViewModel()
     val topSongs = _topSongs.asStateFlow()
 
     init {
+        // Initial load
         loadStats()
     }
 
-    private fun loadStats() {
+    fun loadStats() {
         viewModelScope.launch {
             _monthlyStats.value = repository.getMonthlyStats()
             _genreStats.value = repository.getGenreStats()

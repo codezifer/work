@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,12 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewModel: StatisticsViewModel = koinViewModel()) {
+
+    // Refresh statistics from the database every time the user navigates to this screen
+    LaunchedEffect(Unit) {
+        viewModel.loadStats()
+    }
+
     val months by viewModel.monthlyStats.collectAsStateWithLifecycle()
     val songs by viewModel.topSongs.collectAsStateWithLifecycle()
     val genres by viewModel.genreStats.collectAsStateWithLifecycle()

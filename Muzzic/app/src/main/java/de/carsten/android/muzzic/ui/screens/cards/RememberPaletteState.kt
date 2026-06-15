@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -18,6 +19,7 @@ import de.carsten.android.muzzic.logging.rememberLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@SuppressLint("LocalContextResourcesRead")
 @Composable
 fun rememberPaletteState(source: Any?): State<Palette?> {
     val context = LocalContext.current

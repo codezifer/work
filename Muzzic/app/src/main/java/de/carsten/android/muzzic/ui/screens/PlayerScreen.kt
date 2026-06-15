@@ -136,12 +136,12 @@ fun PlayerScreenContent(
                         Icon(
                             Icons.Default.MusicNote,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            tint = accentColor,
                             modifier = Modifier.size(24.dp),
                         )
                         Text(
                             text = appName,
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = accentColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 8.dp),
