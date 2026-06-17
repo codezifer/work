@@ -228,5 +228,4 @@ open class PlayerViewModel(private val repository: MusicRepository, private val 
         val b = browser.value ?: return
         b.search(query, null)
     }
-
 }

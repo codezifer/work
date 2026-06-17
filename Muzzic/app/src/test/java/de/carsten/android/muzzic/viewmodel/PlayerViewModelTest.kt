@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.media3.session.MediaBrowser
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -30,11 +29,8 @@ class PlayerViewModelTest {
     private lateinit var viewModel: TestPlayerViewModel
     private val testDispatcher = StandardTestDispatcher()
 
-    class TestPlayerViewModel(
-        repository: MusicRepository,
-        mediaLibraryManager: MediaLibraryManager,
-        application: Application
-    ) : PlayerViewModel(repository, mediaLibraryManager, application) {
+    class TestPlayerViewModel(repository: MusicRepository, mediaLibraryManager: MediaLibraryManager, application: Application) :
+        PlayerViewModel(repository, mediaLibraryManager, application) {
         // Override methods called in init to avoid side effects
         override fun scanLibrary() {}
         override fun startProgressUpdater() {}

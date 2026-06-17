@@ -33,7 +33,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewModel: StatisticsViewModel = koinViewModel()) {
-
     // Refresh statistics from the database every time the user navigates to this screen
     LaunchedEffect(Unit) {
         viewModel.loadStats()
