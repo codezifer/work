@@ -6,6 +6,7 @@ import de.carsten.android.muzzic.persistence.repo.GenreRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
+import de.carsten.android.muzzic.persistence.repo.SettingsRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -20,6 +21,7 @@ val databaseModule =
         single { get<MuzzicDatabase>().playlistDao() }
         single { get<MuzzicDatabase>().playHistoryDao() }
         single { get<MuzzicDatabase>().playingQueueDao() }
+        single { get<MuzzicDatabase>().playerSettingsDao() }
     }
 
 val repoModule =
@@ -41,4 +43,5 @@ val repoModule =
         single { SongRepository(get()) }
         single { PlaylistRepository(get()) }
         single { PlayingQueueRepository(get()) }
+        single { SettingsRepository(get()) }
     }

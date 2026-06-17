@@ -13,10 +13,12 @@ import de.carsten.android.muzzic.persistence.repo.GenreRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
+import de.carsten.android.muzzic.persistence.repo.SettingsRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -31,6 +33,7 @@ class MusicPlayerService :
     private val analytics: PlaybackAnalytics by inject()
     private val stateManager: PlaybackStateManager by inject()
     private val playlistManager: AutomaticPlaylistManager by inject()
+    private val settingsRepository: SettingsRepository by inject()
 
     // Repositories for the Callback (consider moving these as well if possible)
     private val musicRepository: MusicRepository by inject()
@@ -72,6 +75,7 @@ class MusicPlayerService :
                 ).build()
 
         queueManager.loadPersistedQueue(serviceScope, playbackManager.exoPlayer)
+        loadPlayerSettings()
         queueManager.observeQueueChanges(serviceScope, playbackManager.exoPlayer)
         playlistManager.startMonitoring(serviceScope)
         logger.info("MusicPlayerService created")
@@ -97,8 +101,29 @@ class MusicPlayerService :
                     )
                     prevPlaybackState = playbackState
                 }
+
+                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                    serviceScope.launch {
+                        settingsRepository.saveShuffleMode(shuffleModeEnabled)
+                    }
+                }
+
+                override fun onRepeatModeChanged(repeatMode: Int) {
+                    serviceScope.launch {
+                        settingsRepository.saveRepeatMode(repeatMode)
+                    }
+                }
             },
         )
+    }
+
+    private fun loadPlayerSettings() {
+        serviceScope.launch {
+            val settings = settingsRepository.getSettings()
+            playbackManager.exoPlayer.shuffleModeEnabled = settings.shuffleEnabled
+            playbackManager.exoPlayer.repeatMode = settings.repeatMode
+            logger.info("Restored player settings: shuffle=${settings.shuffleEnabled}, repeat=${settings.repeatMode}")
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaLibrarySession
