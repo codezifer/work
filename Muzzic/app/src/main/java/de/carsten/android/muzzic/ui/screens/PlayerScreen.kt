@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,14 +33,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
-import de.carsten.android.muzzic.ui.screens.cards.rememberPaletteState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
-import de.carsten.android.muzzic.ui.utils.adjustForTheme
-import de.carsten.android.muzzic.ui.utils.extractColors
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -51,20 +47,13 @@ private val GLASS_CONTAINER_ROUNDING = 28.dp
 private val GLASS_CONTAINER_ALPHA = 0.5f
 
 @Composable
-fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewModel: PlayerViewModel = koinViewModel()) {
-    val currentSong by viewModel.currentSong.collectAsStateWithLifecycle()
-    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
-    val progress by viewModel.progress.collectAsStateWithLifecycle()
-    val duration by viewModel.duration.collectAsStateWithLifecycle()
-    val shuffleModeEnabled by viewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
-    val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
-
-    val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
-    val isDark = isSystemInDarkTheme()
-    val accentColor = palette.extractColors(
-        defaultBackground = MaterialTheme.colorScheme.primary,
-        defaultContent = MaterialTheme.colorScheme.onPrimary,
-    ).backgroundColor.adjustForTheme(isDark)
+fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSource: ColorSource, playerViewModel: PlayerViewModel = koinViewModel()) {
+    val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
+    val isPlaying by playerViewModel.isPlaying.collectAsStateWithLifecycle()
+    val progress by playerViewModel.progress.collectAsStateWithLifecycle()
+    val duration by playerViewModel.duration.collectAsStateWithLifecycle()
+    val shuffleModeEnabled by playerViewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
+    val repeatMode by playerViewModel.repeatMode.collectAsStateWithLifecycle()
 
     PlayerScreenContent(
         modifier = modifier,
@@ -74,13 +63,13 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewMod
         duration = duration,
         shuffleModeEnabled = shuffleModeEnabled,
         repeatMode = repeatMode,
-        accentColor = accentColor,
-        onPrevClicked = viewModel::onPrevClicked,
-        onNextClicked = viewModel::onNextClicked,
-        onPlayPauseClicked = viewModel::togglePlayPause,
-        onProgressChanged = viewModel::onProgressChanged,
-        onToggleShuffle = viewModel::toggleShuffle,
-        onToggleRepeat = viewModel::toggleRepeatMode,
+        colorSource = colorSource,
+        onPrevClicked = playerViewModel::onPrevClicked,
+        onNextClicked = playerViewModel::onNextClicked,
+        onPlayPauseClicked = playerViewModel::togglePlayPause,
+        onProgressChanged = playerViewModel::onProgressChanged,
+        onToggleShuffle = playerViewModel::toggleShuffle,
+        onToggleRepeat = playerViewModel::toggleRepeatMode,
     )
 }
 
@@ -93,7 +82,7 @@ fun PlayerScreenContent(
     duration: Long,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
-    accentColor: Color = MaterialTheme.colorScheme.primary,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.inversePrimary),
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
@@ -122,7 +111,8 @@ fun PlayerScreenContent(
                     .background(
                         color = MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA),
                         shape = RoundedCornerShape(GLASS_CONTAINER_ROUNDING),
-                    ).padding(16.dp),
+                    )
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // HEADER
@@ -136,12 +126,12 @@ fun PlayerScreenContent(
                         Icon(
                             Icons.Default.MusicNote,
                             contentDescription = null,
-                            tint = accentColor,
+                            tint = colorSource.accentColor,
                             modifier = Modifier.size(24.dp),
                         )
                         Text(
                             text = appName,
-                            color = accentColor,
+                            color = colorSource.accentColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 8.dp),
@@ -159,7 +149,7 @@ fun PlayerScreenContent(
                     duration = duration,
                     shuffleModeEnabled = shuffleModeEnabled,
                     repeatMode = repeatMode,
-                    accentColor = accentColor,
+                    colorSource = colorSource,
                     onPreviousClicked = onPrevClicked,
                     onPlayPauseClicked = onPlayPauseClicked,
                     onNextClicked = onNextClicked,

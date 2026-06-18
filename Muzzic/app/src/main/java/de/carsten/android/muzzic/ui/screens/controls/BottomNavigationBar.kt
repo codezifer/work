@@ -23,6 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.carsten.android.muzzic.ui.AppDestinations
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String, var onClick: () -> Unit = {}) {
@@ -47,12 +48,16 @@ val bottomNavItems =
     )
 
 @Composable
-fun BottomNavigationBar(navController: NavController, clickHandlers: Map<String, () -> Unit> = HashMap()) {
+fun BottomNavigationBar(
+    navController: NavController,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
+    clickHandlers: Map<String, () -> Unit> = HashMap(),
+) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
 
     AppTheme {
-        NavigationBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+        NavigationBar(containerColor = colorSource.accentColor) {
             bottomNavItems.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
                 NavigationBarItem(
@@ -77,11 +82,11 @@ fun BottomNavigationBar(navController: NavController, clickHandlers: Map<String,
                     label = { Text(item.label, fontSize = 10.sp) },
                     colors =
                     NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        indicatorColor = MaterialTheme.colorScheme.inversePrimary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
-                        unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                        selectedIconColor = colorSource.contentColor,
+                        selectedTextColor = colorSource.contentColor,
+                        indicatorColor = colorSource.contentColor.copy(alpha = 0.2f),
+                        unselectedIconColor = colorSource.contentColor.copy(alpha = 0.6f),
+                        unselectedTextColor = colorSource.contentColor.copy(alpha = 0.6f),
                     ),
                 )
             }

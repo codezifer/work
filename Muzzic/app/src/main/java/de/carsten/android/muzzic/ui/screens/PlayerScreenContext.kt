@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +37,7 @@ import androidx.media3.common.Player
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -54,7 +54,7 @@ fun PlayerScreenContext(
     duration: Long,
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
-    accentColor: Color = MaterialTheme.colorScheme.primary,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.inversePrimary),
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -119,12 +119,12 @@ fun PlayerScreenContext(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
-                    thumbColor = accentColor,
-                    activeTrackColor = accentColor,
+                    thumbColor = colorSource.accentColor,
+                    activeTrackColor = colorSource.accentColor,
                     inactiveTrackColor = textColor.copy(alpha = 0.3f),
                 ),
                 indicatorFormatter = { valPos -> formatDuration((duration * valPos).toLong()) },
-                indicatorColor = accentColor,
+                indicatorColor = colorSource.accentColor,
             )
             Row(
                 modifier =
@@ -177,7 +177,8 @@ fun PlayerScreenContext(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             shape = CircleShape,
-                        ).background(
+                        )
+                        .background(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             shape = CircleShape,
                         )
@@ -190,7 +191,7 @@ fun PlayerScreenContext(
                     Icon(
                         imageVector = Icons.Filled.Shuffle,
                         contentDescription = "Shuffle",
-                        tint = if (shuffleModeEnabled) accentColor else MaterialTheme.colorScheme.onSurface,
+                        tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -215,14 +216,14 @@ fun PlayerScreenContext(
                     Modifier
                         .size(72.dp) // Larger play/pause button
                         .background(
-                            accentColor,
+                            colorSource.accentColor,
                             CircleShape,
                         ),
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = colorSource.contentColor,
                         modifier = Modifier.size(44.dp),
                     )
                 }
@@ -252,7 +253,7 @@ fun PlayerScreenContext(
                     Icon(
                         imageVector = repeatIcon,
                         contentDescription = "Repeat",
-                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) accentColor else MaterialTheme.colorScheme.onSurface,
+                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -260,7 +261,7 @@ fun PlayerScreenContext(
         }
 
         // volume
-        VolumeControl(accentColor = accentColor)
+        VolumeControl(accentColor = colorSource.accentColor)
     }
 }
 

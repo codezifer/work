@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -30,15 +31,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.component.TextInputDialog
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.navigation.NavigationEvent
 import de.carsten.android.muzzic.ui.navigation.rememberMusicAppState
+import de.carsten.android.muzzic.ui.screens.cards.rememberPaletteState
 import de.carsten.android.muzzic.ui.screens.controls.BottomNavItem
 import de.carsten.android.muzzic.ui.screens.controls.BottomNavigationBar
 import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
 import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
+import de.carsten.android.muzzic.ui.utils.adjustForTheme
+import de.carsten.android.muzzic.ui.utils.extractColors
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
@@ -62,6 +68,18 @@ fun MusicPlayerApp(
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
     val uiState = appState.getUiState(selectionState)
+
+    val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
+    val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
+    val isDark = isSystemInDarkTheme()
+    val paletteColors = palette.extractColors(
+        defaultBackground = MaterialTheme.colorScheme.primary,
+        defaultContent = MaterialTheme.colorScheme.onPrimary,
+    )
+    val colorSource = ColorSource(
+        accentColor = paletteColors.backgroundColor.adjustForTheme(isDark),
+        contentColor = paletteColors.contentColor,
+    )
 
     var showSavePlaylistDialog by remember { mutableStateOf(false) }
 
@@ -107,6 +125,7 @@ fun MusicPlayerApp(
         bottomBar = {
             BottomNavigationBar(
                 navController = appState.navController,
+                colorSource = colorSource,
                 clickHandlers =
                 mapOf(
                     BottomNavItem.Player.label to {
@@ -140,6 +159,7 @@ fun MusicPlayerApp(
             AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
+                colorSource = colorSource,
                 libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,
                 playingQueueViewModel = playingQueueViewModel,
@@ -165,6 +185,7 @@ fun MusicPlayerApp(
                 SelectionToolbar(
                     mode = if (uiState is AppUiState.Queue) ToolbarMode.QUEUE_MGMT else ToolbarMode.SELECTION,
                     selectedCount = selectionState.selectedSongs.size,
+                    colorSource = colorSource,
                     confirmIcon = if (uiState is AppUiState.Queue) Icons.Default.Delete else Icons.Default.Add,
                     confirmLabel = if (uiState is AppUiState.Queue) "Remove from Queue" else "Add to Queue",
                     onConfirm = {

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.TooltipIconButton
+import de.carsten.android.muzzic.ui.model.ColorSource
 
 private val SPACE_WIDTH = 8.dp
 private val PADDING_H = 8.dp
@@ -53,6 +54,7 @@ enum class ToolbarMode {
  *
  * @param modifier Modifier for the toolbar container.
  * @param mode The current display mode.
+ * @param colorSource Current colors from [ColorSource]
  * @param selectedCount Number of items selected (used in SELECTION mode).
  * @param onConfirm Callback for adding selected items to queue (SELECTION mode).
  * @param onCancel Callback for clearing selection (SELECTION mode).
@@ -64,6 +66,7 @@ enum class ToolbarMode {
 fun SelectionToolbar(
     modifier: Modifier = Modifier,
     mode: ToolbarMode,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
     selectedCount: Int = 0,
     confirmIcon: ImageVector = Icons.Default.Add,
     confirmLabel: String = "Add to Queue",
@@ -82,8 +85,8 @@ fun SelectionToolbar(
         shape = RoundedCornerShape(50),
         colors =
         CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = colorSource.accentColor,
+            contentColor = colorSource.contentColor,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {

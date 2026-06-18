@@ -21,6 +21,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -42,6 +43,7 @@ import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 fun AppNavHost(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
+    colorSource: ColorSource,
     startDestination: String = PLAYER,
     libraryViewModel: LibraryViewModel,
     selectionViewModel: SelectionViewModel,
@@ -122,6 +124,7 @@ fun AppNavHost(
             PlayerScreen(
                 modifier = modifier,
                 appState = appState,
+                colorSource = colorSource,
             )
         }
 
