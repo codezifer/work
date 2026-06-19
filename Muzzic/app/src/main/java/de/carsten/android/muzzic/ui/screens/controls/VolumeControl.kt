@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +46,7 @@ import androidx.compose.ui.window.PopupProperties
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
+import de.carsten.android.muzzic.ui.shape.TailDirection
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import kotlin.math.roundToInt
 
@@ -105,72 +107,99 @@ fun VolumeControl(modifier: Modifier = Modifier, accentColor: Color = MaterialTh
                     onDismissRequest = {
                         showSlider = false
                     },
-                    properties = PopupProperties(focusable = true),
+                    properties = PopupProperties(focusable = true, clippingEnabled = false),
                     offset = IntOffset(0, -220), // Adjust as needed
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(
-                            modifier = Modifier
-                                .width(50.dp)
-                                .height(200.dp),
-                            shape = RoundedCornerShape(25.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            tonalElevation = 8.dp,
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                IndicatorSlider(
-                                    value = volume.toFloat(),
-                                    onValueChange = { newVal ->
-                                        val newVolume = newVal.roundToInt()
-                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-                                        volume = newVolume
-                                    },
-                                    onValueChangeFinished = { /* Managed by component */ },
-                                    valueRange = 0f..maxVolume.toFloat(),
-                                    modifier = Modifier
-                                        .graphicsLayer {
-                                            rotationZ = -90f
-                                        }
-                                        .layout { measurable, constraints ->
-                                            // Swap constraints for rotation
-                                            val placeable = measurable.measure(
-                                                constraints.copy(
-                                                    minWidth = constraints.minHeight,
-                                                    maxWidth = constraints.maxHeight,
-                                                    minHeight = constraints.minWidth,
-                                                    maxHeight = constraints.maxWidth,
-                                                ),
-                                            )
-                                            layout(placeable.height, placeable.width) {
-                                                placeable.place(
-                                                    x = -(placeable.width / 2 - placeable.height / 2),
-                                                    y = -(placeable.height / 2 - placeable.width / 2),
-                                                )
-                                            }
-                                        }
-                                        .fillMaxSize()
-                                        .padding(horizontal = 24.dp),
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = accentColor,
-                                        activeTrackColor = accentColor,
-                                        inactiveTrackColor = accentColor.copy(alpha = 0.3f),
-                                    ),
-                                    indicatorFormatter = { valPos ->
-                                        val percentage = ((valPos / maxVolume) * 100).roundToInt()
-                                        "$percentage%"
-                                    },
-                                    indicatorColor = accentColor,
-                                    indicatorAlignment = Alignment.BottomCenter,
-                                    indicatorOffsetY = 15.dp,
-                                )
-                            }
-                        }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.graphicsLayer { clip = false },
+                    ) {
+                        VolumeSliderContent(
+                            value = volume.toFloat(),
+                            onValueChange = { newVal ->
+                                val newVolume = newVal.roundToInt()
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+                                volume = newVolume
+                            },
+                            maxVolume = maxVolume.toFloat(),
+                            accentColor = accentColor,
+                            modifier = Modifier.graphicsLayer { clip = false },
+                        )
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun VolumeSliderContent(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    maxVolume: Float,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    initialScrubbingProgress: Float = -1f,
+) {
+    Surface(
+        modifier = modifier
+            .width(50.dp)
+            .height(200.dp)
+            .graphicsLayer { clip = false }, // Allow indicator to overflow
+        shape = RoundedCornerShape(25.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 8.dp,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { clip = false }, // Allow indicator to overflow
+            contentAlignment = Alignment.Center,
+        ) {
+            IndicatorSlider(
+                value = value,
+                onValueChange = onValueChange,
+                onValueChangeFinished = { /* Managed by component */ },
+                valueRange = 0f..maxVolume,
+                modifier = Modifier
+                    .graphicsLayer {
+                        rotationZ = -90f
+                    }
+                    .layout { measurable, constraints ->
+                        // Swap constraints for rotation
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minWidth = constraints.minHeight,
+                                maxWidth = constraints.maxHeight,
+                                minHeight = constraints.minWidth,
+                                maxHeight = constraints.maxWidth,
+                            ),
+                        )
+                        layout(placeable.height, placeable.width) {
+                            placeable.place(
+                                x = -(placeable.width / 2 - placeable.height / 2),
+                                y = -(placeable.height / 2 - placeable.width / 2),
+                            )
+                        }
+                    }
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                colors = SliderDefaults.colors(
+                    thumbColor = accentColor,
+                    activeTrackColor = accentColor,
+                    inactiveTrackColor = accentColor.copy(alpha = 0.3f),
+                ),
+                indicatorFormatter = { valPos ->
+                    val percentage = ((valPos / maxVolume) * 100).roundToInt()
+                    "$percentage%"
+                },
+                indicatorColor = accentColor,
+                indicatorAlignment = Alignment.BottomCenter,
+                indicatorOffsetY = 24.dp,
+                indicatorRotation = 90f,
+                tailDirection = TailDirection.Left,
+                initialScrubbingProgress = initialScrubbingProgress,
+            )
         }
     }
 }
@@ -180,4 +209,43 @@ fun VolumeControl(modifier: Modifier = Modifier, accentColor: Color = MaterialTh
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "VolumeControl_Dark")
 fun VolumeControlPreview() {
     VolumeControl()
+}
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "VolumeControlWithIndicator_Dark")
+fun VolumeControlWithIndicatorPreview() {
+    AppTheme {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            // Use a wider Box to contain the Surface and allow the indicator to overflow in previews
+            Box(
+                modifier = Modifier
+                    .width(100.dp) // Extra width to prevent clipping of the indicator in preview
+                    .height(200.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Use Box with background instead of Surface to avoid clipping in preview
+                Box(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(200.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(25.dp),
+                        ),
+                ) {
+                    VolumeSliderContent(
+                        value = 5f,
+                        onValueChange = { },
+                        maxVolume = 15f,
+                        accentColor = MaterialTheme.colorScheme.primary,
+                        initialScrubbingProgress = 7f,
+                    )
+                }
+            }
+        }
+    }
 }
