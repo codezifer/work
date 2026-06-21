@@ -12,7 +12,7 @@ interface AlbumDao {
     @Query(
         "SELECT DISTINCT UPPER(SUBSTR(album, 1, 1)) FROM (SELECT DISTINCT album FROM songs ORDER BY album ASC) ORDER BY 1",
     )
-    suspend fun getAlbumAlphabet(): List<Char>
+    suspend fun getAlbumAlphabet(): List<String>
 
     @Query("SELECT COUNT(*) FROM songs WHERE album < (SELECT MIN(album) FROM songs WHERE album LIKE :letter || '%')")
     suspend fun getAlbumLetterPositon(letter: String): Int

@@ -1,37 +1,37 @@
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
-val rootKotlinVersion = "2.2"
-val rootTargetSdk = 36
+val rootKotlinVersion = "2.3"
+val appTargetSdk = 37
+val appMinSdk = 36
 val rootJvmVersion = 17
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
-val buildVersion = "$rootTargetSdk.0.0"
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.android.room)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
 }
 
-android {
+extensions.configure<ApplicationExtension> {
     namespace = appId
-    compileSdk = rootTargetSdk
+    compileSdk = appTargetSdk
 
     defaultConfig {
         applicationId = appId
-        minSdk = rootTargetSdk - 2
-        targetSdk = rootTargetSdk
+        minSdk = appMinSdk
+        targetSdk = appTargetSdk
         versionCode = 1
-        versionName = "0.1.2"
+        versionName = "0.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -39,7 +39,7 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
-        debug {
+        getByName("debug") {
             var shouldSeed = "false"
             val deviceName = project.findProperty("android.injected.device.serial")?.toString()?.lowercase()
                 ?: project.findProperty("android.injected.device.model")?.toString()?.lowercase()
@@ -47,7 +47,6 @@ android {
             if (deviceName != null && (deviceName.contains("emulator") || deviceName.startsWith("127.0.0.1"))) {
                 shouldSeed = "true"
             }
-            // Added buildConfigField manually to avoid dependency on automatic generation if it fails
             buildConfigField("boolean", "SEED_DATABASE", shouldSeed)
         }
     }
@@ -61,12 +60,11 @@ android {
         sourceCompatibility = compatibility
         targetCompatibility = compatibility
     }
-    buildToolsVersion = buildVersion
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(rootJvmVersion.toString())
+        jvmTarget.set(JvmTarget.fromTarget(rootJvmVersion.toString()))
     }
 }
 

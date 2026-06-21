@@ -18,7 +18,7 @@ interface SongDao {
     fun getAllSongsPagingSource(): PagingSource<Int, Song>
 
     @Query("SELECT DISTINCT UPPER(SUBSTR(title, 1, 1)) FROM songs ORDER BY 1")
-    suspend fun getSongAlphabet(): List<Char>
+    suspend fun getSongAlphabet(): List<String>
 
     @Query("SELECT COUNT(*) FROM songs WHERE title < (SELECT MIN(title) FROM songs WHERE title LIKE :letter || '%')")
     suspend fun getSongLetterPositon(letter: String): Int
