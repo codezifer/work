@@ -83,9 +83,11 @@ fun MusicPlayerApp(
             defaultContent = defaultContent,
         )
         val accentColor = paletteColors.backgroundColor.adjustForTheme(isDark)
+        val contentColor = paletteColors.contentColor.ensureContrast(accentColor)
         ColorSource(
             accentColor = accentColor,
-            contentColor = paletteColors.contentColor.ensureContrast(accentColor),
+            contentColor = contentColor,
+            labelColor = contentColor.copy(alpha = 0.8f),
         )
     }
 

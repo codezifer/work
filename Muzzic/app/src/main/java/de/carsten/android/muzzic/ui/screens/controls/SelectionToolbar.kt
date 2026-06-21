@@ -125,6 +125,7 @@ fun SelectionToolbar(
                         Text(
                             text = "$selectedCount selected",
                             fontSize = FONT_SIZE,
+                            color = colorSource.labelColor,
                             modifier = Modifier.padding(horizontal = PADDING_H),
                         )
                         Spacer(modifier = Modifier.width(SPACE_WIDTH))

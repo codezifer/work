@@ -136,6 +136,7 @@ fun AppNavHost(
                 LibraryScreen(
                     modifier = modifier,
                     appState = appState,
+                    colorSource = colorSource,
                     onArtistClick = onArtistClick,
                     onAlbumClick = onAlbumClick,
                     onGenreClick = onGenreClick,

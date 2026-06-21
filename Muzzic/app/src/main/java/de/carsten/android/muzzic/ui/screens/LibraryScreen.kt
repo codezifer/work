@@ -35,6 +35,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.SONG
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -44,6 +45,7 @@ import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
 import de.carsten.android.muzzic.ui.screens.grids.PlaylistGrid
 import de.carsten.android.muzzic.ui.screens.grids.SongList
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.invert
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import java.time.Instant
@@ -53,6 +55,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LibraryScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (GenreDto) -> Unit = {},
@@ -85,6 +88,7 @@ fun LibraryScreen(
             songs = songs,
             genres = genres,
             playlists = playlists,
+            colorSource = colorSource,
             onArtistClick = { artist ->
                 if (selectionState.isActive) {
                     selectionViewModel.toggleArtistSelection(artist)
@@ -129,6 +133,7 @@ fun LibraryScreenContent(
     songs: List<Song>,
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onArtistClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
@@ -142,6 +147,10 @@ fun LibraryScreenContent(
     selectedSongs: Set<String> = emptySet(),
 ) {
     var selectedFilter by remember { mutableStateOf(ARTIST) }
+    val selectedContainerColor = colorSource.accentColor.invert()
+    val selectedLabelColor = colorSource.contentColor.invert()
+    val containerColor = colorSource.accentColor
+    val labelColor = colorSource.labelColor
 
     Column(
         modifier =
@@ -169,10 +178,10 @@ fun LibraryScreenContent(
                     label = { Text(text = label) },
                     colors =
                     FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = selectedContainerColor,
+                        selectedLabelColor = selectedLabelColor,
+                        containerColor = containerColor,
+                        labelColor = labelColor,
                     ),
                 )
             }

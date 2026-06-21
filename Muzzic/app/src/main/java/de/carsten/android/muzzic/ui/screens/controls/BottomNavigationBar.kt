@@ -85,8 +85,8 @@ fun BottomNavigationBar(
                         selectedIconColor = colorSource.contentColor,
                         selectedTextColor = colorSource.contentColor,
                         indicatorColor = colorSource.contentColor.copy(alpha = 0.2f),
-                        unselectedIconColor = colorSource.contentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = colorSource.contentColor.copy(alpha = 0.6f),
+                        unselectedIconColor = colorSource.labelColor,
+                        unselectedTextColor = colorSource.labelColor,
                     ),
                 )
             }

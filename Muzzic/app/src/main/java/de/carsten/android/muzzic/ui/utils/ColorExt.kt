@@ -1,12 +1,46 @@
 package de.carsten.android.muzzic.ui.utils
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 
 private const val DARK_LUMINANCE_FACTOR = 0.4f
 private const val LIGHT_LUMINANCE_FACTOR = 0.6f
 private const val MAX_LUMINANCE = 1f
 private const val DARKEN_FACTOR = 0.7f
+
+// 1. Define the inversion matrix
+private val invertMatrix = ColorMatrix(
+    floatArrayOf(
+        -1f, 0f, 0f, 0f, 255f, // Red
+        0f, -1f, 0f, 0f, 255f, // Green
+        0f, 0f, -1f, 0f, 255f, // Blue
+        0f, 0f, 0f, 1f, 0f, // Alpha
+    ),
+)
+
+private val invertColorFilter = ColorFilter.colorMatrix(invertMatrix)
+
+/**
+ * Applies color inversion filter to the composable
+ */
+fun Modifier.invertColors() = this.then(
+    Modifier.graphicsLayer(colorFilter = invertColorFilter),
+)
+
+/**
+ * Returns the mathematically inverted color.
+ * Keeps the original alpha channel intact.
+ */
+fun Color.invert() = Color(
+    red = 1f - this.red,
+    green = 1f - this.green,
+    blue = 1f - this.blue,
+    alpha = this.alpha,
+)
 
 /**
  * Adjusts a color to be more suitable for the current theme.
@@ -70,10 +104,8 @@ fun Color.calculateContrast(other: Color): Float {
  * @param minContrast The minimum required contrast ratio (default is 3.0 for large text).
  * @return This color if contrast is sufficient, otherwise a high-contrast fallback.
  */
-fun Color.ensureContrast(backgroundColor: Color, minContrast: Float = 3.0f): Color {
-    return if (calculateContrast(backgroundColor) < minContrast) {
-        backgroundColor.contrastColor()
-    } else {
-        this
-    }
+fun Color.ensureContrast(backgroundColor: Color, minContrast: Float = 3.0f): Color = if (calculateContrast(backgroundColor) < minContrast) {
+    backgroundColor.contrastColor()
+} else {
+    this
 }
