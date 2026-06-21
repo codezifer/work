@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.persistence.entity
 
 import android.os.Bundle
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
@@ -176,11 +175,11 @@ data class Song(
                 .build(),
         ).build()
 
-    private fun getExtras(): Bundle = bundleOf(
-        Pair("songId", this.id),
-        Pair(MediaKeys.PLAY_COUNT, this.playCount),
-        Pair(MediaKeys.LAST_PLAYED, this.lastPlayed.toEpochMilli()),
-        Pair(MediaKeys.CREATED_AT, this.createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-        Pair(MediaKeys.UPDATED_AT, this.updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli()),
-    )
+    private fun getExtras() = Bundle().apply {
+        putString("songId", id)
+        putInt(MediaKeys.PLAY_COUNT, playCount)
+        putLong(MediaKeys.LAST_PLAYED, lastPlayed.toEpochMilli())
+        putLong(MediaKeys.CREATED_AT, createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli())
+        putLong(MediaKeys.UPDATED_AT, updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli())
+    }
 }

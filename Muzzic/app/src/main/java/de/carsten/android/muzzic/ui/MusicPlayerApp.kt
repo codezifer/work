@@ -23,6 +23,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
 import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
 import de.carsten.android.muzzic.ui.utils.adjustForTheme
+import de.carsten.android.muzzic.ui.utils.ensureContrast
 import de.carsten.android.muzzic.ui.utils.extractColors
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
@@ -72,14 +74,20 @@ fun MusicPlayerApp(
     val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
     val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
     val isDark = isSystemInDarkTheme()
-    val paletteColors = palette.extractColors(
-        defaultBackground = MaterialTheme.colorScheme.primary,
-        defaultContent = MaterialTheme.colorScheme.onPrimary,
-    )
-    val colorSource = ColorSource(
-        accentColor = paletteColors.backgroundColor.adjustForTheme(isDark),
-        contentColor = paletteColors.contentColor,
-    )
+
+    val defaultBackground = MaterialTheme.colorScheme.primary
+    val defaultContent = MaterialTheme.colorScheme.onPrimary
+    val colorSource = remember(palette, isDark, defaultBackground, defaultContent) {
+        val paletteColors = palette.extractColors(
+            defaultBackground = defaultBackground,
+            defaultContent = defaultContent,
+        )
+        val accentColor = paletteColors.backgroundColor.adjustForTheme(isDark)
+        ColorSource(
+            accentColor = accentColor,
+            contentColor = paletteColors.contentColor.ensureContrast(accentColor),
+        )
+    }
 
     var showSavePlaylistDialog by remember { mutableStateOf(false) }
 
@@ -166,12 +174,15 @@ fun MusicPlayerApp(
             )
 
             // Contextual Floating Toolbar powered by State Machine logic
-            val showSelectionToolbar =
-                when (uiState) {
-                    is AppUiState.Library -> uiState.selectionActive
-                    is AppUiState.Queue -> true
-                    else -> false
+            val showSelectionToolbar by remember(uiState) {
+                derivedStateOf {
+                    when (uiState) {
+                        is AppUiState.Library -> uiState.selectionActive
+                        is AppUiState.Queue -> true
+                        else -> false
+                    }
                 }
+            }
 
             AnimatedVisibility(
                 visible = showSelectionToolbar,
@@ -188,34 +199,44 @@ fun MusicPlayerApp(
                     colorSource = colorSource,
                     confirmIcon = if (uiState is AppUiState.Queue) Icons.Default.Delete else Icons.Default.Add,
                     confirmLabel = if (uiState is AppUiState.Queue) "Remove from Queue" else "Add to Queue",
-                    onConfirm = {
-                        if (uiState is AppUiState.Queue) {
-                            selectionViewModel.confirmRemoval {
-                                appState.showSnackbar("Removed from Queue")
+                    onConfirm = remember(uiState) {
+                        {
+                            if (uiState is AppUiState.Queue) {
+                                selectionViewModel.confirmRemoval {
+                                    appState.showSnackbar("Removed from Queue")
+                                }
+                            } else {
+                                playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
+                                selectionViewModel.confirmSelection { info ->
+                                    appState.showSnackbar(info)
+                                }
                             }
-                        } else {
-                            playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
-                            selectionViewModel.confirmSelection { info ->
+                        }
+                    },
+                    onCancel = remember {
+                        {
+                            selectionViewModel.rollbackEnqueued { info ->
                                 appState.showSnackbar(info)
                             }
                         }
                     },
-                    onCancel = {
-                        selectionViewModel.rollbackEnqueued { info ->
+                    onClearQueue = remember {
+                        { info ->
+                            playingQueueViewModel.clear()
+                            playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
                             appState.showSnackbar(info)
                         }
                     },
-                    onClearQueue = { info ->
-                        playingQueueViewModel.clear()
-                        playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)
-                        appState.showSnackbar(info)
+                    onPersistQueue = remember {
+                        { info ->
+                            playingQueueViewModel.persistCurrentQueue()
+                            appState.showSnackbar(info)
+                        }
                     },
-                    onPersistQueue = { info ->
-                        playingQueueViewModel.persistCurrentQueue()
-                        appState.showSnackbar(info)
-                    },
-                    onSaveAsPlaylist = { info ->
-                        showSavePlaylistDialog = true
+                    onSaveAsPlaylist = remember {
+                        { info ->
+                            showSavePlaylistDialog = true
+                        }
                     },
                 )
             }

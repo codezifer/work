@@ -1,11 +1,16 @@
 package de.carsten.android.muzzic.ui.screens.controls
 
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
@@ -20,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,9 +85,14 @@ fun SelectionToolbar(
     Card(
         modifier =
         modifier
-            .width(IntrinsicSize.Min)
+            .wrapContentWidth()
             .widthIn(min = 200.dp)
-            .padding(16.dp),
+            .padding(16.dp)
+            .graphicsLayer {
+                // Enable hardware acceleration for smooth visibility transitions
+                clip = true
+                shape = RoundedCornerShape(50)
+            },
         shape = RoundedCornerShape(50),
         colors =
         CardDefaults.cardColors(
@@ -90,51 +101,59 @@ fun SelectionToolbar(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
-        Row(
-            modifier =
-            Modifier
-                .padding(horizontal = PADDING_H, vertical = PADDING_V),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            when (mode) {
-                ToolbarMode.SELECTION -> {
-                    TooltipIconButton(
-                        onClick = { onCancel("Cancel Selection") },
-                        icon = Icons.Default.Close,
-                        contentDescription = "Cancel Selection",
-                    )
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    Text(
-                        text = "$selectedCount selected",
-                        fontSize = FONT_SIZE,
-                        modifier = Modifier.padding(horizontal = PADDING_H),
-                    )
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    TooltipIconButton(
-                        onClick = { onConfirm(confirmLabel) },
-                        icon = confirmIcon,
-                        contentDescription = confirmLabel,
-                    )
-                }
+        AnimatedContent(
+            targetState = mode,
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
+            },
+            label = "ToolbarModeTransition",
+        ) { targetMode ->
+            Row(
+                modifier =
+                Modifier
+                    .padding(horizontal = PADDING_H, vertical = PADDING_V),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                when (targetMode) {
+                    ToolbarMode.SELECTION -> {
+                        TooltipIconButton(
+                            onClick = { onCancel("Cancel Selection") },
+                            icon = Icons.Default.Close,
+                            contentDescription = "Cancel Selection",
+                        )
+                        Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                        Text(
+                            text = "$selectedCount selected",
+                            fontSize = FONT_SIZE,
+                            modifier = Modifier.padding(horizontal = PADDING_H),
+                        )
+                        Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                        TooltipIconButton(
+                            onClick = { onConfirm(confirmLabel) },
+                            icon = confirmIcon,
+                            contentDescription = confirmLabel,
+                        )
+                    }
 
-                ToolbarMode.QUEUE_MGMT -> {
-                    TooltipIconButton(
-                        onClick = { onClearQueue("Clear Queue") },
-                        icon = Icons.Default.Delete,
-                        contentDescription = "Clear Queue",
-                    )
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    TooltipIconButton(
-                        onClick = { onSaveAsPlaylist("Save as Playlist") },
-                        icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                        contentDescription = "Save as Playlist",
-                    )
-                    Spacer(modifier = Modifier.width(SPACE_WIDTH))
-                    TooltipIconButton(
-                        onClick = { onPersistQueue("Persist Queue") },
-                        icon = Icons.Default.Save,
-                        contentDescription = "Persist Queue",
-                    )
+                    ToolbarMode.QUEUE_MGMT -> {
+                        TooltipIconButton(
+                            onClick = { onClearQueue("Clear Queue") },
+                            icon = Icons.Default.Delete,
+                            contentDescription = "Clear Queue",
+                        )
+                        Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                        TooltipIconButton(
+                            onClick = { onSaveAsPlaylist("Save as Playlist") },
+                            icon = Icons.AutoMirrored.Filled.PlaylistAdd,
+                            contentDescription = "Save as Playlist",
+                        )
+                        Spacer(modifier = Modifier.width(SPACE_WIDTH))
+                        TooltipIconButton(
+                            onClick = { onPersistQueue("Persist Queue") },
+                            icon = Icons.Default.Save,
+                            contentDescription = "Persist Queue",
+                        )
+                    }
                 }
             }
         }
