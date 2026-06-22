@@ -40,13 +40,14 @@ extensions.configure<ApplicationExtension> {
             signingConfig = signingConfigs.getByName("debug")
         }
         getByName("debug") {
-            var shouldSeed = "false"
-            val deviceName = project.findProperty("android.injected.device.serial")?.toString()?.lowercase()
-                ?: project.findProperty("android.injected.device.model")?.toString()?.lowercase()
+            // Priority:
+            // 1. project property (e.g. -PforceSeed=true or in local.properties)
+            // 2. Automatic emulator detection
+            val forceSeedProperty =
+                project.findProperty("forceSeed")?.toString()
+                    ?: project.findProperty("muzzic.seed_database")?.toString()
 
-            if (deviceName != null && (deviceName.contains("emulator") || deviceName.startsWith("127.0.0.1"))) {
-                shouldSeed = "true"
-            }
+            val shouldSeed = forceSeedProperty ?: "false"
             buildConfigField("boolean", "SEED_DATABASE", shouldSeed)
         }
     }
