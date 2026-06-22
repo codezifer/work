@@ -5,11 +5,11 @@ import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.MuzzicDatabase
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.Song
+import java.time.Instant
+import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.Instant
-import kotlin.random.Random
 
 object DatabaseSeeder {
     private val logger = logger()

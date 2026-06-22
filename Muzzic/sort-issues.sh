@@ -1,30 +1,21 @@
 #!/usr/bin/env bash
 #
-# sort-issues.sh - Sortiert issues.md nach Priorität
+# sort-issues.sh - Sortiert issues.md nach Status, Priorität, Datum und Titel
 #
 # Nutzung:
-#   ./sort-issues.sh [--order desc|asc] [--file issues.md]
-#
-# Standard: desc (hoch -> niedrig)
+#   ./sort-issues.sh [--file issues.md]
 
 set -euo pipefail
 
 FILE="issues.md"
-ORDER="desc"
 
 usage() {
-  echo "Usage: $0 [--order desc|asc] [--file issues.md]"
-  echo "  desc = hoch -> niedrig (Standard)"
-  echo "  asc  = niedrig -> hoch"
+  echo "Usage: $0 [--file issues.md]"
   exit 1
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -o|--order)
-      ORDER="$2"
-      shift 2
-      ;;
     -f|--file)
       FILE="$2"
       shift 2
@@ -38,11 +29,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-if [[ "$ORDER" != "desc" && "$ORDER" != "asc" ]]; then
-  echo "Fehler: --order muss 'desc' oder 'asc' sein."
-  usage
-fi
 
 if [[ ! -f "$FILE" ]]; then
   echo "Fehler: Datei $FILE nicht gefunden."
@@ -62,24 +48,36 @@ TMP=$(mktemp)
 # Zeilen vor und inkl. Separator unverändert übernehmen
 head -n "$SEPARATOR" "$FILE" > "$TMP"
 
-# Datenzeilen extrahieren, nach Priorität (Feld 6) sortieren
+# Datenzeilen extrahieren
 DATA=$(tail -n +"$((SEPARATOR + 1))" "$FILE")
 
-if [[ "$ORDER" == "desc" ]]; then
-  SORT_OPT="-rn"
-else
-  SORT_OPT="-n"
-fi
+# Sortier-Logik:
+# 1. Status (🔲 vor ✅) -> Wir mappen 🔲 auf 0 und ✅ auf 1
+# 2. Priorität (3 -> 1) -> Numerisch absteigend
+# 3. Datum (Neuestes zuerst) -> String absteigend
+# 4. Titel (Alphabetisch) -> String aufsteigend
 
 echo "$DATA" | awk -F'|' '{
+  status_raw = $7
+  gsub(/^[ \t]*~~[ \t]*|[ \t]*~~[ \t]*$/, "", status_raw)
+  gsub(/^[ \t]+|[ \t]+$/, "", status_raw)
+  status_val = (status_raw ~ /✅/) ? 1 : 0
+
   prio = $6
-  gsub(/^ +| +$/, "", prio)
-  print prio "\t" $0
-}' \
-  | sort $SORT_OPT -k1,1 -s \
-  | cut -f2- \
-  | sed 's/^[ \t]*|/|/' >> "$TMP"
+  gsub(/^[ \t]*~~[ \t]*|[ \t]*~~[ \t]*$/, "", prio)
+  gsub(/^[ \t]+|[ \t]+$/, "", prio)
+
+  date = $3
+  gsub(/^[ \t]*~~[ \t]*|[ \t]*~~[ \t]*$/, "", date)
+  gsub(/^[ \t]+|[ \t]+$/, "", date)
+
+  title = $4
+  gsub(/^[ \t]*~~[ \t]*|[ \t]*~~[ \t]*$/, "", title)
+  gsub(/^[ \t]+|[ \t]+$/, "", title)
+
+  print status_val "\t" prio "\t" date "\t" title "\t" $0
+}' | sort -t $'\t' -k1,1n -k2,2rn -k3,3r -k4,4 | cut -f5- >> "$TMP"
 
 mv "$TMP" "$FILE"
 
-echo "issues.md nach Priorität sortiert ($ORDER)."
+echo "issues.md sortiert nach Status, Priorität, Datum und Titel."

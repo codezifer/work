@@ -34,6 +34,7 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
+import de.carsten.android.muzzic.utils.DOT
 import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -95,7 +96,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = song.title,
+                    text = "${song.trackNumberFormatted()} $DOT ${song.title}",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
@@ -104,7 +105,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                 )
 
                 Text(
-                    text = "${song.artist} • ${song.album}",
+                    text = "${song.artist} $DOT ${song.album}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     maxLines = 1,

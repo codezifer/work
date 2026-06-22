@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.utils
 
 const val ALBUMART_SCHEME = "albumart://"
 const val IMAGE_CACHE = "image_cache"
+const val DOT = "•"
 const val UI_EMPTY = "<EMPTY>"
 const val UNKNOWN_ARTIST = "Unknown Artist"
 const val UNKNOWN_ALBUM = "Unknown Album"

@@ -17,8 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import java.time.Instant
 import kotlinx.coroutines.launch
 
@@ -104,33 +106,36 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit = {}, onSongLongClic
 
 @Composable
 @Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun SongListPreview() {
-    SongList(
-        listOf(
-            Song(
-                title = "This is just a Test 1",
-                album = "Test-Album",
-                artist = "Test-Artist",
-                duration = 3 * 60 * 1000,
-                genre = "Alternative",
-                lastPlayed = Instant.now(),
-                playCount = 3,
-                rating = 5,
-                totalTracks = 10,
-                trackNumber = 3,
+    AppTheme {
+        SongList(
+            listOf(
+                Song(
+                    title = "This is just a Test 1",
+                    album = "Test-Album",
+                    artist = "Test-Artist",
+                    duration = 3 * 60 * 1000,
+                    genre = "Alternative",
+                    lastPlayed = Instant.now(),
+                    playCount = 3,
+                    rating = 5,
+                    totalTracks = 10,
+                    trackNumber = 3,
+                ),
+                Song(
+                    title = "This is just a Test 2",
+                    album = "Test-Album",
+                    artist = "Test-Artist",
+                    duration = 3 * 60 * 1000,
+                    genre = "Alternative",
+                    lastPlayed = Instant.now(),
+                    playCount = 2,
+                    rating = 3,
+                    totalTracks = 10,
+                    trackNumber = 4,
+                ),
             ),
-            Song(
-                title = "This is just a Test 2",
-                album = "Test-Album",
-                artist = "Test-Artist",
-                duration = 3 * 60 * 1000,
-                genre = "Alternative",
-                lastPlayed = Instant.now(),
-                playCount = 2,
-                rating = 3,
-                totalTracks = 10,
-                trackNumber = 4,
-            ),
-        ),
-    )
+        )
+    }
 }

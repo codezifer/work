@@ -1,7 +1,5 @@
 package de.carsten.android.muzzic.ui.utils
 
-const val EMPTY = "<EMPTY>"
-
 /**
  * Formats duration (milliseconds) as string format mm:ss"
  *

@@ -49,7 +49,7 @@ if [[ ! -f "$FILE" ]]; then
   exit 1
 fi
 
-if ! grep -qE "^\| $ID \|" "$FILE"; then
+if ! grep -qE "^\| (~~ )?$ID( ~~)? \|" "$FILE"; then
   echo "Fehler: Issue $ID nicht gefunden in $FILE."
   exit 1
 fi
@@ -58,10 +58,22 @@ TMP=$(mktemp)
 awk -v id="$ID" '
 BEGIN { FS="|"; OFS="|" }
 {
-  if ($0 ~ ("^\\| " id " \\|")) {
+  # Suche nach der ID in Feld 2 (erstes Datenfeld)
+  # Kann von ~~ umgeben sein (wir entfernen strikethrough falls vorhanden)
+  content = $2
+  gsub(/^[ \t]*~~[ \t]*|[ \t]*~~[ \t]*$/, "", content)
+  gsub(/^[ \t]+|[ \t]+$/, "", content)
+
+  if (content == id) {
+    # Status-Feld (vorletztes Feld) auf erledigt setzen
     n = NF
-    # letztes Feld (vor abschließendem leeren Feld durch trailing |) ist Status
     $(n-1) = " ✅ "
+
+    # Strikethrough aus der gesamten Zeile entfernen falls vorhanden
+    for (i=2; i<n; i++) {
+        gsub(/^[ \t]*~~[ \t]*/, " ", $i)
+        gsub(/[ \t]*~~[ \t]*$/, " ", $i)
+    }
   }
   print
 }

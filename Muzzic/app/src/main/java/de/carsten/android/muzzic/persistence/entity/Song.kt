@@ -175,6 +175,18 @@ data class Song(
                 .build(),
         ).build()
 
+    /**
+     * Format track number to string with optional total tracks (default = false)
+     *
+     * @param withTotal flag for format with total track (default = false) as [Boolean]
+     * @return [String]
+     */
+    fun trackNumberFormatted(withTotal: Boolean = false): String = if (withTotal) {
+        "%02d/%02d".format(trackNumber, totalTracks)
+    } else {
+        "%02d".format(trackNumber)
+    }
+
     private fun getExtras() = Bundle().apply {
         putString("songId", id)
         putInt(MediaKeys.PLAY_COUNT, playCount)
