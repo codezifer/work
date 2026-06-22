@@ -1,5 +1,10 @@
 package de.carsten.android.muzzic.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -187,15 +192,26 @@ fun PlayerBackground(albumArtPath: String?, blurRadius: Dp) {
         )
 
         // Blurred Album Art
-        if (albumArtPath != null) {
-            AsyncImage(
-                model = albumArtPath,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(blurRadius),
-            )
+        AnimatedContent(
+            targetState = albumArtPath,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(500)).togetherWith(fadeOut(animationSpec = tween(500)))
+            },
+            label = "PlayerBackgroundTransition",
+        ) { targetPath ->
+            if (targetPath != null) {
+                AsyncImage(
+                    model = targetPath,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(blurRadius),
+                )
+            } else {
+                // Return an empty box if no album art is available
+                Box(modifier = Modifier.fillMaxSize())
+            }
         }
 
         // Dark Overlay to maintain contrast

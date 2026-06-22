@@ -1,5 +1,10 @@
 package de.carsten.android.muzzic.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
@@ -81,13 +87,29 @@ fun PlayerScreenContext(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            AlbumArtControl(
-                albumArtInput = if (albumArtPath == null) {
-                    AlbumArtInput.None
-                } else {
-                    AlbumArtInput.FromPath(albumArtPath)
+            AnimatedContent(
+                targetState = albumArtPath,
+                transitionSpec = {
+                    fadeIn(
+                        animationSpec =
+                        tween(AppConfig.Ui.ALBUM_ART_FADE_IN_OUT),
+                    ).togetherWith(
+                        fadeOut(
+                            animationSpec =
+                            tween(AppConfig.Ui.ALBUM_ART_FADE_IN_OUT),
+                        ),
+                    )
                 },
-            )
+                label = "AlbumArtTransition",
+            ) { targetPath ->
+                AlbumArtControl(
+                    albumArtInput = if (targetPath == null) {
+                        AlbumArtInput.None
+                    } else {
+                        AlbumArtInput.FromPath(targetPath)
+                    },
+                )
+            }
         }
 
         // Song Info
