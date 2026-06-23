@@ -2,7 +2,7 @@ package de.carsten.android.muzzic.service
 
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.logging.logger
-import de.carsten.android.muzzic.utils.playbackStateToString
+import de.carsten.android.muzzic.playbackStateToString
 
 /**
  * Manages and resolves playback state transitions for analytics or UI purposes.

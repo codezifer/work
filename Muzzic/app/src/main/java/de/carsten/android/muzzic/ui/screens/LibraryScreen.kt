@@ -96,6 +96,7 @@ fun LibraryScreen(
                     onArtistClick(artist)
                 }
             },
+            onArtistPlayClick = { libraryViewModel.playArtist(it) },
             onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
             onAlbumClick = { artist, album ->
                 if (selectionState.isActive) {
@@ -104,6 +105,7 @@ fun LibraryScreen(
                     onAlbumClick(artist, album)
                 }
             },
+            onAlbumPlayClick = { artist, album -> libraryViewModel.playAlbum(artist, album) },
             onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
             onSongClick = { song ->
                 if (selectionState.isActive) {
@@ -135,8 +137,10 @@ fun LibraryScreenContent(
     playlists: List<PlaylistDto>,
     colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onArtistClick: (String) -> Unit = {},
+    onArtistPlayClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumPlayClick: (String, String) -> Unit = { _, _ -> },
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     onSongClick: (Song) -> Unit = {},
     onSongLongClick: (Song) -> Unit = {},
@@ -197,8 +201,10 @@ fun LibraryScreenContent(
                     modifier = contentModifier,
                     artists = artists,
                     onArtistClick = onArtistClick,
+                    onArtistPlayClick = onArtistPlayClick,
                     onArtistLongClick = onArtistLongClick,
                     selectedArtists = selectedArtists,
+                    borderColor = colorSource.accentColor,
                 )
             }
 
@@ -206,9 +212,11 @@ fun LibraryScreenContent(
                 AlbumGrid(
                     albums = albums,
                     onAlbumClick = onAlbumClick,
+                    onAlbumPlayClick = onAlbumPlayClick,
                     onAlbumLongClick = onAlbumLongClick,
                     selectedAlbums = selectedAlbums,
                     modifier = contentModifier,
+                    borderColor = colorSource.accentColor,
                 )
             }
 

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,7 +36,14 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
-fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
+fun AlbumCard(
+    album: AlbumDto,
+    onClick: () -> Unit = {},
+    onPlayClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
+) {
     val palette by rememberPaletteState(album.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
@@ -44,54 +52,54 @@ fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit
     val backgroundColor = colors.backgroundColor
     val contentColor = colors.contentColor
 
-    AppTheme {
-        MuzzicCard(
-            header = {
-                Box(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AsyncImage(
-                        model = album.lastAlbumArt,
-                        contentDescription = stringResource(R.string.album_art),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.disc),
-                        error = painterResource(R.drawable.disc),
-                    )
-                }
-            },
-            backgroundColor = backgroundColor,
-            contentColor = contentColor,
-            onClick = onClick,
-            onLongClick = onLongClick,
-            isSelected = isSelected,
-            contentHeight = CARD_CONTENT_HEIGHT,
-        ) {
-            Text(
-                text = album.albumName,
-                color = it,
-                fontSize = MAINTITLE_FONTSIZE,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+    MuzzicCard(
+        header = {
+            Box(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = album.lastAlbumArt,
+                    contentDescription = stringResource(R.string.album_art),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.disc),
+                    error = painterResource(R.drawable.disc),
+                )
+            }
+        },
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        borderColor = backgroundColor.copy(alpha = 1f), // Use palette color for border/glow
+        onClick = onClick,
+        onPlayClick = onPlayClick,
+        onLongClick = onLongClick,
+        isSelected = isSelected,
+        contentHeight = CARD_CONTENT_HEIGHT,
+    ) {
+        Text(
+            text = album.albumName,
+            color = it,
+            fontSize = MAINTITLE_FONTSIZE,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
 
-            Spacer(modifier = Modifier.height(CARD_CONTENT_SPACING))
+        Spacer(modifier = Modifier.height(CARD_CONTENT_SPACING))
 
-            SubtitleInformation(
-                listOf(
-                    Pair(Icons.Default.Person, album.artistName),
-                    Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
-                    Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
-                ),
-                fontColor = it.copy(alpha = 0.8f),
-            )
-        }
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, album.artistName),
+                Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
+            ),
+            fontColor = it.copy(alpha = 0.8f),
+        )
     }
 }
 
@@ -99,13 +107,15 @@ fun AlbumCard(album: AlbumDto, onClick: () -> Unit = {}, onLongClick: () -> Unit
 @Preview(name = "AlbumCardPreview_NonGrid")
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCardPreview_NonGrid_Dark")
 fun AlbumCardPreview() {
-    AlbumCard(
-        AlbumDto(
-            albumName = "Album Name",
-            albumYear = 2025,
-            artistName = "Artist Name",
-            songCount = 12,
-            albumDuration = 50 * 60 * 1000L,
-        ),
-    )
+    AppTheme {
+        AlbumCard(
+            AlbumDto(
+                albumName = "Album Name",
+                albumYear = 2025,
+                artistName = "Artist Name",
+                songCount = 12,
+                albumDuration = 50 * 60 * 1000L,
+            ),
+        )
+    }
 }

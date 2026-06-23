@@ -7,8 +7,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.EMPTY
 import de.carsten.android.muzzic.UNKNOWN
-import de.carsten.android.muzzic.utils.inferMimeType
-import de.carsten.android.muzzic.utils.toPlayableUri
+import de.carsten.android.muzzic.inferMimeType
+import de.carsten.android.muzzic.toPlayableUri
 
 @Immutable
 data class PlayingQueueDto(

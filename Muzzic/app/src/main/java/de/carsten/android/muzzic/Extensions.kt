@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.utils
+package de.carsten.android.muzzic
 
 import android.net.Uri
 import androidx.core.net.toUri

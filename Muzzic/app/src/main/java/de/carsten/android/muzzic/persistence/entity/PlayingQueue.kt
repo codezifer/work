@@ -9,9 +9,9 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import de.carsten.android.muzzic.EMPTY
 import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.inferMimeType
+import de.carsten.android.muzzic.toPlayableUri
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
-import de.carsten.android.muzzic.utils.inferMimeType
-import de.carsten.android.muzzic.utils.toPlayableUri
 
 @Entity(
     tableName = "playing_queue",

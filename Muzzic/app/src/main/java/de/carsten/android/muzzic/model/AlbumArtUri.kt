@@ -1,7 +1,7 @@
 package de.carsten.android.muzzic.model
 
 import androidx.core.net.toUri
-import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
+import de.carsten.android.muzzic.ALBUMART_SCHEME
 
 data class AlbumArtUri(val albumArt: String, val offset: Long = 0L, val size: Long = 0L, val hashCode: Int = 0, val mimeType: String? = null) {
 

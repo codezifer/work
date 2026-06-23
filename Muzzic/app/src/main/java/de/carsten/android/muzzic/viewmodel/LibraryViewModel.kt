@@ -18,6 +18,7 @@ import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -70,31 +71,56 @@ class LibraryViewModel(
         mediaLibraryManager.playContent(song.toMediaItem())
     }
 
+    private fun mapSongsToMediaItems(songs: List<Song>): List<androidx.media3.common.MediaItem> = songs.mapIndexed { index, song ->
+        song
+            .toMediaItem()
+            .buildUpon()
+            .setMediaMetadata(
+                song
+                    .toMediaItem()
+                    .mediaMetadata
+                    .buildUpon()
+                    .setExtras(
+                        (
+                            song.toMediaItem().mediaMetadata.extras
+                                ?: android.os.Bundle()
+                            ).apply {
+                            putInt("queuePosition", index)
+                            putString("songId", song.id)
+                        },
+                    ).build(),
+            ).build()
+    }
+
+    fun playArtist(artistName: String) {
+        viewModelScope.launch {
+            val songs = artistRepository.getSongsByArtist(artistName)
+            if (songs.isNotEmpty()) {
+                val mediaItems = mapSongsToMediaItems(songs)
+                playingQueueRepository.clear()
+                playingQueueRepository.addSongs(mediaItems)
+                mediaLibraryManager.playPlaylist(mediaItems, 0)
+            }
+        }
+    }
+
+    fun playAlbum(artistName: String, albumName: String) {
+        viewModelScope.launch {
+            val songs = albumRepository.getSongsByAlbum(artistName, albumName).first()
+            if (songs.isNotEmpty()) {
+                val mediaItems = mapSongsToMediaItems(songs)
+                playingQueueRepository.clear()
+                playingQueueRepository.addSongs(mediaItems)
+                mediaLibraryManager.playPlaylist(mediaItems, 0)
+            }
+        }
+    }
+
     fun playPlaylist(playlistId: String) {
         viewModelScope.launch {
             val songs = playlistRepository.getSongsInPlaylist(playlistId)
             if (songs.isNotEmpty()) {
-                val mediaItems =
-                    songs.mapIndexed { index, song ->
-                        song
-                            .toMediaItem()
-                            .buildUpon()
-                            .setMediaMetadata(
-                                song
-                                    .toMediaItem()
-                                    .mediaMetadata
-                                    .buildUpon()
-                                    .setExtras(
-                                        (
-                                            song.toMediaItem().mediaMetadata.extras
-                                                ?: android.os.Bundle()
-                                            ).apply {
-                                            putInt("queuePosition", index)
-                                            putString("songId", song.id)
-                                        },
-                                    ).build(),
-                            ).build()
-                    }
+                val mediaItems = mapSongsToMediaItems(songs)
 
                 playingQueueRepository.clear()
                 playingQueueRepository.addSongs(mediaItems)

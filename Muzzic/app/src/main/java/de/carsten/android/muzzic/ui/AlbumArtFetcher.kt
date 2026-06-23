@@ -8,9 +8,9 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import de.carsten.android.muzzic.ALBUMART_SCHEME
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
-import de.carsten.android.muzzic.utils.ALBUMART_SCHEME
 import java.io.File
 import java.io.RandomAccessFile
 import java.security.MessageDigest

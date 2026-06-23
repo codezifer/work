@@ -30,11 +30,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.DOT
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
-import de.carsten.android.muzzic.utils.DOT
 import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -31,6 +32,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ArtistAlbumsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
     viewModel: ArtistAlbumsViewModel = koinViewModel(),
@@ -78,8 +80,10 @@ fun ArtistAlbumsScreen(
                         onAlbumClick(artist, album)
                     }
                 },
+                onAlbumPlayClick = { artist, album -> viewModel.playAlbum(artist, album) },
                 onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
                 selectedAlbums = selectionState.selectedAlbums,
+                borderColor = colorSource.accentColor,
             )
         }
     }

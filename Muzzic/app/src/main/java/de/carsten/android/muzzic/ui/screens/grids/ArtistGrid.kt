@@ -9,12 +9,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
@@ -29,8 +31,10 @@ fun ArtistGrid(
     modifier: Modifier = Modifier,
     artists: List<ArtistDto>,
     onArtistClick: (String) -> Unit = {},
+    onArtistPlayClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
+    borderColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -88,8 +92,10 @@ fun ArtistGrid(
                     ArtistCard(
                         artist = artist,
                         onClick = { onArtistClick(artist.artistName) },
+                        onPlayClick = { onArtistPlayClick(artist.artistName) },
                         onLongClick = { onArtistLongClick(artist.artistName) },
                         isSelected = selectedArtists.contains(artist.artistName),
+                        borderColor = borderColor,
                     )
                 }
             }

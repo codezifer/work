@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.CARD_INTERNAL_PADDING
 import de.carsten.android.muzzic.ui.CARD_SELECTION_ICON_PADDING
+import de.carsten.android.muzzic.ui.screens.controls.PlayButton
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -36,7 +37,9 @@ fun MuzzicCard(
     header: @Composable (() -> Unit)? = null,
     backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
     onClick: (() -> Unit)? = null,
+    onPlayClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     isSelected: Boolean = false,
     contentHeight: Dp? = null,
@@ -61,7 +64,19 @@ fun MuzzicCard(
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 header?.let {
-                    Box(modifier = Modifier.fillMaxWidth()) { it() }
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        it()
+
+                        if (onPlayClick != null && !isSelected) {
+                            PlayButton(
+                                onClick = onPlayClick,
+                                borderColor = borderColor,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(8.dp),
+                            )
+                        }
+                    }
                 }
                 Column(
                     modifier =

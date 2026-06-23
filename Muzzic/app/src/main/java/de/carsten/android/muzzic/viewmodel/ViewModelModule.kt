@@ -44,6 +44,7 @@ val viewModelModule =
             ArtistAlbumsViewModel(
                 savedStateHandle = get(),
                 albumRepository = get(),
+                playingQueueRepository = get(),
                 mediaLibraryManager = get(),
             )
         }
@@ -65,6 +66,8 @@ val viewModelModule =
                 savedStateHandle = get(),
                 genreRepository = get(),
                 artistRepository = get(),
+                playingQueueRepository = get(),
+                mediaLibraryManager = get(),
             )
         }
     }

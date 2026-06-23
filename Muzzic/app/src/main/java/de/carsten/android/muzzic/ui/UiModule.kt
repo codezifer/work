@@ -5,8 +5,8 @@ import android.content.Context
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
+import de.carsten.android.muzzic.IMAGE_CACHE
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.utils.IMAGE_CACHE
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath

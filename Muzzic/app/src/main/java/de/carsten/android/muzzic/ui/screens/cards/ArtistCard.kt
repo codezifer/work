@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,7 +29,14 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
-fun ArtistCard(artist: ArtistDto, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
+fun ArtistCard(
+    artist: ArtistDto,
+    onClick: () -> Unit = {},
+    onPlayClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
+) {
     val palette by rememberPaletteState(artist.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
@@ -56,7 +64,9 @@ fun ArtistCard(artist: ArtistDto, onClick: () -> Unit = {}, onLongClick: () -> U
             },
             backgroundColor = backgroundColor,
             contentColor = contentColor,
+            borderColor = backgroundColor.copy(alpha = 1f), // Use palette color for border/glow
             onClick = onClick,
+            onPlayClick = onPlayClick,
             onLongClick = onLongClick,
             isSelected = isSelected,
             contentHeight = CARD_CONTENT_HEIGHT,

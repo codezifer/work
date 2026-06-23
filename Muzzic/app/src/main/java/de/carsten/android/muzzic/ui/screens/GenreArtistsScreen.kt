@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ArtistDto
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -31,6 +32,7 @@ import org.koin.androidx.compose.koinViewModel
 fun GenreArtistsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onArtistClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
     genresViewModel: GenresViewModel = koinViewModel(),
@@ -43,7 +45,9 @@ fun GenreArtistsScreen(
             appState = appState,
             genreName = genresViewModel.genreName ?: "",
             artists = artists,
+            colorSource = colorSource,
             onArtistClick = onArtistClick,
+            onArtistPlayClick = { genresViewModel.playArtist(it) },
             onBackClick = onBackClick,
         )
     }
@@ -55,7 +59,9 @@ fun GenreArtistsScreenContent(
     appState: MusicAppState? = null,
     genreName: String,
     artists: List<ArtistDto>,
+    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
     onArtistClick: (String) -> Unit = {},
+    onArtistPlayClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
 ) {
     Column(
@@ -90,6 +96,8 @@ fun GenreArtistsScreenContent(
         ArtistGrid(
             artists = artists,
             onArtistClick = onArtistClick,
+            onArtistPlayClick = onArtistPlayClick,
+            borderColor = colorSource.accentColor,
         )
     }
 }

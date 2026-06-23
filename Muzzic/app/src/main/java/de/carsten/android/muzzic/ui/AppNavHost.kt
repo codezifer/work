@@ -152,6 +152,7 @@ fun AppNavHost(
                 ArtistAlbumsScreen(
                     modifier = modifier,
                     appState = appState,
+                    colorSource = colorSource,
                     onAlbumClick = onAlbumClick,
                     onBackClick = onBackClick,
                     selectionViewModel = selectionViewModel,
@@ -181,6 +182,7 @@ fun AppNavHost(
                 GenreArtistsScreen(
                     modifier = modifier,
                     appState = appState,
+                    colorSource = colorSource,
                     onArtistClick = onArtistClick,
                     onBackClick = onBackClick,
                 )

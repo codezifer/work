@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.AppConfig
+import de.carsten.android.muzzic.UI_EMPTY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
@@ -47,7 +48,6 @@ import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
-import de.carsten.android.muzzic.utils.UI_EMPTY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

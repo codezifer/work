@@ -7,13 +7,13 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import de.carsten.android.muzzic.MAX_STARS
 import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.inferMimeType
+import de.carsten.android.muzzic.mediaItemInstant
 import de.carsten.android.muzzic.model.MediaKeys
-import de.carsten.android.muzzic.utils.MAX_STARS
-import de.carsten.android.muzzic.utils.inferMimeType
-import de.carsten.android.muzzic.utils.mediaItemInstant
-import de.carsten.android.muzzic.utils.songId
-import de.carsten.android.muzzic.utils.toPlayableUri
+import de.carsten.android.muzzic.songId
+import de.carsten.android.muzzic.toPlayableUri
 import java.time.Instant
 
 @Entity(tableName = "songs")

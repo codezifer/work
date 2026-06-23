@@ -9,12 +9,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
@@ -27,9 +29,11 @@ import kotlinx.coroutines.launch
 fun AlbumGrid(
     albums: List<AlbumDto>,
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumPlayClick: (String, String) -> Unit = { _, _ -> },
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     selectedAlbums: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -87,8 +91,10 @@ fun AlbumGrid(
                     AlbumCard(
                         album = album,
                         onClick = { onAlbumClick(album.artistName, album.albumName) },
+                        onPlayClick = { onAlbumPlayClick(album.artistName, album.albumName) },
                         onLongClick = { onAlbumLongClick(album.artistName, album.albumName) },
                         isSelected = selectedAlbums.contains("${album.artistName}|${album.albumName}"),
+                        borderColor = borderColor,
                     )
                 }
             }
