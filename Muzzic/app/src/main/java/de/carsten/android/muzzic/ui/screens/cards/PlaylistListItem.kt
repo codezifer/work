@@ -32,9 +32,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.CORNER_RADIUS_SMALL
+import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
+import de.carsten.android.muzzic.ui.ICON_SIZE_CONTROL_SMALL
+import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYLIST_THUMB
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.theme.ListItemLeadingShape
@@ -69,7 +76,7 @@ fun PlaylistListItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(CORNER_RADIUS_SMALL),
         onClick = onPlaylistClick,
     ) {
         Row(
@@ -80,12 +87,12 @@ fun PlaylistListItem(
             AlbumCoverCollage(
                 covers = collageCovers,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(ICON_SIZE_PLAYLIST_THUMB)
                     .clip(ListItemLeadingShape),
                 useCard = false,
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(SPACING_NORMAL))
 
             // Playlist Info
             Column(
@@ -94,7 +101,7 @@ fun PlaylistListItem(
                 Text(
                     text = playlist.playlistName,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = 14.sp,
+                    fontSize = FONT_SIZE_BODY,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -107,7 +114,7 @@ fun PlaylistListItem(
                         "${playlist.songCount} Songs • ${playlist.artistCount} Artists"
                     },
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                    fontSize = 12.sp,
+                    fontSize = FONT_SIZE_CAPTION,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -117,15 +124,15 @@ fun PlaylistListItem(
             Text(
                 text = formatDuration(playlist.playlistDuration),
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
-                fontSize = 10.sp,
+                fontSize = FONT_SIZE_SMALL,
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(SPACING_MEDIUM))
 
             // Play Button
             IconButton(
                 onClick = onPlayClick,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(ICON_SIZE_CONTROL_SMALL),
             ) {
                 Icon(
                     Icons.Default.PlayArrow,
@@ -135,10 +142,10 @@ fun PlaylistListItem(
             }
 
             // Menu Button
-            Box(modifier = Modifier.padding(end = 4.dp)) {
+            Box(modifier = Modifier.padding(end = SPACING_SMALL)) {
                 IconButton(
                     onClick = { showMenu = true },
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(ICON_SIZE_CONTROL_SMALL),
                 ) {
                     Icon(
                         Icons.Default.MoreVert,

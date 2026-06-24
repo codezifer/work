@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -64,17 +64,17 @@ private fun StatisticsScreenContent(
         modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = SPACING_LARGE),
+        verticalArrangement = Arrangement.spacedBy(SPACING_LARGE),
     ) {
         // Header
         item {
             Text(
                 text = stringResource(R.string.statistics),
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 24.sp,
+                fontSize = FONT_SIZE_HUGE_TITLE,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 16.dp),
+                modifier = Modifier.padding(vertical = SPACING_LARGE),
             )
         }
 

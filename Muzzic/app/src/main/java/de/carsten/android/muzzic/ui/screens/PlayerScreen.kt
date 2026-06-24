@@ -32,8 +32,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.BLUR_RADIUS_DEFAULT
+import de.carsten.android.muzzic.ui.FONT_SIZE_TITLE
+import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
@@ -46,9 +51,9 @@ import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import org.koin.androidx.compose.koinViewModel
 
-private val DEFAULT_BACKGROUND_BLUR = 6.dp
+private val DEFAULT_BACKGROUND_BLUR = BLUR_RADIUS_DEFAULT
 private const val BACKGROUND_OVERLAY_ALPHA = 0.3f
-private val GLASS_CONTAINER_ROUNDING = 28.dp
+private val GLASS_CONTAINER_ROUNDING = GLASS_PANEL_CORNER_RADIUS
 private val GLASS_CONTAINER_ALPHA = 0.5f
 
 @Composable
@@ -112,12 +117,12 @@ fun PlayerScreenContent(
                 modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(SPACING_LARGE)
                     .background(
                         color = MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA),
                         shape = RoundedCornerShape(GLASS_CONTAINER_ROUNDING),
                     )
-                    .padding(16.dp),
+                    .padding(SPACING_LARGE),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // HEADER
@@ -132,14 +137,14 @@ fun PlayerScreenContent(
                             Icons.Default.MusicNote,
                             contentDescription = null,
                             tint = colorSource.accentColor,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(ICON_SIZE_MEDIUM),
                         )
                         Text(
                             text = appName,
                             color = colorSource.accentColor,
-                            fontSize = 18.sp,
+                            fontSize = FONT_SIZE_TITLE,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = Modifier.padding(start = SPACING_MEDIUM),
                         )
                     }
                 }
@@ -228,7 +233,7 @@ fun PlayerBackground(albumArtPath: String?, blurRadius: Dp) {
 @Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 fun PlayerScreenPreview() {
     PlayerScreenContent(
-        Modifier.padding(2.dp),
+        Modifier.padding(SPACING_TINY),
         Song(
             title = "This is a test song",
             artist = "Test-Artist",

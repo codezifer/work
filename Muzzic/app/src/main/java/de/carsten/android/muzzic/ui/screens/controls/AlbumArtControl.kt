@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
@@ -31,6 +30,8 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.model.TestingTags.Screens.CIRCULAR_PROGRESS_INDICATOR
 import de.carsten.android.muzzic.model.TestingTags.Screens.FALLBACK_PAINTER
 import de.carsten.android.muzzic.model.TestingTags.Screens.SUCCESS_ASYNC_IMAGE
+import de.carsten.android.muzzic.ui.ALBUM_ART_PADDING
+import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -58,7 +59,7 @@ private fun AlbumArtContent(coilModel: Any?, modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(CARD_CORNER_RADIUS)),
     ) {
         SubcomposeAsyncImage(
             model =
@@ -84,11 +85,11 @@ private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
         -> {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.primary,
-                strokeWidth = 22.dp,
+                strokeWidth = ALBUM_ART_PADDING,
                 modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(22.dp)
+                    .padding(ALBUM_ART_PADDING)
                     .testTag(CIRCULAR_PROGRESS_INDICATOR),
             )
         }
@@ -105,7 +106,7 @@ private fun HandleAsyncImageState(state: AsyncImagePainter.State) {
                 modifier =
                 Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
                     .background(MaterialTheme.colorScheme.background)
                     .testTag(SUCCESS_ASYNC_IMAGE),
             )
@@ -123,7 +124,7 @@ private fun FallbackPainter() {
         Modifier
             .fillMaxWidth()
             .aspectRatio(1.0f)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
             .background(MaterialTheme.colorScheme.background)
             .testTag(FALLBACK_PAINTER),
     )

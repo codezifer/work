@@ -27,8 +27,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
+import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
+import de.carsten.android.muzzic.ui.ICON_SIZE_DRAG_HANDLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_NONE
+import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.SPACING_SMALL
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import java.util.UUID
@@ -61,8 +70,8 @@ fun PlayingQueueItem(
         modifier =
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_SMALL)
+            .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
             .background(containerColor)
             .combinedClickable(
                 onClick = onClick,
@@ -73,7 +82,7 @@ fun PlayingQueueItem(
             modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(SPACING_NORMAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
@@ -81,7 +90,7 @@ fun PlayingQueueItem(
                 contentDescription = "Reorder",
                 modifier =
                 dragModifier
-                    .size(20.dp),
+                    .size(ICON_SIZE_DRAG_HANDLE),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             )
 
@@ -89,7 +98,7 @@ fun PlayingQueueItem(
                 modifier =
                 Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = SPACING_NORMAL),
             ) {
                 Text(
                     text = playingQueueDto.title,
@@ -122,12 +131,12 @@ fun PlayingQueueItem(
                 } else {
                     IconButtonDefaults.iconButtonColors()
                 },
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(ICON_SIZE_LARGE),
             ) {
                 Icon(
                     imageVector = if (isCurrentSong && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isCurrentSong && isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(ICON_SIZE_MEDIUM),
                 )
             }
         }
@@ -139,9 +148,9 @@ fun PlayingQueueItem(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .height(3.dp)
-                    .padding(horizontal = 12.dp, vertical = 0.dp)
-                    .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)),
+                    .height(BORDER_WIDTH_THICK)
+                    .padding(horizontal = SPACING_NORMAL, vertical = SPACING_NONE)
+                    .clip(RoundedCornerShape(topStart = SPACING_TINY, topEnd = SPACING_TINY)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 strokeCap = StrokeCap.Round,

@@ -22,8 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -162,18 +163,17 @@ fun LibraryScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // Header
         Text(
             text = stringResource(R.string.library),
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 24.sp,
+            fontSize = FONT_SIZE_HUGE_TITLE,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SPACING_LARGE),
         )
 
         LazyRow(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = SPACING_LARGE),
+            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM),
         ) {
             items(filters) { (key, label) ->
                 FilterChip(
@@ -191,7 +191,7 @@ fun LibraryScreenContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SPACING_LARGE))
         val contentModifier = Modifier.weight(1f)
 
         // Content based on filters

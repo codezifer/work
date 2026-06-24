@@ -15,7 +15,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.CHART_PREVIEW_HEIGHT_LARGE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -113,12 +114,12 @@ fun MuzzicPieChart(
 @Preview(showBackground = true)
 @Composable
 fun MuzzicDonutChartWithLabelsPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicPieChart(
             data = listOf(40f, 30f, 20f, 10f),
             colors = listOf(Color.Red, Color.Blue, Color.Green, Color.Yellow),
             labels = listOf("40%", "30%", "20%", "10%"),
-            modifier = Modifier.size(200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_HEIGHT_LARGE),
         )
     }
 }
@@ -126,12 +127,12 @@ fun MuzzicDonutChartWithLabelsPreview() {
 @Preview(showBackground = true)
 @Composable
 fun MuzzicPieChartWithLabelsPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicPieChart(
             data = listOf(40f, 30f, 20f, 10f),
             colors = listOf(Color.Red, Color.Blue, Color.Green, Color.Yellow),
             labels = listOf("A", "B", "C", "D"),
-            modifier = Modifier.size(200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_HEIGHT_LARGE),
             holeRadiusPercent = 0f,
         )
     }

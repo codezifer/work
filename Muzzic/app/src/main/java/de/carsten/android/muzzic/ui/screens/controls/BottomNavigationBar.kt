@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.controls
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.BarChart
@@ -13,8 +14,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -22,7 +26,10 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.carsten.android.muzzic.ui.AppDestinations
+import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
+import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.GlassPanel
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
@@ -47,8 +54,17 @@ val bottomNavItems =
         BottomNavItem.Statistics,
     )
 
+/**
+ * A floating, glassy navigation bar.
+ *
+ * @param modifier Modifier for the container.
+ * @param navController Controller to handle navigation.
+ * @param colorSource Current colors from [ColorSource].
+ * @param clickHandlers Optional map of click handlers for each item.
+ */
 @Composable
 fun BottomNavigationBar(
+    modifier: Modifier = Modifier,
     navController: NavController,
     colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
     clickHandlers: Map<String, () -> Unit> = HashMap(),
@@ -56,30 +72,32 @@ fun BottomNavigationBar(
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
 
-    AppTheme {
-        NavigationBar(containerColor = colorSource.accentColor) {
+    GlassPanel(
+        modifier = modifier,
+        containerColor = colorSource.accentColor,
+        alpha = 0.75f,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(GLASS_PANEL_CORNER_RADIUS),
+    ) {
+        NavigationBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+        ) {
             bottomNavItems.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
                 NavigationBarItem(
                     selected = selected,
                     onClick = {
                         navController.navigate(item.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
                         clickHandlers[item.label]?.invoke()
                     },
                     icon = { Icon(item.icon, contentDescription = item.label) },
-                    label = { Text(item.label, fontSize = 10.sp) },
+                    label = { Text(item.label, fontSize = FONT_SIZE_SMALL) },
                     colors =
                     NavigationBarItemDefaults.colors(
                         selectedIconColor = colorSource.contentColor,
@@ -98,7 +116,9 @@ fun BottomNavigationBar(
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "BottomNavigationBarPreview_Dark")
 @Composable
 fun BottomNavigationBarPreview() {
-    BottomNavigationBar(
-        rememberNavController(),
-    )
+    AppTheme {
+        BottomNavigationBar(
+            navController = rememberNavController(),
+        )
+    }
 }

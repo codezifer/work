@@ -28,16 +28,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.ELEVATION_MEDIUM
+import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_SMALL
+import de.carsten.android.muzzic.ui.TOOLBAR_MIN_WIDTH
 import de.carsten.android.muzzic.ui.component.TooltipIconButton
 import de.carsten.android.muzzic.ui.model.ColorSource
 
-private val SPACE_WIDTH = 8.dp
-private val PADDING_H = 8.dp
-private val PADDING_V = 4.dp
-private val FONT_SIZE = 16.sp
+private val SPACE_WIDTH = SPACING_MEDIUM
+private val PADDING_H = SPACING_MEDIUM
+private val PADDING_V = SPACING_SMALL
+private val FONT_SIZE = FONT_SIZE_SUBTITLE
 
 /**
  * Modes for the floating toolbar.
@@ -86,8 +90,8 @@ fun SelectionToolbar(
         modifier =
         modifier
             .wrapContentWidth()
-            .widthIn(min = 200.dp)
-            .padding(16.dp)
+            .widthIn(min = TOOLBAR_MIN_WIDTH)
+            .padding(SPACING_LARGE)
             .graphicsLayer {
                 // Enable hardware acceleration for smooth visibility transitions
                 clip = true
@@ -99,7 +103,7 @@ fun SelectionToolbar(
             containerColor = colorSource.accentColor,
             contentColor = colorSource.contentColor,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = ELEVATION_MEDIUM),
     ) {
         AnimatedContent(
             targetState = mode,

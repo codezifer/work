@@ -40,11 +40,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.CORNER_RADIUS_FULL
+import de.carsten.android.muzzic.ui.ELEVATION_MEDIUM
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.VOLUME_BAR_HEIGHT
+import de.carsten.android.muzzic.ui.VOLUME_BAR_WIDTH
+import de.carsten.android.muzzic.ui.VOLUME_PREVIEW_WIDTH
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.shape.TailDirection
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -97,7 +102,7 @@ fun VolumeControl(modifier: Modifier = Modifier, accentColor: Color = MaterialTh
                     imageVector = icon,
                     contentDescription = stringResource(R.string.volume),
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(ICON_SIZE_MEDIUM),
                 )
             }
 
@@ -143,12 +148,12 @@ private fun VolumeSliderContent(
 ) {
     Surface(
         modifier = modifier
-            .width(50.dp)
-            .height(200.dp)
+            .width(VOLUME_BAR_WIDTH)
+            .height(VOLUME_BAR_HEIGHT)
             .graphicsLayer { clip = false }, // Allow indicator to overflow
-        shape = RoundedCornerShape(25.dp),
+        shape = RoundedCornerShape(CORNER_RADIUS_FULL),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 8.dp,
+        tonalElevation = ELEVATION_MEDIUM,
     ) {
         Box(
             modifier = Modifier
@@ -183,7 +188,7 @@ private fun VolumeSliderContent(
                         }
                     }
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = ICON_SIZE_MEDIUM),
                 colors = SliderDefaults.colors(
                     thumbColor = accentColor,
                     activeTrackColor = accentColor,
@@ -195,7 +200,7 @@ private fun VolumeSliderContent(
                 },
                 indicatorColor = accentColor,
                 indicatorAlignment = Alignment.BottomCenter,
-                indicatorOffsetY = 24.dp,
+                indicatorOffsetY = ICON_SIZE_MEDIUM,
                 indicatorRotation = 90f,
                 tailDirection = TailDirection.Left,
                 initialScrubbingProgress = initialScrubbingProgress,
@@ -223,18 +228,18 @@ fun VolumeControlWithIndicatorPreview() {
             // Use a wider Box to contain the Surface and allow the indicator to overflow in previews
             Box(
                 modifier = Modifier
-                    .width(100.dp) // Extra width to prevent clipping of the indicator in preview
-                    .height(200.dp),
+                    .width(VOLUME_PREVIEW_WIDTH) // Extra width to prevent clipping of the indicator in preview
+                    .height(VOLUME_BAR_HEIGHT),
                 contentAlignment = Alignment.Center,
             ) {
                 // Use Box with background instead of Surface to avoid clipping in preview
                 Box(
                     modifier = Modifier
-                        .width(50.dp)
-                        .height(200.dp)
+                        .width(VOLUME_BAR_WIDTH)
+                        .height(VOLUME_BAR_HEIGHT)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(25.dp),
+                            shape = RoundedCornerShape(CORNER_RADIUS_FULL),
                         ),
                 ) {
                     VolumeSliderContent(

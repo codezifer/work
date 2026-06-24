@@ -27,11 +27,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PLAYING_QUEUE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -106,13 +108,13 @@ fun PlayingQueueContent(
         modifier
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(SPACING_LARGE),
     ) {
         Row(
             modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .padding(bottom = SPACING_MEDIUM),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -166,7 +168,7 @@ fun PlayingQueueContent(
                 modifier =
                 Modifier
                     .weight(1f)
-                    .padding(top = 8.dp),
+                    .padding(top = SPACING_MEDIUM),
             ) { index, item, isDragging, dragModifier ->
                 val isSelected = selectionState.selectedSongs.contains(item.mediaId)
                 val isCurrentSong = item.mediaId == currentSong?.mediaId
@@ -200,7 +202,7 @@ fun PlayingQueueContent(
 fun PlayingQueueScreenPreview() {
     AppTheme {
         PlayingQueueContent(
-            modifier = Modifier.padding(2.dp),
+            modifier = Modifier.padding(SPACING_TINY),
             name = "Test Queue",
             playingQueue =
             listOf(

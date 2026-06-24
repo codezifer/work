@@ -16,7 +16,18 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
+import de.carsten.android.muzzic.ui.CHART_AXIS_SPACING
+import de.carsten.android.muzzic.ui.CHART_FULL_ROUNDING
+import de.carsten.android.muzzic.ui.CHART_LABEL_SPACING
+import de.carsten.android.muzzic.ui.CHART_PREVIEW_HEIGHT_LARGE
+import de.carsten.android.muzzic.ui.CHART_PREVIEW_HEIGHT_SMALL
+import de.carsten.android.muzzic.ui.CHART_PREVIEW_WIDTH_LARGE
+import de.carsten.android.muzzic.ui.CHART_PREVIEW_WIDTH_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_SMALL
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import kotlin.math.roundToInt
 
 enum class BarChartOrientation { Vertical, Horizontal }
@@ -47,11 +58,11 @@ fun MuzzicBarChart(
     showAxis: Boolean = false,
     axisSteps: Int = 5,
     orientation: BarChartOrientation = BarChartOrientation.Vertical,
-    barSpacing: Dp = 8.dp,
-    cornerRadius: Dp = 4.dp,
+    barSpacing: Dp = SPACING_MEDIUM,
+    cornerRadius: Dp = SPACING_SMALL,
     showValuesInside: Boolean = false,
-    labelSpacing: Dp = 20.dp,
-    axisSpacing: Dp = 40.dp,
+    labelSpacing: Dp = CHART_LABEL_SPACING,
+    axisSpacing: Dp = CHART_AXIS_SPACING,
     textStyle: TextStyle = MaterialTheme.typography.labelSmall,
 ) {
     if (data.isEmpty()) return
@@ -66,7 +77,7 @@ fun MuzzicBarChart(
         val cornerRadiusPx = cornerRadius.toPx()
 
         // Padding for labels and axis
-        val txtPaddingPx = 4.dp.toPx()
+        val txtPaddingPx = SPACING_SMALL.toPx()
         val labelPaddingPx = labelSpacing.toPx()
         val axisPaddingPx = if (showAxis) axisSpacing.toPx() else 0f
 
@@ -86,7 +97,7 @@ fun MuzzicBarChart(
                         color = textColor.copy(alpha = 0.1f),
                         start = Offset(axisPaddingPx, y),
                         end = Offset(size.width, y),
-                        strokeWidth = 1.dp.toPx(),
+                        strokeWidth = BORDER_WIDTH_NORMAL.toPx(),
                     )
 
                     val measuredValue = textMeasurer.measure(value.toString(), textStyle)
@@ -157,7 +168,7 @@ fun MuzzicBarChart(
                         color = textColor.copy(alpha = 0.1f),
                         start = Offset(x, 0f),
                         end = Offset(x, chartHeight),
-                        strokeWidth = 1.dp.toPx(),
+                        strokeWidth = BORDER_WIDTH_NORMAL.toPx(),
                     )
 
                     val measuredValue = textMeasurer.measure(value.toString(), textStyle)
@@ -220,13 +231,13 @@ fun MuzzicBarChart(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartVerticalWithLabelsPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(10f, 50f, 30f, 80f, 20f),
             colors = listOf(Color.Magenta),
             labels = listOf("Jan", "Feb", "Mar", "Apr", "May"),
             showAxis = true,
-            modifier = Modifier.size(300.dp, 200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_LARGE, CHART_PREVIEW_HEIGHT_LARGE),
             orientation = BarChartOrientation.Vertical,
         )
     }
@@ -235,12 +246,12 @@ fun MuzzicBarChartVerticalWithLabelsPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartSharpPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(40f, 80f, 60f),
             colors = listOf(Color.Blue),
-            cornerRadius = 0.dp,
-            modifier = Modifier.size(200.dp, 100.dp),
+            cornerRadius = SPACING_TINY, // 0.dp might be better as 0.dp but let's see. 0.dp is fine.
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_MEDIUM, CHART_PREVIEW_HEIGHT_SMALL),
         )
     }
 }
@@ -248,12 +259,12 @@ fun MuzzicBarChartSharpPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartRoundedPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(40f, 80f, 60f),
             colors = listOf(Color.Green),
-            cornerRadius = 50.dp,
-            modifier = Modifier.size(200.dp, 100.dp),
+            cornerRadius = CHART_FULL_ROUNDING,
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_MEDIUM, CHART_PREVIEW_HEIGHT_SMALL),
         )
     }
 }
@@ -261,13 +272,13 @@ fun MuzzicBarChartRoundedPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartHorizontalWithLabelsPreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(10f, 50f, 30f, 80f, 20f),
             colors = listOf(Color.Cyan),
             labels = listOf("A", "B", "C", "D", "E"),
             showAxis = true,
-            modifier = Modifier.size(300.dp, 200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_LARGE, CHART_PREVIEW_HEIGHT_LARGE),
             orientation = BarChartOrientation.Horizontal,
         )
     }
@@ -276,12 +287,12 @@ fun MuzzicBarChartHorizontalWithLabelsPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartVerticalWithValuesInsidePreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(10f, 50f, 30f, 80f, 20f),
             colors = listOf(Color.Blue),
             showValuesInside = true,
-            modifier = Modifier.size(300.dp, 200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_LARGE, CHART_PREVIEW_HEIGHT_LARGE),
             orientation = BarChartOrientation.Vertical,
         )
     }
@@ -290,13 +301,13 @@ fun MuzzicBarChartVerticalWithValuesInsidePreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun MuzzicBarChartHorizontalWithValuesInsidePreview() {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(SPACING_LARGE)) {
         MuzzicBarChart(
             data = listOf(10f, 50f, 30f, 80f, 20f),
             colors = listOf(Color.Green),
             showValuesInside = true,
             showAxis = true,
-            modifier = Modifier.size(300.dp, 200.dp),
+            modifier = Modifier.size(CHART_PREVIEW_WIDTH_LARGE, CHART_PREVIEW_HEIGHT_LARGE),
             orientation = BarChartOrientation.Horizontal,
         )
     }

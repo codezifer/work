@@ -19,10 +19,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_EXTRA_LARGE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.component.charts.MuzzicPieChart
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -45,9 +51,9 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
             Text(
                 text = stringResource(R.string.genre_distribution),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
+                fontSize = FONT_SIZE_SUBTITLE,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = SPACING_LARGE),
             )
 
             val allGenresCount = genreStats.sumOf { it.count }
@@ -70,8 +76,8 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
                     labels = labels,
                     holeRadiusPercent = 0.4f,
                     modifier = Modifier
-                        .size(160.dp)
-                        .padding(bottom = 24.dp),
+                        .size(160.dp) // I'll keep 160.dp for now or use a constant. I'll use 160.dp.
+                        .padding(bottom = SPACING_EXTRA_LARGE),
                 )
             }
 
@@ -87,29 +93,29 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
                         modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = SPACING_SMALL),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
                             modifier =
                             Modifier
-                                .size(12.dp)
+                                .size(ICON_SIZE_TINY)
                                 .background(color, CircleShape),
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(SPACING_MEDIUM))
 
                         Text(
                             text = genrePlayCount.genre,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.sp,
+                            fontSize = FONT_SIZE_CAPTION,
                             modifier = Modifier.weight(1f),
                         )
 
                         Text(
                             text = "$percentage%",
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            fontSize = 12.sp,
+                            fontSize = FONT_SIZE_CAPTION,
                         )
                     }
                 }

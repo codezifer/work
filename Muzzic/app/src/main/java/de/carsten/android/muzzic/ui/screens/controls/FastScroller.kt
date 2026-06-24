@@ -37,9 +37,15 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.ICON_SIZE_FAST_SCROLL_THUMB
+import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PREVIEW_PADDING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import kotlinx.coroutines.delay
 
 /**
@@ -93,7 +99,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
         Box(
             modifier =
             Modifier
-                .width(40.dp)
+                .width(ICON_SIZE_LARGE)
                 // Measures the height of the bar once it's placed in the layout
                 .onGloballyPositioned { columnHeight = it.size.height }
                 // Handles simple tapping on a letter
@@ -151,7 +157,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
 
                 // Smoothly animates the handle movement between positions
                 val animatedOffset by animateDpAsState(
-                    targetValue = handleOffsetDp - 12.dp, // -12dp to center the circle (24dp)
+                    targetValue = handleOffsetDp - SPACING_NORMAL, // -12dp to center the circle (24dp)
                     label = "handleOffset",
                 )
 
@@ -159,9 +165,9 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                     modifier =
                     Modifier
                         .offset(y = animatedOffset)
-                        .padding(horizontal = 8.dp)
-                        .width(24.dp)
-                        .height(24.dp)
+                        .padding(horizontal = SPACING_MEDIUM)
+                        .width(ICON_SIZE_MEDIUM)
+                        .height(ICON_SIZE_MEDIUM)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
                 )
@@ -174,7 +180,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                 Modifier
                     .fillMaxHeight()
                     .border(
-                        width = 1.dp,
+                        width = BORDER_WIDTH_NORMAL,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(50),
                     ),
@@ -194,8 +200,8 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                     modifier =
                     Modifier
                         .align(Alignment.CenterStart)
-                        .offset(x = (-60).dp) // Positioning to the left of the FastScroller
-                        .size(50.dp)
+                        .offset(x = -INDICATOR_SLIDER_PREVIEW_PADDING) // Positioning to the left of the FastScroller
+                        .size(ICON_SIZE_FAST_SCROLL_THUMB)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.inversePrimary),
                     contentAlignment = Alignment.Center,
@@ -216,12 +222,12 @@ private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modi
     Box(
         modifier =
         modifier
-            .width(40.dp),
+            .width(ICON_SIZE_LARGE),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = letter,
-            fontSize = 12.sp,
+            fontSize = FONT_SIZE_CAPTION,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
             color =
             if (isActive) {

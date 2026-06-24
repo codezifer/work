@@ -21,7 +21,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
+import de.carsten.android.muzzic.ui.ICON_SIZE_EXTRA_LARGE
+import de.carsten.android.muzzic.ui.ICON_SIZE_PLAY_BUTTON_LARGE
+import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 /**
@@ -37,7 +41,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  * @param blur The blur radius for the background.
  */
 @Composable
-fun PlayButton(onClick: () -> Unit, modifier: Modifier = Modifier, borderColor: Color = MaterialTheme.colorScheme.primary, size: Dp = 48.dp, blur: Dp = 12.dp) {
+fun PlayButton(onClick: () -> Unit, modifier: Modifier = Modifier, borderColor: Color = MaterialTheme.colorScheme.primary, size: Dp = ICON_SIZE_EXTRA_LARGE, blur: Dp = BLUR_RADIUS_LARGE) {
     val isDark = isSystemInDarkTheme()
 
     // Background color based on theme for the "blurry" effect
@@ -63,11 +67,11 @@ fun PlayButton(onClick: () -> Unit, modifier: Modifier = Modifier, borderColor: 
                 // Outer Glow effect
                 drawCircle(
                     color = borderColor.copy(alpha = 0.6f),
-                    radius = (size.toPx() / 2f) + 4.dp.toPx(),
+                    radius = (size.toPx() / 2f) + SPACING_SMALL.toPx(),
                     alpha = 0.4f,
                 )
             }
-            .border(BorderStroke(2.dp, borderColor), CircleShape),
+            .border(BorderStroke(BORDER_WIDTH_THICK, borderColor), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         // Blurry Background Layer
@@ -99,7 +103,7 @@ fun PlayButtonLightPreview() {
     AppTheme {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(ICON_SIZE_PLAY_BUTTON_LARGE)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
@@ -114,7 +118,7 @@ fun PlayButtonDarkPreview() {
     AppTheme {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(ICON_SIZE_PLAY_BUTTON_LARGE)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {

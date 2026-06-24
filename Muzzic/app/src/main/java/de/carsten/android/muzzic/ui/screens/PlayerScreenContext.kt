@@ -36,12 +36,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.UI_EMPTY
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.FONT_SIZE_LARGE_TITLE
+import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYER_MAIN
+import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYER_PLAY_PAUSE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -117,7 +125,7 @@ fun PlayerScreenContext(
             Text(
                 text = songTitle ?: UI_EMPTY,
                 color = textColor,
-                fontSize = 22.sp,
+                fontSize = FONT_SIZE_LARGE_TITLE,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -125,7 +133,7 @@ fun PlayerScreenContext(
             Text(
                 text = artistName ?: UI_EMPTY,
                 color = textColor.copy(alpha = 0.7f),
-                fontSize = 16.sp,
+                fontSize = FONT_SIZE_SUBTITLE,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -152,19 +160,19 @@ fun PlayerScreenContext(
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = SPACING_MEDIUM),
                 // Align with slider padding
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     text = formatDuration((duration * progress).toLong()),
                     color = textColor.copy(alpha = 0.7f),
-                    fontSize = 12.sp,
+                    fontSize = FONT_SIZE_CAPTION,
                 )
                 Text(
                     text = formatDuration((duration - (duration * progress)).toLong()),
                     color = textColor.copy(alpha = 0.7f),
-                    fontSize = 12.sp,
+                    fontSize = FONT_SIZE_CAPTION,
                 )
             }
         }
@@ -177,7 +185,7 @@ fun PlayerScreenContext(
             Modifier
                 .fillMaxWidth()
                 .border(
-                    width = 2.dp,
+                    width = BORDER_WIDTH_THICK,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                     shape = CircleShape,
                 ),
@@ -189,14 +197,14 @@ fun PlayerScreenContext(
                 Modifier
                     .fillMaxWidth()
                     .padding(
-                        vertical = 8.dp,
+                        vertical = SPACING_MEDIUM,
                     ),
             ) {
                 val circularButtonModifier =
                     Modifier
-                        .size(40.dp)
+                        .size(ICON_SIZE_LARGE)
                         .border(
-                            width = 1.dp,
+                            width = BORDER_WIDTH_NORMAL,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             shape = CircleShape,
                         )
@@ -208,13 +216,13 @@ fun PlayerScreenContext(
                 // shuffle-button
                 IconButton(
                     onClick = onToggleShuffle,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(ICON_SIZE_LARGE),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Shuffle,
                         contentDescription = "Shuffle",
                         tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(ICON_SIZE_MEDIUM),
                     )
                 }
 
@@ -227,7 +235,7 @@ fun PlayerScreenContext(
                         imageVector = Icons.Filled.SkipPrevious,
                         contentDescription = "Previous Track",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(ICON_SIZE_LARGE),
                     )
                 }
 
@@ -236,7 +244,7 @@ fun PlayerScreenContext(
                     onClick = onPlayPauseClicked,
                     modifier =
                     Modifier
-                        .size(72.dp) // Larger play/pause button
+                        .size(ICON_SIZE_PLAYER_MAIN) // Larger play/pause button
                         .background(
                             colorSource.accentColor,
                             CircleShape,
@@ -246,7 +254,7 @@ fun PlayerScreenContext(
                         imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play",
                         tint = colorSource.contentColor,
-                        modifier = Modifier.size(44.dp),
+                        modifier = Modifier.size(ICON_SIZE_PLAYER_PLAY_PAUSE),
                     )
                 }
 
@@ -259,14 +267,14 @@ fun PlayerScreenContext(
                         imageVector = Icons.Filled.SkipNext,
                         contentDescription = "Next Track",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(ICON_SIZE_LARGE),
                     )
                 }
 
                 // repeat-button
                 IconButton(
                     onClick = onToggleRepeat,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(ICON_SIZE_LARGE),
                 ) {
                     val repeatIcon = when (repeatMode) {
                         Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
@@ -276,7 +284,7 @@ fun PlayerScreenContext(
                         imageVector = repeatIcon,
                         contentDescription = "Repeat",
                         tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(ICON_SIZE_MEDIUM),
                     )
                 }
             }

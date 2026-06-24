@@ -1,14 +1,17 @@
 package de.carsten.android.muzzic.ui
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_ARGUMENT
+import de.carsten.android.muzzic.ui.SCREEN_CONTENT_BOTTOM_PADDING
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM_SONGS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ALBUMS
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ARGUMENT
@@ -118,7 +121,7 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier,
+        modifier = modifier.padding(bottom = SCREEN_CONTENT_BOTTOM_PADDING),
     ) {
         composable(PLAYER) {
             PlayerScreen(

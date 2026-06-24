@@ -14,7 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 
 /**
  * A reusable dialog for capturing text input from the user.
@@ -45,7 +45,7 @@ fun TextInputDialog(
             Text(text = title, style = MaterialTheme.typography.titleLarge)
         },
         text = {
-            Column(modifier = Modifier.padding(top = 8.dp)) {
+            Column(modifier = Modifier.padding(top = SPACING_MEDIUM)) {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },

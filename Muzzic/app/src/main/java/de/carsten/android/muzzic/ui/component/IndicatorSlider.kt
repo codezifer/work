@@ -25,11 +25,17 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_OFFSET_Y
+import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PADDING_TOP_WITH_TAIL
+import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PADDING_WITH_TAIL
+import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PREVIEW_PADDING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.shape.IndicatorShape
 import de.carsten.android.muzzic.ui.shape.TailDirection
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -64,7 +70,7 @@ fun IndicatorSlider(
     indicatorFormatter: (Float) -> String = { f -> f.toString() },
     indicatorColor: Color = MaterialTheme.colorScheme.primary,
     indicatorAlignment: Alignment = Alignment.TopCenter,
-    indicatorOffsetY: Dp = (-40).dp,
+    indicatorOffsetY: Dp = INDICATOR_SLIDER_OFFSET_Y,
     indicatorRotation: Float = 0f,
     tailDirection: TailDirection = TailDirection.Bottom,
     enabled: Boolean = true,
@@ -103,7 +109,7 @@ private fun IndicatorSliderContent(
     indicatorFormatter: (Float) -> String = { f -> f.toString() },
     indicatorColor: Color = MaterialTheme.colorScheme.primary,
     indicatorAlignment: Alignment = Alignment.TopCenter,
-    indicatorOffsetY: Dp = (-40).dp,
+    indicatorOffsetY: Dp = INDICATOR_SLIDER_OFFSET_Y,
     indicatorRotation: Float = 0f,
     tailDirection: TailDirection = TailDirection.Bottom,
     enabled: Boolean = true,
@@ -154,12 +160,12 @@ private fun IndicatorSliderContent(
                             Text(
                                 text = indicatorFormatter(scrubbingProgress),
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                fontSize = 12.sp,
+                                fontSize = FONT_SIZE_CAPTION,
                                 modifier = Modifier.padding(
-                                    start = if (tailDirection == TailDirection.Left) 14.dp else 8.dp,
-                                    end = if (tailDirection == TailDirection.Right) 14.dp else 8.dp,
-                                    top = if (tailDirection == TailDirection.Top) 10.dp else 4.dp,
-                                    bottom = if (tailDirection == TailDirection.Bottom) 10.dp else 4.dp,
+                                    start = if (tailDirection == TailDirection.Left) INDICATOR_SLIDER_PADDING_WITH_TAIL else SPACING_MEDIUM,
+                                    end = if (tailDirection == TailDirection.Right) INDICATOR_SLIDER_PADDING_WITH_TAIL else SPACING_MEDIUM,
+                                    top = if (tailDirection == TailDirection.Top) INDICATOR_SLIDER_PADDING_TOP_WITH_TAIL else SPACING_SMALL,
+                                    bottom = if (tailDirection == TailDirection.Bottom) INDICATOR_SLIDER_PADDING_TOP_WITH_TAIL else SPACING_SMALL,
                                 ),
                             )
                         }
@@ -177,12 +183,12 @@ private fun IndicatorSliderContent(
                                 Text(
                                     text = indicatorFormatter(scrubbingProgress),
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    fontSize = 12.sp,
+                                    fontSize = FONT_SIZE_CAPTION,
                                     modifier = Modifier.padding(
-                                        start = if (tailDirection == TailDirection.Left) 14.dp else 8.dp,
-                                        end = if (tailDirection == TailDirection.Right) 14.dp else 8.dp,
-                                        top = if (tailDirection == TailDirection.Top) 10.dp else 4.dp,
-                                        bottom = if (tailDirection == TailDirection.Bottom) 10.dp else 4.dp,
+                                        start = if (tailDirection == TailDirection.Left) INDICATOR_SLIDER_PADDING_WITH_TAIL else SPACING_MEDIUM,
+                                        end = if (tailDirection == TailDirection.Right) INDICATOR_SLIDER_PADDING_WITH_TAIL else SPACING_MEDIUM,
+                                        top = if (tailDirection == TailDirection.Top) INDICATOR_SLIDER_PADDING_TOP_WITH_TAIL else SPACING_SMALL,
+                                        bottom = if (tailDirection == TailDirection.Bottom) INDICATOR_SLIDER_PADDING_TOP_WITH_TAIL else SPACING_SMALL,
                                     ),
                                 )
                             }
@@ -199,7 +205,7 @@ private fun IndicatorSliderContent(
 @Preview(uiMode = PREVIEW_DARK_MODE)
 fun IndicatorSliderPreview() {
     AppTheme {
-        Box(modifier = Modifier.padding(top = 60.dp)) {
+        Box(modifier = Modifier.padding(top = INDICATOR_SLIDER_PREVIEW_PADDING)) {
             IndicatorSliderContent(
                 value = 0.5f,
                 initialScrubbingProgress = 0.6f,

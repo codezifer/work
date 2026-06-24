@@ -17,8 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
+import de.carsten.android.muzzic.ui.FONT_SIZE_LARGE_TITLE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.SongList
@@ -49,7 +51,7 @@ fun AlbumSongsScreen(
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(SPACING_LARGE),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onBackClick) {
@@ -59,17 +61,17 @@ fun AlbumSongsScreen(
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-                Column(modifier = Modifier.padding(start = 8.dp)) {
+                Column(modifier = Modifier.padding(start = SPACING_MEDIUM)) {
                     Text(
                         text = viewModel.albumName,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 20.sp,
+                        fontSize = FONT_SIZE_LARGE_TITLE,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = viewModel.artistName,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp,
+                        fontSize = FONT_SIZE_BODY,
                     )
                 }
             }

@@ -28,11 +28,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.DOT
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.ui.CORNER_RADIUS_SMALL
+import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
+import de.carsten.android.muzzic.ui.ICON_SIZE_DRAG_HANDLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
+import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import java.time.Instant
@@ -44,7 +50,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
         modifier =
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(CORNER_RADIUS_SMALL))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -53,18 +59,18 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
         CardDefaults.cardColors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
         ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(CORNER_RADIUS_SMALL),
     ) {
         Row(
             modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(SPACING_NORMAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Song Icon or Checkmark
             Box(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(ICON_SIZE_LARGE),
                 contentAlignment = Alignment.Center,
             ) {
                 Card(
@@ -73,7 +79,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                     CardDefaults.cardColors(
                         containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
                     ),
-                    shape = if (isSelected) CircleShape else RoundedCornerShape(8.dp),
+                    shape = if (isSelected) CircleShape else RoundedCornerShape(CORNER_RADIUS_SMALL),
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -83,13 +89,13 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                             if (isSelected) Icons.Default.Check else Icons.Default.MusicNote,
                             contentDescription = null,
                             tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(ICON_SIZE_DRAG_HANDLE),
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(SPACING_NORMAL))
 
             // Song Info
             Column(
@@ -98,7 +104,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                 Text(
                     text = "${song.trackNumberFormatted()} $DOT ${song.title}",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
+                    fontSize = FONT_SIZE_BODY,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -107,7 +113,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                 Text(
                     text = "${song.artist} $DOT ${song.album}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
+                    fontSize = FONT_SIZE_CAPTION,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -120,13 +126,13 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                 StarRating(
                     rating = song.rating,
                     onRatingChanged = { /* Update rating */ },
-                    size = 12.dp,
+                    size = ICON_SIZE_TINY,
                 )
 
                 Text(
                     text = formatDuration(song.duration),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
+                    fontSize = FONT_SIZE_SMALL,
                 )
             }
         }

@@ -15,8 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
+import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
+import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
@@ -34,9 +38,9 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
             Text(
                 text = stringResource(R.string.monthly_plays),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
+                fontSize = FONT_SIZE_SUBTITLE,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = SPACING_LARGE),
             )
 
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -45,12 +49,12 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
                     colors = listOf(CustomColors.chartBar),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp),
-                    barSpacing = 16.dp,
+                        .height(CARD_CONTENT_HEIGHT),
+                    barSpacing = SPACING_LARGE,
                     showValuesInside = true,
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(SPACING_MEDIUM))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -60,8 +64,8 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
                         Text(
                             text = month.month,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            fontSize = 10.sp,
-                            modifier = Modifier.width(24.dp),
+                            fontSize = FONT_SIZE_SMALL,
+                            modifier = Modifier.width(ICON_SIZE_MEDIUM),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
                     }

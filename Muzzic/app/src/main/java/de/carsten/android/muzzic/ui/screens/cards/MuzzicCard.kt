@@ -24,10 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.CARD_INTERNAL_PADDING
 import de.carsten.android.muzzic.ui.CARD_SELECTION_ICON_PADDING
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.ICON_SIZE_SMALL
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.screens.controls.PlayButton
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -73,7 +75,7 @@ fun MuzzicCard(
                                 borderColor = borderColor,
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(8.dp),
+                                    .padding(SPACING_MEDIUM),
                             )
                         }
                     }
@@ -111,7 +113,7 @@ fun MuzzicCard(
                     Modifier
                         .align(Alignment.TopEnd)
                         .padding(CARD_SELECTION_ICON_PADDING)
-                        .size(24.dp)
+                        .size(ICON_SIZE_MEDIUM)
                         .background(MaterialTheme.colorScheme.primary, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -119,7 +121,7 @@ fun MuzzicCard(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Selected",
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(ICON_SIZE_SMALL),
                     )
                 }
             }
