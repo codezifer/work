@@ -2,6 +2,8 @@ import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
+val appVersion = "0.1.4"
+val appApkName = "muzzic-${appVersion}.apk"
 val rootKotlinVersion = "2.3"
 val appTargetSdk = 37
 val appMinSdk = 36
@@ -25,9 +27,10 @@ extensions.configure<ApplicationExtension> {
         minSdk = appMinSdk
         targetSdk = appTargetSdk
         versionCode = 1
-        versionName = "0.1.3"
+        versionName = appVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "SEED_DATABASE", "false")
     }
 
     buildTypes {
@@ -169,4 +172,24 @@ dependencies {
     // debug deps.
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.manifest)
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set(appApkName)
+        }
+    }
+}
+
+tasks {
+    register("buildReleaseApk") {
+        group = "build"
+        description = "Assembles the release APK"
+        dependsOn("assembleRelease")
+        doLast {
+            println("Release APK build successfully!")
+            println("You can find it: ${project.buildDir}/outputs/apk/release/${appApkName}")
+        }
+    }
 }
