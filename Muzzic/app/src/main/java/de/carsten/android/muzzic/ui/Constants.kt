@@ -35,7 +35,7 @@ val SNACKBAR_BOTTOM_PADDING = 80.dp
 /**
  * Component Specific Dimensions
  */
-val GLASS_PANEL_CORNER_RADIUS = 28.dp
+val GLASS_PANEL_CORNER_RADIUS = 14.dp
 val CARD_CORNER_RADIUS = 12.dp
 val CORNER_RADIUS_SMALL = 8.dp
 val CORNER_RADIUS_FULL = 25.dp
