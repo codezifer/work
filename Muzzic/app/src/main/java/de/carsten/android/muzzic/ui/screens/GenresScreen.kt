@@ -1,10 +1,14 @@
 package de.carsten.android.muzzic.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -36,7 +40,13 @@ fun GenresScreen(
 
 @Composable
 fun GenresScreenContent(modifier: Modifier = Modifier, appState: MusicAppState? = null, genres: List<GenreDto>, onGenreClick: (GenreDto) -> Unit = {}) {
-    GenreGrid(genres, modifier, onGenreClick)
+    GenreGrid(
+        genres = genres,
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
+        onGenreClick = onGenreClick,
+    )
 }
 
 @Composable

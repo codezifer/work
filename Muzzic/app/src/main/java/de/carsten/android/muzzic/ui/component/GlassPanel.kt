@@ -53,7 +53,7 @@ fun GlassPanel(
                 modifier = Modifier
                     .matchParentSize()
                     .blur(BLUR_RADIUS_LARGE)
-                    .background(containerColor.copy(alpha = alpha))
+                    .background(containerColor.copy(alpha = alpha)),
             )
 
             // Content layer

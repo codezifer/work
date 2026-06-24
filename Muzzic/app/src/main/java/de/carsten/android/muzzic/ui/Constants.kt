@@ -28,9 +28,9 @@ val SPACING_HUGE = 32.dp
  */
 val APP_FLOATING_MARGIN = 16.dp
 val APP_BOTTOM_NAV_HEIGHT = 80.dp
-val UI_OVERLAY_OFFSET = 100.dp // Offset to stack components above the floating nav bar
-val SCREEN_CONTENT_BOTTOM_PADDING = 80.dp // Padding for scrollable content to clear the nav bar
-val SNACKBAR_BOTTOM_PADDING = 80.dp
+val UI_OVERLAY_OFFSET = 120.dp // Offset to stack components above the floating nav bar
+val SCREEN_CONTENT_BOTTOM_PADDING = 112.dp // Padding for scrollable content to clear the nav bar
+val SNACKBAR_BOTTOM_PADDING = 112.dp
 
 /**
  * Component Specific Dimensions
@@ -86,6 +86,8 @@ val ELEVATION_LARGE = 12.dp
  */
 val BLUR_RADIUS_DEFAULT = 6.dp
 val BLUR_RADIUS_LARGE = 12.dp
+const val BACKGROUND_OVERLAY_ALPHA = 0.3f
+const val GLASS_CONTAINER_ALPHA = 0.7f
 
 /**
  * Icon Sizes

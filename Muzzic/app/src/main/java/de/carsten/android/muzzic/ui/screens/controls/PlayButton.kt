@@ -41,7 +41,13 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  * @param blur The blur radius for the background.
  */
 @Composable
-fun PlayButton(onClick: () -> Unit, modifier: Modifier = Modifier, borderColor: Color = MaterialTheme.colorScheme.primary, size: Dp = ICON_SIZE_EXTRA_LARGE, blur: Dp = BLUR_RADIUS_LARGE) {
+fun PlayButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
+    size: Dp = ICON_SIZE_EXTRA_LARGE,
+    blur: Dp = BLUR_RADIUS_LARGE,
+) {
     val isDark = isSystemInDarkTheme()
 
     // Background color based on theme for the "blurry" effect

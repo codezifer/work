@@ -22,9 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
-import de.carsten.android.muzzic.ui.SPACING_LARGE
-import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -33,7 +30,11 @@ import de.carsten.android.muzzic.ui.AppDestinations.ARTIST
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST
 import de.carsten.android.muzzic.ui.AppDestinations.SONG
+import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
+import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -161,7 +162,7 @@ fun LibraryScreenContent(
         modifier =
         modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
     ) {
         Text(
             text = stringResource(R.string.library),

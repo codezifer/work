@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,13 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.model.toAlbumArtUri
-import de.carsten.android.muzzic.ui.APP_FLOATING_MARGIN
-import de.carsten.android.muzzic.ui.SNACKBAR_BOTTOM_PADDING
+import de.carsten.android.muzzic.ui.BLUR_RADIUS_DEFAULT
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.UI_OVERLAY_OFFSET
+import de.carsten.android.muzzic.ui.component.PlayerBackground
 import de.carsten.android.muzzic.ui.component.TextInputDialog
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -138,15 +137,19 @@ fun MusicPlayerApp(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
+            PlayerBackground(
+                albumArtPath = currentSong?.albumArt,
+                blurRadius = BLUR_RADIUS_DEFAULT,
+            )
+
             AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
@@ -163,24 +166,24 @@ fun MusicPlayerApp(
                 navController = appState.navController,
                 colorSource = colorSource,
                 clickHandlers =
-                    mapOf(
-                        BottomNavItem.Player.label to {
-                            appState.onNavigationEvent(NavigationEvent.ToPlayer, selectionState)
-                        },
-                        BottomNavItem.Library.label to {
-                            selectionViewModel.clearSelection()
-                            appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
-                        },
-                        BottomNavItem.Queue.label to {
-                            appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
-                        },
-                        BottomNavItem.Playlists.label to {
-                            appState.onNavigationEvent(NavigationEvent.ToPlaylists, selectionState)
-                        },
-                        BottomNavItem.Statistics.label to {
-                            appState.onNavigationEvent(NavigationEvent.ToStatistics, selectionState)
-                        },
-                    ),
+                mapOf(
+                    BottomNavItem.Player.label to {
+                        appState.onNavigationEvent(NavigationEvent.ToPlayer, selectionState)
+                    },
+                    BottomNavItem.Library.label to {
+                        selectionViewModel.clearSelection()
+                        appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
+                    },
+                    BottomNavItem.Queue.label to {
+                        appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
+                    },
+                    BottomNavItem.Playlists.label to {
+                        appState.onNavigationEvent(NavigationEvent.ToPlaylists, selectionState)
+                    },
+                    BottomNavItem.Statistics.label to {
+                        appState.onNavigationEvent(NavigationEvent.ToStatistics, selectionState)
+                    },
+                ),
             )
 
             // Contextual Floating Toolbar powered by State Machine logic
@@ -199,9 +202,9 @@ fun MusicPlayerApp(
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                 modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = UI_OVERLAY_OFFSET),
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = UI_OVERLAY_OFFSET),
             ) {
                 SelectionToolbar(
                     mode = if (uiState is AppUiState.Queue) ToolbarMode.QUEUE_MGMT else ToolbarMode.SELECTION,
