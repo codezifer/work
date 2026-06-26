@@ -20,6 +20,7 @@ import de.carsten.android.muzzic.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.UNKNOWN_GENRE
 import de.carsten.android.muzzic.id3.Id3TagParser
 import de.carsten.android.muzzic.logging.logger
+import de.carsten.android.muzzic.mediaId
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.dao.AlbumDao
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
@@ -34,6 +35,7 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
+import de.carsten.android.muzzic.playlist.M3uParser
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -52,6 +54,7 @@ class MusicRepository(
     val genreDao: GenreDao,
     val playlistDao: PlaylistDao,
     val playHistoryDao: PlayHistoryDao,
+    val genericSettingDao: de.carsten.android.muzzic.persistence.dao.GenericSettingDao,
     val context: Context,
 ) {
     companion object {
@@ -149,11 +152,28 @@ class MusicRepository(
     }
 
     private suspend fun scanForMusicFiles(): List<File> = withContext(Dispatchers.IO) {
-        val musicFolders =
+        val configuredDir = genericSettingDao.getSetting(AppSettingsRepository.KEY_MUSIC_DIRECTORY)?.value
+
+        val musicFolders = if (configuredDir != null) {
+            // Handle Uri if stored as such, or raw path
+            val dir = if (configuredDir.startsWith("content://")) {
+                // If it's a URI, we should ideally use DocumentFile, but for now we try to see if it's a path
+                // or fall back to default if we can't handle it here easily without major refactoring.
+                // Re-parsing the logic to use DocumentFile is a larger task.
+                // For simplicity, we assume absolute paths for now if possible.
+                null
+            } else {
+                File(configuredDir)
+            }
+            listOfNotNull(dir)
+        } else {
             listOf(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
             )
+        }
+
+        if (musicFolders.isEmpty()) return@withContext emptyList()
 
         val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
         val musicFiles = mutableListOf<File>()
@@ -312,5 +332,41 @@ class MusicRepository(
     suspend fun getTopSongs(): List<SongPlayCount> {
         val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
         return playHistoryDao.getTopSongs(oneMonthAgo)
+    }
+
+    suspend fun importPlaylists(onProgress: ((String, Int) -> Unit)? = null) = withContext(Dispatchers.IO) {
+        val configuredDir = genericSettingDao.getSetting(AppSettingsRepository.KEY_PLAYLIST_DIRECTORY)?.value ?: return@withContext
+        val playlistDir = File(configuredDir)
+        if (!playlistDir.exists() || !playlistDir.isDirectory) return@withContext
+
+        val m3uFiles = playlistDir.walkTopDown().filter { it.isFile && (it.extension.lowercase() == "m3u" || it.extension.lowercase() == "m3u8") }.toList()
+
+        val totalPlaylists = m3uFiles.size
+        m3uFiles.forEachIndexed { index, file ->
+            val entries = M3uParser.parse(file)
+            if (entries.isNotEmpty()) {
+                val playlistName = file.nameWithoutExtension
+                val playlistId = mediaId(playlistName).toString()
+                val playlist = Playlist(playlistName).apply { id = playlistId }
+
+                playlistDao.insertPlaylist(playlist)
+                playlistDao.clearPlaylist(playlistId)
+
+                // Match songs in DB by path
+                val allSongs = songDao.getAllSongs().first()
+                val pathToSong = allSongs.associateBy { it.filePath }
+
+                entries.forEachIndexed { songIndex, entry ->
+                    val matchedSong = pathToSong[entry.path]
+                    if (matchedSong != null) {
+                        playlistDao.insertPlaylistSong(
+                            PlaylistSong(playlistId, matchedSong.id, songIndex)
+                        )
+                    }
+                }
+            }
+            val progress = ((index + 1).toFloat() / totalPlaylists * 100).toInt()
+            onProgress?.invoke("Importing $totalPlaylists playlists...", progress)
+        }
     }
 }

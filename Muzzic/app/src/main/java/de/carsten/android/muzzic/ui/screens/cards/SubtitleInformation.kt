@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,13 +21,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.ui.BULLET_POINT
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.SUBTITLE_ICONSIZE
 import de.carsten.android.muzzic.ui.SUBTITLE_ICON_TEXT_SPACING
 import de.carsten.android.muzzic.ui.SUBTITLE_SPACING
+import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color = Color.Gray) {
+fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, Alignment.CenterHorizontally),
@@ -61,42 +64,51 @@ fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColo
 
 @Composable
 @Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun SubtitleInformationPreview() {
-    SubtitleInformation(
-        listOf(
-            Pair(Icons.Default.Person, "50 Artists"),
-            Pair(Icons.Default.Album, "500 Albums"),
-            Pair(Icons.Default.MusicNote, "5000 Songs"),
-        ),
-    )
+    AppTheme {
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, "50 Artists"),
+                Pair(Icons.Default.Album, "500 Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Songs"),
+            ),
+        )
+    }
 }
 
 @Composable
 @Preview(widthDp = 300)
+@Preview(widthDp = 300, uiMode = PREVIEW_DARK_MODE)
 fun SubtitleInformation300WidthPreview() {
-    SubtitleInformation(
-        listOf(
-            Pair(Icons.Default.Person, "50 Artists"),
-            Pair(Icons.Default.Album, "500 Albums"),
-            Pair(Icons.Default.MusicNote, "5000 Songs"),
-            Pair(Icons.Default.Person, "50 Extra Artists"),
-            Pair(Icons.Default.Album, "500 Extra Albums"),
-            Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
-        ),
-    )
+    AppTheme {
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, "50 Artists"),
+                Pair(Icons.Default.Album, "500 Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Songs"),
+                Pair(Icons.Default.Person, "50 Extra Artists"),
+                Pair(Icons.Default.Album, "500 Extra Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
+            ),
+        )
+    }
 }
 
 @Composable
 @Preview(widthDp = 100)
+@Preview(widthDp = 100, uiMode = PREVIEW_DARK_MODE)
 fun SubtitleInformation100WidthPreview() {
-    SubtitleInformation(
-        listOf(
-            Pair(Icons.Default.Person, "50 Artists"),
-            Pair(Icons.Default.Album, "500 Albums"),
-            Pair(Icons.Default.MusicNote, "5000 Songs"),
-            Pair(Icons.Default.Person, "50 Extra Artists"),
-            Pair(Icons.Default.Album, "500 Extra Albums"),
-            Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
-        ),
-    )
+    AppTheme {
+        SubtitleInformation(
+            listOf(
+                Pair(Icons.Default.Person, "50 Artists"),
+                Pair(Icons.Default.Album, "500 Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Songs"),
+                Pair(Icons.Default.Person, "50 Extra Artists"),
+                Pair(Icons.Default.Album, "500 Extra Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Extra Songs"),
+            ),
+        )
+    }
 }

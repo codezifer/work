@@ -7,12 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.carsten.android.muzzic.persistence.dao.AlbumDao
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
+import de.carsten.android.muzzic.persistence.dao.GenericSettingDao
 import de.carsten.android.muzzic.persistence.dao.GenreDao
 import de.carsten.android.muzzic.persistence.dao.PlayHistoryDao
 import de.carsten.android.muzzic.persistence.dao.PlayerSettingsDao
 import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
+import de.carsten.android.muzzic.persistence.entity.GenericSetting
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.PlayerSettings
 import de.carsten.android.muzzic.persistence.entity.PlayingQueue
@@ -30,9 +32,10 @@ import de.carsten.android.muzzic.persistence.utils.Converters
         PlayHistory::class,
         PlayingQueue::class,
         PlayerSettings::class,
+        GenericSetting::class,
     ],
     exportSchema = true,
-    version = 9,
+    version = 10,
     autoMigrations = [],
 )
 @TypeConverters(Converters::class)
@@ -60,4 +63,6 @@ abstract class MuzzicDatabase : RoomDatabase() {
     abstract fun playingQueueDao(): PlayingQueueDao
 
     abstract fun playerSettingsDao(): PlayerSettingsDao
+
+    abstract fun genericSettingDao(): GenericSettingDao
 }

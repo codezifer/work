@@ -21,6 +21,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY_GRAPH
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
+import de.carsten.android.muzzic.ui.AppDestinations.SETTINGS
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
 import de.carsten.android.muzzic.ui.SCREEN_CONTENT_BOTTOM_PADDING
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -36,6 +37,7 @@ import de.carsten.android.muzzic.ui.screens.LibraryScreen
 import de.carsten.android.muzzic.ui.screens.PlayerScreen
 import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
 import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
+import de.carsten.android.muzzic.ui.screens.SettingsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
@@ -143,6 +145,9 @@ fun AppNavHost(
                     onAlbumClick = onAlbumClick,
                     onGenreClick = onGenreClick,
                     onPlaylistClick = onPlaylistClick,
+                    onSettingsClick = {
+                        appState.onNavigationEvent(NavigationEvent.ToSettings)
+                    },
                     selectionViewModel = selectionViewModel,
                 )
             }
@@ -223,6 +228,14 @@ fun AppNavHost(
             StatisticsScreen(
                 modifier = modifier,
                 appState = appState,
+            )
+        }
+
+        composable(SETTINGS) {
+            SettingsScreen(
+                modifier = modifier,
+                appState = appState,
+                onBackClick = onBackClick,
             )
         }
     }

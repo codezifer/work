@@ -18,6 +18,8 @@ sealed class AppUiState {
     data object Playlists : AppUiState()
 
     data object Statistics : AppUiState()
+
+    data object Settings : AppUiState()
 }
 
 /**
@@ -78,6 +80,11 @@ class MusicAppStateMachine {
                     AppUiState.Statistics
                 }
 
+                NavigationEvent.ToSettings -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Settings
+                }
+
                 NavigationEvent.ToGenres -> {
                     sideEffects.add(AppSideEffect.Navigate(event))
                     AppUiState.Library(selectionActive = selectionState.isActive)
@@ -127,6 +134,10 @@ class MusicAppStateMachine {
 
         AppDestinations.STATISTICS -> {
             AppUiState.Statistics
+        }
+
+        AppDestinations.SETTINGS -> {
+            AppUiState.Settings
         }
 
         else -> {

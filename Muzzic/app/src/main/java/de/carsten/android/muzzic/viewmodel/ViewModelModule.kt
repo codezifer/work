@@ -70,4 +70,5 @@ val viewModelModule =
                 mediaLibraryManager = get(),
             )
         }
+        viewModelOf(::SettingsViewModel)
     }

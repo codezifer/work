@@ -9,6 +9,7 @@ object AppDestinations {
 
     const val GENRES = "genres"
     const val STATISTICS = "statistics"
+    const val SETTINGS = "settings"
 
     const val ARTIST_ARGUMENT = "artistName"
     const val ARTIST_ALBUMS = "artist/{$ARTIST_ARGUMENT}/albums"

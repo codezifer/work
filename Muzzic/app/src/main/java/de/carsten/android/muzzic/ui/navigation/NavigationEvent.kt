@@ -31,6 +31,11 @@ sealed class NavigationEvent {
     data object ToStatistics : NavigationEvent()
 
     /**
+     * Navigates to the Settings screen.
+     */
+    data object ToSettings : NavigationEvent()
+
+    /**
      * Navigates to the Genres screen.
      */
     data object ToGenres : NavigationEvent()

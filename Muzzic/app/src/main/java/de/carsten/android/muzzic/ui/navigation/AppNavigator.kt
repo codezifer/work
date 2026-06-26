@@ -37,6 +37,10 @@ class AppNavigator(private val navController: NavHostController) {
                 navigateToRoot(AppDestinations.STATISTICS)
             }
 
+            NavigationEvent.ToSettings -> {
+                navController.navigate(AppDestinations.SETTINGS)
+            }
+
             NavigationEvent.ToGenres -> {
                 navigateToRoot(AppDestinations.GENRES)
             }

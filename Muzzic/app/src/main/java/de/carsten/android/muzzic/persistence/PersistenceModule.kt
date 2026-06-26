@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.persistence
 
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
+import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.GenreRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
@@ -22,6 +23,7 @@ val databaseModule =
         single { get<MuzzicDatabase>().playHistoryDao() }
         single { get<MuzzicDatabase>().playingQueueDao() }
         single { get<MuzzicDatabase>().playerSettingsDao() }
+        single { get<MuzzicDatabase>().genericSettingDao() }
     }
 
 val repoModule =
@@ -34,6 +36,7 @@ val repoModule =
                 genreDao = get(),
                 playlistDao = get(),
                 playHistoryDao = get(),
+                genericSettingDao = get(),
                 context = androidContext(),
             )
         }
@@ -44,4 +47,5 @@ val repoModule =
         single { PlaylistRepository(get()) }
         single { PlayingQueueRepository(get()) }
         single { SettingsRepository(get()) }
+        single { AppSettingsRepository(get()) }
     }

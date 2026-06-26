@@ -3,14 +3,20 @@ package de.carsten.android.muzzic.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +69,7 @@ fun LibraryScreen(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     libraryViewModel: LibraryViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel,
 ) {
@@ -121,6 +129,7 @@ fun LibraryScreen(
             },
             onGenreClick = onGenreClick,
             onPlaylistClick = onPlaylistClick,
+            onSettingsClick = onSettingsClick,
             selectedArtists = selectionState.selectedArtists,
             selectedAlbums = selectionState.selectedAlbums,
             selectedSongs = selectionState.selectedSongs,
@@ -148,6 +157,7 @@ fun LibraryScreenContent(
     onSongLongClick: (Song) -> Unit = {},
     onGenreClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
     selectedAlbums: Set<String> = emptySet(),
     selectedSongs: Set<String> = emptySet(),
@@ -164,13 +174,25 @@ fun LibraryScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
     ) {
-        Text(
-            text = stringResource(R.string.library),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = FONT_SIZE_HUGE_TITLE,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(SPACING_LARGE),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(SPACING_LARGE),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(R.string.library),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = FONT_SIZE_HUGE_TITLE,
+                fontWeight = FontWeight.Bold,
+            )
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
 
         LazyRow(
             modifier = Modifier.padding(horizontal = SPACING_LARGE),
