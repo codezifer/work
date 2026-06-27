@@ -15,14 +15,14 @@ interface GenericSettingDao {
     /**
      * Gets a setting by its key.
      */
-    @Query("SELECT * FROM generic_settings WHERE key = :key")
-    suspend fun getSetting(key: String): GenericSetting?
+    @Query("SELECT * FROM generic_settings WHERE settingName = :settingName")
+    suspend fun getSetting(settingName: String): GenericSetting?
 
     /**
      * Observes a setting by its key.
      */
-    @Query("SELECT * FROM generic_settings WHERE key = :key")
-    fun observeSetting(key: String): Flow<GenericSetting?>
+    @Query("SELECT * FROM generic_settings WHERE settingName = :settingName")
+    fun observeSetting(settingName: String): Flow<GenericSetting?>
 
     /**
      * Inserts or updates a setting.
@@ -33,6 +33,6 @@ interface GenericSettingDao {
     /**
      * Deletes a setting by its key.
      */
-    @Query("DELETE FROM generic_settings WHERE key = :key")
-    suspend fun deleteSetting(key: String)
+    @Query("DELETE FROM generic_settings WHERE settingName = :settingName")
+    suspend fun deleteSetting(settingName: String)
 }

@@ -8,6 +8,7 @@ import de.carsten.android.muzzic.persistence.MuzzicDatabase
 import de.carsten.android.muzzic.persistence.databaseModule
 import de.carsten.android.muzzic.persistence.mock.DatabaseSeeder
 import de.carsten.android.muzzic.persistence.repoModule
+import de.carsten.android.muzzic.scanning.scanningModule
 import de.carsten.android.muzzic.service.serviceModule
 import de.carsten.android.muzzic.ui.uiModule
 import de.carsten.android.muzzic.viewmodel.viewModelModule
@@ -28,6 +29,7 @@ class MuzzicPlayerApplication :
             androidLogger()
             androidContext(this@MuzzicPlayerApplication)
             modules(
+                scanningModule,
                 databaseModule,
                 repoModule,
                 serviceModule,

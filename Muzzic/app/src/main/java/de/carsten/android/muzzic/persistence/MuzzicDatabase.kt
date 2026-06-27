@@ -35,7 +35,7 @@ import de.carsten.android.muzzic.persistence.utils.Converters
         GenericSetting::class,
     ],
     exportSchema = true,
-    version = 10,
+    version = 1,
     autoMigrations = [],
 )
 @TypeConverters(Converters::class)
