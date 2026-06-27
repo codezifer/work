@@ -91,7 +91,7 @@ fun PlayingQueueItem(
                 modifier =
                 dragModifier
                     .size(ICON_SIZE_DRAG_HANDLE),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Column(

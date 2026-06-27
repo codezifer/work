@@ -39,13 +39,20 @@ import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
 import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit = {}, isSelected: Boolean = false) {
+fun SongListItem(
+    song: Song,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+) {
     Card(
         modifier =
         Modifier
@@ -57,7 +64,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
             ),
         colors =
         CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = if(isSelected) colorSource.accentColor else colorSource.contentColor,
         ),
         shape = RoundedCornerShape(CORNER_RADIUS_SMALL),
     ) {
@@ -77,7 +84,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                     modifier = Modifier.fillMaxSize(),
                     colors =
                     CardDefaults.cardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = if (isSelected) colorSource.accentColor else MaterialTheme.colorScheme.surfaceContainerHigh,
                     ),
                     shape = if (isSelected) CircleShape else RoundedCornerShape(CORNER_RADIUS_SMALL),
                 ) {
@@ -88,7 +95,7 @@ fun SongListItem(song: Song, onClick: () -> Unit = {}, onLongClick: () -> Unit =
                         Icon(
                             if (isSelected) Icons.Default.Check else Icons.Default.MusicNote,
                             contentDescription = null,
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                            tint = if (isSelected) colorSource.contentColor else colorSource.accentColor,
                             modifier = Modifier.size(ICON_SIZE_DRAG_HANDLE),
                         )
                     }

@@ -101,7 +101,7 @@ fun VolumeControl(modifier: Modifier = Modifier, accentColor: Color = MaterialTh
                 Icon(
                     imageVector = icon,
                     contentDescription = stringResource(R.string.volume),
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
                 )
             }

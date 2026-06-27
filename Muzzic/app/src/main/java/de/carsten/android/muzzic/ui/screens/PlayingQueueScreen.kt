@@ -46,7 +46,12 @@ import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayingQueueScreen(modifier: Modifier, appState: MusicAppState, playingQueueViewModel: PlayingQueueViewModel, selectionViewModel: SelectionViewModel = koinViewModel()) {
+fun PlayingQueueScreen(
+    modifier: Modifier,
+    appState: MusicAppState,
+    playingQueueViewModel: PlayingQueueViewModel,
+    selectionViewModel: SelectionViewModel = koinViewModel()
+) {
     val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
     val playingQueueName by playingQueueViewModel.currentName.collectAsState()
     val selectionState by selectionViewModel.selectionState.collectAsState()
@@ -130,6 +135,7 @@ fun PlayingQueueContent(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Sort,
                         contentDescription = stringResource(R.string.sort),
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -158,6 +164,7 @@ fun PlayingQueueContent(
         if (playingQueue.isEmpty()) {
             Text(
                 text = stringResource(R.string.empty_pq),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )

@@ -166,12 +166,12 @@ fun PlayerScreenContext(
             ) {
                 Text(
                     text = formatDuration((duration * progress).toLong()),
-                    color = textColor.copy(alpha = 0.7f),
+                    color = textColor.copy(alpha = 0.8f),
                     fontSize = FONT_SIZE_CAPTION,
                 )
                 Text(
                     text = formatDuration((duration - (duration * progress)).toLong()),
-                    color = textColor.copy(alpha = 0.7f),
+                    color = textColor.copy(alpha = 0.8f),
                     fontSize = FONT_SIZE_CAPTION,
                 )
             }
@@ -221,7 +221,7 @@ fun PlayerScreenContext(
                     Icon(
                         imageVector = Icons.Filled.Shuffle,
                         contentDescription = "Shuffle",
-                        tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
+                        tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(ICON_SIZE_MEDIUM),
                     )
                 }
@@ -283,7 +283,7 @@ fun PlayerScreenContext(
                     Icon(
                         imageVector = repeatIcon,
                         contentDescription = "Repeat",
-                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurface,
+                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(ICON_SIZE_MEDIUM),
                     )
                 }

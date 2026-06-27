@@ -28,6 +28,7 @@ import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.CoverSource
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
 
 /**
@@ -177,32 +178,36 @@ private fun CollageItem(cover: CoverSource, modifier: Modifier = Modifier) {
 @Preview
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCoverCollagePreview_Dark")
 fun AlbumCoverCollagePreview() {
-    AlbumCoverCollage(
-        covers =
-        listOf(
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-        ),
-    )
+    AppTheme {
+        AlbumCoverCollage(
+            covers =
+                listOf(
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                ),
+        )
+    }
 }
 
 @Composable
 @Preview
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "AlbumCoverCollagePreview4_Dark")
 fun AlbumCoverCollagePreview4x4() {
-    AlbumCoverCollage(
-        covers =
-        listOf(
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-            CoverSource.FromVector(Icons.Default.MusicNote),
-        ),
-    )
+    AppTheme {
+        AlbumCoverCollage(
+            covers =
+                listOf(
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                    CoverSource.FromVector(Icons.Default.MusicNote),
+                ),
+        )
+    }
 }
