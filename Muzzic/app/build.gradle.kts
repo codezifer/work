@@ -105,6 +105,7 @@ dependencies {
     implementation(libs.androidx.media)
     implementation(libs.androidx.media.session)
     implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.documentfile)
 
     // jetpack compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)

@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +39,7 @@ import de.carsten.android.muzzic.ui.SPACING_NONE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.SPACING_TINY
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import java.util.UUID
@@ -54,6 +56,7 @@ fun PlayingQueueItem(
     isDragging: Boolean = false,
     isSelected: Boolean = false,
     dragModifier: Modifier = Modifier,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     onTogglePlayPause: () -> Unit = {},
@@ -137,6 +140,7 @@ fun PlayingQueueItem(
                     imageVector = if (isCurrentSong && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isCurrentSong && isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
+                    tint = colorSource.accentColor
                 )
             }
         }
@@ -151,8 +155,8 @@ fun PlayingQueueItem(
                     .height(BORDER_WIDTH_THICK)
                     .padding(horizontal = SPACING_NORMAL, vertical = SPACING_NONE)
                     .clip(RoundedCornerShape(topStart = SPACING_TINY, topEnd = SPACING_TINY)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                color = colorSource.accentColor,
+                trackColor = colorSource.accentColor.copy(alpha = 0.1f),
                 strokeCap = StrokeCap.Round,
             )
         }

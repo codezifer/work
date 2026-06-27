@@ -23,7 +23,6 @@ import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.SETTINGS
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
-import de.carsten.android.muzzic.ui.SCREEN_CONTENT_BOTTOM_PADDING
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
@@ -169,10 +168,10 @@ fun AppNavHost(
             composable(
                 route = ALBUM_SONGS,
                 arguments =
-                listOf(
-                    navArgument(ARTIST_ARGUMENT) { type = NavType.StringType },
-                    navArgument(ALBUM_ARGUMENT) { type = NavType.StringType },
-                ),
+                    listOf(
+                        navArgument(ARTIST_ARGUMENT) { type = NavType.StringType },
+                        navArgument(ALBUM_ARGUMENT) { type = NavType.StringType },
+                    ),
             ) {
                 AlbumSongsScreen(
                     modifier = modifier,
@@ -202,6 +201,7 @@ fun AppNavHost(
                 appState = appState,
                 playingQueueViewModel = playingQueueViewModel,
                 selectionViewModel = selectionViewModel,
+                colorSource = colorSource,
             )
         }
 

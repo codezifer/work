@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens
 
+import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,13 +30,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -44,34 +50,51 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     onBackClick: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val musicDirectory by viewModel.musicDirectory.collectAsStateWithLifecycle()
-    val playlistDirectory by viewModel.playlistDirectory.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val musicDirectory by settingsViewModel.musicDirectory.collectAsStateWithLifecycle()
+    val playlistDirectory by settingsViewModel.playlistDirectory.collectAsStateWithLifecycle()
 
+    SettingsScreenContent(
+        modifier = modifier,
+        musicDirectory = musicDirectory,
+        playlistDirectory = playlistDirectory,
+        settingsViewModel = settingsViewModel,
+        onBackClick = onBackClick,
+    )
+}
+
+@Composable
+private fun SettingsScreenContent(
+    modifier: Modifier = Modifier,
+    context: Context = LocalContext.current,
+    musicDirectory: String? = null,
+    playlistDirectory: String? = null,
+    settingsViewModel: SettingsViewModel? = null,
+    onBackClick: () -> Unit = {},
+) {
     val musicDirLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree()
+        contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         uri?.let {
             // We need to persist permissions and get the actual path if possible
             context.contentResolver.takePersistableUriPermission(
-                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                it, Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
             // For now, we store the URI string. A more robust implementation
             // would resolve this to a File path or use DocumentFile.
-            viewModel.updateMusicDirectory(it.toString())
+            settingsViewModel?.updateMusicDirectory(it.toString())
         }
     }
 
     val playlistDirLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree()
+        contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         uri?.let {
             context.contentResolver.takePersistableUriPermission(
-                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                it, Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
-            viewModel.updatePlaylistDirectory(it.toString())
+            settingsViewModel?.updatePlaylistDirectory(it.toString())
         }
     }
 
@@ -80,71 +103,71 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
             .verticalScroll(rememberScrollState())
-            .padding(SPACING_LARGE)
+            .padding(SPACING_LARGE),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM),
         ) {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    contentDescription = stringResource(R.string.back),
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 fontSize = FONT_SIZE_HUGE_TITLE,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         Spacer(modifier = Modifier.height(SPACING_LARGE))
 
-        SettingsSection(title = "Library Configuration") {
+        SettingsSection(title = stringResource(R.string.library_config)) {
             DirectorySetting(
-                label = "Music Directory",
+                label = stringResource(R.string.music_directory),
                 path = musicDirectory ?: "Not set",
-                onSelect = { musicDirLauncher.launch(null) }
+                onSelect = { musicDirLauncher.launch(null) },
             )
             Spacer(modifier = Modifier.height(SPACING_MEDIUM))
             DirectorySetting(
-                label = "Playlist Directory",
+                label = stringResource(R.string.playlist_directory),
                 path = playlistDirectory ?: "Not set",
-                onSelect = { playlistDirLauncher.launch(null) }
+                onSelect = { playlistDirLauncher.launch(null) },
             )
         }
 
         Spacer(modifier = Modifier.height(SPACING_LARGE))
 
-        SettingsSection(title = "Manual Tasks") {
+        SettingsSection(title = stringResource(R.string.manual_tasks)) {
             Button(
-                onClick = { viewModel.scanMusicLibrary() },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { settingsViewModel?.scanMusicLibrary() },
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Scan Music Library")
+                Text(stringResource(R.string.scan_library))
             }
             Spacer(modifier = Modifier.height(SPACING_MEDIUM))
             Button(
-                onClick = { viewModel.importPlaylists() },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { settingsViewModel?.importPlaylists() },
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Import Playlists")
+                Text(stringResource(R.string.scan_playlists))
             }
         }
     }
 }
 
 @Composable
-fun SettingsSection(title: String, content: @Composable () -> Unit) {
+private fun SettingsSection(title: String, content: @Composable () -> Unit) {
     Column {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = SPACING_MEDIUM))
         content()
@@ -152,27 +175,39 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun DirectorySetting(label: String, path: String, onSelect: () -> Unit) {
+private fun DirectorySetting(label: String, path: String, onSelect: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
-        Text(text = label, style = MaterialTheme.typography.labelLarge)
+        Text(text = label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onBackground)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM),
         ) {
             OutlinedTextField(
                 value = path,
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             IconButton(onClick = onSelect) {
                 Icon(
                     imageVector = Icons.Default.Folder,
-                    contentDescription = "Select Directory",
-                    tint = MaterialTheme.colorScheme.primary
+                    contentDescription = stringResource(R.string.select_directory),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
+fun SettingsScreenPreview() {
+    AppTheme {
+        SettingsScreenContent(
+            musicDirectory = "/storage/emulated/0/Music/Artist",
+            playlistDirectory = "/storage/emulated/0/Music/Playlists",
+        )
     }
 }

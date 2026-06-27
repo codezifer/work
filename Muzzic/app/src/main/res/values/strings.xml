@@ -63,4 +63,11 @@
     <string name="album_art">Album Art</string>
     <string name="sort">Sortieren</string>
     <string name="sort_metadata">Nach Metadaten sortieren</string>
+    <string name="library_config">Library Configuration</string>
+    <string name="music_directory">Music Directory</string>
+    <string name="playlist_directory">Playlist Directory</string>
+    <string name="manual_tasks">Manual Tasks</string>
+    <string name="scan_playlists">Playlists einscannen</string>
+    <string name="select_directory">Select Directory</string>
+    <string name="back">Zurück</string>
 </resources>

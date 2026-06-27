@@ -36,6 +36,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
@@ -49,6 +50,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlayingQueueScreen(
     modifier: Modifier,
     appState: MusicAppState,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
     playingQueueViewModel: PlayingQueueViewModel,
     selectionViewModel: SelectionViewModel = koinViewModel()
 ) {
@@ -75,6 +77,7 @@ fun PlayingQueueScreen(
             currentSong = currentSong,
             isPlaying = isPlaying,
             progress = progress,
+            colorSource = colorSource,
             onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
             onSongClick = { index, songId ->
                 if (selectionState.isActive) {
@@ -100,6 +103,7 @@ fun PlayingQueueContent(
     currentSong: MediaItem? = null,
     isPlaying: Boolean = false,
     progress: Float = 0f,
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
     onSongClick: (Int, String) -> Unit = { _, _ -> },
     onSongLongClick: (String) -> Unit = {},
     onMove: (Int, Int) -> Unit = { _, _ -> },
@@ -189,6 +193,7 @@ fun PlayingQueueContent(
                     isDragging = isDragging,
                     isSelected = isSelected,
                     dragModifier = dragModifier,
+                    colorSource = colorSource,
                     onClick = { onSongClick(index, item.mediaId) },
                     onLongClick = { onSongLongClick(item.mediaId) },
                     onTogglePlayPause = {
