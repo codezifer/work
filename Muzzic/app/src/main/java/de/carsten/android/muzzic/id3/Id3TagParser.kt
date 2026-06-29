@@ -1,5 +1,7 @@
 package de.carsten.android.muzzic.id3
 
+import android.content.Context
+import android.net.Uri
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
 import java.io.InputStream
@@ -10,6 +12,7 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.ID3v24Frames
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM
+import androidx.core.net.toUri
 
 /**
  * Utility for parsing ID3 tags and extracting metadata like album art offsets.
@@ -28,11 +31,29 @@ object Id3TagParser {
     private const val FRAME_HEADER_SIZE_V23V24 = 10
 
     /**
+     * Extracts the album art offset and size from a file URI.
+     *
+     * @param context The Android context.
+     * @param uriString The URI string of the file.
+     * @return An [AlbumArtMetadata] containing the location and size, or (0, 0) if not found.
+     */
+    fun getAlbumArtMetadata(context: Context, uriString: String): AlbumArtMetadata = try {
+        val uri = uriString.toUri()
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            parseFromStream(input)
+        } ?: AlbumArtMetadata(0L, 0L)
+    } catch (e: Exception) {
+        logger.error("Failed to extract album art offset for $uriString", e)
+        AlbumArtMetadata(0L, 0L)
+    }
+
+    /**
      * Extracts the album art offset and size from an MP3 file.
      *
      * @param file The MP3 file to parse.
      * @return An [AlbumArtMetadata] containing the location and size, or (0, 0) if not found.
      */
+    @Deprecated("Use getAlbumArtMetadata(Context, String) instead")
     fun getAlbumArtMetadata(file: File): AlbumArtMetadata = try {
         file.inputStream().use { input ->
             parseFromStream(input)

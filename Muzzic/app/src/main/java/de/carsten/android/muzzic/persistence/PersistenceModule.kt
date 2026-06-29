@@ -33,7 +33,7 @@ val databaseModule =
 val repoModule =
     module {
         single<FileScanner>(named("MusicScanner")) { MusicFileScanner(get(), get(), get(), get(), get()) }
-        single<FileScanner>(named("PlaylistScanner")) { PlaylistFileScanner(get(), get(), get()) }
+        single<FileScanner>(named("PlaylistScanner")) { PlaylistFileScanner(get(), get(), get(), get()) }
         // Keep concrete versions for injection into MusicRepository if needed,
         // or just use qualifiers there too.
         single { get<FileScanner>(named("MusicScanner")) as MusicFileScanner }

@@ -1,8 +1,10 @@
 package de.carsten.android.muzzic.playlist
 
+import android.content.Context
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
+import java.io.InputStreamReader
 
 /**
  * Data class representing an entry within an M3U playlist file.
@@ -27,45 +29,50 @@ object M3uParser {
     private const val EXT_INF_PREFIX = "#EXTINF:"
 
     /**
-     * Parses the given M3U/M3U8 file and returns a list of [M3uEntry] items.
+     * Parses the given M3U/M3U8 file URI and returns a list of [M3uEntry] items.
      * Resolves relative paths based on the playlist file's parent directory.
      *
-     * @param file The M3U/M3U8 file to parse.
+     * @param context The Android context.
+     * @param uriString The URI string of the M3U/M3U8 file.
      * @return A list of parsed entries.
      */
-    fun parse(file: File): List<M3uEntry> {
+    fun parse(context: Context, uriString: String): List<M3uEntry> {
         val entries = mutableListOf<M3uEntry>()
-        if (!file.exists() || !file.isFile) return entries
+        val uri = Uri.parse(uriString)
+        val document = DocumentFile.fromSingleUri(context, uri) ?: return entries
+        if (!document.exists()) return entries
 
-        val parentDir = file.parentFile
+        val parentDir = document.parentFile
 
-        BufferedReader(FileReader(file)).use { reader ->
-            var line: String?
-            var currentTitle: String? = null
-            var currentDuration: Int? = null
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                var line: String?
+                var currentTitle: String? = null
+                var currentDuration: Int? = null
 
-            while (reader.readLine().also { line = it } != null) {
-                val trimmedLine = line!!.trim()
-                if (trimmedLine.isEmpty()) continue
+                while (reader.readLine().also { line = it } != null) {
+                    val trimmedLine = line!!.trim()
+                    if (trimmedLine.isEmpty()) continue
 
-                if (trimmedLine.startsWith("#")) {
-                    if (trimmedLine.startsWith(EXT_INF_PREFIX)) {
-                        parseExtInf(trimmedLine)?.let { inf ->
-                            currentDuration = inf.first
-                            currentTitle = inf.second
+                    if (trimmedLine.startsWith("#")) {
+                        if (trimmedLine.startsWith(EXT_INF_PREFIX)) {
+                            parseExtInf(trimmedLine)?.let { inf ->
+                                currentDuration = inf.first
+                                currentTitle = inf.second
+                            }
                         }
+                        // Ignore other tags or the main header
+                        continue
                     }
-                    // Ignore other tags or the main header
-                    continue
+
+                    // This line is a track path
+                    val resolvedUri = resolvePath(trimmedLine, parentDir)
+                    entries.add(M3uEntry(path = resolvedUri, title = currentTitle, duration = currentDuration))
+
+                    // Reset for next entry
+                    currentTitle = null
+                    currentDuration = null
                 }
-
-                // This line is a track path
-                val resolvedPath = resolvePath(trimmedLine, parentDir)
-                entries.add(M3uEntry(path = resolvedPath, title = currentTitle, duration = currentDuration))
-
-                // Reset for next entry
-                currentTitle = null
-                currentDuration = null
             }
         }
 
@@ -92,15 +99,26 @@ object M3uParser {
         }
     }
 
-    private fun resolvePath(trackPath: String, parentDir: File?): String {
-        val file = File(trackPath)
-        if (file.isAbsolute) {
-            return file.absolutePath
+    private fun resolvePath(trackPath: String, parentDir: DocumentFile?): String {
+        val uri = Uri.parse(trackPath)
+        if (uri.isAbsolute) {
+            return trackPath
         }
-        // Resolve relative path against playlist parent directory
+
+        // Resolve relative path against playlist parent directory using DocumentFile
         if (parentDir != null) {
-            return File(parentDir, trackPath).normalize().absolutePath
+            var current: DocumentFile? = parentDir
+            val parts = trackPath.split('/', '\\')
+            for (part in parts) {
+                if (part == "." || part.isEmpty() || current == null) continue
+                current = if (part == "..") {
+                    current.parentFile
+                } else {
+                    current.findFile(part)
+                }
+            }
+            return current?.uri?.toString() ?: trackPath
         }
-        return file.absolutePath
+        return trackPath
     }
 }

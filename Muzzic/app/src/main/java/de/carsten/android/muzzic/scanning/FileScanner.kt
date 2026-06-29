@@ -1,14 +1,18 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.io.File
 
 /**
@@ -33,29 +37,60 @@ interface FileScanner {
     suspend fun scan(onProgress: ((String, Int) -> Unit)? = null)
 
     /**
-     * Converting configured directory path starting with content:// to a valid [File] objects
+     * Converting configured directory path starting with content:// or file path to a list of URI strings.
      *
-     * @param configuredDir [String] starting with content://
-     * @return [List] of [File]
+     * @param configuredDir [String] path or URI
+     * @return [List] of URI [String]
      */
-    fun contentToFiles(configuredDir: String?): List<File> = if (configuredDir == null) {
+    fun getScanningRoots(configuredDir: String?): List<String> = if (configuredDir == null) {
         listOf(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)).toString(),
+            Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)).toString(),
         )
     } else {
-        val dir = if (configuredDir.startsWith("content://")) {
-            val uri = configuredDir.toUri()
-            if (uri.scheme == "file") {
-                File(uri.path ?: throw IllegalArgumentException("Invalid configured directory path $configuredDir!"))
-            }
+        listOf(configuredDir)
+    }
 
-            throw UnsupportedOperationException("Direct File access for content:// URIs is restricted. Consider refactoring MusicFileScanner to use DocumentFile or ContentResolver.")
+    /**
+     * Resolves a [DocumentFile] from a root URI string.
+     */
+    fun getRootDocument(context: Context, rootUri: String): DocumentFile? =
+        if (rootUri.startsWith("content://")) {
+            DocumentFile.fromTreeUri(context, rootUri.toUri())
         } else {
-            File(configuredDir)
+            DocumentFile.fromFile(File(rootUri.toUri().path ?: ""))
         }
 
-        listOfNotNull(dir)
+    /**
+     * Recursively scans a [DocumentFile] for files with the specified extensions.
+     */
+    suspend fun findFilesRecursively(directory: DocumentFile, extensions: Set<String>, results: MutableList<String>) {
+        currentCoroutineContext().ensureActive()
+        directory.listFiles().forEach { file ->
+            if (file.isDirectory) {
+                findFilesRecursively(file, extensions, results)
+            } else {
+                val name = file.name?.lowercase() ?: ""
+                if (extensions.any { name.endsWith(".$it") }) {
+                    results.add(file.uri.toString())
+                }
+            }
+        }
+    }
+
+    /**
+     * Scans multiple roots for files with the specified extensions.
+     */
+    suspend fun scanForFiles(context: Context, roots: List<String>, extensions: Set<String>): List<String> {
+        val results = mutableListOf<String>()
+        roots.forEach { rootUri ->
+            currentCoroutineContext().ensureActive()
+            val rootDoc = getRootDocument(context, rootUri)
+            if (rootDoc != null && rootDoc.exists() && rootDoc.isDirectory) {
+                findFilesRecursively(rootDoc, extensions, results)
+            }
+        }
+        return results
     }
 
 

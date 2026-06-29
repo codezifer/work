@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
+import android.net.Uri
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -12,7 +13,6 @@ import de.carsten.android.muzzic.ALBUMART_SCHEME
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import java.io.File
-import java.io.RandomAccessFile
 import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,6 +23,7 @@ import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import okio.buffer
 import okio.sink
+import okio.source
 
 class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Options, private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher {
     private val logger = logger()
@@ -43,42 +44,31 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
-                val file = File(data.albumArt)
-                if (!file.exists()) {
-                    logger.error("File does not exist: ${data.albumArt}")
-                    return@withContext null
-                }
+                val uri = Uri.parse(data.albumArt)
+                try {
+                    context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                        val inputStream = afd.createInputStream()
+                        inputStream.skip(data.offset)
+                        val bytes = ByteArray(data.size.toInt())
+                        var totalRead = 0
+                        while (totalRead < data.size) {
+                            val read = inputStream.read(bytes, totalRead, data.size.toInt() - totalRead)
+                            if (read == -1) break
+                            totalRead += read
+                        }
 
-                val randomAccessFile = RandomAccessFile(file, "r")
-                val fileLength = file.length()
+                        if (totalRead != data.size.toInt()) {
+                            logger.error("Failed to read full album art data (expected ${data.size}, read $totalRead) for ${data.albumArt}")
+                            return@withContext null
+                        }
 
-                if (data.offset !in 0..<fileLength) {
-                    logger.error("Invalid offset: ${data.offset} (File size: $fileLength) for ${data.albumArt}")
-                    randomAccessFile.close()
-                    return@withContext null
-                }
-
-                if (data.offset + data.size > fileLength) {
-                    logger.error("Invalid size: ${data.size} at offset ${data.offset} (File size: $fileLength) for ${data.albumArt}")
-                    randomAccessFile.close()
-                    return@withContext null
-                }
-
-                randomAccessFile.seek(data.offset)
-                val bytes = ByteArray(data.size.toInt())
-                randomAccessFile.readFully(bytes)
-
-                // Magic Number Check (Sanity check for common image formats)
-                if (bytes.size > 4) {
-                    val header = bytes.take(4).joinToString("") { "%02x".format(it) }
-                    logger.debug("Magic Number Header: $header for ${data.albumArt}")
-                    // JPEG: ffd8ffe0, PNG: 89504e47, etc.
-                }
-
-                randomAccessFile.close()
-
-                Buffer().apply {
-                    write(bytes)
+                        Buffer().apply {
+                            write(bytes)
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error reading album art from URI ${data.albumArt}", e)
+                    null
                 }
             } ?: throw IllegalArgumentException("Failed to read image data from ${data.albumArt}")
 

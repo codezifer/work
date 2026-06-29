@@ -2,6 +2,8 @@ package de.carsten.android.muzzic.scanning
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import de.carsten.android.muzzic.FLAC
 import de.carsten.android.muzzic.M4A
 import de.carsten.android.muzzic.MP3
@@ -29,9 +31,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.tag.FieldKey
-import java.io.File
+import androidx.core.net.toUri
 
 /**
  * Implementation of [FileScanner] that scans for music files and extracts their metadata.
@@ -53,24 +53,30 @@ class MusicFileScanner(
 
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = coroutineScope {
         onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
-        val musicFiles = scanForMusicFiles()
+
+        val configuredDir = appSettingsRepository.getMusicDirectory()
+        val roots = getScanningRoots(configuredDir)
+        val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
+
+        val musicFileUris = scanForFiles(context, roots, supportedFormats)
+
         val currentSongs = songDao.getAllSongs().first()
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
 
-        val newFiles = musicFiles.filter { it.absolutePath !in currentFilePaths }
+        val newFileUris = musicFileUris.filter { it !in currentFilePaths }
 
-        if (newFiles.isNotEmpty()) {
-            val totalFiles = newFiles.size
+        if (newFileUris.isNotEmpty()) {
+            val totalFiles = newFileUris.size
             var processedFiles = 0
             val chunkSize = 20
-            val chunkedFiles = newFiles.chunked(chunkSize)
+            val chunkedFiles = newFileUris.chunked(chunkSize)
 
             for (chunk in chunkedFiles) {
                 val songs: List<Song> =
                     chunk
-                        .map { file ->
+                        .map { uri ->
                             async(Dispatchers.IO) {
-                                extractSongMetadata(file)
+                                extractSongMetadata(uri)
                             }
                         }.awaitAll()
 
@@ -92,7 +98,7 @@ class MusicFileScanner(
         ensureActive()
 
         // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-        val existingFilesOnDisk = musicFiles.map { it.absolutePath }.toSet()
+        val existingUris = musicFileUris.toSet()
         val missingSongs =
             currentSongs.filter { song ->
                 val path = song.filePath
@@ -100,7 +106,7 @@ class MusicFileScanner(
                     !path.startsWith("content://mock") &&
                     !path.startsWith("http://") &&
                     !path.startsWith("https://") &&
-                    path !in existingFilesOnDisk
+                    path !in existingUris
             }
 
         if (missingSongs.isNotEmpty()) {
@@ -110,109 +116,63 @@ class MusicFileScanner(
         }
     }
 
-    private suspend fun scanForMusicFiles(): List<File> = withContext(Dispatchers.IO) {
-        val configuredDir = appSettingsRepository.getMusicDirectory()
-        val musicFolders = contentToFiles(configuredDir)
-        if (musicFolders.isEmpty()) return@withContext emptyList()
-
-        val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
-        val musicFiles = mutableListOf<File>()
-
-        musicFolders.forEach { folder ->
-            ensureActive()
-            if (folder.exists()) {
-                folder
-                    .walkTopDown()
-                    .onEnter {
-                        ensureActive()
-                        true
-                    }.filter { it.isFile && it.extension.lowercase() in supportedFormats }
-                    .forEach {
-                        ensureActive()
-                        musicFiles.add(it)
-                    }
-            }
-        }
-
-        musicFiles
-    }
-
-    private fun extractSongMetadata(file: File): Song = try {
-        val audioFile = AudioFileIO.read(file)
-        val tag = audioFile.tag
-        val extended = Id3TagParser.extractMetadata(audioFile)
-
-        Song(
-            title = tag?.getFirst(FieldKey.TITLE)?.trim() ?: file.nameWithoutExtension,
-            artist = tag?.getFirst(FieldKey.ARTIST)?.trim() ?: UNKNOWN_ARTIST,
-            album = tag?.getFirst(FieldKey.ALBUM)?.trim() ?: UNKNOWN_ALBUM,
-            genre = tag?.getFirst(FieldKey.GENRE)?.trim() ?: UNKNOWN_GENRE,
-            duration = audioFile.audioHeader.trackLength.toLong() * 1000L,
-            filePath = file.absolutePath,
-            albumArt = saveAlbumArt(file),
-            albumYear = extended.year,
-            trackNumber = extended.trackNumber.coerceAtLeast(0),
-            totalTracks = extended.totalTracks.coerceAtLeast(0),
-            rating = extended.rating,
-            playCount = extended.playCount,
-        )
-    } catch (e: Exception) {
+    private fun extractSongMetadata(uriString: String): Song = try {
+        val uri = uriString.toUri()
         val retriever = MediaMetadataRetriever()
         try {
-            retriever.setDataSource(file.absolutePath)
+            retriever.setDataSource(context, uri)
 
+            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
+            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim() ?: UNKNOWN_ARTIST
+            val album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim() ?: UNKNOWN_ALBUM
+            val genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim() ?: UNKNOWN_GENRE
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
             val trackString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
             val (trackNumber, totalTracks) = Id3TagParser.parseTrackString(trackString)
             val yearString = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)
                 ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
 
+            val extended = Id3TagParser.extractExtendedMetadata(null) // TODO: Could improve Id3TagParser to extract from Stream if needed
+
             Song(
-                title =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()
-                        ?: file.nameWithoutExtension,
-                artist =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()
-                        ?: UNKNOWN_ARTIST,
-                album =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)?.trim()
-                        ?: UNKNOWN_ALBUM,
-                genre =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim()
-                        ?: UNKNOWN_GENRE,
-                duration =
-                    retriever
-                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull() ?: 0L,
-                filePath = file.absolutePath,
-                albumArt = saveAlbumArt(file),
+                title = title ?: DocumentFile.fromSingleUri(context, uri)?.name?.substringBeforeLast('.') ?: "Unknown",
+                artist = artist,
+                album = album,
+                genre = genre,
+                duration = duration,
+                filePath = uriString,
+                albumArt = saveAlbumArt(uriString),
                 trackNumber = trackNumber.coerceAtLeast(0),
                 totalTracks = totalTracks.coerceAtLeast(0),
                 albumYear = Id3TagParser.parseId3Year(yearString),
-            )
-        } catch (e: Exception) {
-            Song(
-                title = file.nameWithoutExtension,
-                artist = UNKNOWN_ARTIST,
-                album = UNKNOWN_ALBUM,
-                genre = UNKNOWN_GENRE,
-                duration = 0L,
-                filePath = file.absolutePath,
+                rating = extended.rating,
+                playCount = extended.playCount,
             )
         } finally {
             retriever.release()
         }
+    } catch (e: Exception) {
+        logger.error("Failed to extract metadata for $uriString", e)
+        Song(
+            title = DocumentFile.fromSingleUri(context, Uri.parse(uriString))?.name?.substringBeforeLast('.') ?: "Unknown",
+            artist = UNKNOWN_ARTIST,
+            album = UNKNOWN_ALBUM,
+            genre = UNKNOWN_GENRE,
+            duration = 0L,
+            filePath = uriString,
+        )
     }
 
-    private fun saveAlbumArt(file: File): String? = try {
-        val albumArtOffset = Id3TagParser.getAlbumArtMetadata(file)
+    private fun saveAlbumArt(uriString: String): String? = try {
+        val albumArtOffset = Id3TagParser.getAlbumArtMetadata(context, uriString)
         if (albumArtOffset.isValid) {
-            AlbumArtUri(file.absolutePath, albumArtOffset.offset, albumArtOffset.size, albumArtOffset.hashCode).get()
+            AlbumArtUri(uriString, albumArtOffset.offset, albumArtOffset.size, albumArtOffset.hashCode).get()
         } else {
-            logger.debug("No valid album art offset found for ${file.name}")
+            logger.debug("No valid album art offset found for $uriString")
             null
         }
     } catch (e: Exception) {
-        logger.error("An error occurred while saving album art for ${file.name}", e)
+        logger.error("An error occurred while saving album art for $uriString", e)
         null
     }
 
