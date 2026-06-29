@@ -1,7 +1,7 @@
 package de.carsten.android.muzzic.id3
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
 import java.io.InputStream
@@ -12,7 +12,6 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.ID3v24Frames
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM
-import androidx.core.net.toUri
 
 /**
  * Utility for parsing ID3 tags and extracting metadata like album art offsets.

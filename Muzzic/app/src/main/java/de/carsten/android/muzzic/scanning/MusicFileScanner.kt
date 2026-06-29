@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.scanning
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import de.carsten.android.muzzic.FLAC
 import de.carsten.android.muzzic.M4A
@@ -31,7 +32,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import androidx.core.net.toUri
 
 /**
  * Implementation of [FileScanner] that scans for music files and extracts their metadata.

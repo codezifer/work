@@ -11,9 +11,9 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import java.io.File
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import java.io.File
 
 /**
  * Common interface for components that scan the file system for music-related files.
@@ -54,12 +54,11 @@ interface FileScanner {
     /**
      * Resolves a [DocumentFile] from a root URI string.
      */
-    fun getRootDocument(context: Context, rootUri: String): DocumentFile? =
-        if (rootUri.startsWith("content://")) {
-            DocumentFile.fromTreeUri(context, rootUri.toUri())
-        } else {
-            DocumentFile.fromFile(File(rootUri.toUri().path ?: ""))
-        }
+    fun getRootDocument(context: Context, rootUri: String): DocumentFile? = if (rootUri.startsWith("content://")) {
+        DocumentFile.fromTreeUri(context, rootUri.toUri())
+    } else {
+        DocumentFile.fromFile(File(rootUri.toUri().path ?: ""))
+    }
 
     /**
      * Recursively scans a [DocumentFile] for files with the specified extensions.
@@ -92,7 +91,6 @@ interface FileScanner {
         }
         return results
     }
-
 
     /**
      * Enqueues a scan task using [WorkManager].

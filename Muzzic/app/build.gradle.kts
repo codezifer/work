@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()
-val appApkName = "muzzic-${appVersion}.apk"
+val appApkName = "muzzic-$appVersion.apk"
 val rootKotlinVersion = "2.3"
 val appTargetSdk = 37
 val appMinSdk = 36
@@ -190,7 +190,7 @@ tasks {
         dependsOn("assembleRelease")
         doLast {
             println("Release APK build successfully!")
-            println("You can find it: ${project.buildDir}/outputs/apk/release/${appApkName}")
+            println("You can find it: ${project.buildDir}/outputs/apk/release/$appApkName")
         }
     }
 }

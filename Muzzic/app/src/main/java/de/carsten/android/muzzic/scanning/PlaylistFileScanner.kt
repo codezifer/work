@@ -11,12 +11,11 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.playlist.M3uParser
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.ensureActive
-import kotlin.coroutines.coroutineContext
-import androidx.core.net.toUri
 
 /**
  * Implementation of [FileScanner] that imports M3U playlists from the file system.

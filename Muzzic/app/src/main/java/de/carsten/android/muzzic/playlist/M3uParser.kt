@@ -13,11 +13,7 @@ import java.io.InputStreamReader
  * @property title The title of the song extracted from `#EXTINF`, if available.
  * @property duration The duration of the song in seconds from `#EXTINF`, if available.
  */
-data class M3uEntry(
-    val path: String,
-    val title: String? = null,
-    val duration: Int? = null
-)
+data class M3uEntry(val path: String, val title: String? = null, val duration: Int? = null)
 
 /**
  * A lightweight, custom parser for M3U and M3U8 files.

@@ -52,7 +52,7 @@ fun PlayingQueueScreen(
     appState: MusicAppState,
     colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
     playingQueueViewModel: PlayingQueueViewModel,
-    selectionViewModel: SelectionViewModel = koinViewModel()
+    selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
     val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
     val playingQueueName by playingQueueViewModel.currentName.collectAsState()

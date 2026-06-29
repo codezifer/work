@@ -46,12 +46,7 @@ import de.carsten.android.muzzic.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SettingsScreen(
-    modifier: Modifier = Modifier,
-    appState: MusicAppState,
-    onBackClick: () -> Unit,
-    settingsViewModel: SettingsViewModel = koinViewModel(),
-) {
+fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBackClick: () -> Unit, settingsViewModel: SettingsViewModel = koinViewModel()) {
     val musicDirectory by settingsViewModel.musicDirectory.collectAsStateWithLifecycle()
     val playlistDirectory by settingsViewModel.playlistDirectory.collectAsStateWithLifecycle()
 
@@ -79,7 +74,8 @@ private fun SettingsScreenContent(
         uri?.let {
             // We need to persist permissions and get the actual path if possible
             context.contentResolver.takePersistableUriPermission(
-                it, Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
             // For now, we store the URI string. A more robust implementation
             // would resolve this to a File path or use DocumentFile.
@@ -92,7 +88,8 @@ private fun SettingsScreenContent(
     ) { uri ->
         uri?.let {
             context.contentResolver.takePersistableUriPermission(
-                it, Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
             settingsViewModel?.updatePlaylistDirectory(it.toString())
         }

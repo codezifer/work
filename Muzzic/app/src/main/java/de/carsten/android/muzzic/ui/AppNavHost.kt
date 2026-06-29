@@ -168,10 +168,10 @@ fun AppNavHost(
             composable(
                 route = ALBUM_SONGS,
                 arguments =
-                    listOf(
-                        navArgument(ARTIST_ARGUMENT) { type = NavType.StringType },
-                        navArgument(ALBUM_ARGUMENT) { type = NavType.StringType },
-                    ),
+                listOf(
+                    navArgument(ARTIST_ARGUMENT) { type = NavType.StringType },
+                    navArgument(ALBUM_ARGUMENT) { type = NavType.StringType },
+                ),
             ) {
                 AlbumSongsScreen(
                     modifier = modifier,

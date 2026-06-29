@@ -181,16 +181,16 @@ fun AlbumCoverCollagePreview() {
     AppTheme {
         AlbumCoverCollage(
             covers =
-                listOf(
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                ),
+            listOf(
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+            ),
         )
     }
 }
@@ -202,12 +202,12 @@ fun AlbumCoverCollagePreview4x4() {
     AppTheme {
         AlbumCoverCollage(
             covers =
-                listOf(
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                    CoverSource.FromVector(Icons.Default.MusicNote),
-                ),
+            listOf(
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+                CoverSource.FromVector(Icons.Default.MusicNote),
+            ),
         )
     }
 }

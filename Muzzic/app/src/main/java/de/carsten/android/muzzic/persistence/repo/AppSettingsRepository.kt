@@ -18,14 +18,12 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
     /**
      * Observes the music directory setting.
      */
-    fun observeMusicDirectory(): Flow<String?> =
-        genericSettingDao.observeSetting(KEY_MUSIC_DIRECTORY).map { it?.value }
+    fun observeMusicDirectory(): Flow<String?> = genericSettingDao.observeSetting(KEY_MUSIC_DIRECTORY).map { it?.value }
 
     /**
      * Gets the music directory setting.
      */
-    suspend fun getMusicDirectory(): String? =
-        genericSettingDao.getSetting(KEY_MUSIC_DIRECTORY)?.value
+    suspend fun getMusicDirectory(): String? = genericSettingDao.getSetting(KEY_MUSIC_DIRECTORY)?.value
 
     /**
      * Saves the music directory setting.
@@ -37,14 +35,12 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
     /**
      * Observes the playlist directory setting.
      */
-    fun observePlaylistDirectory(): Flow<String?> =
-        genericSettingDao.observeSetting(KEY_PLAYLIST_DIRECTORY).map { it?.value }
+    fun observePlaylistDirectory(): Flow<String?> = genericSettingDao.observeSetting(KEY_PLAYLIST_DIRECTORY).map { it?.value }
 
     /**
      * Gets the playlist directory setting.
      */
-    suspend fun getPlaylistDirectory(): String? =
-        genericSettingDao.getSetting(KEY_PLAYLIST_DIRECTORY)?.value
+    suspend fun getPlaylistDirectory(): String? = genericSettingDao.getSetting(KEY_PLAYLIST_DIRECTORY)?.value
 
     /**
      * Saves the playlist directory setting.

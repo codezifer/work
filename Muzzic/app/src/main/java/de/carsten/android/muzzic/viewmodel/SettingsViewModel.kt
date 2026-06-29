@@ -13,10 +13,7 @@ import kotlinx.coroutines.launch
  * ViewModel for the Settings screen.
  * Manages app-wide configuration and manual library tasks.
  */
-class SettingsViewModel(
-    private val appSettingsRepository: AppSettingsRepository,
-    private val musicRepository: MusicRepository,
-) : ViewModel() {
+class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository, private val musicRepository: MusicRepository) : ViewModel() {
 
     /**
      * State flow for the music directory path.

@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -140,7 +139,7 @@ fun PlayingQueueItem(
                     imageVector = if (isCurrentSong && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isCurrentSong && isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
-                    tint = colorSource.accentColor
+                    tint = colorSource.accentColor,
                 )
             }
         }

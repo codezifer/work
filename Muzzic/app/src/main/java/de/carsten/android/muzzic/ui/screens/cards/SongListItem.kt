@@ -51,7 +51,7 @@ fun SongListItem(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     isSelected: Boolean = false,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
 ) {
     Card(
         modifier =
@@ -64,7 +64,7 @@ fun SongListItem(
             ),
         colors =
         CardDefaults.cardColors(
-            containerColor = if(isSelected) colorSource.accentColor else colorSource.contentColor,
+            containerColor = if (isSelected) colorSource.accentColor else colorSource.contentColor,
         ),
         shape = RoundedCornerShape(CORNER_RADIUS_SMALL),
     ) {
