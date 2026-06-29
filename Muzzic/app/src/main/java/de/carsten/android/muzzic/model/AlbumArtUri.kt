@@ -38,12 +38,12 @@ data class AlbumArtUri(val albumArt: String, val offset: Long = 0L, val size: Lo
     companion object {
         fun parse(uriString: String): AlbumArtUri {
             val uri = uriString.toUri()
-            val filePath = uri.path?.replace("%20", " ") ?: ""
+            val albumArt = uriString.substringBefore("?").removePrefix(ALBUMART_SCHEME).replace("%20", " ")
             val offset = uri.getQueryParameter("offset")?.toLongOrNull() ?: 0L
             val size = uri.getQueryParameter("size")?.toLongOrNull() ?: 0L
             val hashCode = uri.getQueryParameter("hashCode")?.toIntOrNull() ?: 0
             val mimeType = uri.getQueryParameter("mimeType")
-            return AlbumArtUri(filePath, offset, size, hashCode, mimeType)
+            return AlbumArtUri(albumArt, offset, size, hashCode, mimeType)
         }
     }
 }

@@ -1,7 +1,7 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -23,7 +23,6 @@ import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import okio.buffer
 import okio.sink
-import okio.source
 
 class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Options, private val context: Context, private val okHttpClient: OkHttpClient) : Fetcher {
     private val logger = logger()
@@ -44,7 +43,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
-                val uri = Uri.parse(data.albumArt)
+                val uri = data.albumArt.toUri()
                 try {
                     context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
                         val inputStream = afd.createInputStream()
