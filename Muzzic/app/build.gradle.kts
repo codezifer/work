@@ -2,7 +2,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
-val appVersion = "0.1.4"
+val appVersion = libs.versions.appVersion.get()
 val appApkName = "muzzic-${appVersion}.apk"
 val rootKotlinVersion = "2.3"
 val appTargetSdk = 37
@@ -105,7 +105,6 @@ dependencies {
     implementation(libs.androidx.media)
     implementation(libs.androidx.media.session)
     implementation(libs.androidx.work.runtime)
-    implementation(libs.androidx.documentfile)
 
     // jetpack compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)

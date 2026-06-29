@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.minutes
 object AppConfig {
     object Persistence {
         const val ALBUM_ART_LIMIT = 9
+        const val DATABASE_NAME = "muzzic.db"
     }
 
     object Service {

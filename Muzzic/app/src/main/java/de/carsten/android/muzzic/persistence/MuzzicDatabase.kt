@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.dao.AlbumDao
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
 import de.carsten.android.muzzic.persistence.dao.GenericSettingDao
@@ -42,9 +43,8 @@ import de.carsten.android.muzzic.persistence.utils.Converters
 abstract class MuzzicDatabase : RoomDatabase() {
     companion object {
         fun database(context: Context): MuzzicDatabase = Room
-            .databaseBuilder(context, MuzzicDatabase::class.java, "muzzic.db")
+            .databaseBuilder(context, MuzzicDatabase::class.java, AppConfig.Persistence.DATABASE_NAME)
             .addMigrations(*Migrations.supply())
-            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 
