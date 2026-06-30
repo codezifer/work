@@ -1,8 +1,6 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
-import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.mediaId
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
@@ -11,7 +9,6 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.playlist.M3uParser
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
@@ -32,17 +29,17 @@ class PlaylistFileScanner(
 
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = withContext(Dispatchers.IO) {
         val configuredDir = appSettingsRepository.getPlaylistDirectory() ?: return@withContext
-        val roots = getScanningRoots(configuredDir)
+        val rootDir = getScanningRoot(context, configuredDir)
+        if (rootDir == null || !rootDir.exists()) return@withContext
 
-        val playlistUris = scanForFiles(context, roots, setOf("m3u", "m3u8"))
+        val playlistFiles = scanForFiles(context, rootDir, setOf("m3u", "m3u8"))
 
-        val totalPlaylists = playlistUris.size
-        playlistUris.forEachIndexed { index, uriString ->
+        val totalPlaylists = playlistFiles.size
+        playlistFiles.forEachIndexed { index, file ->
             coroutineContext.ensureActive()
-            val entries = M3uParser.parse(context, uriString)
+            val entries = M3uParser.parse(file)
             if (entries.isNotEmpty()) {
-                val document = DocumentFile.fromSingleUri(context, Uri.parse(uriString))
-                val playlistName = document?.name?.substringBeforeLast('.') ?: "Playlist $index"
+                val playlistName = file.nameWithoutExtension
                 val playlistId = mediaId(playlistName).toString()
                 val playlist = Playlist(playlistName).apply { id = playlistId }
 

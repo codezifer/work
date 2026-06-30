@@ -9,4 +9,15 @@ package de.carsten.android.muzzic.id3
  * @property trackNumber The track number of the song.
  * @property totalTracks The total number of tracks in the album.
  */
-data class ExtendedMetadata(val year: Int = -1, val rating: Int = 0, val playCount: Int = 0, val trackNumber: Int = -1, val totalTracks: Int = -1)
+data class ExtendedMetadata(
+    val title: String? = null,
+    val artist: String? = null,
+    val album: String? = null,
+    val genre: String? = null,
+    val duration: Long = 0L,
+    val year: Int = -1,
+    val rating: Int = 0,
+    val playCount: Int = 0,
+    val trackNumber: Int = -1,
+    val totalTracks: Int = -1,
+)

@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
-import androidx.core.net.toUri
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -29,11 +28,11 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
 
     override suspend fun fetch(): FetchResult? {
         if (data.size <= 0) {
-            logger.debug("Skipping fetch: size is 0 for ${data.albumArt}")
+            logger.debug("Skipping fetch: size is 0 for ${data.filePath}")
             return null
         }
-        logger.debug("Fetching: ${data.albumArt} offset=${data.offset} size=${data.size}")
-        if (data.albumArt.startsWith("http")) {
+        logger.debug("Fetching: ${data.filePath} offset=${data.offset} size=${data.size}")
+        if (data.filePath.startsWith("http")) {
             return handleHttpFile()
         }
 
@@ -43,10 +42,9 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
-                val uri = data.albumArt.toUri()
                 try {
-                    context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
-                        val inputStream = afd.createInputStream()
+                    val file = File(data.filePath)
+                    file.inputStream().use { inputStream ->
                         inputStream.skip(data.offset)
                         val bytes = ByteArray(data.size.toInt())
                         var totalRead = 0
@@ -57,7 +55,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                         }
 
                         if (totalRead != data.size.toInt()) {
-                            logger.error("Failed to read full album art data (expected ${data.size}, read $totalRead) for ${data.albumArt}")
+                            logger.error("Failed to read full album art data (expected ${data.size}, read $totalRead) for ${data.filePath}")
                             return@withContext null
                         }
 
@@ -66,10 +64,10 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
                         }
                     }
                 } catch (e: Exception) {
-                    logger.error("Error reading album art from URI ${data.albumArt}", e)
+                    logger.error("Error reading album art from file ${data.filePath}", e)
                     null
                 }
-            } ?: throw IllegalArgumentException("Failed to read image data from ${data.albumArt}")
+            } ?: throw IllegalArgumentException("Failed to read image data from ${data.filePath}")
 
         return SourceFetchResult(
             source =
@@ -83,7 +81,7 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
     }
 
     private suspend fun handleHttpFile(): FetchResult {
-        val url = data.albumArt
+        val url = data.filePath
         val (path, mimeType) =
             withContext(Dispatchers.IO) {
                 val cacheFile = cacheFile(url)

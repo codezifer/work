@@ -3,7 +3,7 @@ package de.carsten.android.muzzic.model
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.ALBUMART_SCHEME
 
-data class AlbumArtUri(val albumArt: String, val offset: Long = 0L, val size: Long = 0L, val hashCode: Int = 0, val mimeType: String? = null) {
+data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Long = 0L, val hashCode: Int = 0, val mimeType: String? = null) {
 
     /**
      * Assume offset, size and mimeType for equality properties are enough
@@ -30,15 +30,15 @@ data class AlbumArtUri(val albumArt: String, val offset: Long = 0L, val size: Lo
     }
 
     fun get(): String {
-        if (albumArt.startsWith("http")) return albumArt
-        val path = "${ALBUMART_SCHEME}${albumArt.replace(" ", "%20")}?offset=$offset&size=$size&hashCode=$hashCode"
+        if (filePath.startsWith("http")) return filePath
+        val path = "${ALBUMART_SCHEME}${filePath.replace(" ", "%20")}?offset=$offset&size=$size&hashCode=$hashCode"
         return if (mimeType == null) path else "$path&mimeType=$mimeType"
     }
 
     companion object {
-        fun parse(uriString: String): AlbumArtUri {
-            val uri = uriString.toUri()
-            val albumArt = uriString.substringBefore("?").removePrefix(ALBUMART_SCHEME).replace("%20", " ")
+        fun parse(albumArtPath: String): AlbumArtUri {
+            val uri = albumArtPath.toUri()
+            val albumArt = albumArtPath.substringBefore("?").removePrefix(ALBUMART_SCHEME).replace("%20", " ")
             val offset = uri.getQueryParameter("offset")?.toLongOrNull() ?: 0L
             val size = uri.getQueryParameter("size")?.toLongOrNull() ?: 0L
             val hashCode = uri.getQueryParameter("hashCode")?.toIntOrNull() ?: 0

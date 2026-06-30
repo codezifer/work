@@ -1,10 +1,9 @@
 package de.carsten.android.muzzic.id3
 
-import android.content.Context
-import androidx.core.net.toUri
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
 import java.io.InputStream
+import kotlin.math.roundToLong
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
@@ -30,29 +29,11 @@ object Id3TagParser {
     private const val FRAME_HEADER_SIZE_V23V24 = 10
 
     /**
-     * Extracts the album art offset and size from a file URI.
-     *
-     * @param context The Android context.
-     * @param uriString The URI string of the file.
-     * @return An [AlbumArtMetadata] containing the location and size, or (0, 0) if not found.
-     */
-    fun getAlbumArtMetadata(context: Context, uriString: String): AlbumArtMetadata = try {
-        val uri = uriString.toUri()
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            parseFromStream(input)
-        } ?: AlbumArtMetadata(0L, 0L)
-    } catch (e: Exception) {
-        logger.error("Failed to extract album art offset for $uriString", e)
-        AlbumArtMetadata(0L, 0L)
-    }
-
-    /**
      * Extracts the album art offset and size from an MP3 file.
      *
      * @param file The MP3 file to parse.
      * @return An [AlbumArtMetadata] containing the location and size, or (0, 0) if not found.
      */
-    @Deprecated("Use getAlbumArtMetadata(Context, String) instead")
     fun getAlbumArtMetadata(file: File): AlbumArtMetadata = try {
         file.inputStream().use { input ->
             parseFromStream(input)
@@ -70,49 +51,29 @@ object Id3TagParser {
      */
     fun extractMetadata(audioFile: AudioFile): ExtendedMetadata {
         val tag = audioFile.tag ?: return ExtendedMetadata()
+        val header = audioFile.audioHeader ?: return ExtendedMetadata()
 
+        val title = tag.getFirst(FieldKey.TITLE)
+        val album = tag.getFirst(FieldKey.ALBUM)
+        val artist = tag.getFirst(FieldKey.ARTIST).ifBlank { tag.getFirst(FieldKey.ALBUM_ARTIST) }
+        val genre = tag.getFirst(FieldKey.GENRE)
+        val duration = (header.preciseTrackLength * 1000).roundToLong()
         val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
         val year = parseId3Year(yearString)
-
         val trackString = tag.getFirst(FieldKey.TRACK)
         val (trackNumber, totalTracksFromTrack) = parseTrackString(trackString)
         val totalTracksField = tag.getFirst(FieldKey.TRACK_TOTAL).trim().toIntOrNull() ?: -1
         val totalTracks = if (totalTracksField != -1) totalTracksField else totalTracksFromTrack
-
         val rating = extractRating(tag)
         val playCount = extractPlayCount(tag)
 
         return ExtendedMetadata(
+            title = title,
+            album = album,
+            artist = artist,
+            genre = genre,
             year = year,
-            rating = rating,
-            playCount = playCount,
-            trackNumber = trackNumber,
-            totalTracks = totalTracks,
-        )
-    }
-
-    /**
-     * Extracts extended metadata (Year, Rating, Play Count) from an ID3v2 tag.
-     *
-     * @param tag The tag to extract from.
-     * @return An [ExtendedMetadata] object containing the extracted values.
-     */
-    fun extractExtendedMetadata(tag: Tag?): ExtendedMetadata {
-        if (tag == null) return ExtendedMetadata()
-
-        val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
-        val year = parseId3Year(yearString)
-
-        val trackString = tag.getFirst(FieldKey.TRACK)
-        val (trackNumber, totalTracksFromTrack) = parseTrackString(trackString)
-        val totalTracksField = tag.getFirst(FieldKey.TRACK_TOTAL).trim().toIntOrNull() ?: -1
-        val totalTracks = if (totalTracksField != -1) totalTracksField else totalTracksFromTrack
-
-        val rating = extractRating(tag)
-        val playCount = extractPlayCount(tag)
-
-        return ExtendedMetadata(
-            year = year,
+            duration = duration,
             rating = rating,
             playCount = playCount,
             trackNumber = trackNumber,
