@@ -25,11 +25,15 @@ class Id3TagParserTest {
     }
 
     @Test
-    fun `extractExtendedMetadata extracts rating and play count from POPM robustly`() {
+    fun `extractMetadata extracts rating and play count from POPM robustly`() {
         val tag = mockk<Tag>()
         val popmFrame = mockk<ID3v23Frame>()
         val popmBody = mockk<FrameBodyPOPM>()
 
+        every { tag.getFirst(FieldKey.TITLE) } returns "Title"
+        every { tag.getFirst(FieldKey.ALBUM) } returns "Album"
+        every { tag.getFirst(FieldKey.ARTIST) } returns "Artist"
+        every { tag.getFirst(FieldKey.GENRE) } returns "Genre"
         every { tag.getFirst(FieldKey.YEAR) } returns "2023"
         every { tag.getFirst(FieldKey.ORIGINAL_YEAR) } returns ""
         every { tag.getFirst(FieldKey.TRACK) } returns "1/10"
@@ -42,7 +46,12 @@ class Id3TagParserTest {
         // General FieldKey fallback mock
         every { tag.getFirst(FieldKey.RATING) } returns "0"
 
-        val metadata = Id3TagParser.extractExtendedMetadata(tag)
+        val metadata = Id3TagParser.extractMetadata(mockk {
+            every { this@mockk.tag } returns tag
+            every { audioHeader } returns mockk {
+                every { preciseTrackLength } returns 0.0
+            }
+        })
 
         assertEquals(2023, metadata.year)
         assertEquals(128, metadata.rating)
@@ -52,9 +61,13 @@ class Id3TagParserTest {
     }
 
     @Test
-    fun `extractExtendedMetadata handles separate TRACK_TOTAL field`() {
+    fun `extractMetadata handles separate TRACK_TOTAL field`() {
         val tag = mockk<Tag>()
 
+        every { tag.getFirst(FieldKey.TITLE) } returns "Title"
+        every { tag.getFirst(FieldKey.ALBUM) } returns "Album"
+        every { tag.getFirst(FieldKey.ARTIST) } returns "Artist"
+        every { tag.getFirst(FieldKey.GENRE) } returns "Genre"
         every { tag.getFirst(FieldKey.YEAR) } returns "2020"
         every { tag.getFirst(FieldKey.ORIGINAL_YEAR) } returns ""
         every { tag.getFirst(FieldKey.TRACK) } returns "5"
@@ -63,7 +76,12 @@ class Id3TagParserTest {
         every { tag.getFirstField("PCNT") } returns null
         every { tag.getFirst(FieldKey.RATING) } returns "255"
 
-        val metadata = Id3TagParser.extractExtendedMetadata(tag)
+        val metadata = Id3TagParser.extractMetadata(mockk {
+            every { this@mockk.tag } returns tag
+            every { audioHeader } returns mockk {
+                every { preciseTrackLength } returns 0.0
+            }
+        })
 
         assertEquals(255, metadata.rating)
         assertEquals(5, metadata.trackNumber)
@@ -71,11 +89,15 @@ class Id3TagParserTest {
     }
 
     @Test
-    fun `extractExtendedMetadata extracts play count from PCNT`() {
+    fun `extractMetadata extracts play count from PCNT`() {
         val tag = mockk<Tag>()
         val pcntFrame = mockk<ID3v23Frame>()
         val pcntBody = mockk<FrameBodyPCNT>()
 
+        every { tag.getFirst(FieldKey.TITLE) } returns "Title"
+        every { tag.getFirst(FieldKey.ALBUM) } returns "Album"
+        every { tag.getFirst(FieldKey.ARTIST) } returns "Artist"
+        every { tag.getFirst(FieldKey.GENRE) } returns "Genre"
         every { tag.getFirst(FieldKey.YEAR) } returns ""
         every { tag.getFirst(FieldKey.ORIGINAL_YEAR) } returns ""
         every { tag.getFirst(FieldKey.TRACK) } returns ""
@@ -86,7 +108,12 @@ class Id3TagParserTest {
         every { pcntBody.counter } returns 100L
         every { tag.getFirst(FieldKey.RATING) } returns "0"
 
-        val metadata = Id3TagParser.extractExtendedMetadata(tag)
+        val metadata = Id3TagParser.extractMetadata(mockk {
+            every { this@mockk.tag } returns tag
+            every { audioHeader } returns mockk {
+                every { preciseTrackLength } returns 0.0
+            }
+        })
 
         assertEquals(100, metadata.playCount)
     }
