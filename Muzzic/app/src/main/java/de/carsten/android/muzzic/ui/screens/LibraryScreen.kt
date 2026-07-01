@@ -138,7 +138,7 @@ fun LibraryScreen(
 }
 
 @Composable
-fun LibraryScreenContent(
+private fun LibraryScreenContent(
     modifier: Modifier = Modifier,
     filters: List<Pair<String, String>>,
     artists: List<ArtistDto>,

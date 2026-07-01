@@ -1,6 +1,8 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,12 +25,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
+import de.carsten.android.muzzic.ui.GLASS_BORDER_ALPHA
+import de.carsten.android.muzzic.ui.GLASS_BORDER_ALPHA_STRONG
+import de.carsten.android.muzzic.ui.GLASS_BORDER_WIDTH
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_DRAGGING
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_HIGH
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_MEDIUM
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_NORMAL
 import de.carsten.android.muzzic.ui.ICON_SIZE_DRAG_HANDLE
 import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
@@ -60,26 +78,62 @@ fun PlayingQueueItem(
     onLongClick: () -> Unit = {},
     onTogglePlayPause: () -> Unit = {},
 ) {
-    val containerColor =
-        when {
-            isDragging -> MaterialTheme.colorScheme.surfaceVariant
-            isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-            isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-            else -> MaterialTheme.colorScheme.surfaceContainerLow
-        }
-
     Box(
         modifier =
         Modifier
             .fillMaxWidth()
             .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_SMALL)
             .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
-            .background(containerColor)
+            .border(
+                border =
+                BorderStroke(
+                    width = if (isSelected || isCurrentSong) GLASS_BORDER_WIDTH * 2 else GLASS_BORDER_WIDTH,
+                    color =
+                    when {
+                        isSelected -> colorSource.accentColor.copy(alpha = GLASS_BORDER_ALPHA_STRONG)
+                        isCurrentSong -> MaterialTheme.colorScheme.primary.copy(alpha = GLASS_BORDER_ALPHA_STRONG)
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = GLASS_BORDER_ALPHA)
+                    },
+                ),
+                shape = RoundedCornerShape(CARD_CORNER_RADIUS),
+            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
     ) {
+        // 1. Blurred Background Image
+        AsyncImage(
+            model =
+            ImageRequest.Builder(LocalContext.current)
+                .data(playingQueueDto.albumArt)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier =
+            Modifier
+                .matchParentSize()
+                .blur(BLUR_RADIUS_LARGE),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.disc),
+            error = painterResource(R.drawable.disc),
+        )
+
+        // 2. Glass Overlay
+        Box(
+            modifier =
+            Modifier
+                .matchParentSize()
+                .background(
+                    when {
+                        isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
+                        isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
+                        isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = GLASS_OVERLAY_ALPHA_MEDIUM)
+                        else -> MaterialTheme.colorScheme.surface.copy(alpha = GLASS_OVERLAY_ALPHA_NORMAL)
+                    },
+                ),
+        )
+
         Row(
             modifier =
             Modifier
@@ -163,8 +217,8 @@ fun PlayingQueueItem(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(name = "Light Mode")
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "Dark Mode")
 fun PlayingQueueItemPausedPreview() {
     AppTheme {
         PlayingQueueItem(
@@ -183,7 +237,7 @@ fun PlayingQueueItemPausedPreview() {
             ),
             isPlaying = false,
             isCurrentSong = true,
-            isSelected = true,
+            isSelected = false,
             isDragging = false,
             progress = 0.6f,
         )

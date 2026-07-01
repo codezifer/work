@@ -13,8 +13,10 @@ object AppDestinations {
 
     const val ARTIST_ARGUMENT = "artistName"
     const val ARTIST_ALBUMS = "artist/{$ARTIST_ARGUMENT}/albums"
+
     const val ALBUM_ARGUMENT = "albumName"
     const val ALBUM_SONGS = "album/{$ARTIST_ARGUMENT}/{$ALBUM_ARGUMENT}/songs"
+
     const val GENRE_ARGUMENT = "genreName"
     const val GENRE_ARTISTS = "genre/{$GENRE_ARGUMENT}/artists"
 

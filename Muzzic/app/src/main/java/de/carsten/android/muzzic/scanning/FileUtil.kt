@@ -91,9 +91,11 @@ object FileUtil {
             "content" -> {
                 getDataColumn(context, uri, null, null)
             }
+
             "file" -> {
                 uri.path
             }
+
             else -> null
         }
     }

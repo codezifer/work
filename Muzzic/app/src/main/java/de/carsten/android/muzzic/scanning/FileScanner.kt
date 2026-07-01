@@ -42,8 +42,8 @@ interface FileScanner {
     fun getScanningRoot(context: Context, configuredDir: String?): File? = if (configuredDir == null) {
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
     } else {
-        FileUtil.getFilePathFromUri(context, configuredDir.toUri())?.let {
-            File(it)
+        FileUtil.getFilePathFromUri(context, configuredDir.toUri())?.let { filePath ->
+            File(filePath)
         }
     }
 

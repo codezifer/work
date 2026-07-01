@@ -193,6 +193,10 @@ fun PlaylistItemPreview() {
                 playlistDuration = 24 * 60 * 60 * 1000L,
             ),
             showGenre = true,
+            colorSource = ColorSource(
+                accentColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
         )
     }
 }

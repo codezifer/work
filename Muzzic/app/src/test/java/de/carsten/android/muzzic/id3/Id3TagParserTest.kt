@@ -46,12 +46,14 @@ class Id3TagParserTest {
         // General FieldKey fallback mock
         every { tag.getFirst(FieldKey.RATING) } returns "0"
 
-        val metadata = Id3TagParser.extractMetadata(mockk {
-            every { this@mockk.tag } returns tag
-            every { audioHeader } returns mockk {
-                every { preciseTrackLength } returns 0.0
-            }
-        })
+        val metadata = Id3TagParser.extractMetadata(
+            mockk {
+                every { this@mockk.tag } returns tag
+                every { audioHeader } returns mockk {
+                    every { preciseTrackLength } returns 0.0
+                }
+            },
+        )
 
         assertEquals(2023, metadata.year)
         assertEquals(128, metadata.rating)
@@ -76,12 +78,14 @@ class Id3TagParserTest {
         every { tag.getFirstField("PCNT") } returns null
         every { tag.getFirst(FieldKey.RATING) } returns "255"
 
-        val metadata = Id3TagParser.extractMetadata(mockk {
-            every { this@mockk.tag } returns tag
-            every { audioHeader } returns mockk {
-                every { preciseTrackLength } returns 0.0
-            }
-        })
+        val metadata = Id3TagParser.extractMetadata(
+            mockk {
+                every { this@mockk.tag } returns tag
+                every { audioHeader } returns mockk {
+                    every { preciseTrackLength } returns 0.0
+                }
+            },
+        )
 
         assertEquals(255, metadata.rating)
         assertEquals(5, metadata.trackNumber)
@@ -108,12 +112,14 @@ class Id3TagParserTest {
         every { pcntBody.counter } returns 100L
         every { tag.getFirst(FieldKey.RATING) } returns "0"
 
-        val metadata = Id3TagParser.extractMetadata(mockk {
-            every { this@mockk.tag } returns tag
-            every { audioHeader } returns mockk {
-                every { preciseTrackLength } returns 0.0
-            }
-        })
+        val metadata = Id3TagParser.extractMetadata(
+            mockk {
+                every { this@mockk.tag } returns tag
+                every { audioHeader } returns mockk {
+                    every { preciseTrackLength } returns 0.0
+                }
+            },
+        )
 
         assertEquals(100, metadata.playCount)
     }

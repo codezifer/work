@@ -1,6 +1,6 @@
 package de.carsten.android.muzzic.playlist
 
-import android.net.Uri
+import androidx.core.net.toUri
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -96,7 +96,7 @@ object M3uParser {
     }
 
     private fun resolvePath(trackPath: String, parentDir: File?): String {
-        val uri = Uri.parse(trackPath)
+        val uri = trackPath.toUri()
         if (uri.isAbsolute) {
             return trackPath
         }

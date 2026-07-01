@@ -5,37 +5,6 @@ import de.carsten.android.muzzic.ui.navigation.NavigationEvent
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 
 /**
- * Represents the high-level UI states of the application.
- * This is the "State" in our State Machine.
- */
-sealed class AppUiState {
-    data object Player : AppUiState()
-
-    data class Library(val selectionActive: Boolean = false) : AppUiState()
-
-    data class Queue(val isManaging: Boolean = true) : AppUiState()
-
-    data object Playlists : AppUiState()
-
-    data object Statistics : AppUiState()
-
-    data object Settings : AppUiState()
-}
-
-/**
- * Represents side effects that should be triggered during transitions.
- */
-sealed class AppSideEffect {
-    data class Navigate(val event: NavigationEvent) : AppSideEffect()
-
-    data class ShowSnackbar(val message: String) : AppSideEffect()
-
-    data object LoadQueue : AppSideEffect()
-
-    data object ClearSelection : AppSideEffect()
-}
-
-/**
  * A lightweight State Machine that handles UI state transitions and side effects.
  * It provides a centralized, readable way to understand how navigation and
  * selection states interact.

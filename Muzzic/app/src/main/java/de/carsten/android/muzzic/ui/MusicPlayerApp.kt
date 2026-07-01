@@ -30,11 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.model.toAlbumArtUri
-import de.carsten.android.muzzic.ui.BLUR_RADIUS_DEFAULT
-import de.carsten.android.muzzic.ui.SPACING_NORMAL
-import de.carsten.android.muzzic.ui.UI_OVERLAY_OFFSET
 import de.carsten.android.muzzic.ui.component.PlayerBackground
 import de.carsten.android.muzzic.ui.component.TextInputDialog
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -77,6 +76,7 @@ fun MusicPlayerApp(
     val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
     val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
     val isDark = isSystemInDarkTheme()
+    val albumArtPath by remember { mutableStateOf(currentSong?.albumArt) }
 
     val defaultBackground = MaterialTheme.colorScheme.primary
     val defaultContent = MaterialTheme.colorScheme.onPrimary
@@ -98,8 +98,8 @@ fun MusicPlayerApp(
 
     if (showSavePlaylistDialog) {
         TextInputDialog(
-            title = "Save Queue as Playlist",
-            label = "Playlist Name",
+            title = stringResource(R.string.playlist_save),
+            label = stringResource(R.string.playlist_name),
             onConfirm = { name ->
                 playlistViewModel.persistCurrentQueueAsPlaylist(name)
                 showSavePlaylistDialog = false
@@ -154,6 +154,7 @@ fun MusicPlayerApp(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
                 colorSource = colorSource,
+                albumArtPath = albumArtPath,
                 libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,
                 playingQueueViewModel = playingQueueViewModel,

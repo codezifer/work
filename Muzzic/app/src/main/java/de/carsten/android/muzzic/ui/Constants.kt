@@ -82,12 +82,29 @@ val ELEVATION_MEDIUM = 8.dp
 val ELEVATION_LARGE = 12.dp
 
 /**
+ * Glass Effect Design Tokens
+ */
+val GLASS_BORDER_WIDTH = 0.5.dp
+const val GLASS_BORDER_ALPHA = 0.2f
+const val GLASS_BORDER_ALPHA_STRONG = 0.5f
+val GLASS_GLOW_RADIUS = 4.dp
+
+/**
  * Effects
  */
 val BLUR_RADIUS_DEFAULT = 6.dp
 val BLUR_RADIUS_LARGE = 12.dp
 const val BACKGROUND_OVERLAY_ALPHA = 0.3f
 const val GLASS_CONTAINER_ALPHA = 0.7f
+
+/**
+ * Glass Effect Overlay Alphas
+ */
+const val GLASS_OVERLAY_ALPHA_NORMAL = 0.5f
+const val GLASS_OVERLAY_ALPHA_LOW = 0.4f
+const val GLASS_OVERLAY_ALPHA_MEDIUM = 0.6f
+const val GLASS_OVERLAY_ALPHA_HIGH = 0.7f
+const val GLASS_OVERLAY_ALPHA_DRAGGING = 0.8f
 
 /**
  * Icon Sizes
