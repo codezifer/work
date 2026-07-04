@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.playlist
 
-import androidx.core.net.toUri
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -44,13 +43,19 @@ object M3uParser {
     }
 
     private fun parsePlaylist(parentDir: File, inputStream: InputStream, entries: MutableList<M3uEntry>) {
-        BufferedReader(InputStreamReader(inputStream)).use { reader ->
+        BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)).use { reader ->
             var line: String?
             var currentTitle: String? = null
             var currentDuration: Int? = null
 
             while (reader.readLine().also { line = it } != null) {
-                val trimmedLine = line!!.trim()
+                var trimmedLine = line!!.trim()
+
+                // Remove UTF-8 BOM if present
+                if (trimmedLine.startsWith("\uFEFF")) {
+                    trimmedLine = trimmedLine.substring(1).trim()
+                }
+
                 if (trimmedLine.isEmpty()) continue
 
                 if (trimmedLine.startsWith("#")) {
@@ -65,8 +70,8 @@ object M3uParser {
                 }
 
                 // This line is a track path
-                val resolvedUri = resolvePath(trimmedLine, parentDir)
-                entries.add(M3uEntry(path = resolvedUri, title = currentTitle, duration = currentDuration))
+                val resolvedPath = resolvePath(trimmedLine, parentDir)
+                entries.add(M3uEntry(path = resolvedPath, title = currentTitle, duration = currentDuration))
 
                 // Reset for next entry
                 currentTitle = null
@@ -96,8 +101,14 @@ object M3uParser {
     }
 
     private fun resolvePath(trackPath: String, parentDir: File?): String {
-        val uri = trackPath.toUri()
-        if (uri.isAbsolute) {
+        // If it's a URI with a scheme (e.g., http://, file://, content://), treat it as absolute
+        if (trackPath.contains("://")) {
+            return trackPath
+        }
+
+        // If it's an absolute filesystem path
+        val file = File(trackPath)
+        if (file.isAbsolute) {
             return trackPath
         }
 
