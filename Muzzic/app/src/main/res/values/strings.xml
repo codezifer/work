@@ -75,4 +75,10 @@
     <string name="delete">Löschen</string>
     <string name="options">More options</string>
     <string name="play_playlist">Play playlist</string>
+
+    <!-- About Dialog -->
+    <string name="about_muzzic">Über Muzzic</string>
+    <string name="version_format">Version: %s</string>
+    <string name="build_date_format">Build-Datum: %s</string>
+    <string name="ok">OK</string>
 </resources>

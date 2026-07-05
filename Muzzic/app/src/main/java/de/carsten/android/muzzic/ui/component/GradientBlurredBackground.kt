@@ -35,12 +35,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  * @param contentScale How the image should be scaled.
  */
 @Composable
-fun GradientBlurredBackground(
-    data: Any?,
-    modifier: Modifier = Modifier,
-    blurRadius: Dp = BLUR_RADIUS_LARGE,
-    contentScale: ContentScale = ContentScale.Crop,
-) {
+fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRadius: Dp = BLUR_RADIUS_LARGE, contentScale: ContentScale = ContentScale.Crop) {
     Box(modifier = modifier) {
         // 1. Fully Blurred Background Layer
         AsyncImage(
@@ -74,7 +69,7 @@ fun GradientBlurredBackground(
                         brush = Brush.horizontalGradient(
                             colors = listOf(
                                 Color.Transparent, // Blurred part (left)
-                                Color.Black,       // Clear part (right)
+                                Color.Black, // Clear part (right)
                             ),
                         ),
                         blendMode = BlendMode.DstIn,
@@ -92,7 +87,7 @@ fun GradientBlurredBackgroundPreview() {
     AppTheme {
         GradientBlurredBackground(
             data = R.drawable.disc,
-            modifier = Modifier.size(300.dp, 100.dp)
+            modifier = Modifier.size(300.dp, 100.dp),
         )
     }
 }

@@ -1,5 +1,7 @@
 package de.carsten.android.muzzic.id3
 
+import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.UNKNOWN_TRACK
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
 import java.io.InputStream
@@ -53,14 +55,14 @@ object Id3TagParser {
         val tag = audioFile.tag ?: return ExtendedMetadata()
         val header = audioFile.audioHeader ?: return ExtendedMetadata()
 
-        val title = tag.getFirst(FieldKey.TITLE)
-        val album = tag.getFirst(FieldKey.ALBUM)
-        val artist = tag.getFirst(FieldKey.ARTIST).ifBlank { tag.getFirst(FieldKey.ALBUM_ARTIST) }
-        val genre = tag.getFirst(FieldKey.GENRE)
+        val title = tag.getFirst(FieldKey.TITLE) ?: UNKNOWN
+        val album = tag.getFirst(FieldKey.ALBUM) ?: UNKNOWN
+        val artist = tag.getFirst(FieldKey.ARTIST).ifBlank { tag.getFirst(FieldKey.ALBUM_ARTIST) ?: UNKNOWN }
+        val genre = tag.getFirst(FieldKey.GENRE) ?: UNKNOWN
         val duration = (header.preciseTrackLength * 1000).roundToLong()
-        val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) }
+        val yearString = tag.getFirst(FieldKey.YEAR).ifBlank { tag.getFirst(FieldKey.ORIGINAL_YEAR) ?: UNKNOWN }
         val year = parseId3Year(yearString)
-        val trackString = tag.getFirst(FieldKey.TRACK)
+        val trackString = tag.getFirst(FieldKey.TRACK) ?: UNKNOWN_TRACK
         val (trackNumber, totalTracksFromTrack) = parseTrackString(trackString)
         val totalTracksField = tag.getFirst(FieldKey.TRACK_TOTAL).trim().toIntOrNull() ?: -1
         val totalTracks = if (totalTracksField != -1) totalTracksField else totalTracksFromTrack
