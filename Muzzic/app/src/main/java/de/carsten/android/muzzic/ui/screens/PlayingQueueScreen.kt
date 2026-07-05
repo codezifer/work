@@ -1,5 +1,9 @@
 package de.carsten.android.muzzic.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -210,57 +214,58 @@ fun PlayingQueueContent(
                     },
                 )
 
-                // The deprecation warning says confirmValueChange is deprecated without replacement for vetoing.
-                // However, for SwipeToDismissBox it's still common to use it to trigger the removal.
-                // We'll keep it for now as it's the standard way in M3 SwipeToDismissBox until a better pattern is established.
-
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {
-                        val color = when (dismissState.dismissDirection) {
-                            SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.6f)
-                            else -> Color.Transparent
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_TINY)
-                                .background(color, MaterialTheme.shapes.medium),
-                            contentAlignment = Alignment.CenterEnd,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Remove",
-                                tint = Color.White,
+                AnimatedVisibility(
+                    visible = playingQueue.any { it.mediaId == item.mediaId },
+                    exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(),
+                ) {
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = {
+                            val color = when (dismissState.dismissDirection) {
+                                SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.6f)
+                                else -> Color.Transparent
+                            }
+                            Box(
                                 modifier = Modifier
-                                    .padding(end = SPACING_LARGE)
-                                    .size(ICON_SIZE_MEDIUM),
+                                    .fillMaxSize()
+                                    .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_TINY)
+                                    .background(color, MaterialTheme.shapes.medium),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Remove",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .padding(end = SPACING_LARGE)
+                                        .size(ICON_SIZE_MEDIUM),
+                                )
+                            }
+                        },
+                        content = {
+                            PlayingQueueItem(
+                                playingQueueDto = item,
+                                isPlaying = isPlaying,
+                                isCurrentSong = isCurrentSong,
+                                progress = if (isCurrentSong) progress else 0f,
+                                isDragging = isDragging,
+                                isSelected = isSelected,
+                                dragModifier = dragModifier,
+                                colorSource = colorSource,
+                                onClick = { onSongClick(index, item.mediaId) },
+                                onLongClick = { onSongLongClick(item.mediaId) },
+                                onTogglePlayPause = {
+                                    if (isCurrentSong) {
+                                        onTogglePlayPause()
+                                    } else {
+                                        onSongClick(index, item.mediaId)
+                                    }
+                                },
                             )
-                        }
-                    },
-                    content = {
-                        PlayingQueueItem(
-                            playingQueueDto = item,
-                            isPlaying = isPlaying,
-                            isCurrentSong = isCurrentSong,
-                            progress = if (isCurrentSong) progress else 0f,
-                            isDragging = isDragging,
-                            isSelected = isSelected,
-                            dragModifier = dragModifier,
-                            colorSource = colorSource,
-                            onClick = { onSongClick(index, item.mediaId) },
-                            onLongClick = { onSongLongClick(item.mediaId) },
-                            onTogglePlayPause = {
-                                if (isCurrentSong) {
-                                    onTogglePlayPause()
-                                } else {
-                                    onSongClick(index, item.mediaId)
-                                }
-                            },
-                        )
-                    },
-                )
+                        },
+                    )
+                }
             }
         }
     }
