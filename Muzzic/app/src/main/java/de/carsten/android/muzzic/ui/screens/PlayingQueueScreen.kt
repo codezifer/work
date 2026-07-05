@@ -8,14 +8,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -25,11 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.PLAYING_QUEUE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
@@ -88,6 +96,9 @@ fun PlayingQueueScreen(
                 }
             },
             onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
+            onRemoveItem = { item ->
+                playingQueueViewModel.removeSongs(listOf(item.toMediaItem()))
+            },
             onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
             onSortByMetadata = { playingQueueViewModel.sortQueueByMetadata() },
             onShuffle = { playingQueueViewModel.shuffleQueue() },
@@ -95,6 +106,7 @@ fun PlayingQueueScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayingQueueContent(
     modifier: Modifier,
@@ -107,6 +119,7 @@ fun PlayingQueueContent(
     colorSource: ColorSource = composableColorSource(),
     onSongClick: (Int, String) -> Unit = { _, _ -> },
     onSongLongClick: (String) -> Unit = {},
+    onRemoveItem: (PlayingQueueDto) -> Unit = {},
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onTogglePlayPause: () -> Unit = {},
     onSortByMetadata: () -> Unit = {},
@@ -186,23 +199,66 @@ fun PlayingQueueContent(
                 val isSelected = selectionState.selectedSongs.contains(item.mediaId)
                 val isCurrentSong = item.mediaId == currentSong?.mediaId
 
-                PlayingQueueItem(
-                    playingQueueDto = item,
-                    isPlaying = isPlaying,
-                    isCurrentSong = isCurrentSong,
-                    progress = if (isCurrentSong) progress else 0f,
-                    isDragging = isDragging,
-                    isSelected = isSelected,
-                    dragModifier = dragModifier,
-                    colorSource = colorSource,
-                    onClick = { onSongClick(index, item.mediaId) },
-                    onLongClick = { onSongLongClick(item.mediaId) },
-                    onTogglePlayPause = {
-                        if (isCurrentSong) {
-                            onTogglePlayPause()
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { value ->
+                        if (value == SwipeToDismissBoxValue.EndToStart) {
+                            onRemoveItem(item)
+                            true
                         } else {
-                            onSongClick(index, item.mediaId)
+                            false
                         }
+                    },
+                )
+
+                // The deprecation warning says confirmValueChange is deprecated without replacement for vetoing.
+                // However, for SwipeToDismissBox it's still common to use it to trigger the removal.
+                // We'll keep it for now as it's the standard way in M3 SwipeToDismissBox until a better pattern is established.
+
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = false,
+                    backgroundContent = {
+                        val color = when (dismissState.dismissDirection) {
+                            SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.6f)
+                            else -> Color.Transparent
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_TINY)
+                                .background(color, MaterialTheme.shapes.medium),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Remove",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .padding(end = SPACING_LARGE)
+                                    .size(ICON_SIZE_MEDIUM),
+                            )
+                        }
+                    },
+                    content = {
+                        PlayingQueueItem(
+                            playingQueueDto = item,
+                            isPlaying = isPlaying,
+                            isCurrentSong = isCurrentSong,
+                            progress = if (isCurrentSong) progress else 0f,
+                            isDragging = isDragging,
+                            isSelected = isSelected,
+                            dragModifier = dragModifier,
+                            colorSource = colorSource,
+                            onClick = { onSongClick(index, item.mediaId) },
+                            onLongClick = { onSongLongClick(item.mediaId) },
+                            onTogglePlayPause = {
+                                if (isCurrentSong) {
+                                    onTogglePlayPause()
+                                } else {
+                                    onSongClick(index, item.mediaId)
+                                }
+                            },
+                        )
                     },
                 )
             }
