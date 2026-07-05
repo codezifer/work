@@ -110,6 +110,7 @@ fun PlayingQueueScreen(
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayingQueueContent(
