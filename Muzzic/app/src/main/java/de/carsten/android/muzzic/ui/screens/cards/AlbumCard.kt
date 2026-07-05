@@ -58,7 +58,7 @@ fun AlbumCard(
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f),
+                    .aspectRatio(1.1f),
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(

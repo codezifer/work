@@ -48,7 +48,7 @@ fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.2f),
+                    .aspectRatio(1.4f),
                 useCard = false,
             )
         },

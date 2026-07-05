@@ -30,10 +30,11 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.CARD_INTERNAL_PADDING
 import de.carsten.android.muzzic.ui.CARD_SELECTION_ICON_PADDING
+import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.ICON_SIZE_SMALL
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.screens.controls.PlayButton
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import androidx.compose.material3.Text
@@ -79,9 +80,10 @@ fun MuzzicCard(
                             PlayButton(
                                 onClick = onPlayClick,
                                 borderColor = borderColor,
+                                size = ICON_SIZE_LARGE,
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(SPACING_MEDIUM),
+                                    .padding(SPACING_SMALL),
                             )
                         }
                     }
