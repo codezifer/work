@@ -53,6 +53,7 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -68,7 +69,7 @@ fun PlayerScreenContext(
     duration: Long,
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},

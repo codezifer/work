@@ -29,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.CORNER_RADIUS_SMALL
 import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
@@ -45,6 +47,7 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.ListItemLeadingShape
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -67,7 +70,7 @@ fun PlaylistListItem(
     modifier: Modifier = Modifier,
     showGenre: Boolean = false,
     iconColor: Color = MaterialTheme.colorScheme.onSurface,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     onPlaylistClick: () -> Unit = {},
     onPlayClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
@@ -79,7 +82,7 @@ fun PlaylistListItem(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = colorSource.accentColor),
+        colors = CardDefaults.cardColors(containerColor = colorSource.neutralColor),
         shape = RoundedCornerShape(CORNER_RADIUS_SMALL),
         onClick = onPlaylistClick,
     ) {
@@ -104,7 +107,7 @@ fun PlaylistListItem(
             ) {
                 Text(
                     text = playlist.playlistName,
-                    color = colorSource.contentColor,
+                    color = colorSource.onNeutralColor,
                     fontSize = FONT_SIZE_BODY,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -117,7 +120,7 @@ fun PlaylistListItem(
                     } else {
                         "${playlist.songCount} Songs • ${playlist.artistCount} Artists"
                     },
-                    color = colorSource.labelColor,
+                    color = colorSource.onNeutralColor,
                     fontSize = FONT_SIZE_CAPTION,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -127,7 +130,7 @@ fun PlaylistListItem(
             // Duration
             Text(
                 text = formatDuration(playlist.playlistDuration),
-                color = colorSource.labelColor.copy(alpha = 0.7f),
+                color = colorSource.onNeutralColor,
                 fontSize = FONT_SIZE_SMALL,
             )
 
@@ -140,7 +143,7 @@ fun PlaylistListItem(
             ) {
                 Icon(
                     Icons.Default.PlayArrow,
-                    contentDescription = "Play Playlist",
+                    contentDescription = stringResource(R.string.play_playlist),
                     tint = iconColor,
                 )
             }
@@ -153,7 +156,7 @@ fun PlaylistListItem(
                 ) {
                     Icon(
                         Icons.Default.MoreVert,
-                        contentDescription = "More Options",
+                        contentDescription = stringResource(R.string.options),
                         tint = iconColor,
                     )
                 }
@@ -163,7 +166,7 @@ fun PlaylistListItem(
                     onDismissRequest = { showMenu = false },
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Löschen") },
+                        text = { Text(stringResource(R.string.delete)) },
                         onClick = {
                             showMenu = false
                             onDeleteClick()
@@ -193,10 +196,7 @@ fun PlaylistItemPreview() {
                 playlistDuration = 24 * 60 * 60 * 1000L,
             ),
             showGenre = true,
-            colorSource = ColorSource(
-                accentColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
+            colorSource = composableColorSource(),
         )
     }
 }

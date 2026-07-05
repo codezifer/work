@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.GlassPanel
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String, var onClick: () -> Unit = {}) {
@@ -67,7 +67,7 @@ val bottomNavItems =
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
     navController: NavController,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
+    colorSource: ColorSource = composableColorSource(),
     clickHandlers: Map<String, () -> Unit> = HashMap(),
 ) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()

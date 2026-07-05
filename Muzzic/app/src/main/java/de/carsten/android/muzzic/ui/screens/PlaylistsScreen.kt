@@ -34,6 +34,7 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistListItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -46,7 +47,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlaylistsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     libraryViewModel: LibraryViewModel = koinViewModel(),
     playingQueueViewModel: PlayingQueueViewModel,
     onPlaylistClick: (PlaylistDto) -> Unit = {},
@@ -68,7 +69,7 @@ fun PlaylistsScreen(
 fun PlaylistScreenContent(
     modifier: Modifier,
     playlists: List<PlaylistDto>,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     onPlaylistClick: (PlaylistDto) -> Unit = {},
     onPlayClick: (PlaylistDto) -> Unit = {},
     onDeleteClick: (PlaylistDto) -> Unit = {},

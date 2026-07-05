@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +36,7 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.TOOLBAR_MIN_WIDTH
 import de.carsten.android.muzzic.ui.component.TooltipIconButton
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 
 private val SPACE_WIDTH = SPACING_MEDIUM
 private val PADDING_H = SPACING_MEDIUM
@@ -76,7 +76,7 @@ enum class ToolbarMode {
 fun SelectionToolbar(
     modifier: Modifier = Modifier,
     mode: ToolbarMode,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+    colorSource: ColorSource = composableColorSource(),
     selectedCount: Int = 0,
     confirmIcon: ImageVector = Icons.Default.Add,
     confirmLabel: String = "Add to Queue",

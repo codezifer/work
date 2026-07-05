@@ -38,6 +38,7 @@ import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -50,7 +51,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlayingQueueScreen(
     modifier: Modifier,
     appState: MusicAppState,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     playingQueueViewModel: PlayingQueueViewModel,
     selectionViewModel: SelectionViewModel = koinViewModel(),
 ) {
@@ -103,7 +104,7 @@ fun PlayingQueueContent(
     currentSong: MediaItem? = null,
     isPlaying: Boolean = false,
     progress: Float = 0f,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     onSongClick: (Int, String) -> Unit = { _, _ -> },
     onSongLongClick: (String) -> Unit = {},
     onMove: (Int, Int) -> Unit = { _, _ -> },

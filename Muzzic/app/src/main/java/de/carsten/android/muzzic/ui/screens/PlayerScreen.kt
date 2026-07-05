@@ -34,6 +34,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
@@ -77,7 +78,7 @@ private fun PlayerScreenContent(
     duration: Long,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,

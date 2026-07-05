@@ -58,6 +58,7 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import java.util.UUID
 
@@ -73,7 +74,7 @@ fun PlayingQueueItem(
     isDragging: Boolean = false,
     isSelected: Boolean = false,
     dragModifier: Modifier = Modifier,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     onTogglePlayPause: () -> Unit = {},

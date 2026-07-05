@@ -26,6 +26,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -36,7 +37,7 @@ import org.koin.androidx.compose.koinViewModel
 fun GenreArtistsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onArtistClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
     genresViewModel: GenresViewModel = koinViewModel(),
@@ -63,7 +64,7 @@ fun GenreArtistsScreenContent(
     appState: MusicAppState? = null,
     genreName: String,
     artists: List<ArtistDto>,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onArtistClick: (String) -> Unit = {},
     onArtistPlayClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},

@@ -46,6 +46,7 @@ import de.carsten.android.muzzic.ui.screens.controls.BottomNavigationBar
 import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
 import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
+import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.ui.utils.adjustForTheme
 import de.carsten.android.muzzic.ui.utils.ensureContrast
 import de.carsten.android.muzzic.ui.utils.extractColors
@@ -80,6 +81,8 @@ fun MusicPlayerApp(
 
     val defaultBackground = MaterialTheme.colorScheme.primary
     val defaultContent = MaterialTheme.colorScheme.onPrimary
+    val neutralColor = CustomColors.neutral
+    val onNeutralColor = CustomColors.onNeutral
     val colorSource = remember(palette, isDark, defaultBackground, defaultContent) {
         val paletteColors = palette.extractColors(
             defaultBackground = defaultBackground,
@@ -91,6 +94,8 @@ fun MusicPlayerApp(
             accentColor = accentColor,
             contentColor = contentColor,
             labelColor = contentColor.copy(alpha = 0.8f),
+            neutralColor = neutralColor,
+            onNeutralColor = onNeutralColor,
         )
     }
 

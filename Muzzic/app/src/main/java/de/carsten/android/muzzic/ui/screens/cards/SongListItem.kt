@@ -1,7 +1,7 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -53,6 +53,7 @@ import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import java.time.Instant
@@ -64,7 +65,7 @@ fun SongListItem(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     isSelected: Boolean = false,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
     modifier: Modifier = Modifier,
 ) {
     Card(

@@ -1,9 +1,9 @@
 package de.carsten.android.muzzic.playlist
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.io.File
 import java.nio.file.Files
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class M3uParserTest {
 

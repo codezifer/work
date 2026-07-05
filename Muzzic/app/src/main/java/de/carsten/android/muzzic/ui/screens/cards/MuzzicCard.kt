@@ -23,14 +23,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.CARD_INTERNAL_PADDING
 import de.carsten.android.muzzic.ui.CARD_SELECTION_ICON_PADDING
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.ICON_SIZE_SMALL
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.screens.controls.PlayButton
+import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -126,5 +129,14 @@ fun MuzzicCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
+fun MuzzicCardPreview() {
+    AppTheme {
+        MuzzicCard {}
     }
 }

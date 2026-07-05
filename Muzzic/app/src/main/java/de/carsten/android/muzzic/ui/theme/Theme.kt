@@ -7,6 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
@@ -264,6 +265,8 @@ data class CustomColorScheme(
     val genre3: Color = Color.Unspecified,
     val genre4: Color = Color.Unspecified,
     val genre5: Color = Color.Unspecified,
+    val neutral: Color = Color.Unspecified,
+    val onNeutral: Color = Color.Unspecified,
 )
 
 val lightCustomColorScheme = CustomColorScheme(
@@ -279,6 +282,8 @@ val lightCustomColorScheme = CustomColorScheme(
     genre3 = genre3ColorLight,
     genre4 = genre4ColorLight,
     genre5 = genre5ColorLight,
+    neutral = neutralColorLight,
+    onNeutral = onNeutralColorLight,
 )
 
 val darkCustomColorScheme = CustomColorScheme(
@@ -294,6 +299,8 @@ val darkCustomColorScheme = CustomColorScheme(
     genre3 = genre3ColorDark,
     genre4 = genre4ColorDark,
     genre5 = genre5ColorDark,
+    neutral = neutralColorDark,
+    onNeutral = onNeutralColorDark,
 )
 
 val LocalCustomColorScheme = staticCompositionLocalOf { CustomColorScheme() }
@@ -303,52 +310,60 @@ val LocalCustomColorScheme = staticCompositionLocalOf { CustomColorScheme() }
  */
 object CustomColors {
     val chartBar: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.chartBar
 
     val starColor: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.starColor
 
     val autoPlaylists: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.autoPlaylists
 
     val myPlaylists: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.myPlaylists
 
     val gradient1: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.gradient1
 
     val gradient2: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.gradient2
 
     val gradient3: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.gradient3
 
     val genre1: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.genre1
 
     val genre2: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.genre2
 
     val genre3: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.genre3
 
     val genre4: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.genre4
 
     val genre5: Color
-        @Composable
+        @Composable @ReadOnlyComposable
         get() = LocalCustomColorScheme.current.genre5
+
+    val neutral: Color
+        @Composable @ReadOnlyComposable
+        get() = LocalCustomColorScheme.current.neutral
+
+    val onNeutral: Color
+        @Composable @ReadOnlyComposable
+        get() = LocalCustomColorScheme.current.onNeutral
 }
 
 val unspecified_scheme =

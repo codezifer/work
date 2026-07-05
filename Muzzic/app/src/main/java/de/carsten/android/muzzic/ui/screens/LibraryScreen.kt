@@ -47,6 +47,7 @@ import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
@@ -64,7 +65,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LibraryScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (GenreDto) -> Unit = {},
@@ -146,7 +147,7 @@ private fun LibraryScreenContent(
     songs: List<Song>,
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onArtistClick: (String) -> Unit = {},
     onArtistPlayClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},

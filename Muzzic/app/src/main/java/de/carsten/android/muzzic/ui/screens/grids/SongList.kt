@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -33,7 +33,7 @@ fun SongList(
     onSongLongClick: (Song) -> Unit = {},
     selectedSongs: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
-    colorSource: ColorSource = ColorSource(accentColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+    colorSource: ColorSource = composableColorSource(),
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()

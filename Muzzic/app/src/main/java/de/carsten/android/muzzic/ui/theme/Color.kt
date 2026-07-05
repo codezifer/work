@@ -254,3 +254,8 @@ val genre4ColorDark = Color(0xFFDA8C61)
 
 val genre5ColorLight = Color(0xFFAA1111)
 val genre5ColorDark = Color(0xFFD76565)
+
+val neutralColorLight = Color(0xFF6B6B6B)
+val onNeutralColorLight = Color(0xFFDCDCDC)
+val neutralColorDark = Color(0xFF4F4F4F)
+val onNeutralColorDark = Color(0xFFDCDCDC)

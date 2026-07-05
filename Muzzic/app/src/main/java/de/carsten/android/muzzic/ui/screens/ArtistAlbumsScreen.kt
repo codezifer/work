@@ -23,6 +23,7 @@ import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -34,7 +35,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ArtistAlbumsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
-    colorSource: ColorSource = ColorSource(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
+    colorSource: ColorSource = composableColorSource(),
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
     viewModel: ArtistAlbumsViewModel = koinViewModel(),
