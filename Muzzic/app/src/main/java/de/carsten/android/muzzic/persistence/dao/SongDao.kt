@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SongDao {
-    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber")
+    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
     fun getAllSongs(): Flow<List<Song>>
 
-    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber")
+    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
     fun getAllSongsPagingSource(): PagingSource<Int, Song>
 
     @Query("SELECT DISTINCT UPPER(SUBSTR(title, 1, 1)) FROM songs ORDER BY 1")

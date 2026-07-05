@@ -51,7 +51,7 @@ interface AlbumDao {
             (SELECT s2.albumArt FROM songs s2 WHERE s2.album = s.album AND s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt
         FROM songs s
         GROUP BY s.album, s.artist
-        ORDER BY s.album ASC
+        ORDER BY s.artist ASC, s.albumYear ASC, s.album ASC
         """,
     )
     fun getAlbumAggregation(): Flow<List<AlbumAggregation>>

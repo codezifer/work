@@ -38,19 +38,15 @@ fun SongList(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    val sortedSongs = remember(songs) {
-        songs.sorted()
-    }
-
-    val alphabet by remember(sortedSongs) {
+    val alphabet by remember(songs) {
         derivedStateOf {
-            sortedSongs.map { it.title.take(1).uppercase() }.distinct().sorted()
+            songs.map { it.title.take(1).uppercase() }.distinct().sorted()
         }
     }
 
-    val letterToIndexMap by remember(sortedSongs) {
+    val letterToIndexMap by remember(songs) {
         derivedStateOf {
-            sortedSongs.foldIndexed(mutableMapOf<String, Int>()) { index, map, song ->
+            songs.foldIndexed(mutableMapOf<String, Int>()) { index, map, song ->
                 val letter = song.title.take(1).uppercase()
                 if (!map.containsKey(letter)) {
                     map[letter] = index
@@ -60,11 +56,11 @@ fun SongList(
         }
     }
 
-    val activeLetter by remember(sortedSongs) {
+    val activeLetter by remember(songs) {
         derivedStateOf {
             val index = listState.firstVisibleItemIndex
-            if (index in sortedSongs.indices) {
-                sortedSongs[index].title.take(1).uppercase()
+            if (index in songs.indices) {
+                songs[index].title.take(1).uppercase()
             } else {
                 null
             }
@@ -82,7 +78,7 @@ fun SongList(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
-                    items = sortedSongs,
+                    items = songs,
                     key = { song -> song.id },
                     contentType = { "Song" },
                 ) { song ->

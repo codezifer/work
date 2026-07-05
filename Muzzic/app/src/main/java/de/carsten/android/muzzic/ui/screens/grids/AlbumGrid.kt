@@ -38,19 +38,15 @@ fun AlbumGrid(
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
 
-    val sortedAlbums = remember(albums) {
-        albums.sorted()
-    }
-
-    val alphabet by remember(sortedAlbums) {
+    val alphabet by remember(albums) {
         derivedStateOf {
-            sortedAlbums.map { it.albumName.take(1).uppercase() }.distinct().sorted()
+            albums.map { it.albumName.take(1).uppercase() }.distinct().sorted()
         }
     }
 
-    val letterToIndexMap by remember(sortedAlbums) {
+    val letterToIndexMap by remember(albums) {
         derivedStateOf {
-            sortedAlbums.foldIndexed(mutableMapOf<String, Int>()) { index, map, album ->
+            albums.foldIndexed(mutableMapOf<String, Int>()) { index, map, album ->
                 val letter = album.albumName.take(1).uppercase()
                 if (!map.containsKey(letter)) {
                     map[letter] = index
@@ -60,11 +56,11 @@ fun AlbumGrid(
         }
     }
 
-    val activeLetter by remember(sortedAlbums) {
+    val activeLetter by remember(albums) {
         derivedStateOf {
             val index = gridState.firstVisibleItemIndex
-            if (index in sortedAlbums.indices) {
-                sortedAlbums[index].albumName.take(1).uppercase()
+            if (index in albums.indices) {
+                albums[index].albumName.take(1).uppercase()
             } else {
                 null
             }
@@ -84,7 +80,7 @@ fun AlbumGrid(
                 horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 items(
-                    items = sortedAlbums,
+                    items = albums,
                     key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
                     contentType = { "Album" },
                 ) { album ->

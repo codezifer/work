@@ -39,19 +39,15 @@ fun ArtistGrid(
     val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
 
-    val sortedArtists = remember(artists) {
-        artists.sorted()
-    }
-
-    val alphabet by remember(sortedArtists) {
+    val alphabet by remember(artists) {
         derivedStateOf {
-            sortedArtists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
+            artists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
         }
     }
 
-    val letterToIndexMap by remember(sortedArtists) {
+    val letterToIndexMap by remember(artists) {
         derivedStateOf {
-            sortedArtists.foldIndexed(mutableMapOf<String, Int>()) { index, map, artist ->
+            artists.foldIndexed(mutableMapOf<String, Int>()) { index, map, artist ->
                 val letter = artist.artistName.take(1).uppercase()
                 if (!map.containsKey(letter)) {
                     map[letter] = index
@@ -61,11 +57,11 @@ fun ArtistGrid(
         }
     }
 
-    val activeLetter by remember(sortedArtists) {
+    val activeLetter by remember(artists) {
         derivedStateOf {
             val index = gridState.firstVisibleItemIndex
-            if (index in sortedArtists.indices) {
-                sortedArtists[index].artistName.take(1).uppercase()
+            if (index in artists.indices) {
+                artists[index].artistName.take(1).uppercase()
             } else {
                 null
             }
@@ -85,7 +81,7 @@ fun ArtistGrid(
                 horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             ) {
                 itemsIndexed(
-                    items = sortedArtists,
+                    items = artists,
                     key = { _, artist -> artist.artistName },
                     contentType = { _, _ -> "Artist" },
                 ) { _, artist ->

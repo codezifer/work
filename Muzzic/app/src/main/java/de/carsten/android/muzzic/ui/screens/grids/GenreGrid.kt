@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -17,10 +16,6 @@ import de.carsten.android.muzzic.ui.screens.cards.GenreCard
 
 @Composable
 fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClick: (GenreDto) -> Unit = {}) {
-    val sortedGenres = remember(genres) {
-        genres.sorted()
-    }
-
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 170.dp),
         modifier = modifier.padding(horizontal = GRID_HORIZONTAL_PADDING),
@@ -28,7 +23,7 @@ fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClic
         horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
     ) {
         items(
-            items = sortedGenres,
+            items = genres,
             key = { genre -> genre.genreName },
             contentType = { "Genre" },
         ) { genre ->
