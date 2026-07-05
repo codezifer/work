@@ -387,15 +387,20 @@ var inputText by rememberSaveable { mutableStateOf("") }
 
 ```kotlin
 // ✅ Use AppTheme and showBackground for consistent previews
+// ✅ ALWAYS implement both Light and Dark mode previews for UI components
 @Composable
-@Preview(showBackground = true)
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Preview(showBackground = true, name = "Light Mode")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
 fun UserProfilePreview() {
     AppTheme {
         UserProfileContent(...)
     }
 }
 ```
+
+- All **UI components** MUST include a preview for both Light Mode and Dark Mode.
+- Use `AppTheme` and `showBackground = true` for consistent previews.
+- Keep descriptions concise but informative.
 
 ### Performance
 

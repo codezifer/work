@@ -52,6 +52,7 @@ import de.carsten.android.muzzic.ui.ICON_SIZE_DRAG_HANDLE
 import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -94,21 +95,11 @@ fun SongListItem(
         ),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            // 1. Blurred Background Image
-            AsyncImage(
-                model =
-                ImageRequest.Builder(LocalContext.current)
-                    .data(song.albumArt)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                modifier =
-                Modifier
-                    .matchParentSize()
-                    .blur(BLUR_RADIUS_LARGE),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.disc),
-                error = painterResource(R.drawable.disc),
+            // 1. Gradient Blurred Background
+            GradientBlurredBackground(
+                data = song.albumArt,
+                modifier = Modifier.matchParentSize(),
+                blurRadius = BLUR_RADIUS_LARGE,
             )
 
             // 2. Glass Overlay

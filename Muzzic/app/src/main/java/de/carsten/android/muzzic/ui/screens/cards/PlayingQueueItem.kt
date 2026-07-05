@@ -56,6 +56,7 @@ import de.carsten.android.muzzic.ui.SPACING_NONE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.SPACING_TINY
+import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -103,21 +104,11 @@ fun PlayingQueueItem(
                 onLongClick = onLongClick,
             ),
     ) {
-        // 1. Blurred Background Image
-        AsyncImage(
-            model =
-            ImageRequest.Builder(LocalContext.current)
-                .data(playingQueueDto.albumArt)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            modifier =
-            Modifier
-                .matchParentSize()
-                .blur(BLUR_RADIUS_LARGE),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.disc),
-            error = painterResource(R.drawable.disc),
+        // 1. Gradient Blurred Background
+        GradientBlurredBackground(
+            data = playingQueueDto.albumArt,
+            modifier = Modifier.matchParentSize(),
+            blurRadius = BLUR_RADIUS_LARGE,
         )
 
         // 2. Glass Overlay
