@@ -10,6 +10,7 @@ val viewModelModule =
             PlayerViewModel(
                 repository = get(),
                 mediaLibraryManager = get(),
+                visualizerSink = get(),
                 application = get(),
             )
         }

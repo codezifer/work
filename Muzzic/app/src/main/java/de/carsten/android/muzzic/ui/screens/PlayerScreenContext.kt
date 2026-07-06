@@ -55,6 +55,7 @@ import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
+import de.carsten.android.muzzic.ui.screens.controls.PlayerControls
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
 
@@ -69,6 +70,7 @@ fun PlayerScreenContext(
     duration: Long,
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
+    amplitudes: List<Float> = emptyList(),
     colorSource: ColorSource = composableColorSource(),
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
@@ -179,117 +181,18 @@ fun PlayerScreenContext(
         }
 
         // Controls
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(
-                    width = BORDER_WIDTH_THICK,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                    shape = CircleShape,
-                ),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        vertical = SPACING_MEDIUM,
-                    ),
-            ) {
-                val circularButtonModifier =
-                    Modifier
-                        .size(ICON_SIZE_LARGE)
-                        .border(
-                            width = BORDER_WIDTH_NORMAL,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            shape = CircleShape,
-                        )
-                        .background(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            shape = CircleShape,
-                        )
-
-                // shuffle-button
-                IconButton(
-                    onClick = onToggleShuffle,
-                    modifier = Modifier.size(ICON_SIZE_LARGE),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Shuffle,
-                        contentDescription = "Shuffle",
-                        tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(ICON_SIZE_MEDIUM),
-                    )
-                }
-
-                // prev-button
-                IconButton(
-                    onClick = onPreviousClicked,
-                    modifier = circularButtonModifier,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.SkipPrevious,
-                        contentDescription = "Previous Track",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(ICON_SIZE_LARGE),
-                    )
-                }
-
-                // play-pause-button
-                IconButton(
-                    onClick = onPlayPauseClicked,
-                    modifier =
-                    Modifier
-                        .size(ICON_SIZE_PLAYER_MAIN) // Larger play/pause button
-                        .background(
-                            colorSource.accentColor,
-                            CircleShape,
-                        ),
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = colorSource.contentColor,
-                        modifier = Modifier.size(ICON_SIZE_PLAYER_PLAY_PAUSE),
-                    )
-                }
-
-                // next-button
-                IconButton(
-                    onClick = onNextClicked,
-                    modifier = circularButtonModifier,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.SkipNext,
-                        contentDescription = "Next Track",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(ICON_SIZE_LARGE),
-                    )
-                }
-
-                // repeat-button
-                IconButton(
-                    onClick = onToggleRepeat,
-                    modifier = Modifier.size(ICON_SIZE_LARGE),
-                ) {
-                    val repeatIcon = when (repeatMode) {
-                        Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
-                        else -> Icons.Filled.Repeat
-                    }
-                    Icon(
-                        imageVector = repeatIcon,
-                        contentDescription = "Repeat",
-                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(ICON_SIZE_MEDIUM),
-                    )
-                }
-            }
-        }
+        PlayerControls(
+            isPlaying = isPlaying,
+            shuffleModeEnabled = shuffleModeEnabled,
+            repeatMode = repeatMode,
+            amplitudes = amplitudes,
+            colorSource = colorSource,
+            onPlayPauseClicked = onPlayPauseClicked,
+            onNextClicked = onNextClicked,
+            onPreviousClicked = onPreviousClicked,
+            onToggleShuffle = onToggleShuffle,
+            onToggleRepeat = onToggleRepeat,
+        )
 
         // volume
         VolumeControl(accentColor = colorSource.accentColor)
@@ -309,6 +212,7 @@ fun PlayerScreenPreview_Playing() {
         duration = 225000,
         shuffleModeEnabled = true,
         repeatMode = Player.REPEAT_MODE_ALL,
+        amplitudes = List(16) { it.toFloat() / 16f },
     )
 }
 
@@ -325,5 +229,6 @@ fun PlayerScreenPreview_Paused() {
         duration = 225000,
         shuffleModeEnabled = false,
         repeatMode = Player.REPEAT_MODE_OFF,
+        amplitudes = List(16) { 0f },
     )
 }

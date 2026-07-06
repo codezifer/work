@@ -15,6 +15,7 @@ import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.service.visualizer.VisualizerSink
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,12 +27,18 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
 @OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
-open class PlayerViewModel(private val repository: MusicRepository, private val mediaLibraryManager: MediaLibraryManager, application: Application) :
-    AndroidViewModel(application),
+open class PlayerViewModel(
+    private val repository: MusicRepository,
+    private val mediaLibraryManager: MediaLibraryManager,
+    private val visualizerSink: VisualizerSink,
+    application: Application,
+) : AndroidViewModel(application),
     KoinComponent {
     private val logger = this.logger()
 
     val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
+
+    val amplitudes: StateFlow<List<Float>> = visualizerSink.amplitudes
 
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()

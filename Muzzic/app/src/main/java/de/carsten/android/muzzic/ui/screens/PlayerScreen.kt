@@ -50,6 +50,7 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
     val duration by playerViewModel.duration.collectAsStateWithLifecycle()
     val shuffleModeEnabled by playerViewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
     val repeatMode by playerViewModel.repeatMode.collectAsStateWithLifecycle()
+    val amplitudes by playerViewModel.amplitudes.collectAsStateWithLifecycle()
 
     PlayerScreenContent(
         modifier = modifier,
@@ -59,6 +60,7 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
         duration = duration,
         shuffleModeEnabled = shuffleModeEnabled,
         repeatMode = repeatMode,
+        amplitudes = amplitudes,
         colorSource = colorSource,
         onPrevClicked = playerViewModel::onPrevClicked,
         onNextClicked = playerViewModel::onNextClicked,
@@ -78,6 +80,7 @@ private fun PlayerScreenContent(
     duration: Long,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
+    amplitudes: List<Float>,
     colorSource: ColorSource = composableColorSource(),
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
@@ -138,6 +141,7 @@ private fun PlayerScreenContent(
                 duration = duration,
                 shuffleModeEnabled = shuffleModeEnabled,
                 repeatMode = repeatMode,
+                amplitudes = amplitudes,
                 colorSource = colorSource,
                 onPreviousClicked = onPrevClicked,
                 onPlayPauseClicked = onPlayPauseClicked,
@@ -167,6 +171,7 @@ fun PlayerScreenPreview() {
             duration = 225000L,
             shuffleModeEnabled = false,
             repeatMode = Player.REPEAT_MODE_OFF,
+            amplitudes = List(16) { 0.5f },
             onPrevClicked = {},
             onPlayPauseClicked = {},
             onNextClicked = {},

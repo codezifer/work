@@ -72,7 +72,9 @@ class MusicPlayerService :
                         playlistRepository,
                         playingQueueRepository,
                     ),
-                ).build()
+                )
+                .setId("MuzzicPlayerSession")
+                .build()
 
         queueManager.loadPersistedQueue(serviceScope, playbackManager.exoPlayer)
         loadPlayerSettings()
