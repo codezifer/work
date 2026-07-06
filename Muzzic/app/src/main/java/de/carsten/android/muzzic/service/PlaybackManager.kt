@@ -20,14 +20,9 @@ class PlaybackManager(context: Context, visualizerSink: VisualizerSink) {
 
     private val renderersFactory =
         object : DefaultRenderersFactory(context) {
-            override fun buildAudioSink(
-                context: Context,
-                enableFloatOutput: Boolean,
-                enableAudioOutputPlaybackParams: Boolean,
-            ): AudioSink =
-                DefaultAudioSink.Builder(context)
-                    .setAudioProcessors(arrayOf(teeAudioProcessor))
-                    .build()
+            override fun buildAudioSink(context: Context, enableFloatOutput: Boolean, enableAudioOutputPlaybackParams: Boolean): AudioSink = DefaultAudioSink.Builder(context)
+                .setAudioProcessors(arrayOf(teeAudioProcessor))
+                .build()
         }
 
     val exoPlayer: ExoPlayer = ExoPlayer.Builder(context, renderersFactory).build()

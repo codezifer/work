@@ -25,9 +25,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_FAT
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
 import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
@@ -88,6 +92,18 @@ fun PlayerControls(
                 .fillMaxWidth()
                 .padding(vertical = SPACING_MEDIUM),
         ) {
+            val actionShuffleColor = if (shuffleModeEnabled) {
+                colorSource.accentColor
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            val actionRepeatColor = if (repeatMode != Player.REPEAT_MODE_OFF) {
+                colorSource.accentColor
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
             val circularButtonModifier =
                 Modifier
                     .size(ICON_SIZE_LARGE)
@@ -97,18 +113,18 @@ fun PlayerControls(
                         shape = CircleShape,
                     )
                     .background(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        color = colorSource.accentColor,
                         shape = CircleShape,
                     )
 
             // shuffle-button
             IconButton(
                 onClick = onToggleShuffle,
-                modifier = Modifier.size(ICON_SIZE_LARGE),
+                modifier = Modifier.circleBorder(actionShuffleColor, shuffleModeEnabled),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Shuffle,
-                    contentDescription = "Shuffle",
+                    contentDescription = stringResource(R.string.shuffle),
                     tint = if (shuffleModeEnabled) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
                 )
@@ -121,8 +137,8 @@ fun PlayerControls(
             ) {
                 Icon(
                     imageVector = Icons.Filled.SkipPrevious,
-                    contentDescription = "Previous Track",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = stringResource(R.string.previous),
+                    tint = colorSource.contentColor,
                     modifier = Modifier.size(ICON_SIZE_LARGE),
                 )
             }
@@ -140,7 +156,7 @@ fun PlayerControls(
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                     tint = colorSource.contentColor,
                     modifier = Modifier.size(ICON_SIZE_PLAYER_PLAY_PAUSE),
                 )
@@ -153,8 +169,8 @@ fun PlayerControls(
             ) {
                 Icon(
                     imageVector = Icons.Filled.SkipNext,
-                    contentDescription = "Next Track",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = stringResource(R.string.next),
+                    tint = colorSource.contentColor,
                     modifier = Modifier.size(ICON_SIZE_LARGE),
                 )
             }
@@ -162,7 +178,7 @@ fun PlayerControls(
             // repeat-button
             IconButton(
                 onClick = onToggleRepeat,
-                modifier = Modifier.size(ICON_SIZE_LARGE),
+                modifier = Modifier.circleBorder(actionRepeatColor, repeatMode != Player.REPEAT_MODE_OFF),
             ) {
                 val repeatIcon = when (repeatMode) {
                     Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
@@ -170,12 +186,25 @@ fun PlayerControls(
                 }
                 Icon(
                     imageVector = repeatIcon,
-                    contentDescription = "Repeat",
+                    contentDescription = stringResource(R.string.repeat),
                     tint = if (repeatMode != Player.REPEAT_MODE_OFF) colorSource.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
                 )
             }
         }
+    }
+}
+
+private fun Modifier.circleBorder(color: Color, enabling: Boolean): Modifier {
+    val modifier = this.size(ICON_SIZE_LARGE)
+    return if (enabling) {
+        modifier.border(
+            width = BORDER_WIDTH_FAT,
+            color = color,
+            shape = CircleShape,
+        )
+    } else {
+        modifier
     }
 }
 

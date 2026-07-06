@@ -1,16 +1,15 @@
 package de.carsten.android.muzzic.service.visualizer
 
-import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.audio.TeeAudioProcessor
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * A sink for audio data that performs FFT for visualization.
@@ -85,8 +84,11 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
         val peakReference = 10000f
 
         val smoothedBars = bars.mapIndexed { index, amplitude ->
-            val normalized = if (amplitude < noiseFloor) 0f
-            else (amplitude / peakReference).coerceIn(0f, 1f)
+            val normalized = if (amplitude < noiseFloor) {
+                0f
+            } else {
+                (amplitude / peakReference).coerceIn(0f, 1f)
+            }
 
             // Temporal damping (smoothing)
             // Asymmetric damping: fast up, slower down for "snappier" but smooth feel

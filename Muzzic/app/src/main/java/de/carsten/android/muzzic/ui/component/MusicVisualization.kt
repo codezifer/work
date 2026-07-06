@@ -28,12 +28,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  * and a dynamic color spectrum based on the accent color.
  */
 @Composable
-fun MusicVisualization(
-    amplitudes: List<Float>,
-    modifier: Modifier = Modifier,
-    color: Color = Color.White.copy(alpha = 0.3f),
-    isPlaying: Boolean = true,
-) {
+fun MusicVisualization(amplitudes: List<Float>, modifier: Modifier = Modifier, color: Color = Color.White.copy(alpha = 0.3f), isPlaying: Boolean = true) {
     val barCount = amplitudes.size.takeIf { it > 0 } ?: 32
     val spacing = 2.dp
 
