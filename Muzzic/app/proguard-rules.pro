@@ -32,9 +32,9 @@
 -keep @androidx.room.Entity class *
 -keep @androidx.room.Dao class *
 
-# ExoPlayer
--keep class com.google.android.exoplayer2.** { *; }
--dontwarn com.google.android.exoplayer2.**
+# Media3 (ExoPlayer)
+-keep class androidx.media3.** { *; }
+-dontwarn androidx.media3.**
 
 # JAudioTagger - Modern version (net.jthink)
 -dontwarn org.jaudiotagger.**
@@ -42,7 +42,28 @@
 -dontwarn javax.imageio.**
 -keep class org.jaudiotagger.** { *; }
 
-# Coil
--keep class coil.** { *; }
--keep interface coil.** { *; }
--dontwarn coil.**
+# Coil 3
+-keep class coil3.** { *; }
+-keep interface coil3.** { *; }
+-dontwarn coil3.**
+
+# OkHttp
+-keepattributes Signature
+-keepattributes AnnotationDefault
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.coroutines.android.HandlerContext$ScheduledPost {
+    *** run();
+}
+-keep class kotlinx.coroutines.android.AndroidExceptionPreHandler {
+    public <init>();
+}
+-dontwarn kotlinx.coroutines.debug.**
