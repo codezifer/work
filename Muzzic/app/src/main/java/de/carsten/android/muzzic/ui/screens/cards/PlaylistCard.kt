@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,7 +22,6 @@ import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.utils.extractColors
 
@@ -37,14 +35,10 @@ fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
     val backgroundColor = colors.backgroundColor
     val contentColor = colors.contentColor
 
-    val collageCovers = remember(playlist.albumArts) {
-        playlist.albumArts.map { CoverSource.FromPath(it) }
-    }
-
     MuzzicCard(
         header = {
             AlbumCoverCollage(
-                covers = collageCovers,
+                covers = playlist.collageCovers,
                 modifier =
                 Modifier
                     .fillMaxWidth()

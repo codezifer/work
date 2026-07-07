@@ -45,7 +45,6 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.model.ColorSource
-import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -76,9 +75,6 @@ fun PlaylistListItem(
     onDeleteClick: () -> Unit = {},
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val collageCovers = remember(playlist.albumArts) {
-        playlist.albumArts.map { CoverSource.FromPath(it) }
-    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -92,7 +88,7 @@ fun PlaylistListItem(
         ) {
             // Playlist Icon
             AlbumCoverCollage(
-                covers = collageCovers,
+                covers = playlist.collageCovers,
                 modifier = Modifier
                     .size(ICON_SIZE_PLAYLIST_THUMB)
                     .clip(ListItemLeadingShape),

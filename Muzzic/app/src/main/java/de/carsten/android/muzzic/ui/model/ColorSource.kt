@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.ui.model
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -15,6 +16,7 @@ import de.carsten.android.muzzic.ui.theme.CustomColors
  * @property neutralColor The color for neutral marking
  * @property onNeutralColor The text color for neutral marking
  */
+@Immutable
 data class ColorSource(val accentColor: Color, val contentColor: Color, val labelColor: Color = contentColor.copy(alpha = 0.7f), val neutralColor: Color, val onNeutralColor: Color)
 
 @Composable

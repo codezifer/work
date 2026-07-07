@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()
+val appBuildTime = System.currentTimeMillis()
 val appApkName = "muzzic-$appVersion.apk"
 val rootKotlinVersion = "2.3"
 val appTargetSdk = 37
@@ -31,6 +32,7 @@ extensions.configure<ApplicationExtension> {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("boolean", "SEED_DATABASE", "false")
+        buildConfigField("long", "BUILD_TIME", appBuildTime.toString())
     }
 
     buildTypes {

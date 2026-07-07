@@ -29,6 +29,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.formatTime
 
 /**
  * A dialog that displays information about the application.
@@ -76,7 +77,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 )
 
                 Text(
-                    text = stringResource(R.string.build_date_format, "05. Juli 2026"), // Placeholder date
+                    text = stringResource(R.string.build_date_format, formatTime(BuildConfig.BUILD_TIME)), // Placeholder date
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

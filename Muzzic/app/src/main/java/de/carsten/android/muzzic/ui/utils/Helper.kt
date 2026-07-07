@@ -1,5 +1,9 @@
 package de.carsten.android.muzzic.ui.utils
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 /**
  * Formats duration (milliseconds) as string format mm:ss"
  *
@@ -12,3 +16,23 @@ fun formatDuration(durationMs: Long): String {
     val seconds = totalSeconds % 60
     return "%02d:%02d".format(minutes, seconds)
 }
+
+/**
+ * Format time as string
+ *
+ * @param timeMs the time ms as [Long]
+ * @return the formatted Datetime as String in format dd.MM.yyyy HH:mm:ss.SSS
+ */
+fun formatTime(timeMs: Long): String {
+    val instant = Instant.ofEpochMilli(timeMs)
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
+    return formatter.format(instant)
+}
+
+/**
+ * Format time as string
+ *
+ * @param timeMs the time ms as [String]
+ * @return the formatted Datetime as String in format dd.MM.yyyy HH:mm:ss.SSS
+ */
+fun formatTime(timeMs: String): String = formatTime(timeMs.toLong())
