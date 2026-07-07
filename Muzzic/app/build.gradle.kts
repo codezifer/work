@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()

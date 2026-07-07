@@ -37,7 +37,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
+import de.carsten.android.muzzic.ui.BULLET_POINT
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.ICON_SIZE_FAST_SCROLL_THUMB
 import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
@@ -85,6 +87,19 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
 
     // Prioritize the currently dragged letter over the system-reported active letter
     val effectiveLetter = draggingLetter ?: activeLetter
+
+    val step =
+        remember(alphabet.size, columnHeight) {
+            if (columnHeight > 0) {
+                val columnHeightDp = with(density) { columnHeight.toDp() }
+                // Ensure at least 16dp height per displayed item (letter or dot) to avoid overlap
+                val maxVisibleItems = (columnHeightDp / 16.dp).toInt().coerceAtLeast(1)
+                (alphabet.size.toFloat() / maxVisibleItems).toInt().coerceAtLeast(1)
+            } else {
+                1
+            }
+        }
+
     val letterIndex =
         remember(effectiveLetter, alphabet) {
             alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
@@ -185,9 +200,21 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                         shape = RoundedCornerShape(50),
                     ),
             ) {
-                alphabet.forEach { letter ->
+                alphabet.forEachIndexed { index, letter ->
+                    val isFirst = index == 0
+                    val isLast = index == alphabet.size - 1
+                    val isStepMatch = index % step == 0
+                    val isDotPosition = !isStepMatch && (index % step == step / 2)
+
+                    val displayText =
+                        when {
+                            isFirst || isLast || isStepMatch -> letter
+                            isDotPosition && step > 1 -> BULLET_POINT
+                            else -> ""
+                        }
+
                     FastScrollerLetter(
-                        letter = letter,
+                        letter = displayText,
                         isActive = effectiveLetter == letter,
                         modifier = Modifier.weight(1f),
                     )
