@@ -59,6 +59,13 @@ val VISUALIZER_SEGMENT_SPACING = 2.dp
 val VISUALIZER_BAR_SPACING = 3.dp
 
 /**
+ * Music Visualization Scaling and Effect Tokens
+ */
+const val VISUALIZER_LOG_SCALE_FACTOR = 3f
+const val VISUALIZER_LOG_BASE_DIVISOR = 4f
+const val VISUALIZER_GLOW_INTENSITY = 0.2f
+
+/**
  * Indicator Slider Specific Dimensions
  */
 val INDICATOR_SLIDER_OFFSET_Y = (-40).dp
