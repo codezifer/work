@@ -44,7 +44,7 @@ class MusicVisualizerState(val barCount: Int, val maxSegmentsPerSide: Float, val
     /**
      * Determines how many segments should be active based on the scaled amplitude.
      */
-    fun getActiveSegments(scaledAmplitude: Float): Int = (scaledAmplitude * maxSegmentsPerSide).toInt().coerceAtLeast(1)
+    fun getActiveSegments(scaledAmplitude: Float): Int = (scaledAmplitude * maxSegmentsPerSide).toInt().coerceAtLeast(0)
 
     /**
      * Interpolates the color for a specific segment and applies a glow effect.

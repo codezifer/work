@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.service.visualizer
+package de.carsten.android.muzzic.service
 
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.audio.TeeAudioProcessor
@@ -20,10 +20,11 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
     private val _amplitudes = MutableStateFlow<List<Float>>(emptyList())
     val amplitudes: StateFlow<List<Float>> = _amplitudes.asStateFlow()
 
-    private val numBars = 32 // Increased from 16 to 32 for more detail
+    private val numBars = 64
     private var previousBars = FloatArray(numBars) { 0f }
     private var sampleRate = 44100
     private var channelCount = 2
+    private var runningPeak = 0.5f
 
     override fun flush(sampleRateHz: Int, channelCount: Int, encoding: Int) {
         this.sampleRate = sampleRateHz
@@ -76,27 +77,21 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
             for (j in 0 until binSize) {
                 sum += magnitudes[i * binSize + j]
             }
-            bars[i] = sum / binSize
+            bars[i] = (sum / binSize) / windowSize // windowSize-Normierung
         }
 
-        // Improved normalization: Use a fixed high-end threshold to prevent jumping on noise
-        val noiseFloor = 100f
-        val peakReference = 10000f
+        val currentMax = bars.maxOrNull() ?: 0f
+        runningPeak = if (currentMax > runningPeak) {
+            currentMax
+        } else {
+            (runningPeak * 0.97f).coerceAtLeast(0.01f) // floor gegen stille
+        }
 
         val smoothedBars = bars.mapIndexed { index, amplitude ->
-            val normalized = if (amplitude < noiseFloor) {
-                0f
-            } else {
-                (amplitude / peakReference).coerceIn(0f, 1f)
-            }
-
-            // Temporal damping (smoothing)
-            // Asymmetric damping: fast up, slower down for "snappier" but smooth feel
-            val target = normalized
+            val normalized = (amplitude / (runningPeak * 0.4f)).coerceIn(0f, 1f)
             val current = previousBars[index]
-            val dampingFactor = if (target > current) 0.4f else 0.15f
-
-            val smoothed = (current * (1f - dampingFactor)) + (target * dampingFactor)
+            val dampingFactor = if (normalized > current) 0.4f else 0.15f
+            val smoothed = (current * (1f - dampingFactor)) + (normalized * dampingFactor)
             previousBars[index] = smoothed
             smoothed
         }
