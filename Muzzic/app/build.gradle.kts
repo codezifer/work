@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appId = "de.carsten.android.muzzic"
@@ -10,6 +11,11 @@ val appTargetSdk = 37
 val appMinSdk = 36
 val rootJvmVersion = 17
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -35,6 +41,15 @@ extensions.configure<ApplicationExtension> {
         buildConfigField("long", "BUILD_TIME", appBuildTime.toString())
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("$rootDir/keystore/keystore.jks")
+            storePassword = localProperties.getProperty("keystore.password")
+            keyAlias = localProperties.getProperty("keystore.alias")
+            keyPassword = localProperties.getProperty("keystore.key.password")
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
@@ -43,7 +58,7 @@ extensions.configure<ApplicationExtension> {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
             // Priority:
