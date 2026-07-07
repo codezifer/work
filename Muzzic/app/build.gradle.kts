@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()
@@ -43,7 +43,7 @@ extensions.configure<ApplicationExtension> {
 
     signingConfigs {
         create("release") {
-            storeFile = file("$rootDir/keystore/keystore.jks")
+            storeFile = file("$rootDir/app/keystore/release-key.jks")
             storePassword = localProperties.getProperty("keystore.password")
             keyAlias = localProperties.getProperty("keystore.alias")
             keyPassword = localProperties.getProperty("keystore.key.password")
