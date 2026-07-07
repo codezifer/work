@@ -117,7 +117,7 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
                 data[j * 2 + 1] = tempIm
             }
             var m = n shr 1
-            while (m >= 1 && j >= m) {
+            while (m in 1..j) {
                 j -= m
                 m = m shr 1
             }

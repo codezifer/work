@@ -65,6 +65,7 @@ fun PlayerControls(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .height(80.dp)
             .clip(CircleShape)
             .border(
                 width = BORDER_WIDTH_THICK,
@@ -78,32 +79,15 @@ fun PlayerControls(
             amplitudes = amplitudes,
             isPlaying = isPlaying,
             color = colorSource.accentColor.copy(alpha = 0.15f),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp) // Fixed height for controls container
-                .padding(horizontal = SPACING_MEDIUM),
+            modifier = Modifier.matchParentSize(),
         )
 
         // Control Buttons
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = SPACING_MEDIUM),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            val actionShuffleColor = if (shuffleModeEnabled) {
-                colorSource.accentColor
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
-
-            val actionRepeatColor = if (repeatMode != Player.REPEAT_MODE_OFF) {
-                colorSource.accentColor
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
-
             val circularButtonModifier =
                 Modifier
                     .size(ICON_SIZE_LARGE)
@@ -120,7 +104,7 @@ fun PlayerControls(
             // shuffle-button
             IconButton(
                 onClick = onToggleShuffle,
-                modifier = Modifier.circleBorder(actionShuffleColor, shuffleModeEnabled),
+                modifier = Modifier.circleBorder(colorSource.accentColor, shuffleModeEnabled),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Shuffle,
@@ -178,7 +162,7 @@ fun PlayerControls(
             // repeat-button
             IconButton(
                 onClick = onToggleRepeat,
-                modifier = Modifier.circleBorder(actionRepeatColor, repeatMode != Player.REPEAT_MODE_OFF),
+                modifier = Modifier.circleBorder(colorSource.accentColor, repeatMode != Player.REPEAT_MODE_OFF),
             ) {
                 val repeatIcon = when (repeatMode) {
                     Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
