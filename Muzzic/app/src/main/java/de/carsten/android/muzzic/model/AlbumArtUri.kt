@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.model
 
+import android.net.Uri
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.ALBUMART_SCHEME
 
@@ -31,7 +32,8 @@ data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Lo
 
     fun get(): String {
         if (filePath.startsWith("http")) return filePath
-        val path = "${ALBUMART_SCHEME}${filePath.replace(" ", "%20")}?offset=$offset&size=$size&hashCode=$hashCode"
+        val encodedPath = Uri.encode(filePath)
+        val path = "${ALBUMART_SCHEME}$encodedPath?offset=$offset&size=$size&hashCode=$hashCode"
         return if (mimeType == null) path else "$path&mimeType=$mimeType"
     }
 

@@ -22,6 +22,7 @@ import org.junit.Test
 class PlayerViewModelTest {
     private val repository: MusicRepository = mockk()
     private val mediaLibraryManager: MediaLibraryManager = mockk()
+    private val visualizerSink: de.carsten.android.muzzic.service.VisualizerSink = mockk()
     private val application: Application = mockk()
     private val browser: MediaBrowser = mockk(relaxed = true)
 
@@ -29,8 +30,12 @@ class PlayerViewModelTest {
     private lateinit var viewModel: TestPlayerViewModel
     private val testDispatcher = StandardTestDispatcher()
 
-    class TestPlayerViewModel(repository: MusicRepository, mediaLibraryManager: MediaLibraryManager, application: Application) :
-        PlayerViewModel(repository, mediaLibraryManager, application) {
+    class TestPlayerViewModel(
+        repository: MusicRepository,
+        mediaLibraryManager: MediaLibraryManager,
+        visualizerSink: de.carsten.android.muzzic.service.VisualizerSink,
+        application: Application,
+    ) : PlayerViewModel(repository, mediaLibraryManager, visualizerSink, application) {
         // Override methods called in init to avoid side effects
         override fun scanLibrary() {}
         override fun startProgressUpdater() {}
@@ -50,7 +55,7 @@ class PlayerViewModelTest {
 
         // We can't easily avoid the collect in init, but with relaxed mock it should be fine
         // if we set the browser flow before creating the ViewModel
-        viewModel = TestPlayerViewModel(repository, mediaLibraryManager, application)
+        viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, application)
     }
 
     @After

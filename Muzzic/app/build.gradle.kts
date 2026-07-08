@@ -174,6 +174,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.androidx.test.junit)
     testImplementation(libs.mockk)
+    testImplementation(libs.mockk.bdd)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -185,6 +186,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.mockk.android.bdd)
     androidTestImplementation(libs.koin.test)
 
     // debug deps.

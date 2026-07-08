@@ -108,9 +108,8 @@ fun mediaId(name: String, namespace: UUID = UUID.nameUUIDFromBytes(byteArrayOf()
  */
 fun String?.toPlayableUri(): Uri? {
     if (this == null) return null
-    return if (this.startsWith("/") || this.startsWith("file://")) {
-        val actualPath = if (this.startsWith("file://")) this.substring(7) else this
-        Uri.fromFile(File(actualPath))
+    return if (this.startsWith("/")) {
+        Uri.fromFile(File(this))
     } else {
         this.toUri()
     }

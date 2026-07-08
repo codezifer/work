@@ -22,6 +22,7 @@ import androidx.core.graphics.ColorUtils
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.VISUALIZER_BAR_SPACING
+import de.carsten.android.muzzic.ui.VISUALIZER_HUE_COLOR_DEGREE
 import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_HEIGHT
 import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_SPACING
 import de.carsten.android.muzzic.ui.state.MusicVisualizerState
@@ -59,7 +60,7 @@ fun MusicVisualization(
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(color.toArgb(), hsl)
         val targetHsl = hsl.copyOf().apply {
-            this[0] = (this[0] + 180f) % 360f // Rotate hue by 180 degrees
+            this[0] = (this[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f // Rotate hue by specified degrees
         }
         Color(ColorUtils.HSLToColor(targetHsl))
     }

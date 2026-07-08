@@ -59,6 +59,11 @@ val VISUALIZER_SEGMENT_SPACING = 2.dp
 val VISUALIZER_BAR_SPACING = 3.dp
 
 /**
+ * Music Visualization Color degrees
+ */
+val VISUALIZER_HUE_COLOR_DEGREE = 40
+
+/**
  * Music Visualization Scaling and Effect Tokens
  */
 const val VISUALIZER_LOG_SCALE_FACTOR = 3f

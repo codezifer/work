@@ -1,6 +1,6 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.2.8"
+appVersion = "0.2.9"
 # Dependencies Versions
 activityCompose = "1.13.0"
 agp = "9.2.1"
@@ -48,7 +48,6 @@ androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-r
 androidx-media = { group = "androidx.media", name = "media", version.ref = "media" }
 androidx-media-session = { group = "androidx.media3", name = "media3-session", version.ref = "mediaSession" }
 androidx-work-runtime = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
-androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 # kotlin
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinCoroutines" }
@@ -116,6 +115,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 koin-test = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mockk-bdd = { group = "io.mockk", name = "mockk-bdd", version.ref = "mockk" }
+mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+mockk-android-bdd = { group = "io.mockk", name = "mockk-android-bdd", version.ref = "mockk" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
