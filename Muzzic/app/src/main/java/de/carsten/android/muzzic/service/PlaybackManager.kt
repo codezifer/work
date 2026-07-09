@@ -70,6 +70,7 @@ class PlaybackManager(context: Context, visualizerSink: VisualizerSink) {
     }
 
     fun release() {
+        exoPlayer.stop()
         exoPlayer.release()
     }
 }

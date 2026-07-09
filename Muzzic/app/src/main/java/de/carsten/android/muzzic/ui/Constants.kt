@@ -68,7 +68,7 @@ val VISUALIZER_HUE_COLOR_DEGREE = 40
  */
 const val VISUALIZER_LOG_SCALE_FACTOR = 3f
 const val VISUALIZER_LOG_BASE_DIVISOR = 4f
-const val VISUALIZER_GLOW_INTENSITY = 0.2f
+const val VISUALIZER_GLOW_INTENSITY = 0.35f
 
 /**
  * Indicator Slider Specific Dimensions

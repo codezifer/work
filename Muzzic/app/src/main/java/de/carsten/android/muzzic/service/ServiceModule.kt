@@ -7,7 +7,7 @@ import org.koin.dsl.module
 val serviceModule =
     module {
         singleOf(::VisualizerSink)
-        singleOf(::PlaybackManager)
+        factoryOf(::PlaybackManager)
         factoryOf(::QueueManager)
         factoryOf(::PlaybackAnalytics)
         factoryOf(::PlaybackStateManager)

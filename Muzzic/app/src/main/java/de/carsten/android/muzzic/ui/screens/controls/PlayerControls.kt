@@ -67,6 +67,10 @@ fun PlayerControls(
             .fillMaxWidth()
             .height(80.dp)
             .clip(CircleShape)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                shape = CircleShape,
+            )
             .border(
                 width = BORDER_WIDTH_THICK,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
@@ -78,7 +82,7 @@ fun PlayerControls(
         MusicVisualization(
             amplitudes = amplitudes,
             isPlaying = isPlaying,
-            color = colorSource.accentColor.copy(alpha = 0.15f),
+            color = colorSource.accentColor.copy(alpha = 0.4f),
             modifier = Modifier.matchParentSize(),
         )
 
@@ -97,7 +101,7 @@ fun PlayerControls(
                         shape = CircleShape,
                     )
                     .background(
-                        color = colorSource.accentColor,
+                        color = colorSource.accentColor.copy(alpha = 0.8f),
                         shape = CircleShape,
                     )
 
@@ -134,7 +138,7 @@ fun PlayerControls(
                 Modifier
                     .size(ICON_SIZE_PLAYER_MAIN)
                     .background(
-                        colorSource.accentColor,
+                        colorSource.accentColor.copy(alpha = 0.8f),
                         CircleShape,
                     ),
             ) {

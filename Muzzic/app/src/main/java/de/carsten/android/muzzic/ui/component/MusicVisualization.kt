@@ -62,8 +62,9 @@ fun MusicVisualization(
         val targetHsl = hsl.copyOf().apply {
             this[0] = (this[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f // Rotate hue by specified degrees
         }
-        Color(ColorUtils.HSLToColor(targetHsl))
+        Color(ColorUtils.HSLToColor(targetHsl)).copy(alpha = color.alpha)
     }
+
 
     Canvas(modifier = modifier) {
         val width = size.width
@@ -75,13 +76,13 @@ fun MusicVisualization(
 
         val segHeightPx = segmentHeight.toPx()
         val segSpacingPx = segmentSpacing.toPx()
-        val totalSegStep = segHeightPx + segSpacingPx
+        val totalSegStepPx = segHeightPx + segSpacingPx
 
         // Instantiate the state holder for calculation logic
         val state = MusicVisualizerState(
             barCount = barCount,
-            maxSegmentsPerSide = (height / 2f) / totalSegStep,
-            totalSegStepPx = totalSegStep,
+            maxSegmentsPerSide = (height / 2f) / totalSegStepPx,
+            totalSegStepPx = totalSegStepPx,
             baseColor = color,
             targetColor = targetColor,
         )
@@ -104,7 +105,7 @@ fun MusicVisualization(
                 // Top segment
                 drawRoundRect(
                     color = finalColor,
-                    topLeft = Offset(x, centerY - (j + 1) * totalSegStep + segSpacingPx / 2f),
+                    topLeft = Offset(x, centerY - (j + 1) * totalSegStepPx + segSpacingPx / 2f),
                     size = Size(barWidth, segHeightPx),
                     cornerRadius = CornerRadius(barWidth / 4f, barWidth / 4f),
                 )
@@ -112,7 +113,7 @@ fun MusicVisualization(
                 // Bottom segment (mirrored vertically)
                 drawRoundRect(
                     color = finalColor,
-                    topLeft = Offset(x, centerY + j * totalSegStep + segSpacingPx / 2f),
+                    topLeft = Offset(x, centerY + j * totalSegStepPx + segSpacingPx / 2f),
                     size = Size(barWidth, segHeightPx),
                     cornerRadius = CornerRadius(barWidth / 4f, barWidth / 4f),
                 )

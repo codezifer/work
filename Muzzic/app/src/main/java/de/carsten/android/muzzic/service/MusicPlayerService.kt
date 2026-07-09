@@ -131,8 +131,12 @@ class MusicPlayerService :
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaLibrarySession
 
     override fun onDestroy() {
-        super.onDestroy()
-        playbackManager.release()
+        logger.info("MusicPlayerService being destroyed")
+        if (::mediaLibrarySession.isInitialized) {
+            mediaLibrarySession.release()
+        }
         serviceJob.cancel()
+        playbackManager.release()
+        super.onDestroy()
     }
 }
