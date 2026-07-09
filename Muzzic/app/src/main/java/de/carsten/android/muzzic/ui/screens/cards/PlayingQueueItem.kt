@@ -55,6 +55,7 @@ import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.rememberAdaptiveContentColors
 import java.util.UUID
 
 /**
@@ -74,6 +75,18 @@ fun PlayingQueueItem(
     onLongClick: () -> Unit = {},
     onTogglePlayPause: () -> Unit = {},
 ) {
+    val adaptiveColors = rememberAdaptiveContentColors(
+        albumArt = playingQueueDto.albumArt,
+        overlayColor = when {
+            isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
+            isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
+            isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = GLASS_OVERLAY_ALPHA_MEDIUM)
+            else -> MaterialTheme.colorScheme.surface.copy(alpha = GLASS_OVERLAY_ALPHA_NORMAL)
+        },
+        colorSource = colorSource,
+        isCurrent = isCurrentSong,
+    )
+
     Box(
         modifier =
         Modifier
@@ -109,14 +122,7 @@ fun PlayingQueueItem(
             modifier =
             Modifier
                 .matchParentSize()
-                .background(
-                    when {
-                        isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
-                        isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
-                        isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = GLASS_OVERLAY_ALPHA_MEDIUM)
-                        else -> MaterialTheme.colorScheme.surface.copy(alpha = GLASS_OVERLAY_ALPHA_NORMAL)
-                    },
-                ),
+                .background(adaptiveColors.overlayColor),
         )
 
         Row(
@@ -132,7 +138,7 @@ fun PlayingQueueItem(
                 modifier =
                 dragModifier
                     .size(ICON_SIZE_DRAG_HANDLE),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = adaptiveColors.labelColor,
             )
 
             Column(
@@ -147,7 +153,7 @@ fun PlayingQueueItem(
                     MaterialTheme.typography.titleMedium.copy(
                         fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
                     ),
-                    color = if (isCurrentSong) colorSource.labelColor else MaterialTheme.colorScheme.onSurface,
+                    color = adaptiveColors.contentColor,
                     maxLines = 1,
                 )
                 Text(
@@ -159,7 +165,7 @@ fun PlayingQueueItem(
                         "${playingQueueDto.artist} • ${playingQueueDto.album}"
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isCurrentSong) colorSource.labelColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = adaptiveColors.labelColor,
                     maxLines = 1,
                 )
             }
@@ -168,9 +174,14 @@ fun PlayingQueueItem(
                 onClick = onTogglePlayPause,
                 colors =
                 if (isCurrentSong) {
-                    IconButtonDefaults.filledTonalIconButtonColors()
+                    IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = adaptiveColors.accentColor.copy(alpha = 0.2f),
+                        contentColor = adaptiveColors.accentColor,
+                    )
                 } else {
-                    IconButtonDefaults.iconButtonColors()
+                    IconButtonDefaults.iconButtonColors(
+                        contentColor = adaptiveColors.accentColor,
+                    )
                 },
                 modifier = Modifier.size(ICON_SIZE_LARGE),
             ) {
@@ -178,7 +189,7 @@ fun PlayingQueueItem(
                     imageVector = if (isCurrentSong && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isCurrentSong && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                     modifier = Modifier.size(ICON_SIZE_MEDIUM),
-                    tint = colorSource.accentColor,
+                    tint = adaptiveColors.accentColor,
                 )
             }
         }
@@ -193,8 +204,8 @@ fun PlayingQueueItem(
                     .height(BORDER_WIDTH_THICK)
                     .padding(horizontal = SPACING_NORMAL, vertical = SPACING_NONE)
                     .clip(RoundedCornerShape(topStart = SPACING_TINY, topEnd = SPACING_TINY)),
-                color = colorSource.accentColor,
-                trackColor = colorSource.accentColor.copy(alpha = 0.1f),
+                color = adaptiveColors.accentColor,
+                trackColor = adaptiveColors.accentColor.copy(alpha = 0.1f),
                 strokeCap = StrokeCap.Round,
             )
         }
