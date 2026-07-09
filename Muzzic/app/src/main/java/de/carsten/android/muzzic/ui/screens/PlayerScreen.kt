@@ -133,6 +133,7 @@ private fun PlayerScreenContent(
 
             // Context
             PlayerScreenContext(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
                 albumArtPath = currentSong?.albumArt,
                 songTitle = currentSong?.title,
                 artistName = currentSong?.artist,
@@ -172,6 +173,7 @@ fun PlayerScreenPreview() {
             shuffleModeEnabled = false,
             repeatMode = Player.REPEAT_MODE_OFF,
             amplitudes = List(16) { 0.5f },
+            colorSource = composableColorSource(),
             onPrevClicked = {},
             onPlayPauseClicked = {},
             onNextClicked = {},

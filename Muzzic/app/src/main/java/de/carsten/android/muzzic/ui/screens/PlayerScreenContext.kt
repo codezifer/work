@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +41,7 @@ import de.carsten.android.muzzic.ui.utils.formatDuration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreenContext(
+    modifier: Modifier = Modifier,
     albumArtPath: String?,
     songTitle: String?,
     artistName: String?,
@@ -67,7 +67,7 @@ fun PlayerScreenContext(
     // User asked for "numerische Position" to be displayed, which we do in the bubble.
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {

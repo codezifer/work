@@ -1,6 +1,6 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.2.9"
+appVersion = "0.2.10"
 # Dependencies Versions
 activityCompose = "1.13.0"
 agp = "9.2.1"

@@ -76,26 +76,26 @@ fun PlayingQueueItem(
 ) {
     Box(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_SMALL)
-                .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
-                .border(
-                    border =
-                        BorderStroke(
-                            width = if (isSelected || isCurrentSong) GLASS_BORDER_WIDTH * 2 else GLASS_BORDER_WIDTH,
-                            color =
-                                when {
-                                    isSelected || isCurrentSong -> colorSource.accentColor.copy(alpha = GLASS_BORDER_ALPHA_STRONG)
-                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = GLASS_BORDER_ALPHA)
-                                },
-                        ),
-                    shape = RoundedCornerShape(CARD_CORNER_RADIUS),
-                )
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = SPACING_MEDIUM, vertical = SPACING_SMALL)
+            .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
+            .border(
+                border =
+                BorderStroke(
+                    width = if (isSelected || isCurrentSong) GLASS_BORDER_WIDTH * 2 else GLASS_BORDER_WIDTH,
+                    color =
+                    when {
+                        isSelected || isCurrentSong -> colorSource.accentColor.copy(alpha = GLASS_BORDER_ALPHA_STRONG)
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = GLASS_BORDER_ALPHA)
+                    },
                 ),
+                shape = RoundedCornerShape(CARD_CORNER_RADIUS),
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
     ) {
         // 1. Gradient Blurred Background
         GradientBlurredBackground(
@@ -107,46 +107,46 @@ fun PlayingQueueItem(
         // 2. Glass Overlay
         Box(
             modifier =
-                Modifier
-                    .matchParentSize()
-                    .background(
-                        when {
-                            isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
-                            isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
-                            isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = GLASS_OVERLAY_ALPHA_MEDIUM)
-                            else -> MaterialTheme.colorScheme.surface.copy(alpha = GLASS_OVERLAY_ALPHA_NORMAL)
-                        },
-                    ),
+            Modifier
+                .matchParentSize()
+                .background(
+                    when {
+                        isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
+                        isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
+                        isCurrentSong -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = GLASS_OVERLAY_ALPHA_MEDIUM)
+                        else -> MaterialTheme.colorScheme.surface.copy(alpha = GLASS_OVERLAY_ALPHA_NORMAL)
+                    },
+                ),
         )
 
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(SPACING_NORMAL),
+            Modifier
+                .fillMaxWidth()
+                .padding(SPACING_NORMAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.DragHandle,
                 contentDescription = "Reorder",
                 modifier =
-                    dragModifier
-                        .size(ICON_SIZE_DRAG_HANDLE),
+                dragModifier
+                    .size(ICON_SIZE_DRAG_HANDLE),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Column(
                 modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(horizontal = SPACING_NORMAL),
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = SPACING_NORMAL),
             ) {
                 Text(
                     text = playingQueueDto.title,
                     style =
-                        MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
-                        ),
+                    MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
+                    ),
                     color = if (isCurrentSong) colorSource.labelColor else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                 )
@@ -167,11 +167,11 @@ fun PlayingQueueItem(
             IconButton(
                 onClick = onTogglePlayPause,
                 colors =
-                    if (isCurrentSong) {
-                        IconButtonDefaults.filledTonalIconButtonColors()
-                    } else {
-                        IconButtonDefaults.iconButtonColors()
-                    },
+                if (isCurrentSong) {
+                    IconButtonDefaults.filledTonalIconButtonColors()
+                } else {
+                    IconButtonDefaults.iconButtonColors()
+                },
                 modifier = Modifier.size(ICON_SIZE_LARGE),
             ) {
                 Icon(
@@ -187,12 +187,12 @@ fun PlayingQueueItem(
             LinearProgressIndicator(
                 progress = { progress },
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .height(BORDER_WIDTH_THICK)
-                        .padding(horizontal = SPACING_NORMAL, vertical = SPACING_NONE)
-                        .clip(RoundedCornerShape(topStart = SPACING_TINY, topEnd = SPACING_TINY)),
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .height(BORDER_WIDTH_THICK)
+                    .padding(horizontal = SPACING_NORMAL, vertical = SPACING_NONE)
+                    .clip(RoundedCornerShape(topStart = SPACING_TINY, topEnd = SPACING_TINY)),
                 color = colorSource.accentColor,
                 trackColor = colorSource.accentColor.copy(alpha = 0.1f),
                 strokeCap = StrokeCap.Round,

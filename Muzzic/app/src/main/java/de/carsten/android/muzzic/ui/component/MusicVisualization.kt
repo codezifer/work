@@ -65,7 +65,6 @@ fun MusicVisualization(
         Color(ColorUtils.HSLToColor(targetHsl)).copy(alpha = color.alpha)
     }
 
-
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
