@@ -125,12 +125,12 @@ fun StatisticsScreenPreview() {
                 ),
             ),
             months = listOf(
-                MonthlyPlayCount("Jan", 21),
-                MonthlyPlayCount("Feb", 42),
-                MonthlyPlayCount("Mar", 34),
-                MonthlyPlayCount("Apr", 56),
-                MonthlyPlayCount("May", 61),
-                MonthlyPlayCount("Jun", 73),
+                MonthlyPlayCount("2026-01", 21),
+                MonthlyPlayCount("2026-02", 42),
+                MonthlyPlayCount("2026-03", 34),
+                MonthlyPlayCount("2026-04", 56),
+                MonthlyPlayCount("2026-05", 61),
+                MonthlyPlayCount("2026-06", 73),
             ),
         )
     }

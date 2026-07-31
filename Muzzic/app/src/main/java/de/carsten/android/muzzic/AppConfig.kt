@@ -15,7 +15,8 @@ object AppConfig {
     }
 
     object Ui {
-        const val NUM_OF_TOP_SONGS = 5
+        const val NUM_OF_TOP_SONGS = 10
+        const val NUM_OF_TOP_GENRES = 10
         const val ALBUM_ART_FADE_IN_OUT = 500
     }
 }

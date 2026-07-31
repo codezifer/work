@@ -24,7 +24,6 @@ val databaseModule =
         single { get<MuzzicDatabase>().albumDao() }
         single { get<MuzzicDatabase>().genreDao() }
         single { get<MuzzicDatabase>().playlistDao() }
-        single { get<MuzzicDatabase>().playHistoryDao() }
         single { get<MuzzicDatabase>().playingQueueDao() }
         single { get<MuzzicDatabase>().playerSettingsDao() }
         single { get<MuzzicDatabase>().genericSettingDao() }
@@ -42,7 +41,6 @@ val repoModule =
         single {
             MusicRepository(
                 songDao = get(),
-                playHistoryDao = get(),
                 context = androidContext(),
                 musicFileScanner = get(),
                 playlistFileScanner = get(),

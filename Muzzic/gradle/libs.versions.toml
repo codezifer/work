@@ -1,9 +1,9 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.2.11"
+appVersion = "0.3.0"
 # Dependencies Versions
 activityCompose = "1.13.0"
-agp = "9.3.0"
+agp = "9.3.1"
 appcompat = "1.7.1"
 coil3 = "3.5.0"
 composeBom = "2026.06.01"
@@ -19,7 +19,7 @@ koin = "4.2.2"
 kotlin = "2.4.10"
 kotlinCoroutines = "1.11.0"
 ktlint = "14.2.0"
-ksp = "2.3.2"
+ksp = "2.3.6"
 lifecycleKtx = "2.11.0"
 material = "1.14.0"
 media = "1.8.0"
