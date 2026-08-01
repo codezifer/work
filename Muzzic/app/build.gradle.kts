@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()
@@ -13,6 +13,7 @@ val rootJvmVersion = 17
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
+val muzzicBuild = layout.buildDirectory
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
@@ -209,9 +210,10 @@ tasks {
         group = "build"
         description = "Assembles the release APK"
         dependsOn("assembleRelease")
+        val apkFile = muzzicBuild.dir("outputs/apk/release").map { it.file(appApkName) }
         doLast {
             println("Release APK build successfully!")
-            println("You can find it: ${project.buildDir}/outputs/apk/release/$appApkName")
+            println("You can find it: ${apkFile.get().asFile.absolutePath}")
         }
     }
 }
