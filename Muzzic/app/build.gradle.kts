@@ -1,12 +1,11 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 val appId = "de.carsten.android.muzzic"
 val appVersion = libs.versions.appVersion.get()
 val appBuildTime = System.currentTimeMillis()
 val appApkName = "muzzic-$appVersion.apk"
-val rootKotlinVersion = "2.3"
 val appTargetSdk = 37
 val appMinSdk = 36
 val rootJvmVersion = 17
