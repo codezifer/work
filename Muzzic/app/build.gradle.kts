@@ -2,7 +2,8 @@ import com.android.build.api.dsl.ApplicationExtension
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-val appId = "de.carsten.android.muzzic"
+val appName = "muzzic"
+val appId = "de.carsten.android.$appName"
 val appVersion = libs.versions.appVersion.get()
 val appBuildTime = System.currentTimeMillis()
 val appApkName = "muzzic-$appVersion.apk"
@@ -207,10 +208,19 @@ androidComponents {
 }
 
 tasks {
+    register("prepareRelease") {
+        group = "release"
+        description = "Prepares code for release build"
+        dependsOn("ktlintFormat")
+        val appRelease = "$appName-$appVersion"
+        doLast {
+            println("Prepared release $appRelease")
+        }
+    }
     register("buildReleaseApk") {
-        group = "build"
+        group = "release"
         description = "Assembles the release APK"
-        dependsOn("assembleRelease")
+        dependsOn("prepareRelease", "assembleRelease")
         val apkFile = muzzicBuild.dir("outputs/apk/release").map { it.file(appApkName) }
         doLast {
             println("Release APK build successfully!")
