@@ -32,9 +32,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +51,9 @@ import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PREVIEW_PADDING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.composableColorSource
+import de.carsten.android.muzzic.ui.utils.contrastColor
 import kotlinx.coroutines.delay
 
 /**
@@ -59,9 +65,12 @@ import kotlinx.coroutines.delay
  * @param isScrolling Whether the associated list is currently scrolling.
  * @param modifier Modifier for the outer Box layout.
  * @param activeLetter The letter currently visible in the list (controlled by the parent).
+ * @param colorSource current colors from selected album art
  */
 @Composable
-fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isScrolling: Boolean, modifier: Modifier = Modifier, activeLetter: String? = null) {
+fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isScrolling: Boolean, modifier: Modifier = Modifier, activeLetter: String? = null, colorSource: ColorSource = composableColorSource()) {
+    val haptic = LocalHapticFeedback.current
+
     // Stores the letter currently hovered by the finger while dragging
     var draggingLetter by remember { mutableStateOf<String?>(null) }
 
@@ -155,6 +164,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                                 if (draggingLetter != letter) {
                                     draggingLetter = letter
                                     onLetterSelected(letter)
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
                             }
                         },
@@ -184,7 +194,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                         .width(ICON_SIZE_MEDIUM)
                         .height(ICON_SIZE_MEDIUM)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
+                        .background(colorSource.accentColor.copy(alpha = 0.8f)),
                 )
             }
 
@@ -193,10 +203,19 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier =
                 Modifier
+                    .padding(vertical = SPACING_MEDIUM)
                     .fillMaxHeight()
+                    .shadow(
+                        elevation = if (draggingLetter != null) 8.dp else 2.dp,
+                        shape = RoundedCornerShape(50),
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(50),
+                    )
                     .border(
                         width = BORDER_WIDTH_NORMAL,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        color = colorSource.accentColor.copy(alpha = 0.4f),
                         shape = RoundedCornerShape(50),
                     ),
             ) {
@@ -217,6 +236,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                         letter = displayText,
                         isActive = effectiveLetter == letter,
                         modifier = Modifier.weight(1f),
+                        colorSource = colorSource,
                     )
                 }
             }
@@ -229,14 +249,15 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
                         .align(Alignment.CenterStart)
                         .offset(x = -INDICATOR_SLIDER_PREVIEW_PADDING) // Positioning to the left of the FastScroller
                         .size(ICON_SIZE_FAST_SCROLL_THUMB)
+                        .shadow(8.dp, CircleShape)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.inversePrimary),
+                        .background(colorSource.accentColor),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = letter,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = colorSource.accentColor.contrastColor(),
                     )
                 }
             }
@@ -245,7 +266,7 @@ fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isS
 }
 
 @Composable
-private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modifier = Modifier) {
+private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modifier = Modifier, colorSource: ColorSource = composableColorSource()) {
     Box(
         modifier =
         modifier
@@ -258,7 +279,7 @@ private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modi
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
             color =
             if (isActive) {
-                MaterialTheme.colorScheme.primary
+                colorSource.accentColor
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(
                     alpha = 0.6f,

@@ -230,7 +230,7 @@ private fun LibraryScreenContent(
                     onArtistPlayClick = onArtistPlayClick,
                     onArtistLongClick = onArtistLongClick,
                     selectedArtists = selectedArtists,
-                    borderColor = colorSource.accentColor,
+                    colorSource = colorSource,
                 )
             }
 
@@ -242,7 +242,7 @@ private fun LibraryScreenContent(
                     onAlbumLongClick = onAlbumLongClick,
                     selectedAlbums = selectedAlbums,
                     modifier = contentModifier,
-                    borderColor = colorSource.accentColor,
+                    colorSource = colorSource,
                 )
             }
 
@@ -262,6 +262,7 @@ private fun LibraryScreenContent(
                     genres = genres,
                     modifier = contentModifier,
                     onGenreClick = onGenreClick,
+                    colorSource = colorSource
                 )
             }
 

@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.persistence.migrations
 
-import kotlin.reflect.full.*
 import org.junit.Test
 
 class MigrationConventionTest {

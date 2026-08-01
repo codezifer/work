@@ -10,11 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
+import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
+import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.GenreCard
 
 @Composable
-fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClick: (GenreDto) -> Unit = {}) {
+fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClick: (GenreDto) -> Unit = {}, colorSource: ColorSource = composableColorSource()) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier.padding(horizontal = GRID_HORIZONTAL_PADDING),

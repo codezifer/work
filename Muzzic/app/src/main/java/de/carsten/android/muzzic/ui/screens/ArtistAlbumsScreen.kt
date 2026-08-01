@@ -86,7 +86,7 @@ fun ArtistAlbumsScreen(
                 onAlbumPlayClick = { artist, album -> viewModel.playAlbum(artist, album) },
                 onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
                 selectedAlbums = selectionState.selectedAlbums,
-                borderColor = colorSource.accentColor,
+                colorSource = colorSource,
             )
         }
     }

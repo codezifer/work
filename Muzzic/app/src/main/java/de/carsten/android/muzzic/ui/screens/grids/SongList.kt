@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.ui.screens.grids
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,18 +12,20 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
 import de.carsten.android.muzzic.ui.theme.AppTheme
-import java.time.Instant
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 @Composable
 fun SongList(
@@ -68,44 +69,46 @@ fun SongList(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                state = listState,
-                modifier =
+        LazyColumn(
+            state = listState,
+            modifier =
                 Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(
-                    items = songs,
-                    key = { song -> song.id },
-                    contentType = { "Song" },
-                ) { song ->
-                    SongListItem(
-                        song = song,
-                        onClick = { onSongClick(song) },
-                        onLongClick = { onSongLongClick(song) },
-                        isSelected = selectedSongs.contains(song.id),
-                        colorSource = colorSource,
-                    )
-                }
-            }
-
-            if (alphabet.isNotEmpty()) {
-                FastScroller(
-                    alphabet = alphabet,
-                    activeLetter = activeLetter,
-                    isScrolling = listState.isScrollInProgress,
-                    onLetterSelected = { letter ->
-                        letterToIndexMap[letter]?.let { index ->
-                            scope.launch {
-                                listState.scrollToItem(index)
-                            }
-                        }
-                    },
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(
+                items = songs,
+                key = { song -> song.id },
+                contentType = { "Song" },
+            ) { song ->
+                SongListItem(
+                    song = song,
+                    onClick = { onSongClick(song) },
+                    onLongClick = { onSongLongClick(song) },
+                    isSelected = selectedSongs.contains(song.id),
+                    colorSource = colorSource,
                 )
             }
+        }
+
+        if (alphabet.isNotEmpty()) {
+            FastScroller(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = SPACING_NORMAL),
+                alphabet = alphabet,
+                activeLetter = activeLetter,
+                isScrolling = listState.isScrollInProgress,
+                onLetterSelected = { letter ->
+                    letterToIndexMap[letter]?.let { index ->
+                        scope.launch {
+                            listState.scrollToItem(index)
+                        }
+                    }
+                },
+                colorSource = colorSource,
+            )
         }
     }
 }

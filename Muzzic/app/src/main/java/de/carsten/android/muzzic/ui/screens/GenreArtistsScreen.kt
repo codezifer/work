@@ -102,7 +102,7 @@ fun GenreArtistsScreenContent(
             artists = artists,
             onArtistClick = onArtistClick,
             onArtistPlayClick = onArtistPlayClick,
-            borderColor = colorSource.accentColor,
+            colorSource = colorSource,
         )
     }
 }
