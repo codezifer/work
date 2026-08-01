@@ -22,7 +22,6 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -31,6 +30,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
+import java.io.File
 
 /**
  * Implementation of [FileScanner] that scans for music files and extracts their metadata.
@@ -116,21 +116,8 @@ class MusicFileScanner(
     private fun extractSongMetadata(file: File): Song = try {
         val audioFile = AudioFileIO.read(file)
         val extractedMetadata = Id3TagParser.extractMetadata(audioFile)
-
-        Song(
-            title = extractedMetadata.title ?: UNKNOWN,
-            artist = extractedMetadata.artist ?: UNKNOWN_ARTIST,
-            album = extractedMetadata.album ?: UNKNOWN_ALBUM,
-            genre = extractedMetadata.genre ?: UNKNOWN,
-            duration = extractedMetadata.duration,
-            filePath = file.absolutePath,
-            albumArt = saveAlbumArt(file),
-            trackNumber = extractedMetadata.trackNumber.coerceAtLeast(0),
-            totalTracks = extractedMetadata.totalTracks.coerceAtLeast(0),
-            albumYear = extractedMetadata.year,
-            rating = extractedMetadata.rating,
-            playCount = extractedMetadata.playCount,
-        )
+        
+        Song.fromId3(file, extractedMetadata, saveAlbumArt(file))
     } catch (e: Exception) {
         logger.error("Failed to extract metadata for ${file.absolutePath}", e)
         Song(

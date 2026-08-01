@@ -10,11 +10,15 @@ import androidx.room.Entity
 import androidx.room.Index
 import de.carsten.android.muzzic.MAX_STARS
 import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.UNKNOWN_ALBUM
+import de.carsten.android.muzzic.UNKNOWN_ARTIST
+import de.carsten.android.muzzic.id3.ExtendedMetadata
 import de.carsten.android.muzzic.inferMimeType
 import de.carsten.android.muzzic.mediaItemInstant
 import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.songId
 import de.carsten.android.muzzic.toPlayableUri
+import java.io.File
 import java.time.Instant
 
 @Entity(
@@ -66,13 +70,13 @@ data class Song(
                 trackNumber = metadata.trackNumber ?: 0,
                 totalTracks = metadata.totalTrackCount ?: 0,
                 title = metadata.title?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
-                artist = metadata.artist?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
-                album = metadata.albumTitle?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+                artist = metadata.artist?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN_ARTIST,
+                album = metadata.albumTitle?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN_ALBUM,
+                genre = metadata.genre?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
                 filePath = mediaItem.localConfiguration?.uri?.toString(),
                 albumArt = metadata.artworkUri?.toString(),
                 albumYear = metadata.releaseYear ?: -1,
                 rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(MAX_STARS, 0f)),
-                genre = metadata.genre?.toString()?.takeIf { it.isNotBlank() } ?: UNKNOWN,
                 duration = metadata.durationMs ?: 0L,
                 playCount = metadata.extras?.getInt(MediaKeys.PLAY_COUNT) ?: 0,
                 lastPlayed = mediaItem.mediaItemInstant(MediaKeys.LAST_PLAYED),
@@ -82,6 +86,21 @@ data class Song(
                 updatedAt = mediaItem.mediaItemInstant(MediaKeys.UPDATED_AT)
             }
         }
+
+        fun fromId3(file: File, metadata: ExtendedMetadata, albumArt: String?): Song = Song(
+            title = metadata.title?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+            artist = metadata.artist?.takeIf { it.isNotBlank() } ?: UNKNOWN_ARTIST,
+            album = metadata.album?.takeIf { it.isNotBlank() } ?: UNKNOWN_ALBUM,
+            genre = metadata.genre?.takeIf { it.isNotBlank() } ?: UNKNOWN,
+            duration = metadata.duration,
+            filePath = file.absolutePath,
+            trackNumber = metadata.trackNumber.coerceAtLeast(0),
+            totalTracks = metadata.totalTracks.coerceAtLeast(0),
+            albumYear = metadata.year,
+            rating = metadata.rating,
+            playCount = metadata.playCount,
+            albumArt = albumArt,
+        )
 
         /**
          * gets star rating

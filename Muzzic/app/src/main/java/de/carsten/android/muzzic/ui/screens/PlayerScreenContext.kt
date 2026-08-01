@@ -6,11 +6,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
@@ -72,12 +73,13 @@ fun PlayerScreenContext(
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         // Album Cover
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
+            val albumArtSize = minOf(maxWidth, maxHeight)
             AnimatedContent(
                 targetState = albumArtPath,
                 transitionSpec = {
@@ -99,6 +101,7 @@ fun PlayerScreenContext(
                     } else {
                         AlbumArtInput.FromPath(targetPath)
                     },
+                    modifier = Modifier.size(albumArtSize),
                 )
             }
         }

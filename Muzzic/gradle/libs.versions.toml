@@ -1,6 +1,6 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.3.2"
+appVersion = "0.3.5"
 # Dependencies Versions
 activityCompose = "1.13.0"
 agp = "9.3.1"
@@ -37,7 +37,6 @@ permissions = "0.37.3"
 room = "2.8.4"
 testRunner = "1.7.0"
 work = "2.11.2"
-documentfile = "1.1.0"
 
 [libraries]
 # android core

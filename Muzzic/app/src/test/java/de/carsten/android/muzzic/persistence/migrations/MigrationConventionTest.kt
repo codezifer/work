@@ -31,4 +31,15 @@ class MigrationConventionTest {
             }
         }
     }
+
+    @Test
+    fun `all migrations must be registered in Migrations`() {
+        val registered = Migrations.supply().toSet()
+        val discovered = BaseMigration::class.sealedSubclasses.mapNotNull { it.objectInstance }.toSet()
+
+        val missing = discovered - registered
+        assert(missing.isEmpty()) {
+            "Migrations not registered in Migrations.supply(): ${missing.joinToString { it.javaClass.simpleName }}"
+        }
+    }
 }

@@ -30,6 +30,7 @@ import de.carsten.android.muzzic.ui.FONT_SIZE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
@@ -157,7 +158,7 @@ private fun PlayerScreenContent(
 
 @Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = PREVIEW_DARK_MODE)
 fun PlayerScreenPreview() {
     AppTheme {
         PlayerScreenContent(
