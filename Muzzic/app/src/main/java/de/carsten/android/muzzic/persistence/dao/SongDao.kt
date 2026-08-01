@@ -45,9 +45,9 @@ interface SongDao {
     suspend fun getSongsByIds(vararg songId: String): List<Song>
 
     @Query(
-        "SELECT SUM(playCount) as count, strftime('%Y-%m', datetime(updatedAt/1000, 'unixepoch')) as month FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY month ORDER BY month",
+        "SELECT SUM(playCount) as count, strftime('%Y-%m', datetime(updatedAt/1000, 'unixepoch')) as month FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY month ORDER BY month LIMIT :limit",
     )
-    suspend fun getMonthlyStats(fromTimestamp: Long): List<MonthlyPlayCount>
+    suspend fun getMonthlyStats(fromTimestamp: Long, limit: Int): List<MonthlyPlayCount>
 
     @Query(
         "SELECT CASE WHEN (genre IS NULL OR genre = '') THEN :unknownLabel ELSE genre END AS genre, SUM(playCount) AS count FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY 1 ORDER BY count DESC LIMIT :limit",

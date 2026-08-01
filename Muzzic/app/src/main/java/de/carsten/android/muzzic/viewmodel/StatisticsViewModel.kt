@@ -20,6 +20,15 @@ class StatisticsViewModel(private val repository: MusicRepository) : ViewModel()
     private val _topSongs = MutableStateFlow<List<SongPlayCount>>(emptyList())
     val topSongs = _topSongs.asStateFlow()
 
+    private val _monthStats = MutableStateFlow<List<MonthlyPlayCount>>(emptyList())
+    val monthStats = _monthStats.asStateFlow()
+
+    private val _monthGenreStats = MutableStateFlow<List<GenrePlayCount>>(emptyList())
+    val monthGenreStats = _monthGenreStats.asStateFlow()
+
+    private val _topMonthSongs = MutableStateFlow<List<SongPlayCount>>(emptyList())
+    val topMonthSongs = _topMonthSongs.asStateFlow()
+
     init {
         // Initial load
         loadStats()
@@ -30,6 +39,9 @@ class StatisticsViewModel(private val repository: MusicRepository) : ViewModel()
             _monthlyStats.value = repository.getMonthlyStats()
             _genreStats.value = repository.getGenreStats()
             _topSongs.value = repository.getTopSongs()
+            _monthStats.value = repository.getMonthStats()
+            _monthGenreStats.value = repository.getMonthGenreStats()
+            _topMonthSongs.value = repository.getTopMonthSongs()
         }
     }
 }

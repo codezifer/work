@@ -1,18 +1,17 @@
 package de.carsten.android.muzzic.persistence.migrations
 
 import androidx.room.migration.Migration
-import kotlin.reflect.full.*
 
 /**
  * Registry and utility for Room database migrations.
  *
- * This class automatically discovers all sub-classes of [BaseMigration] using
- * Kotlin reflection. It also enforces a strict naming convention to ensure
- * migrations are correctly ordered and documented.
+ * Contains all migrations in an explicit, ordered list. It
+ * also enforces a strict naming convention to ensure migrations are correctly
+ * ordered and documented.
  */
 object Migrations {
     // Current DB migration version
-    const val VERSION = 2
+    const val VERSION = 3
 
     /**
      * Regex pattern for migration naming convention: V<Start>To<End>_<Description>
@@ -20,13 +19,10 @@ object Migrations {
      */
     private val MIGRATION_NAME_REGEX = Regex("^V(\\d+)To(\\d+)_.*$")
 
-    private val allMigrations: List<Migration> by lazy {
-        BaseMigration::class.sealedSubclasses
-            .asSequence()
-            .mapNotNull { it.objectInstance }
-            .onEach { validateNamingConvention(it) }
-            .toList()
-    }
+    private val allMigrations: List<Migration> = listOf(
+        V1To2_RemovePlayHistory,
+        V2To3_RestorePlayHistory,
+    ).onEach { validateNamingConvention(it) }
 
     /**
      * Validates that the migration's class name matches its version parameters.

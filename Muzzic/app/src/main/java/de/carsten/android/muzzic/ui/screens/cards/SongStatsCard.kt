@@ -27,24 +27,24 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
 
 @Composable
-fun SongStatsCard(topSongs: List<SongPlayCount>) {
+fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResource(R.string.songs_distribution).replace("@@{songs}@@", AppConfig.Ui.NUM_OF_TOP_SONGS.toString())) {
     AppTheme {
         MuzzicCard(
             backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ) {
             Text(
-                text = stringResource(R.string.songs_distribution).replace("@@{songs}@@", AppConfig.Ui.NUM_OF_TOP_SONGS.toString()),
+                text = titelText,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = FONT_SIZE_SUBTITLE,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = SPACING_LARGE),
             )
 
-            topSongs.sorted().forEachIndexed { index, songPlayCount ->
+            topSongs.forEachIndexed { index, songPlayCount ->
                 val title = songPlayCount.song.title
                 val artist = songPlayCount.song.artist
-                val playCount = songPlayCount.song.playCount
+                val playCount = songPlayCount.totalCount
                 val rating = songPlayCount.song.rating
 
                 Row(

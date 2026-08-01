@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.persistence.mock
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.MuzzicDatabase
+import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.Song
 import java.time.Instant
 import kotlin.random.Random
@@ -91,6 +92,7 @@ object DatabaseSeeder {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val songDao = database.songDao()
+                val playHistoryDao = database.playHistoryDao()
 
                 // Only seed if the database is empty
                 val existingAlphabet = songDao.getSongAlphabet()
@@ -132,6 +134,8 @@ object DatabaseSeeder {
                 val now = Instant.now()
                 val sixMonthsSeconds = 6 * 30 * 24 * 60 * 60L
 
+                val playHistory = mutableListOf<PlayHistory>()
+
                 mockSongs.forEach { song ->
                     val songId = song.id
                     val individualPlayCount = Random.nextInt(5, 50) // Ensure at least some plays
@@ -139,7 +143,16 @@ object DatabaseSeeder {
 
                     // Update the song's play count and last played to simulate activity
                     songDao.updatePlayCount(songId, individualPlayCount, lastPlayed.toEpochMilli())
+
+                    // Seed one play-history entry per play within the last six months
+                    repeat(individualPlayCount) {
+                        val playedAt = now.minusSeconds(Random.nextLong(0, sixMonthsSeconds))
+                        playHistory.add(PlayHistory(songId, playedAt.toEpochMilli()))
+                    }
                 }
+
+                playHistoryDao.insertPlayHistories(playHistory)
+                logger.info("Successfully inserted ${playHistory.size} play history entries.")
 
                 logger.info("Database seeding completed successfully.")
             } catch (e: Exception) {

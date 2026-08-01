@@ -2,14 +2,20 @@ package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +48,9 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
     val months by viewModel.monthlyStats.collectAsStateWithLifecycle()
     val songs by viewModel.topSongs.collectAsStateWithLifecycle()
     val genres by viewModel.genreStats.collectAsStateWithLifecycle()
+    val monthStats by viewModel.monthStats.collectAsStateWithLifecycle()
+    val monthGenres by viewModel.monthGenreStats.collectAsStateWithLifecycle()
+    val monthSongs by viewModel.topMonthSongs.collectAsStateWithLifecycle()
 
     StatisticsScreenContent(
         modifier = modifier,
@@ -49,6 +58,9 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
         months = months,
         genres = genres,
         songs = songs,
+        monthStats = monthStats,
+        monthGenres = monthGenres,
+        monthSongs = monthSongs,
     )
 }
 
@@ -59,39 +71,79 @@ private fun StatisticsScreenContent(
     months: List<MonthlyPlayCount>,
     genres: List<GenrePlayCount>,
     songs: List<SongPlayCount>,
+    monthStats: List<MonthlyPlayCount> = emptyList(),
+    monthGenres: List<GenrePlayCount> = emptyList(),
+    monthSongs: List<SongPlayCount> = emptyList(),
+    initialTabIndex: Int = 0,
 ) {
-    LazyColumn(
+    var selectedTab by rememberSaveable { mutableIntStateOf(initialTabIndex) }
+    val tabs = listOf(
+        stringResource(R.string.stats_tab_overall),
+        stringResource(R.string.stats_tab_month),
+    )
+
+    Column(
         modifier =
-        modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
-            .padding(horizontal = SPACING_LARGE),
-        verticalArrangement = Arrangement.spacedBy(SPACING_LARGE),
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
     ) {
-        // Header
-        item {
-            Text(
-                text = stringResource(R.string.statistics),
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = FONT_SIZE_HUGE_TITLE,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = SPACING_LARGE),
-            )
+        Text(
+            text = stringResource(R.string.statistics),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = FONT_SIZE_HUGE_TITLE,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = SPACING_LARGE, vertical = SPACING_LARGE),
+        )
+
+        PrimaryTabRow(selectedTabIndex = selectedTab) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(text = title) },
+                )
+            }
         }
 
-        // Monthly stats. chart
-        item {
-            MonthlyStatsCard(months)
-        }
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = SPACING_LARGE, vertical = SPACING_LARGE),
+            verticalArrangement = Arrangement.spacedBy(SPACING_LARGE),
+        ) {
+            if (selectedTab == 0) {
+                // Overall statistics (based on cumulative song data)
+                item {
+                    MonthlyStatsCard(months)
+                }
 
-        // Genre distribution
-        item {
-            GenreStatsCard(genres)
-        }
+                // Genre distribution
+                item {
+                    GenreStatsCard(genres)
+                }
 
-        // Top songs
-        item {
-            SongStatsCard(songs)
+                // Top songs
+                item {
+                    SongStatsCard(songs)
+                }
+            } else {
+                // Current month statistics (based on play_history)
+                item {
+                    MonthlyStatsCard(monthStats)
+                }
+
+                // Genre distribution of the current month
+                item {
+                    GenreStatsCard(monthGenres)
+                }
+
+                // Top songs of the current month
+                item {
+                    SongStatsCard(topSongs = monthSongs, titelText = stringResource(R.string.top_songs_month))
+                }
+            }
         }
     }
 }
@@ -132,6 +184,60 @@ fun StatisticsScreenPreview() {
                 MonthlyPlayCount("2026-05", 61),
                 MonthlyPlayCount("2026-06", 73),
             ),
+        )
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
+fun StatisticsScreenMonthPreview() {
+    AppTheme {
+        StatisticsScreenContent(
+            months = emptyList(),
+            genres = emptyList(),
+            songs = emptyList(),
+            monthStats = listOf(
+                MonthlyPlayCount("2026-02", 39),
+                MonthlyPlayCount("2026-03", 71),
+                MonthlyPlayCount("2026-04", 48),
+                MonthlyPlayCount("2026-05", 55),
+                MonthlyPlayCount("2026-06", 82),
+                MonthlyPlayCount("2026-07", 66),
+                MonthlyPlayCount("2026-08", 92),
+            ),
+            monthGenres = listOf(
+                GenrePlayCount("Black Metal", 45),
+                GenrePlayCount("Post Punk", 30),
+                GenrePlayCount("Ambient", 17),
+            ),
+            monthSongs = listOf(
+                SongPlayCount(
+                    song = Song(
+                        title = "Echoes of the Void",
+                        playCount = 3,
+                        artist = "Test 1",
+                    ),
+                    totalCount = 12,
+                ),
+                SongPlayCount(
+                    song = Song(
+                        title = "Silent Horizon",
+                        playCount = 5,
+                        artist = "Test 2",
+                    ),
+                    totalCount = 9,
+                ),
+                SongPlayCount(
+                    song = Song(
+                        title = "Midnight Pulse",
+                        playCount = 2,
+                        artist = "Test 3",
+                    ),
+                    totalCount = 6,
+                ),
+            ),
+            initialTabIndex = 1,
         )
     }
 }

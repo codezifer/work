@@ -70,6 +70,16 @@ companion object {
 // Private fields: no underscore prefix (Kotlin convention)
 private val _uiState = MutableStateFlow(UiState())
 val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+// Flow-returning functions: get{Model}Stream() — plural model name for lists
+fun getUserStream(id: String): Flow<User>
+fun getUsersStream(): Flow<List<User>>
+
+// Interface implementations: meaningful name, or Default{Interface} if none fits
+// Fakes always get the Fake prefix (used by tests, not production code)
+class OfflineFirstUserRepository : UserRepository
+class DefaultUserRepository : UserRepository
+class FakeUserRepository : UserRepository
 ```
 
 ### Null Safety
@@ -248,9 +258,19 @@ class UserRepository(
 private val _uiState = MutableStateFlow(UiState.Initial)
 val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-// ✅ Use SharedFlow for one-time events (navigation, snackbars)
-private val _events = MutableSharedFlow<UiEvent>()
-val events: SharedFlow<UiEvent> = _events.asSharedFlow()
+// ⚠️ SharedFlow for one-off events (navigation, snackbars) is an OLDER pattern.
+// Google's current architecture guidance explicitly recommends AGAINST sending
+// events from the ViewModel to the UI: process the event immediately in the
+// ViewModel and let it produce a state update instead.
+// See: https://developer.android.com/topic/architecture/recommendations#ui-layer
+// Model the "event" as part of uiState instead:
+data class UiState(
+    val oneOffMessage: String? = null, // consumed + cleared by the UI, not streamed
+    // ...
+)
+// The UI reads it, shows it, then calls viewModel.onMessageShown() to clear it.
+// Only fall back to SharedFlow for events that are genuinely fire-and-forget
+// and have no sensible state representation (rare) — document why if you do.
 
 // ✅ Use callbackFlow to wrap callback-based APIs
 fun observeNetworkState(): Flow<Boolean> = callbackFlow {
@@ -277,6 +297,9 @@ val users: Flow<List<User>> = userDao.observeAll()
 **Optimization Purpose**: Facilitate unit testing, enable parallel development, and simplify maintenance as the project grows.
 
 ### ViewModel
+
+- Use ViewModels **only at screen level** (screen-level composables or navigation destinations) — never inject a ViewModel into a reusable, non-screen component. Reusable components take a plain state holder or hoisted state/callbacks instead.
+- Never pass `Context`, `Activity`, or `Resources` into a ViewModel constructor. If something needs one, that logic belongs in the UI or data layer, not the ViewModel.
 
 ```kotlin
 class UserViewModel(
@@ -442,6 +465,14 @@ DisposableEffect(lifecycleOwner) {
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
 }
 
+// ✅ Prefer LifecycleStartEffect / LifecycleResumeEffect over a manual
+// LifecycleEventObserver for simple start/stop or resume/pause bound work —
+// less boilerplate, same lifecycle-awareness.
+LifecycleStartEffect(Unit) {
+    val listener = /* e.g. register a system callback */ TODO()
+    onStopOrDispose { /* unregister */ }
+}
+
 // SideEffect: sync Compose state to non-Compose systems.
 // ALWAYS document the purpose of the effect with a concise comment.
 SideEffect {
@@ -498,6 +529,71 @@ class Converters {
     fun toList(value: String): List<String> = Gson().fromJson(value, Array<String>::class.java).toList()
 }
 ```
+
+---
+
+## 🎵 Media3 / ExoPlayer
+**Intent**: Integrate playback cleanly into the layered architecture instead of letting the UI talk to the player directly.
+**Optimization Purpose**: Avoid leaks, keep playback state testable, and get system integration (notification, Bluetooth, Android Auto) for free.
+
+```kotlin
+// ✅ Background playback via MediaSessionService, not a bare Service
+class PlaybackService : MediaSessionService() {
+
+    private lateinit var player: ExoPlayer
+    private lateinit var mediaSession: MediaSession
+
+    override fun onCreate() {
+        super.onCreate()
+        player = ExoPlayer.Builder(this).build()
+        mediaSession = MediaSession.Builder(this, player).build()
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
+
+    override fun onDestroy() {
+        mediaSession.release()
+        player.release()
+        super.onDestroy()
+    }
+}
+
+// ✅ UI/ViewModel never touches ExoPlayer directly — go through a repository
+// that wraps a MediaController, consistent with the Repository Pattern above.
+interface PlaybackRepository {
+    fun getPlaybackStateStream(): Flow<PlaybackState>
+    suspend fun play(mediaItem: MediaItem)
+    suspend fun pause()
+}
+
+class MediaControllerPlaybackRepository(
+    private val controllerFuture: ListenableFuture<MediaController>
+) : PlaybackRepository {
+    override fun getPlaybackStateStream(): Flow<PlaybackState> = callbackFlow {
+        val controller = controllerFuture.await()
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                trySend(controller.toPlaybackState())
+            }
+        }
+        controller.addListener(listener)
+        trySend(controller.toPlaybackState())
+        awaitClose { controller.removeListener(listener) }
+    }
+
+    override suspend fun play(mediaItem: MediaItem) {
+        controllerFuture.await().apply { setMediaItem(mediaItem); prepare(); play() }
+    }
+
+    override suspend fun pause() {
+        controllerFuture.await().pause()
+    }
+}
+```
+
+- Never create a long-lived `ExoPlayer` directly inside a Composable. Bind it to a lifecycle owner or a `MediaSessionService`, and always call `release()` in `onStop`/`onDispose`/`onDestroy`.
+- `Player.Listener` callbacks get turned into a `Flow`/`StateFlow` (via `callbackFlow`, same pattern as other callback-based APIs above) — never held as raw mutable Compose state read from a listener directly.
+- Test playback logic with the fakes from `media3-test-utils` (`FakeExoPlayer`/`FakeClock` etc.) instead of instantiating a real `ExoPlayer` in unit tests.
 
 ---
 
@@ -637,10 +733,12 @@ class UserViewModelTest {
 }
 
 // ✅ Use Turbine for Flow testing
-// ✅ Use MockK for mocking
 // ✅ Use Robolectric for Android unit tests without emulator
 // ✅ Use Compose Testing APIs for UI tests
 ```
+
+- **Prefer fakes over mocks** for repositories and data sources (Google's current strong recommendation). A `FakeUserRepository` backed by an in-memory list is easier to reason about and reuse than a MockK stub repeated per test. Reserve MockK for collaborators that are impractical to fake (e.g. platform callbacks with complex contracts).
+- When testing a `StateFlow`, assert on the `.value` property directly where possible, and account for `WhileSubscribed(...)` timing when the flow is built with `stateIn`.
 
 ---
 
@@ -774,7 +872,7 @@ android {
 |-----------------------------------------|---------------------------------------|
 | `AsyncTask`                             | `viewModelScope.launch` + coroutines  |
 | `LiveData` in new code                  | `StateFlow` / `SharedFlow`            |
-| `startActivity` in ViewModel            | Navigation events via `SharedFlow`    |
+| `startActivity` in ViewModel            | Model destination/one-off message as part of `uiState`, consumed by the UI |
 | Hardcoded strings                       | `strings.xml` resources               |
 | `!!` (non-null assertion)               | Safe calls + Elvis operator           |
 | Static context references               | Koin injection / `androidContext()`   |
