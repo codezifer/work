@@ -7,6 +7,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import de.carsten.android.muzzic.MAX_STARS
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.inferMimeType
@@ -16,7 +17,15 @@ import de.carsten.android.muzzic.songId
 import de.carsten.android.muzzic.toPlayableUri
 import java.time.Instant
 
-@Entity(tableName = "songs")
+@Entity(
+    tableName = "songs",
+    indices = [
+        Index("updatedAt"),
+        Index("artist", "albumYear", "album", "trackNumber", "title"),
+        Index("album", "artist"),
+        Index("genre", "rating", "playCount"),
+    ],
+)
 data class Song(
     @ColumnInfo
     val title: String = UNKNOWN,

@@ -11,7 +11,7 @@ import androidx.room.migration.Migration
  */
 object Migrations {
     // Current DB migration version
-    const val VERSION = 3
+    const val VERSION = 4
 
     /**
      * Regex pattern for migration naming convention: V<Start>To<End>_<Description>
@@ -22,6 +22,7 @@ object Migrations {
     private val allMigrations: List<Migration> = listOf(
         V1To2_RemovePlayHistory,
         V2To3_RestorePlayHistory,
+        V3To4_AddQueryIndexes,
     ).onEach { validateNamingConvention(it) }
 
     /**

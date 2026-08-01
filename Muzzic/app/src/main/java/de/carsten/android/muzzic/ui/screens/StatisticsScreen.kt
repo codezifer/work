@@ -84,9 +84,9 @@ private fun StatisticsScreenContent(
 
     Column(
         modifier =
-            modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
+        modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
     ) {
         Text(
             text = stringResource(R.string.statistics),
@@ -108,9 +108,9 @@ private fun StatisticsScreenContent(
 
         LazyColumn(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = SPACING_LARGE, vertical = SPACING_LARGE),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = SPACING_LARGE, vertical = SPACING_LARGE),
             verticalArrangement = Arrangement.spacedBy(SPACING_LARGE),
         ) {
             if (selectedTab == 0) {

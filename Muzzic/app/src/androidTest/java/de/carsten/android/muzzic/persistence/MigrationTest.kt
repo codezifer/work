@@ -88,4 +88,41 @@ class MigrationTest {
         assertEquals("Play history row should be present", 1, historyCursor.count)
         historyCursor.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        val testDbName = "migration-test-3to4"
+        var db = helper.createDatabase(testDbName, 3)
+
+        // Insert a song into the songs table
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'Artist', 'Album', 'Rock', 3, 1000)",
+        )
+
+        db.close()
+
+        // Re-open the database with version 4 and provide all migrations
+        db = helper.runMigrationsAndValidate(testDbName, 4, true, *Migrations.supply())
+
+        // Validation: all new query indexes should exist
+        val expectedIndexes = listOf(
+            "index_play_history_playedAt",
+            "index_songs_updatedAt",
+            "index_songs_artist_albumYear_album_trackNumber_title",
+            "index_songs_album_artist",
+            "index_songs_genre_rating_playCount",
+        )
+        expectedIndexes.forEach { indexName ->
+            val indexCursor = db.query("SELECT name FROM sqlite_master WHERE type='index' AND name='$indexName'")
+            assertEquals("Index $indexName should have been created", 1, indexCursor.count)
+            indexCursor.close()
+        }
+
+        // Validation: existing data should have been preserved
+        val songCursor = db.query("SELECT * FROM songs WHERE id = 's1'")
+        assertEquals("Song data should have been preserved", 1, songCursor.count)
+        songCursor.close()
+    }
 }
