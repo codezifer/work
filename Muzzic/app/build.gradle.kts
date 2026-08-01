@@ -1,15 +1,15 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 val appName = "muzzic"
 val appId = "de.carsten.android.$appName"
 val appVersion = libs.versions.appVersion.get()
 val appBuildTime = System.currentTimeMillis()
 val appApkName = "muzzic-$appVersion.apk"
-val appTargetSdk = 37
-val appMinSdk = 36
-val rootJvmVersion = 17
+val appTargetSdk = libs.versions.appMaxSdk.get().toInt()
+val appMinSdk = libs.versions.appMinSdk.get().toInt()
+val rootJvmVersion = libs.versions.appJvmVersion.get().toInt()
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
