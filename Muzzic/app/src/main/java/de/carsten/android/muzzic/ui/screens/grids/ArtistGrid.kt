@@ -74,9 +74,9 @@ fun ArtistGrid(
             state = gridState,
             columns = GridCells.Fixed(2),
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = GRID_HORIZONTAL_PADDING),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = GRID_HORIZONTAL_PADDING),
             verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {
@@ -123,11 +123,11 @@ fun ArtistGrid(
 fun ArtistGridPreview() {
     ArtistGrid(
         artists =
-            listOf(
-                ArtistDto("Cradle Of Filth", 2, 13),
-                ArtistDto("Dimmu Borgir", 1, 10),
-                ArtistDto("Interpol", 1, 7),
-                ArtistDto("Jimmy Eat World", 1, 10),
-            ),
+        listOf(
+            ArtistDto("Cradle Of Filth", 2, 13),
+            ArtistDto("Dimmu Borgir", 1, 10),
+            ArtistDto("Interpol", 1, 7),
+            ArtistDto("Jimmy Eat World", 1, 10),
+        ),
     )
 }

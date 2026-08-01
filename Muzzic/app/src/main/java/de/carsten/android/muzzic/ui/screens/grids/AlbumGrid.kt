@@ -73,9 +73,9 @@ fun AlbumGrid(
             state = gridState,
             columns = GridCells.Fixed(2),
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = GRID_HORIZONTAL_PADDING),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = GRID_HORIZONTAL_PADDING),
             verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {

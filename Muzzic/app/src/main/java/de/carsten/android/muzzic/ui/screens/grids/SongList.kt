@@ -24,8 +24,8 @@ import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.screens.controls.FastScroller
 import de.carsten.android.muzzic.ui.theme.AppTheme
-import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlinx.coroutines.launch
 
 @Composable
 fun SongList(
@@ -72,9 +72,9 @@ fun SongList(
         LazyColumn(
             state = listState,
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(

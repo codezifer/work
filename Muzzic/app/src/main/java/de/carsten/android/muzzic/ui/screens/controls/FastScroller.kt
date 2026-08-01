@@ -68,7 +68,14 @@ import kotlinx.coroutines.delay
  * @param colorSource current colors from selected album art
  */
 @Composable
-fun FastScroller(alphabet: List<String>, onLetterSelected: (String) -> Unit, isScrolling: Boolean, modifier: Modifier = Modifier, activeLetter: String? = null, colorSource: ColorSource = composableColorSource()) {
+fun FastScroller(
+    alphabet: List<String>,
+    onLetterSelected: (String) -> Unit,
+    isScrolling: Boolean,
+    modifier: Modifier = Modifier,
+    activeLetter: String? = null,
+    colorSource: ColorSource = composableColorSource(),
+) {
     val haptic = LocalHapticFeedback.current
 
     // Stores the letter currently hovered by the finger while dragging

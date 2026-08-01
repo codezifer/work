@@ -262,7 +262,7 @@ private fun LibraryScreenContent(
                     genres = genres,
                     modifier = contentModifier,
                     onGenreClick = onGenreClick,
-                    colorSource = colorSource
+                    colorSource = colorSource,
                 )
             }
 
