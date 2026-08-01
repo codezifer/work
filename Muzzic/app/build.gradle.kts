@@ -148,7 +148,11 @@ dependencies {
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
+    implementation(libs.kotlinx.serialization.json)
     ksp(libs.androidx.room.compiler)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.kotlinx.serialization.json)
+    androidTestImplementation(libs.kotlinx.serialization.core)
 
     // koin
     implementation(libs.koin.android)
@@ -176,7 +180,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.androidx.test.junit)
     testImplementation(libs.mockk)
-    testImplementation(libs.mockk.bdd)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -189,7 +192,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.mockk.android)
-    androidTestImplementation(libs.mockk.android.bdd)
     androidTestImplementation(libs.koin.test)
 
     // debug deps.
