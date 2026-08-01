@@ -18,8 +18,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
+import de.carsten.android.muzzic.ui.CHART_BAR_ROTATION
 import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.OPACITY_MEDIUM
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
@@ -70,10 +72,10 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
 
                         Text(
                             text = displayMonth,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = OPACITY_MEDIUM),
                             fontSize = FONT_SIZE_SMALL,
                             modifier = Modifier.graphicsLayer {
-                                rotationZ = -45f
+                                rotationZ = CHART_BAR_ROTATION
                             },
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
@@ -85,7 +87,7 @@ fun MonthlyStatsCard(monthlyPlayCounts: List<MonthlyPlayCount>) {
 }
 
 @Composable
-@Preview()
+@Preview
 @Preview(uiMode = PREVIEW_DARK_MODE)
 fun MonthlyStatsCardPreview() {
     MonthlyStatsCard(

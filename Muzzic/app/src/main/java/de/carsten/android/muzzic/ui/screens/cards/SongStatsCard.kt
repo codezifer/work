@@ -12,10 +12,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
+import de.carsten.android.muzzic.ui.CARD_INTERNAL_PADDING
+import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
+import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
+import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.FONT_SIZE_TITLE
+import de.carsten.android.muzzic.ui.RANK_COLUMN_WIDTH
+import de.carsten.android.muzzic.ui.RATING_STAR_SIZE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
 
@@ -27,11 +34,11 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ) {
             Text(
-                text = stringResource(R.string.songs_distribution),
+                text = stringResource(R.string.songs_distribution).replace("@@{songs}@@", AppConfig.Ui.NUM_OF_TOP_SONGS.toString()),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
+                fontSize = FONT_SIZE_SUBTITLE,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = SPACING_LARGE),
             )
 
             topSongs.sorted().forEachIndexed { index, songPlayCount ->
@@ -44,29 +51,29 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
                     modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = CARD_INTERNAL_PADDING),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "#${index + 1}",
                         color = CustomColors.chartBar,
-                        fontSize = 18.sp,
+                        fontSize = FONT_SIZE_TITLE,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(32.dp),
+                        modifier = Modifier.width(RANK_COLUMN_WIDTH),
                     )
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = title,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp,
+                            fontSize = FONT_SIZE_BODY,
                             fontWeight = FontWeight.SemiBold,
                         )
 
                         Text(
                             text = artist,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            fontSize = 12.sp,
+                            fontSize = FONT_SIZE_CAPTION,
                         )
                     }
 
@@ -76,14 +83,14 @@ fun SongStatsCard(topSongs: List<SongPlayCount>) {
                         Text(
                             text = "$playCount Plays",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.sp,
+                            fontSize = FONT_SIZE_CAPTION,
                             fontWeight = FontWeight.SemiBold,
                         )
 
                         StarRating(
                             rating = rating,
                             onRatingChanged = { },
-                            size = 10.dp,
+                            size = RATING_STAR_SIZE,
                         )
                     }
                 }

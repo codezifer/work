@@ -802,4 +802,14 @@ android {
 
 ---
 
+## 🛠️ Workflow Rules
+**Intent**: Enforce automated quality checks and consistency across the project.
+**Optimization Purpose**: Reduce manual review effort and ensure a stable, well-formatted codebase.
+
+- **Automated Formatting**: After making any changes to Kotlin files, ALWAYS run the `./gradlew ktlintFormat` task to ensure the code adheres to the project's style guide.
+- **Verification**: Before concluding a task, ALWAYS verify that all unit tests pass by running the `./gradlew test` task (or the specific task for the module, e.g., `:app:testDebugUnitTest`). No task is considered complete if there are failing tests.
+- **Continuous Improvement**: If you encounter recurring issues or patterns that could be automated, propose an update to this ruleset.
+
+---
+
 *Based on: Google Android Developer Guidelines, Kotlin Coding Conventions, MAD Scorecard, Jetpack Documentation — 2025*

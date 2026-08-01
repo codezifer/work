@@ -44,7 +44,7 @@
     <string name="genre_distribution">Genre-Verteilung</string>
     <string name="top_songs_month">Top Songs diesen Monat</string>
     <string name="plays_format">%d Plays</string>
-    <string name="songs_distribution">Top 5 Songs diesen Monat</string>
+    <string name="songs_distribution">Top @@{songs}@@ Songs diesen Monat</string>
 
     <!-- Permissions -->
     <string name="permission_title">Musikbibliothek-Zugriff erforderlich</string>

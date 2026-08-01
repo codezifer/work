@@ -109,6 +109,7 @@ dependencies {
     implementation(kotlinxCoroutinesBom)
     implementation(libs.kotlinx.coroutines.code)
     implementation(libs.kotlinx.coroutines.guava)
+    implementation(libs.kotlin.reflection)
 
     // core
     implementation(libs.androidx.core.ktx)

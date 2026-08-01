@@ -18,12 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.ui.CHART_PERCENTAGE_THRESHOLD
+import de.carsten.android.muzzic.ui.CHART_PIE_HOLE_RADIUS
+import de.carsten.android.muzzic.ui.CHART_PIE_SIZE
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
 import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
+import de.carsten.android.muzzic.ui.PERCENTAGE_FACTOR
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_EXTRA_LARGE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
@@ -66,17 +69,17 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
             if (allGenresCount > 0) {
                 val data = genresWithColor.map { it.first.count.toFloat() }
                 val labels = data.map { value ->
-                    val percentage = (value / allGenresCount * 100).toInt()
-                    if (percentage > 5) "$percentage%" else ""
+                    val percentage = ((value / allGenresCount) * PERCENTAGE_FACTOR).toInt()
+                    if (percentage > CHART_PERCENTAGE_THRESHOLD) "$percentage%" else ""
                 }
 
                 MuzzicPieChart(
                     data = data,
                     colors = genresWithColor.map { it.second },
                     labels = labels,
-                    holeRadiusPercent = 0.4f,
+                    holeRadiusPercent = CHART_PIE_HOLE_RADIUS,
                     modifier = Modifier
-                        .size(160.dp) // I'll keep 160.dp for now or use a constant. I'll use 160.dp.
+                        .size(CHART_PIE_SIZE)
                         .padding(bottom = SPACING_EXTRA_LARGE),
                 )
             }
@@ -84,7 +87,7 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 genresWithColor.forEach { (genrePlayCount, color) ->
                     val percentage = if (allGenresCount > 0) {
-                        (genrePlayCount.count.toFloat() / allGenresCount * 100).toInt()
+                        ((genrePlayCount.count.toFloat() / allGenresCount) * PERCENTAGE_FACTOR).toInt()
                     } else {
                         0
                     }

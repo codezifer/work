@@ -143,6 +143,18 @@ val ICON_SIZE_CONTROL_SMALL = 32.dp
 val ICON_SIZE_FAST_SCROLL_THUMB = 50.dp
 
 /**
+ * Statistics and Chart Tokens
+ */
+const val CHART_BAR_ROTATION = -45f
+const val CHART_PIE_HOLE_RADIUS = 0.4f
+val CHART_PIE_SIZE = 160.dp
+const val CHART_PERCENTAGE_THRESHOLD = 5
+val RATING_STAR_SIZE = 10.dp
+val RANK_COLUMN_WIDTH = 32.dp
+const val PERCENTAGE_FACTOR = 100
+const val OPACITY_MEDIUM = 0.6f
+
+/**
  * Typography - Font Sizes
  */
 val FONT_SIZE_TINY = 9.sp

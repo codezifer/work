@@ -11,12 +11,7 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.scanning.MusicFileScanner
 import de.carsten.android.muzzic.scanning.PlaylistFileScanner
 
-class MusicRepository(
-    val songDao: SongDao,
-    val context: Context,
-    private val musicFileScanner: MusicFileScanner,
-    private val playlistFileScanner: PlaylistFileScanner,
-) {
+class MusicRepository(val songDao: SongDao, val context: Context, private val musicFileScanner: MusicFileScanner, private val playlistFileScanner: PlaylistFileScanner) {
     companion object {
         @JvmStatic
         private val logger = logger()
@@ -50,9 +45,7 @@ class MusicRepository(
         return songDao.getGenreStats(oneYearAgo, AppConfig.Ui.NUM_OF_TOP_GENRES, UNKNOWN)
     }
 
-    suspend fun getTopSongs(): List<SongPlayCount> {
-        return songDao.getTopSongs(AppConfig.Ui.NUM_OF_TOP_SONGS)
-    }
+    suspend fun getTopSongs(): List<SongPlayCount> = songDao.getTopSongs(AppConfig.Ui.NUM_OF_TOP_SONGS)
 
     suspend fun updateAutomaticPlaylists() {
         musicFileScanner.updateAutomaticPlaylists()

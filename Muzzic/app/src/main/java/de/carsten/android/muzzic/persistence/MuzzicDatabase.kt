@@ -42,7 +42,7 @@ abstract class MuzzicDatabase : RoomDatabase() {
         fun database(context: Context): MuzzicDatabase = Room
             .databaseBuilder(context, MuzzicDatabase::class.java, AppConfig.Persistence.DATABASE_NAME)
             .addMigrations(*Migrations.supply())
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            .fallbackToDestructiveMigration(dropAllTables = false)
             .build()
     }
 

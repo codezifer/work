@@ -31,7 +31,7 @@ data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Lo
 
     fun get(): String {
         if (filePath.startsWith("http")) return filePath
-        val path = "${ALBUMART_SCHEME}${filePath}?offset=${offset}&size=${size}&hashCode=${hashCode}"
+        val path = "${ALBUMART_SCHEME}$filePath?offset=$offset&size=$size&hashCode=$hashCode"
         return if (mimeType == null) path else "$path&mimeType=$mimeType"
     }
 

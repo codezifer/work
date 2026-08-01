@@ -49,6 +49,7 @@ class PlayerViewModelTest {
         // Ensure browser is available immediately in the flow
         browserFlow.value = browser
         every { mediaLibraryManager.browser } returns browserFlow
+        every { visualizerSink.amplitudes } returns MutableStateFlow(emptyList())
 
         // Mocking getAllSongs (called during property initialization)
         every { repository.getAllSongs() } returns flowOf(emptyList())
