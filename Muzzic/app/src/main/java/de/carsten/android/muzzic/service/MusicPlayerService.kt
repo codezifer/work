@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.service
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
+@OptIn(UnstableApi::class)
 class MusicPlayerService :
     MediaLibraryService(),
     KoinComponent {
@@ -34,6 +36,7 @@ class MusicPlayerService :
     private val stateManager: PlaybackStateManager by inject()
     private val playlistManager: AutomaticPlaylistManager by inject()
     private val settingsRepository: SettingsRepository by inject()
+    private val bitmapLoader: BitmapLoader by inject()
 
     // Repositories for the Callback (consider moving these as well if possible)
     private val musicRepository: MusicRepository by inject()
@@ -50,7 +53,6 @@ class MusicPlayerService :
     private var prevPlaybackState: Int = Player.STATE_IDLE
     private var isPlaying = false
 
-    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
 
@@ -74,6 +76,7 @@ class MusicPlayerService :
                     ),
                 )
                 .setId("MuzzicPlayerSession")
+                .setBitmapLoader(bitmapLoader)
                 .build()
 
         queueManager.loadPersistedQueue(serviceScope, playbackManager.exoPlayer)
