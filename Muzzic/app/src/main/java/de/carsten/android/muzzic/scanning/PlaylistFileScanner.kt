@@ -12,6 +12,7 @@ import de.carsten.android.muzzic.playlist.M3uParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 
 /**
@@ -32,7 +33,7 @@ class PlaylistFileScanner(
         val rootDir = getScanningRoot(context, configuredDir)
         if (rootDir == null || !rootDir.exists()) return@withContext
 
-        val playlistFiles = scanForFiles(context, rootDir, setOf("m3u", "m3u8"))
+        val playlistFiles = scanForFiles(context, rootDir, setOf("m3u", "m3u8")).toList()
 
         val totalPlaylists = playlistFiles.size
         playlistFiles.forEachIndexed { index, file ->

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -100,9 +102,20 @@ private fun SettingsScreenContent(
     }
 
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showClearDatabaseDialog by remember { mutableStateOf(false) }
 
     if (showAboutDialog) {
         AboutDialog(onDismiss = { showAboutDialog = false })
+    }
+
+    if (showClearDatabaseDialog) {
+        ClearDatabaseDialog(
+            onConfirm = {
+                settingsViewModel?.clearLibrary()
+                showClearDatabaseDialog = false
+            },
+            onDismiss = { showClearDatabaseDialog = false },
+        )
     }
 
     Column(
@@ -171,6 +184,13 @@ private fun SettingsScreenContent(
             ) {
                 Text(stringResource(R.string.scan_playlists))
             }
+            Spacer(modifier = Modifier.height(SPACING_MEDIUM))
+            Button(
+                onClick = { showClearDatabaseDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.clear_database))
+            }
         }
     }
 }
@@ -213,6 +233,32 @@ private fun DirectorySetting(label: String, path: String, onSelect: () -> Unit) 
             }
         }
     }
+}
+
+@Composable
+private fun ClearDatabaseDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.clear_database_confirm_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        text = {
+            Text(text = stringResource(R.string.clear_database_confirm_message))
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.delete))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
 }
 
 @Composable

@@ -30,4 +30,7 @@ interface PlayHistoryDao {
 
     @Insert
     suspend fun insertPlayHistories(playHistories: List<PlayHistory>)
+
+    @Query("DELETE FROM play_history")
+    suspend fun deleteAllPlayHistory()
 }

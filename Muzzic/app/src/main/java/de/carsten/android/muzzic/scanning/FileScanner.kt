@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import java.io.File
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Common interface for components that scan the file system for music-related files.
@@ -48,9 +49,14 @@ interface FileScanner {
     }
 
     /**
-     * Scans multiple roots for files with the specified extensions.
+     * Streams files from root directory with the specified extensions.
+     *
+     * @param context android [Context]
+     * @param rootDir directory as [File]
+     * @param extensions supported file extensions
+     * @return [Flow] of matching [File]
      */
-    suspend fun scanForFiles(context: Context, rootDir: File, extensions: Set<String>): List<File> = FileUtil.getFiles(rootDir, extensions)
+    fun scanForFiles(context: Context, rootDir: File, extensions: Set<String>): Flow<File> = FileUtil.getFilesFlow(rootDir, extensions)
 
     /**
      * Enqueues a scan task using [WorkManager].

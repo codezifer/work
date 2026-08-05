@@ -70,4 +70,7 @@ interface SongDao {
 
     @Query("DELETE FROM songs WHERE filePath = :filePath")
     suspend fun deleteSongByPath(filePath: String)
+
+    @Query("DELETE FROM songs")
+    suspend fun deleteAllSongs()
 }

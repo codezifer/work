@@ -62,4 +62,13 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             musicRepository.importPlaylists()
         }
     }
+
+    /**
+     * Clears the entire library (songs, playlists, statistics and queue).
+     */
+    fun clearLibrary() {
+        viewModelScope.launch {
+            musicRepository.clearLibrary()
+        }
+    }
 }

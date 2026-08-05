@@ -70,11 +70,15 @@
     <string name="playlist_directory">Playlist Directory</string>
     <string name="manual_tasks">Manual Tasks</string>
     <string name="scan_playlists">Playlists einscannen</string>
+    <string name="clear_database">Datenbank leeren</string>
+    <string name="clear_database_confirm_title">Datenbank leeren?</string>
+    <string name="clear_database_confirm_message">Alle Songs, Playlists, Statistiken und die Warteschlange werden unwiderruflich gelöscht. Danach kannst du die Bibliothek neu scannen.</string>
     <string name="select_directory">Select Directory</string>
     <string name="back">Zurück</string>
     <string name="playlist_save">Save Queue as Playlist</string>
     <string name="playlist_name">Playlist Name</string>
     <string name="delete">Löschen</string>
+    <string name="cancel">Abbrechen</string>
     <string name="options">More options</string>
     <string name="play_playlist">Play playlist</string>
 

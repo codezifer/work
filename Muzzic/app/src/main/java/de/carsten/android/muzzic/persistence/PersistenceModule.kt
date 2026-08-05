@@ -43,6 +43,9 @@ val repoModule =
             MusicRepository(
                 songDao = get(),
                 playHistoryDao = get(),
+                playlistDao = get(),
+                playingQueueDao = get(),
+                database = get(),
                 context = androidContext(),
                 musicFileScanner = get(),
                 playlistFileScanner = get(),

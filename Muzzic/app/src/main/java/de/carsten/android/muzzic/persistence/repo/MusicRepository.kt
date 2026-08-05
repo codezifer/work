@@ -1,9 +1,13 @@
 package de.carsten.android.muzzic.persistence.repo
 
 import android.content.Context
+import androidx.room.withTransaction
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.UNKNOWN
+import de.carsten.android.muzzic.persistence.MuzzicDatabase
 import de.carsten.android.muzzic.persistence.dao.PlayHistoryDao
+import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
+import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
@@ -17,6 +21,9 @@ import java.time.ZoneOffset
 class MusicRepository(
     val songDao: SongDao,
     val playHistoryDao: PlayHistoryDao,
+    private val playlistDao: PlaylistDao,
+    private val playingQueueDao: PlayingQueueDao,
+    private val database: MuzzicDatabase,
     val context: Context,
     private val musicFileScanner: MusicFileScanner,
     private val playlistFileScanner: PlaylistFileScanner,
@@ -33,6 +40,21 @@ class MusicRepository(
 
     fun importPlaylists() {
         playlistFileScanner.enqueue(context)
+    }
+
+    /**
+     * Clears the entire library: songs, playlists, play history and the playing queue.
+     *
+     * Playlist-song assignments are removed via foreign key cascade; the queue is cleared
+     * explicitly because its [PlayingQueue] entries may reference no song at all. Runs
+     * atomically so a failure cannot leave the library half-cleared. App settings
+     * (e.g. configured directories) are kept so the library can be rescanned fresh.
+     */
+    suspend fun clearLibrary() = database.withTransaction {
+        songDao.deleteAllSongs()
+        playlistDao.deleteAllPlaylists()
+        playHistoryDao.deleteAllPlayHistory()
+        playingQueueDao.clearQueue()
     }
 
     suspend fun recordPlay(songId: String) {

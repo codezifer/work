@@ -8,8 +8,13 @@ import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 object FileUtil {
@@ -37,32 +42,46 @@ object FileUtil {
     }
 
     /**
-     * Get all files from root directory
+     * Streams all files from root directory matching the given extensions.
+     *
+     * Each matching file is emitted as soon as it is discovered, so callers can start
+     * processing while the directory walk is still in progress. The caller is
+     * responsible for running the flow on a background dispatcher (e.g. via `flowOn`).
      *
      * @param root directory as [File]
      * @param extensions supported file extensions
-     * @return result as [List] of [File]
+     * @return [Flow] of matching [File]
      */
-    suspend fun getFiles(root: File, extensions: Set<String>): List<File> = withContext(Dispatchers.IO) {
-        if (!root.exists()) {
-            emptyList()
-        } else {
-            val results = mutableListOf<File>()
-            root.walkTopDown()
-                .onEnter {
-                    ensureActive()
-                    true
-                }
-                .filter {
-                    it.isFile && it.extension.lowercase() in extensions
-                }
-                .forEach {
-                    ensureActive()
-                    results.add(it)
-                }
+    fun getFilesFlow(root: File, extensions: Set<String>): Flow<File> = flow {
+        if (!root.exists()) return@flow
+        val walkJob = coroutineContext[Job]
+        root.walkTopDown()
+            .onEnter {
+                walkJob?.ensureActive()
+                true
+            }
+            .filter {
+                it.isFile && it.extension.lowercase() in extensions
+            }
+            .forEach {
+                walkJob?.ensureActive()
+                emit(it)
+            }
+    }
 
-            results.toList()
-        }
+    /**
+     * Counts files from root directory matching the given extensions.
+     *
+     * Only files for which [isCounted] returns `true` are counted. Intended to determine
+     * the total number of files before a streaming pass, e.g. for progress reporting.
+     *
+     * @param root directory as [File]
+     * @param extensions supported file extensions
+     * @param isCounted predicate applied to each matching file
+     * @return number of counted files
+     */
+    suspend fun countFiles(root: File, extensions: Set<String>, isCounted: (File) -> Boolean = { true }): Int = withContext(Dispatchers.IO) {
+        getFilesFlow(root, extensions).count(isCounted)
     }
 
     /**

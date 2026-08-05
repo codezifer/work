@@ -28,7 +28,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
 
@@ -57,37 +59,45 @@ class MusicFileScanner(
         val root = getScanningRoot(context, configuredDir) ?: return@coroutineScope
         val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
 
-        val musicFiles = scanForFiles(context, root, supportedFormats)
         val currentSongs = songDao.getAllSongs().first()
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
-        val newFiles = musicFiles.filter { it.absolutePath !in currentFilePaths }
 
-        if (newFiles.isNotEmpty()) {
-            val totalFiles = newFiles.size
-            var processedFiles = 0
-            val chunkSize = 20
-            val chunkedFiles = newFiles.chunked(chunkSize)
+        // Count pass: determine how many files will be parsed. This is the denominator
+        // for the determinate progress shown in the scan notification.
+        val totalNewFiles = FileUtil.countFiles(root, supportedFormats) { it.absolutePath !in currentFilePaths }
 
-            for (chunk in chunkedFiles) {
-                val songs: List<Song> =
-                    chunk
-                        .map { file ->
-                            async(Dispatchers.IO) {
-                                extractSongMetadata(file)
-                            }
-                        }.awaitAll()
+        val existingFilePaths = mutableSetOf<String>()
+        var processedFiles = 0
+        val chunkSize = 20
+        val pendingChunk = mutableListOf<File>()
 
-                withContext(Dispatchers.IO) {
-                    songDao.insertSongs(songs)
+        // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
+        // parse new files in overlapping chunks while the directory walk continues, so the
+        // library is populated incrementally instead of all at once.
+        scanForFiles(context, root, supportedFormats)
+            .flowOn(Dispatchers.IO)
+            .buffer(chunkSize)
+            .collect { file ->
+                ensureActive()
+                existingFilePaths.add(file.absolutePath)
+                if (file.absolutePath !in currentFilePaths) {
+                    pendingChunk.add(file)
+                    if (pendingChunk.size >= chunkSize) {
+                        processChunk(pendingChunk.toList())
+                        processedFiles += pendingChunk.size
+                        reportProgress(processedFiles, totalNewFiles, onProgress)
+                        pendingChunk.clear()
+                    }
                 }
-
-                processedFiles += chunk.size
-                val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
-                onProgress?.invoke(
-                    context.getString(R.string.scan_status_metadata, progress),
-                    progress,
-                )
             }
+
+        if (pendingChunk.isNotEmpty()) {
+            processChunk(pendingChunk.toList())
+            processedFiles += pendingChunk.size
+            reportProgress(processedFiles, totalNewFiles, onProgress)
+        }
+
+        if (totalNewFiles > 0) {
             updateAutomaticPlaylists()
         }
 
@@ -95,7 +105,6 @@ class MusicFileScanner(
         ensureActive()
 
         // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-        val existingFiles = musicFiles.map { it.absolutePath }.toSet()
         val missingSongs =
             currentSongs.filter { song ->
                 val path = song.filePath
@@ -103,7 +112,7 @@ class MusicFileScanner(
                     !path.startsWith("content://mock") &&
                     !path.startsWith("http://") &&
                     !path.startsWith("https://") &&
-                    path !in existingFiles
+                    path !in existingFilePaths
             }
 
         if (missingSongs.isNotEmpty()) {
@@ -111,6 +120,28 @@ class MusicFileScanner(
                 songDao.deleteSongs(missingSongs)
             }
         }
+    }
+
+    private suspend fun processChunk(chunk: List<File>) = coroutineScope {
+        val songs: List<Song> =
+            chunk
+                .map { file ->
+                    async(Dispatchers.IO) {
+                        extractSongMetadata(file)
+                    }
+                }.awaitAll()
+
+        withContext(Dispatchers.IO) {
+            songDao.insertSongs(songs)
+        }
+    }
+
+    private fun reportProgress(processedFiles: Int, totalFiles: Int, onProgress: ((String, Int) -> Unit)?) {
+        val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
+        onProgress?.invoke(
+            context.getString(R.string.scan_status_metadata, progress),
+            progress,
+        )
     }
 
     private fun extractSongMetadata(file: File): Song = try {
