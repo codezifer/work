@@ -222,7 +222,6 @@ fun FastScroller(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier =
                 Modifier
-                    .padding(vertical = SPACING_MEDIUM)
                     .fillMaxHeight()
                     .shadow(
                         elevation = if (draggingLetter != null) ELEVATION_MEDIUM else ELEVATION_FAST_SCROLL_IDLE,
@@ -236,7 +235,8 @@ fun FastScroller(
                         width = BORDER_WIDTH_NORMAL,
                         color = colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_BORDER),
                         shape = RoundedCornerShape(50),
-                    ),
+                    )
+                    .padding(vertical = SPACING_MEDIUM),
             ) {
                 alphabet.forEachIndexed { index, letter ->
                     val isFirst = index == 0
