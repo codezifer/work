@@ -189,9 +189,12 @@ fun FastScroller(
         ) {
             // The "handle" (colored indicator) showing the current position
             if (letterIndex != -1 && alphabet.isNotEmpty() && columnHeight > 0) {
-                val itemHeight = columnHeight.toFloat() / alphabet.size
-                // Calculate the center of the letter in pixels
-                val handleOffsetPx = (letterIndex * itemHeight) + (itemHeight / 2)
+                // Letters only fill the column height minus its vertical padding
+                val topPaddingPx = with(density) { SPACING_MEDIUM.toPx() }
+                val usableHeight = (columnHeight - 2 * topPaddingPx).coerceAtLeast(0f)
+                val itemHeight = usableHeight / alphabet.size
+                // Calculate the center of the letter in pixels, accounting for the column's vertical padding
+                val handleOffsetPx = topPaddingPx + (letterIndex * itemHeight) + (itemHeight / 2)
                 // Convert pixels to DP for the modifier.offset
                 val handleOffsetDp = with(density) { handleOffsetPx.toDp() }
 
