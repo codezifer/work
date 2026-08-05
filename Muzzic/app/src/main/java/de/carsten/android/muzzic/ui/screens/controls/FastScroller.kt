@@ -60,8 +60,8 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.utils.contrastColor
-import kotlinx.coroutines.delay
 import kotlin.math.ceil
+import kotlinx.coroutines.delay
 
 /**
  * A fast scroller component that displays a vertical alphabet bar.
@@ -137,54 +137,54 @@ fun FastScroller(
     ) {
         Box(
             modifier =
-                Modifier
-                    .width(ICON_SIZE_LARGE)
-                    // Measures the height of the bar once it's placed in the layout
-                    .onGloballyPositioned { columnHeight = it.size.height }
-                    // Handles simple tapping on a letter
-                    .pointerInput(alphabet) {
-                        detectTapGestures { offset ->
+            Modifier
+                .width(ICON_SIZE_LARGE)
+                // Measures the height of the bar once it's placed in the layout
+                .onGloballyPositioned { columnHeight = it.size.height }
+                // Handles simple tapping on a letter
+                .pointerInput(alphabet) {
+                    detectTapGestures { offset ->
+                        if (columnHeight > 0) {
+                            val index =
+                                (offset.y / columnHeight * alphabet.size)
+                                    .toInt()
+                                    .coerceIn(0, alphabet.size - 1)
+                            onLetterSelected(alphabet[index])
+                        }
+                    }
+                }
+                // Handles the swipe gesture (drag) along the bar
+                .pointerInput(alphabet) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
                             if (columnHeight > 0) {
                                 val index =
                                     (offset.y / columnHeight * alphabet.size)
                                         .toInt()
                                         .coerceIn(0, alphabet.size - 1)
+                                draggingLetter = alphabet[index]
                                 onLetterSelected(alphabet[index])
                             }
-                        }
-                    }
-                    // Handles the swipe gesture (drag) along the bar
-                    .pointerInput(alphabet) {
-                        detectDragGestures(
-                            onDragStart = { offset ->
-                                if (columnHeight > 0) {
-                                    val index =
-                                        (offset.y / columnHeight * alphabet.size)
-                                            .toInt()
-                                            .coerceIn(0, alphabet.size - 1)
-                                    draggingLetter = alphabet[index]
-                                    onLetterSelected(alphabet[index])
+                        },
+                        onDragEnd = { draggingLetter = null },
+                        onDragCancel = { draggingLetter = null },
+                        onDrag = { change, _ ->
+                            if (columnHeight > 0) {
+                                val index =
+                                    (change.position.y / columnHeight * alphabet.size)
+                                        .toInt()
+                                        .coerceIn(0, alphabet.size - 1)
+                                val letter = alphabet[index]
+                                // Only update if the letter under the finger has changed
+                                if (draggingLetter != letter) {
+                                    draggingLetter = letter
+                                    onLetterSelected(letter)
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
-                            },
-                            onDragEnd = { draggingLetter = null },
-                            onDragCancel = { draggingLetter = null },
-                            onDrag = { change, _ ->
-                                if (columnHeight > 0) {
-                                    val index =
-                                        (change.position.y / columnHeight * alphabet.size)
-                                            .toInt()
-                                            .coerceIn(0, alphabet.size - 1)
-                                    val letter = alphabet[index]
-                                    // Only update if the letter under the finger has changed
-                                    if (draggingLetter != letter) {
-                                        draggingLetter = letter
-                                        onLetterSelected(letter)
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    }
-                                }
-                            },
-                        )
-                    },
+                            }
+                        },
+                    )
+                },
             contentAlignment = Alignment.TopCenter,
         ) {
             // The "handle" (colored indicator) showing the current position
@@ -204,13 +204,13 @@ fun FastScroller(
 
                 Box(
                     modifier =
-                        Modifier
-                            .offset(y = animatedOffset)
-                            .padding(horizontal = SPACING_MEDIUM)
-                            .width(ICON_SIZE_MEDIUM)
-                            .height(ICON_SIZE_MEDIUM)
-                            .clip(CircleShape)
-                            .background(colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_HANDLE)),
+                    Modifier
+                        .offset(y = animatedOffset)
+                        .padding(horizontal = SPACING_MEDIUM)
+                        .width(ICON_SIZE_MEDIUM)
+                        .height(ICON_SIZE_MEDIUM)
+                        .clip(CircleShape)
+                        .background(colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_HANDLE)),
                 )
             }
 
@@ -218,22 +218,22 @@ fun FastScroller(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier =
-                    Modifier
-                        .padding(vertical = SPACING_MEDIUM)
-                        .fillMaxHeight()
-                        .shadow(
-                            elevation = if (draggingLetter != null) ELEVATION_MEDIUM else ELEVATION_FAST_SCROLL_IDLE,
-                            shape = RoundedCornerShape(50),
-                        )
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = OPACITY_FAST_SCROLL_BACKGROUND),
-                            shape = RoundedCornerShape(50),
-                        )
-                        .border(
-                            width = BORDER_WIDTH_NORMAL,
-                            color = colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_BORDER),
-                            shape = RoundedCornerShape(50),
-                        ),
+                Modifier
+                    .padding(vertical = SPACING_MEDIUM)
+                    .fillMaxHeight()
+                    .shadow(
+                        elevation = if (draggingLetter != null) ELEVATION_MEDIUM else ELEVATION_FAST_SCROLL_IDLE,
+                        shape = RoundedCornerShape(50),
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = OPACITY_FAST_SCROLL_BACKGROUND),
+                        shape = RoundedCornerShape(50),
+                    )
+                    .border(
+                        width = BORDER_WIDTH_NORMAL,
+                        color = colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_BORDER),
+                        shape = RoundedCornerShape(50),
+                    ),
             ) {
                 alphabet.forEachIndexed { index, letter ->
                     val isFirst = index == 0
@@ -261,13 +261,13 @@ fun FastScroller(
             draggingLetter?.let { letter ->
                 Box(
                     modifier =
-                        Modifier
-                            .align(Alignment.CenterStart)
-                            .offset(x = -INDICATOR_SLIDER_PREVIEW_PADDING) // Positioning to the left of the FastScroller
-                            .size(ICON_SIZE_FAST_SCROLL_THUMB)
-                            .shadow(ELEVATION_MEDIUM, CircleShape)
-                            .clip(CircleShape)
-                            .background(colorSource.accentColor),
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .offset(x = -INDICATOR_SLIDER_PREVIEW_PADDING) // Positioning to the left of the FastScroller
+                        .size(ICON_SIZE_FAST_SCROLL_THUMB)
+                        .shadow(ELEVATION_MEDIUM, CircleShape)
+                        .clip(CircleShape)
+                        .background(colorSource.accentColor),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -285,8 +285,8 @@ fun FastScroller(
 private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modifier = Modifier, colorSource: ColorSource = composableColorSource()) {
     Box(
         modifier =
-            modifier
-                .width(ICON_SIZE_LARGE),
+        modifier
+            .width(ICON_SIZE_LARGE),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -294,13 +294,13 @@ private fun FastScrollerLetter(letter: String, isActive: Boolean, modifier: Modi
             fontSize = FONT_SIZE_CAPTION,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
             color =
-                if (isActive) {
-                    colorSource.accentColor
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = OPACITY_MEDIUM,
-                    )
-                },
+            if (isActive) {
+                colorSource.accentColor
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = OPACITY_MEDIUM,
+                )
+            },
         )
     }
 }

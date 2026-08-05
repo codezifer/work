@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.grids
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -9,23 +8,16 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.component.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
-import de.carsten.android.muzzic.ui.screens.controls.FastScroller
-import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistGrid(
@@ -38,38 +30,16 @@ fun ArtistGrid(
     colorSource: ColorSource = composableColorSource(),
 ) {
     val gridState = rememberLazyGridState()
-    val scope = rememberCoroutineScope()
 
-    val alphabet by remember(artists) {
-        derivedStateOf {
-            artists.map { it.artistName.take(1).uppercase() }.distinct().sorted()
-        }
-    }
-
-    val letterToIndexMap by remember(artists) {
-        derivedStateOf {
-            artists.foldIndexed(mutableMapOf<String, Int>()) { index, map, artist ->
-                val letter = artist.artistName.take(1).uppercase()
-                if (!map.containsKey(letter)) {
-                    map[letter] = index
-                }
-                map
-            }
-        }
-    }
-
-    val activeLetter by remember(artists) {
-        derivedStateOf {
-            val index = gridState.firstVisibleItemIndex
-            if (index in artists.indices) {
-                artists[index].artistName.take(1).uppercase()
-            } else {
-                null
-            }
-        }
-    }
-
-    Box(modifier = modifier.fillMaxSize()) {
+    FastScrollBox(
+        items = artists,
+        label = { it.artistName },
+        firstVisibleItemIndex = { gridState.firstVisibleItemIndex },
+        isScrollInProgress = { gridState.isScrollInProgress },
+        scrollToItem = { index -> gridState.scrollToItem(index) },
+        modifier = modifier,
+        colorSource = colorSource,
+    ) {
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(2),
@@ -94,25 +64,6 @@ fun ArtistGrid(
                     borderColor = colorSource.accentColor,
                 )
             }
-        }
-
-        if (alphabet.isNotEmpty()) {
-            FastScroller(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = SPACING_NORMAL),
-                alphabet = alphabet,
-                activeLetter = activeLetter,
-                isScrolling = gridState.isScrollInProgress,
-                onLetterSelected = { letter ->
-                    letterToIndexMap[letter]?.let { index ->
-                        scope.launch {
-                            gridState.scrollToItem(index)
-                        }
-                    }
-                },
-                colorSource = colorSource,
-            )
         }
     }
 }
