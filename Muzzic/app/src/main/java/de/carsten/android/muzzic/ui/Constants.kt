@@ -42,6 +42,7 @@ val CORNER_RADIUS_FULL = 25.dp
 val CARD_INTERNAL_PADDING = 6.dp
 val CARD_CONTENT_SPACING = 2.dp
 val CARD_CONTENT_HEIGHT = 64.dp
+val FAST_SCROLL_ITEM_MIN_HEIGHT = 22.dp // Minimum height per FastScroller item (letter or dot) to avoid overlap
 val CARD_SELECTION_ICON_PADDING = 4.dp
 val ALBUM_ART_PADDING = 22.dp
 val VOLUME_BAR_WIDTH = 50.dp
@@ -141,6 +142,15 @@ val ICON_SIZE_PLAYER_PLAY_PAUSE = 44.dp
 val ICON_SIZE_PLAY_BUTTON_LARGE = 100.dp
 val ICON_SIZE_CONTROL_SMALL = 32.dp
 val ICON_SIZE_FAST_SCROLL_THUMB = 50.dp
+
+/**
+ * FastScroller Tokens
+ */
+const val FAST_SCROLL_HIDE_DELAY_MS = 2000L
+val ELEVATION_FAST_SCROLL_IDLE = 2.dp
+const val OPACITY_FAST_SCROLL_BACKGROUND = 0.4f
+const val OPACITY_FAST_SCROLL_BORDER = 0.4f
+const val OPACITY_FAST_SCROLL_HANDLE = 0.8f
 
 /**
  * Statistics and Chart Tokens
