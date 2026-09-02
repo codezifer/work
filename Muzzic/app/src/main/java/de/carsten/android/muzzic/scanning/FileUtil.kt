@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import java.io.File
 
+/**
+ * File utility class.
+ */
 object FileUtil {
 
     private val logger = logger()
@@ -95,14 +98,18 @@ object FileUtil {
     fun getFilePathFromUri(context: Context, uri: Uri): String? {
         // Handle Storage Access Framework
         if (DocumentsContract.isDocumentUri(context, uri)) {
+            logger.debug("Uri is document")
             if (isExternalStorageDocument(uri)) {
+                logger.debug("Uri is external storage document")
                 val docId = DocumentsContract.getDocumentId(uri)
-                return resolveExternalStoragePath(docId)
+                return resolveExternalStoragePath(context, docId)
             }
         } else if (DocumentsContract.isTreeUri(uri)) {
+            logger.debug("Uri is tree")
             if (isExternalStorageDocument(uri)) {
+                logger.debug("Uri is external storage tree")
                 val treeId = DocumentsContract.getTreeDocumentId(uri)
-                return resolveExternalStoragePath(treeId)
+                return resolveExternalStoragePath(context, treeId)
             }
         }
 
@@ -134,7 +141,7 @@ object FileUtil {
     /**
      * Resolves the ExternalStorageProvider document/tree ID to an absolute file path.
      */
-    private fun resolveExternalStoragePath(id: String): String? {
+    private fun resolveExternalStoragePath(context: Context, id: String): String? {
         val split = id.split(":")
         if (split.size < 2) {
             logger.error("Invalid document/tree ID: $id")
@@ -149,9 +156,17 @@ object FileUtil {
             Environment.getExternalStorageDirectory().toString() + "/" + path
         } else {
             logger.debug("Using secondary storage")
-            // TODO: Handle secondary storage (SD cards) if needed
-            null
+            resolveSecondaryStoragePath(context, type, path)
         }
+    }
+
+    private fun resolveSecondaryStoragePath(context: Context, type: String, path: String): String? {
+        val storageUtil = StorageUtil(context)
+        val volume = storageUtil.getMountedVolumes().firstOrNull { volume -> volume.contains(type) }
+        if (volume != null) {
+            return "$volume/$path"
+        }
+        return null
     }
 
     private fun getDataColumn(context: Context, uri: Uri, selection: String?, selectionArgs: Array<String>?): String? {
