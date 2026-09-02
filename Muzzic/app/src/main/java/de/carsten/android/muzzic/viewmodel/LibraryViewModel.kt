@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.viewmodel
 
 import androidx.annotation.OptIn
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.entity.Song
@@ -31,7 +30,7 @@ class LibraryViewModel(
     private val playlistRepository: PlaylistRepository,
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
-) : ViewModel() {
+) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
     val songs: StateFlow<List<Song>> =
         musicRepository.getAllSongs().stateIn(
             scope = viewModelScope,
@@ -71,61 +70,21 @@ class LibraryViewModel(
         mediaLibraryManager.playContent(song.toMediaItem())
     }
 
-    private fun mapSongsToMediaItems(songs: List<Song>): List<androidx.media3.common.MediaItem> = songs.mapIndexed { index, song ->
-        song
-            .toMediaItem()
-            .buildUpon()
-            .setMediaMetadata(
-                song
-                    .toMediaItem()
-                    .mediaMetadata
-                    .buildUpon()
-                    .setExtras(
-                        (
-                            song.toMediaItem().mediaMetadata.extras
-                                ?: android.os.Bundle()
-                            ).apply {
-                            putInt("queuePosition", index)
-                            putString("songId", song.id)
-                        },
-                    ).build(),
-            ).build()
-    }
-
     fun playArtist(artistName: String) {
         viewModelScope.launch {
-            val songs = artistRepository.getSongsByArtist(artistName)
-            if (songs.isNotEmpty()) {
-                val mediaItems = mapSongsToMediaItems(songs)
-                playingQueueRepository.clear()
-                playingQueueRepository.addSongs(mediaItems)
-                mediaLibraryManager.playPlaylist(mediaItems, 0)
-            }
+            enqueue(artistRepository.getSongsByArtist(artistName))
         }
     }
 
     fun playAlbum(artistName: String, albumName: String) {
         viewModelScope.launch {
-            val songs = albumRepository.getSongsByAlbum(artistName, albumName).first()
-            if (songs.isNotEmpty()) {
-                val mediaItems = mapSongsToMediaItems(songs)
-                playingQueueRepository.clear()
-                playingQueueRepository.addSongs(mediaItems)
-                mediaLibraryManager.playPlaylist(mediaItems, 0)
-            }
+            enqueue(albumRepository.getSongsByAlbum(artistName, albumName).first())
         }
     }
 
     fun playPlaylist(playlistId: String) {
         viewModelScope.launch {
-            val songs = playlistRepository.getSongsInPlaylist(playlistId)
-            if (songs.isNotEmpty()) {
-                val mediaItems = mapSongsToMediaItems(songs)
-
-                playingQueueRepository.clear()
-                playingQueueRepository.addSongs(mediaItems)
-                mediaLibraryManager.playPlaylist(mediaItems, 0)
-            }
+            enqueue(playlistRepository.getSongsInPlaylist(playlistId))
         }
     }
 
@@ -147,6 +106,9 @@ class LibraryViewModel(
         }
     }
 
-    fun toggleGenre(genreDto: GenreDto) {
+    fun playGenre(genreName: String) {
+        viewModelScope.launch {
+            enqueue(genreRepository.getSongsByGenre(genreName))
+        }
     }
 }

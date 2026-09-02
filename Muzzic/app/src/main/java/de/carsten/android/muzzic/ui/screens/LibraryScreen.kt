@@ -129,6 +129,9 @@ fun LibraryScreen(
                 selectionViewModel.toggleSongSelection(it.id)
             },
             onGenreClick = onGenreClick,
+            onGenrePlayClick = { genre ->
+                libraryViewModel.playGenre(genre.genreName)
+            },
             onPlaylistClick = onPlaylistClick,
             onSettingsClick = onSettingsClick,
             selectedArtists = selectionState.selectedArtists,
@@ -157,6 +160,7 @@ private fun LibraryScreenContent(
     onSongClick: (Song) -> Unit = {},
     onSongLongClick: (Song) -> Unit = {},
     onGenreClick: (GenreDto) -> Unit = {},
+    onGenrePlayClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
@@ -262,6 +266,7 @@ private fun LibraryScreenContent(
                     genres = genres,
                     modifier = contentModifier,
                     onGenreClick = onGenreClick,
+                    onGenrePlayClick = onGenrePlayClick,
                     colorSource = colorSource,
                 )
             }

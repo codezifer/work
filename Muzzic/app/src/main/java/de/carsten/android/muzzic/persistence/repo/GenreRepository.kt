@@ -9,6 +9,6 @@ import kotlinx.coroutines.flow.map
 
 class GenreRepository(val genreDao: GenreDao) {
     suspend fun getSongsByGenre(genre: String): List<Song> = genreDao.getSongsByGenre(genre)
-    
+
     fun getGenreInformation(): Flow<List<GenreDto>> = genreDao.getGenreAggregations().map { it.toDto() }
 }

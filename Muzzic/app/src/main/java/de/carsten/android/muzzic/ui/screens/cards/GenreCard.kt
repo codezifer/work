@@ -28,12 +28,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
-fun GenreCard(
-    genre: GenreDto,
-    onClick: () -> Unit = {},
-    onPlayClick: () -> Unit = {},
-    isSelected: Boolean = false,
-) {
+fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit = {}, isSelected: Boolean = false) {
     val palette by rememberPaletteState(genre.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,

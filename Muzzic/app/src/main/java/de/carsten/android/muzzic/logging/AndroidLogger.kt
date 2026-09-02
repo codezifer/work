@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.logging
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import de.carsten.android.muzzic.BuildConfig
 
 /**
  * Android Logger that implements Java Logger interface with automatic caller detection
@@ -45,10 +46,18 @@ class AndroidLogger private constructor(private val tag: String) {
     private fun formatMessage(message: String): String = "${getCallerInfo()} $message"
 
     /**
+     * Check if logging is enabled
+     *
+     * @param level log level
+     * @return [Boolean]
+     */
+    private fun loggable(level: Int): Boolean = BuildConfig.DEBUG || Log.isLoggable(tag, level)
+
+    /**
      * Debug level logging
      */
     fun debug(message: String) {
-        if (Log.isLoggable(tag, Log.DEBUG)) {
+        if (isDebugEnabled()) {
             Log.d(tag, formatMessage(message))
         }
     }
@@ -56,7 +65,7 @@ class AndroidLogger private constructor(private val tag: String) {
     fun d(message: String) = this.debug(message)
 
     fun debug(message: String, throwable: Throwable) {
-        if (Log.isLoggable(tag, Log.DEBUG)) {
+        if (isDebugEnabled()) {
             Log.d(tag, formatMessage(message), throwable)
         }
     }
@@ -67,7 +76,7 @@ class AndroidLogger private constructor(private val tag: String) {
      * Info level logging
      */
     fun info(message: String) {
-        if (Log.isLoggable(tag, Log.INFO)) {
+        if (isInfoEnabled()) {
             Log.i(tag, formatMessage(message))
         }
     }
@@ -75,7 +84,7 @@ class AndroidLogger private constructor(private val tag: String) {
     fun i(message: String) = this.info(message)
 
     fun info(message: String, throwable: Throwable) {
-        if (Log.isLoggable(tag, Log.INFO)) {
+        if (isInfoEnabled()) {
             Log.i(tag, formatMessage(message), throwable)
         }
     }
@@ -86,7 +95,7 @@ class AndroidLogger private constructor(private val tag: String) {
      * Warning level logging
      */
     fun warning(message: String) {
-        if (Log.isLoggable(tag, Log.WARN)) {
+        if (isWarningEnabled()) {
             Log.w(tag, formatMessage(message))
         }
     }
@@ -94,7 +103,7 @@ class AndroidLogger private constructor(private val tag: String) {
     fun w(message: String) = this.warning(message)
 
     fun warning(message: String, throwable: Throwable) {
-        if (Log.isLoggable(tag, Log.WARN)) {
+        if (isWarningEnabled()) {
             Log.w(tag, formatMessage(message), throwable)
         }
     }
@@ -105,7 +114,7 @@ class AndroidLogger private constructor(private val tag: String) {
      * Error level logging
      */
     fun error(message: String) {
-        if (Log.isLoggable(tag, Log.ERROR)) {
+        if (isErrorEnabled()) {
             Log.e(tag, formatMessage(message))
         }
     }
@@ -113,7 +122,7 @@ class AndroidLogger private constructor(private val tag: String) {
     fun e(message: String) = this.error(message)
 
     fun error(message: String, throwable: Throwable) {
-        if (Log.isLoggable(tag, Log.ERROR)) {
+        if (isErrorEnabled()) {
             Log.e(tag, formatMessage(message), throwable)
         }
     }
@@ -125,22 +134,22 @@ class AndroidLogger private constructor(private val tag: String) {
     /**
      * Check if debug logging is enabled
      */
-    fun isDebugEnabled(): Boolean = Log.isLoggable(tag, Log.DEBUG)
+    fun isDebugEnabled(): Boolean = loggable(Log.DEBUG)
 
     /**
      * Check if info logging is enabled
      */
-    fun isInfoEnabled(): Boolean = Log.isLoggable(tag, Log.INFO)
+    fun isInfoEnabled(): Boolean = loggable(Log.INFO)
 
     /**
      * Check if warning logging is enabled
      */
-    fun isWarningEnabled(): Boolean = Log.isLoggable(tag, Log.WARN)
+    fun isWarningEnabled(): Boolean = loggable(Log.WARN)
 
     /**
      * Check if error logging is enabled
      */
-    fun isErrorEnabled(): Boolean = Log.isLoggable(tag, Log.ERROR)
+    fun isErrorEnabled(): Boolean = loggable(Log.ERROR)
 }
 
 /**

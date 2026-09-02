@@ -66,11 +66,11 @@ fun GenreScreenPreview() {
     AppTheme {
         GenresScreenContent(
             genres =
-                listOf(
-                    GenreDto("Black Metal", 10, 100, 1000, 50000),
-                    GenreDto("Alternative", 20, 200, 2000, 100000),
-                    GenreDto("Pagan Metal", 1, 5, 75, 5000),
-                ),
+            listOf(
+                GenreDto("Black Metal", 10, 100, 1000, 50000),
+                GenreDto("Alternative", 20, 200, 2000, 100000),
+                GenreDto("Pagan Metal", 1, 5, 75, 5000),
+            ),
         )
     }
 }

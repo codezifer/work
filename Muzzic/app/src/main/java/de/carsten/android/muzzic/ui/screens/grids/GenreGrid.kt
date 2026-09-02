@@ -24,7 +24,7 @@ fun GenreGrid(
     modifier: Modifier = Modifier,
     onGenreClick: (GenreDto) -> Unit = {},
     onGenrePlayClick: (GenreDto) -> Unit = {},
-    colorSource: ColorSource = composableColorSource()
+    colorSource: ColorSource = composableColorSource(),
 ) {
     val gridState = rememberLazyGridState()
 
@@ -55,7 +55,7 @@ fun GenreGrid(
                 GenreCard(
                     genre = genre,
                     onClick = { onGenreClick(genre) },
-                    onPlayClick = { onGenrePlayClick(genre) }
+                    onPlayClick = { onGenrePlayClick(genre) },
                 )
             }
         }
