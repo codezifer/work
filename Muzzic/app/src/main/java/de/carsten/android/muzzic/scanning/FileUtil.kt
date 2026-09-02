@@ -7,15 +7,15 @@ import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import de.carsten.android.muzzic.logging.logger
-import java.io.File
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 object FileUtil {
 
@@ -54,7 +54,7 @@ object FileUtil {
      */
     fun getFilesFlow(root: File, extensions: Set<String>): Flow<File> = flow {
         if (!root.exists()) return@flow
-        val walkJob = coroutineContext[Job]
+        val walkJob = currentCoroutineContext()[Job]
         root.walkTopDown()
             .onEnter {
                 walkJob?.ensureActive()
@@ -106,16 +106,23 @@ object FileUtil {
             }
         }
 
+        logger.debug("Uri schema: ${uri.scheme}")
+
         return when (uri.scheme) {
             "content" -> {
+                logger.debug("Using content scheme")
                 getDataColumn(context, uri, null, null)
             }
 
             "file" -> {
+                logger.debug("Using file scheme")
                 uri.path
             }
 
-            else -> null
+            else -> {
+                logger.debug("Unknown scheme")
+                null
+            }
         }
     }
 
@@ -129,13 +136,19 @@ object FileUtil {
      */
     private fun resolveExternalStoragePath(id: String): String? {
         val split = id.split(":")
-        if (split.size < 2) return null
+        if (split.size < 2) {
+            logger.error("Invalid document/tree ID: $id")
+            return null
+        }
+
         val type = split[0]
         val path = split.drop(1).joinToString(":")
 
         return if ("primary".equals(type, ignoreCase = true)) {
+            logger.debug("Using primary storage")
             Environment.getExternalStorageDirectory().toString() + "/" + path
         } else {
+            logger.debug("Using secondary storage")
             // TODO: Handle secondary storage (SD cards) if needed
             null
         }

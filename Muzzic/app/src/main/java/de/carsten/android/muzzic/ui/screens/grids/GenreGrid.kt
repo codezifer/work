@@ -19,7 +19,13 @@ import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.GenreCard
 
 @Composable
-fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClick: (GenreDto) -> Unit = {}, colorSource: ColorSource = composableColorSource()) {
+fun GenreGrid(
+    genres: List<GenreDto>,
+    modifier: Modifier = Modifier,
+    onGenreClick: (GenreDto) -> Unit = {},
+    onGenrePlayClick: (GenreDto) -> Unit = {},
+    colorSource: ColorSource = composableColorSource()
+) {
     val gridState = rememberLazyGridState()
 
     FastScrollBox(
@@ -48,9 +54,8 @@ fun GenreGrid(genres: List<GenreDto>, modifier: Modifier = Modifier, onGenreClic
             ) { genre ->
                 GenreCard(
                     genre = genre,
-                    onClick = {
-                        onGenreClick(genre)
-                    },
+                    onClick = { onGenreClick(genre) },
+                    onPlayClick = { onGenrePlayClick(genre) }
                 )
             }
         }

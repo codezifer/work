@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -61,9 +60,7 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
         // We don't have the scanner ID here during initial setup if called by system,
         // so we use a generic placeholder or wait for doWork to set it.
         // Actually, we can try to get it from inputData.
-        val scannerId = inputData.getString(KEY_SCANNER_ID) ?: "Unknown"
         val title = applicationContext.getString(R.string.scan_notification_title)
-
         return createForegroundInfo(title, applicationContext.getString(R.string.scan_status_scanning), 0)
     }
 
@@ -73,14 +70,13 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
     }
 
     private fun createForegroundInfo(title: String, status: String, progress: Int): ForegroundInfo {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
                 CHANNEL_ID,
                 applicationContext.getString(R.string.scan_notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW,
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+            ),
+        )
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setContentTitle(title)
@@ -91,10 +87,10 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
             .setOnlyAlertOnce(true)
             .build()
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, notification)
-        }
+        return ForegroundInfo(
+            NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+        )
     }
 }

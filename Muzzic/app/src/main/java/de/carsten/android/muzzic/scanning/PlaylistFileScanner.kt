@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.scanning
 
 import android.content.Context
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.mediaId
 import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
@@ -25,7 +26,12 @@ class PlaylistFileScanner(
     private val appSettingsRepository: AppSettingsRepository,
 ) : FileScanner {
 
-    override val scannerId: String = "PlaylistScanner"
+    companion object {
+        const val SCANNER_ID = "PlaylistFileScanner"
+        private val logger = logger()
+    }
+
+    override val scannerId: String = SCANNER_ID
     override val notificationTitleRes: Int = R.string.scan_playlists
 
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = withContext(Dispatchers.IO) {

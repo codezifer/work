@@ -9,13 +9,14 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import java.io.File
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 /**
  * Common interface for components that scan the file system for music-related files.
  */
 interface FileScanner {
+
     /**
      * Unique identifier for this scanner, used for WorkManager unique work name.
      */

@@ -9,11 +9,7 @@ import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.persistence.repo.SettingsRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
-import de.carsten.android.muzzic.scanning.FileScanner
-import de.carsten.android.muzzic.scanning.MusicFileScanner
-import de.carsten.android.muzzic.scanning.PlaylistFileScanner
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val databaseModule =
@@ -32,13 +28,6 @@ val databaseModule =
 
 val repoModule =
     module {
-        single<FileScanner>(named("MusicScanner")) { MusicFileScanner(get(), get(), get(), get(), get()) }
-        single<FileScanner>(named("PlaylistScanner")) { PlaylistFileScanner(get(), get(), get(), get()) }
-        // Keep concrete versions for injection into MusicRepository if needed,
-        // or just use qualifiers there too.
-        single { get<FileScanner>(named("MusicScanner")) as MusicFileScanner }
-        single { get<FileScanner>(named("PlaylistScanner")) as PlaylistFileScanner }
-
         single {
             MusicRepository(
                 songDao = get(),

@@ -178,7 +178,7 @@ data class Song(
         }
     }
 
-    fun toMediaItem(): MediaItem = MediaItem
+    fun toMediaItem(index: Int? = null): MediaItem = MediaItem
         .Builder()
         .setMediaId(this.id)
         .setUri(this.filePath.toPlayableUri())
@@ -199,7 +199,7 @@ data class Song(
                 .setUserRating(getStarRating(this.rating))
                 .setIsPlayable(true)
                 .setIsBrowsable(false)
-                .setExtras(getExtras())
+                .setExtras(getExtras(index))
                 .build(),
         ).build()
 
@@ -215,9 +215,10 @@ data class Song(
         "%02d".format(trackNumber)
     }
 
-    private fun getExtras() = Bundle().apply {
+    private fun getExtras(index: Int?) = Bundle().apply {
         putString("songId", id)
         putInt(MediaKeys.PLAY_COUNT, playCount)
+        putInt(MediaKeys.QUEUE_POSITION, index ?: -1)
         putLong(MediaKeys.LAST_PLAYED, lastPlayed.toEpochMilli())
         putLong(MediaKeys.CREATED_AT, createdAt?.toEpochMilli() ?: Instant.now().toEpochMilli())
         putLong(MediaKeys.UPDATED_AT, updatedAt?.toEpochMilli() ?: Instant.now().toEpochMilli())

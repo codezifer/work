@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.viewmodel
 
 import androidx.annotation.OptIn
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -23,9 +22,9 @@ class GenresViewModel(
     savedStateHandle: SavedStateHandle,
     private val genreRepository: GenreRepository,
     private val artistRepository: ArtistRepository,
-    private val playingQueueRepository: PlayingQueueRepository,
-    private val mediaLibraryManager: MediaLibraryManager,
-) : ViewModel() {
+    playingQueueRepository: PlayingQueueRepository,
+    mediaLibraryManager: MediaLibraryManager,
+) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
     val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
 
     val genres: StateFlow<List<GenreDto>> =
@@ -35,37 +34,21 @@ class GenresViewModel(
             initialValue = emptyList(),
         )
 
-    val artists: StateFlow<List<ArtistDto>> =
-        (
-            genreName?.let {
-                artistRepository.getArtistsByGenre(it)
-            } ?: flowOf(emptyList())
-            ).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
+    val artists: StateFlow<List<ArtistDto>> = (genreName?.let { artistRepository.getArtistsByGenre(it) } ?: flowOf(emptyList())).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
 
     fun playArtist(artistName: String) {
         viewModelScope.launch {
-            val songs = artistRepository.getSongsByArtist(artistName)
-            if (songs.isNotEmpty()) {
-                val mediaItems = songs.mapIndexed { index, song ->
-                    song.toMediaItem().buildUpon()
-                        .setMediaMetadata(
-                            song.toMediaItem().mediaMetadata.buildUpon()
-                                .setExtras(
-                                    (song.toMediaItem().mediaMetadata.extras ?: android.os.Bundle()).apply {
-                                        putInt("queuePosition", index)
-                                        putString("songId", song.id)
-                                    },
-                                ).build(),
-                        ).build()
-                }
-                playingQueueRepository.clear()
-                playingQueueRepository.addSongs(mediaItems)
-                mediaLibraryManager.playPlaylist(mediaItems, 0)
-            }
+            enqueue(artistRepository.getSongsByArtist(artistName))
+        }
+    }
+
+    fun playGenre(genreName: String) {
+        viewModelScope.launch {
+            enqueue(genreRepository.getSongsByGenre(genreName))
         }
     }
 }

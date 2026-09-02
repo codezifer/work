@@ -34,18 +34,28 @@ fun GenresScreen(
             appState = appState,
             genres = genres,
             onGenreClick = onGenreClick,
+            onGenrePlayClick = { genre ->
+                genreViewModel.playGenre(genre.genreName)
+            },
         )
     }
 }
 
 @Composable
-fun GenresScreenContent(modifier: Modifier = Modifier, appState: MusicAppState? = null, genres: List<GenreDto>, onGenreClick: (GenreDto) -> Unit = {}) {
+fun GenresScreenContent(
+    modifier: Modifier = Modifier,
+    appState: MusicAppState? = null,
+    genres: List<GenreDto>,
+    onGenreClick: (GenreDto) -> Unit = {},
+    onGenrePlayClick: (GenreDto) -> Unit = {},
+) {
     GenreGrid(
         genres = genres,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
         onGenreClick = onGenreClick,
+        onGenrePlayClick = onGenrePlayClick,
     )
 }
 
@@ -56,11 +66,11 @@ fun GenreScreenPreview() {
     AppTheme {
         GenresScreenContent(
             genres =
-            listOf(
-                GenreDto("Black Metal", 10, 100, 1000, 50000),
-                GenreDto("Alternative", 20, 200, 2000, 100000),
-                GenreDto("Pagan Metal", 1, 5, 75, 5000),
-            ),
+                listOf(
+                    GenreDto("Black Metal", 10, 100, 1000, 50000),
+                    GenreDto("Alternative", 20, 200, 2000, 100000),
+                    GenreDto("Pagan Metal", 1, 5, 75, 5000),
+                ),
         )
     }
 }

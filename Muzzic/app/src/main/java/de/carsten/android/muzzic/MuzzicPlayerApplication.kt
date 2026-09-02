@@ -29,9 +29,9 @@ class MuzzicPlayerApplication :
             androidLogger()
             androidContext(this@MuzzicPlayerApplication)
             modules(
-                scanningModule,
                 databaseModule,
                 repoModule,
+                scanningModule,
                 serviceModule,
                 viewModelModule,
                 uiModule,

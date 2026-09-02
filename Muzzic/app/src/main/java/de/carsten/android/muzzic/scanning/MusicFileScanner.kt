@@ -22,7 +22,6 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
+import java.io.File
 
 /**
  * Implementation of [FileScanner] that scans for music files and extracts their metadata.
@@ -45,15 +45,18 @@ class MusicFileScanner(
     private val appSettingsRepository: AppSettingsRepository,
 ) : FileScanner {
 
-    override val scannerId: String = "MusicScanner"
-    override val notificationTitleRes: Int = R.string.scan_notification_title
-
     companion object {
+        const val SCANNER_ID = "MusicFileScanner"
         private val logger = logger()
     }
 
+    override val scannerId: String = SCANNER_ID
+    override val notificationTitleRes: Int = R.string.scan_notification_title
+
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = coroutineScope {
         onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
+
+        logger.info("Scanning for music files...")
 
         val configuredDir = appSettingsRepository.getMusicDirectory()
         val root = getScanningRoot(context, configuredDir) ?: return@coroutineScope
@@ -95,6 +98,7 @@ class MusicFileScanner(
             processChunk(pendingChunk.toList())
             processedFiles += pendingChunk.size
             reportProgress(processedFiles, totalNewFiles, onProgress)
+            logger.info("... process file chunk of size ${pendingChunk.size} ($processedFiles/$totalNewFiles) ...")
         }
 
         if (totalNewFiles > 0) {
@@ -120,6 +124,8 @@ class MusicFileScanner(
                 songDao.deleteSongs(missingSongs)
             }
         }
+
+        logger.info("... done scanning for music files")
     }
 
     private suspend fun processChunk(chunk: List<File>) = coroutineScope {
