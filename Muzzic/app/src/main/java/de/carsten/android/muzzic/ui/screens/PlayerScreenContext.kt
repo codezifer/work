@@ -51,7 +51,7 @@ fun PlayerScreenContext(
     duration: Long,
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
-    amplitudes: List<Float> = emptyList(),
+    amplitudesProvider: () -> List<Float> = { emptyList() },
     colorSource: ColorSource = composableColorSource(),
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
@@ -168,7 +168,7 @@ fun PlayerScreenContext(
             isPlaying = isPlaying,
             shuffleModeEnabled = shuffleModeEnabled,
             repeatMode = repeatMode,
-            amplitudes = amplitudes,
+            amplitudesProvider = amplitudesProvider,
             colorSource = colorSource,
             onPlayPauseClicked = onPlayPauseClicked,
             onNextClicked = onNextClicked,
@@ -195,7 +195,7 @@ fun PlayerScreenPreview_Playing() {
         duration = 225000,
         shuffleModeEnabled = true,
         repeatMode = Player.REPEAT_MODE_ALL,
-        amplitudes = List(16) { it.toFloat() / 16f },
+        amplitudesProvider = { List(16) { it.toFloat() / 16f } },
     )
 }
 
@@ -212,6 +212,6 @@ fun PlayerScreenPreview_Paused() {
         duration = 225000,
         shuffleModeEnabled = false,
         repeatMode = Player.REPEAT_MODE_OFF,
-        amplitudes = List(16) { 0f },
+        amplitudesProvider = { List(16) { 0f } },
     )
 }

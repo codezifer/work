@@ -53,7 +53,7 @@ fun PlayerControls(
     isPlaying: Boolean,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
-    amplitudes: List<Float>,
+    amplitudesProvider: () -> List<Float>,
     colorSource: ColorSource,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
@@ -80,7 +80,7 @@ fun PlayerControls(
     ) {
         // Background Visualization
         MusicVisualization(
-            amplitudes = amplitudes,
+            amplitudesProvider = amplitudesProvider,
             isPlaying = isPlaying,
             color = colorSource.accentColor.copy(alpha = 0.4f),
             modifier = Modifier.matchParentSize(),
@@ -206,7 +206,7 @@ fun PlayerControlsPreview() {
                 isPlaying = true,
                 shuffleModeEnabled = true,
                 repeatMode = Player.REPEAT_MODE_ALL,
-                amplitudes = listOf(0.2f, 0.5f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f, 0.5f, 0.2f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f),
+                amplitudesProvider = { listOf(0.2f, 0.5f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f, 0.5f, 0.2f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f) },
                 colorSource = composableColorSource(),
                 onPlayPauseClicked = {},
                 onNextClicked = {},

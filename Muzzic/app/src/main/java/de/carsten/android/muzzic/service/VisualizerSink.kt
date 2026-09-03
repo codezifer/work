@@ -90,7 +90,8 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
         val smoothedBars = bars.mapIndexed { index, amplitude ->
             val normalized = (amplitude / (runningPeak * 0.4f)).coerceIn(0f, 1f)
             val current = previousBars[index]
-            val dampingFactor = if (normalized > current) 0.4f else 0.15f
+            // Increase damping factors for more responsive variation
+            val dampingFactor = if (normalized > current) 0.7f else 0.3f
             val smoothed = (current * (1f - dampingFactor)) + (normalized * dampingFactor)
             previousBars[index] = smoothed
             smoothed

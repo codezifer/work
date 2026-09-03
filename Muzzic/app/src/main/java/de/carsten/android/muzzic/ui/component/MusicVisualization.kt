@@ -14,7 +14,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -22,20 +24,23 @@ import androidx.core.graphics.ColorUtils
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.VISUALIZER_BAR_SPACING
+import de.carsten.android.muzzic.ui.VISUALIZER_GLOW_INTENSITY
 import de.carsten.android.muzzic.ui.VISUALIZER_HUE_COLOR_DEGREE
+import de.carsten.android.muzzic.ui.VISUALIZER_LOG_BASE_DIVISOR
+import de.carsten.android.muzzic.ui.VISUALIZER_LOG_SCALE_FACTOR
 import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_HEIGHT
 import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_SPACING
-import de.carsten.android.muzzic.ui.state.MusicVisualizerState
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import kotlin.math.ln
 
 /**
  * A real-time audio visualizer component featuring segmented bars, horizontal symmetry,
  * and vertical color gradients.
  *
- * This component uses a [de.carsten.android.muzzic.ui.state.MusicVisualizerState] to handle the mathematical transformations,
- * following the Android State Holder pattern for UI logic.
+ * This component handles the mathematical transformations directly within the drawing phase
+ * to minimize allocations and maximize performance during high-frequency audio updates.
  *
- * @param amplitudes List of normalized audio amplitudes (0.0 to 1.0).
+ * @param amplitudesProvider Lambda providing the current list of normalized audio amplitudes (0.0 to 1.0).
  * @param modifier Modifier for the visualizer container.
  * @param color The base accent color for the visualization.
  * @param isPlaying Whether the visualization is currently active.
@@ -45,7 +50,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  */
 @Composable
 fun MusicVisualization(
-    amplitudes: List<Float>,
+    amplitudesProvider: () -> List<Float>,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
     isPlaying: Boolean = true,
@@ -53,7 +58,11 @@ fun MusicVisualization(
     segmentSpacing: Dp = VISUALIZER_SEGMENT_SPACING,
     barSpacing: Dp = VISUALIZER_BAR_SPACING,
 ) {
-    val barCount = amplitudes.size.coerceAtLeast(1)
+    val density = LocalDensity.current
+    val segHeightPx = remember(density, segmentHeight) { with(density) { segmentHeight.toPx() } }
+    val segSpacingPx = remember(density, segmentSpacing) { with(density) { segmentSpacing.toPx() } }
+    val barSpacingPx = remember(density, barSpacing) { with(density) { barSpacing.toPx() } }
+    val totalSegStepPx = segHeightPx + segSpacingPx
 
     // Pre-calculate the target color for the gradient edges
     val targetColor = remember(color) {
@@ -66,40 +75,50 @@ fun MusicVisualization(
     }
 
     Canvas(modifier = modifier) {
+        val amplitudes = amplitudesProvider()
+        val barCount = amplitudes.size.coerceAtLeast(1)
+
         val width = size.width
         val height = size.height
         val centerY = height / 2f
+        val maxSegmentsPerSide = centerY / totalSegStepPx
 
-        val spacingPx = barSpacing.toPx()
-        val barWidth = (width - (barCount - 1) * spacingPx) / barCount
+        val barWidth = (width - (barCount - 1) * barSpacingPx) / barCount
 
-        val segHeightPx = segmentHeight.toPx()
-        val segSpacingPx = segmentSpacing.toPx()
-        val totalSegStepPx = segHeightPx + segSpacingPx
-
-        // Instantiate the state holder for calculation logic
-        val state = MusicVisualizerState(
-            barCount = barCount,
-            maxSegmentsPerSide = (height / 2f) / totalSegStepPx,
-            totalSegStepPx = totalSegStepPx,
-            baseColor = color,
-            targetColor = targetColor,
-        )
-
+        // We use a simplified calculation here instead of re-allocating a State object
+        // to avoid GC pressure during high-frequency audio updates.
         for (i in 0 until barCount) {
-            val mirroredIndex = state.getMirroredIndex(i)
+            // Horizontal Symmetry Logic
+            val mirroredIndex = if (i < barCount / 2) {
+                ((barCount / 2) - 1) - i
+            } else {
+                i - barCount / 2
+            }
+
             val rawAmplitude = if (isPlaying && mirroredIndex < amplitudes.size) {
                 amplitudes[mirroredIndex]
             } else {
                 0f
             }
 
-            val scaledAmplitude = state.getScaledAmplitude(rawAmplitude)
-            val activeSegments = state.getActiveSegments(scaledAmplitude)
-            val x = i * (barWidth + spacingPx)
+            // Logarithmic Scaling
+            val scaledAmplitude = if (rawAmplitude > 0f) {
+                (
+                    ln((rawAmplitude * VISUALIZER_LOG_SCALE_FACTOR) + 1f) /
+                        ln(VISUALIZER_LOG_BASE_DIVISOR)
+                    ).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+
+            val activeSegments = (scaledAmplitude * maxSegmentsPerSide).toInt().coerceAtLeast(0)
+            val x = i * (barWidth + barSpacingPx)
 
             for (j in 0 until activeSegments) {
-                val finalColor = state.getSegmentColor(j, scaledAmplitude)
+                // Color Interpolation
+                val gradientFactor = j.toFloat() / maxSegmentsPerSide.coerceAtLeast(1f)
+                val baseColor = lerp(color, targetColor, gradientFactor)
+                val finalColor = lerp(baseColor, Color.White, scaledAmplitude * VISUALIZER_GLOW_INTENSITY)
 
                 // Top segment
                 drawRoundRect(
@@ -133,10 +152,12 @@ fun MusicVisualizationPreview() {
                 .height(100.dp),
         ) {
             MusicVisualization(
-                amplitudes = listOf(
-                    0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f,
-                    0.7f, 0.4f, 0.3f, 0.8f, 0.5f, 0.2f, 0.6f, 0.4f,
-                ),
+                amplitudesProvider = {
+                    listOf(
+                        0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f,
+                        0.7f, 0.4f, 0.3f, 0.8f, 0.5f, 0.2f, 0.6f, 0.4f,
+                    )
+                },
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.primary,
                 isPlaying = true,
