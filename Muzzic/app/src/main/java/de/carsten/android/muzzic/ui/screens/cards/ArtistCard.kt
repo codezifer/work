@@ -64,7 +64,7 @@ fun ArtistCard(
             },
             backgroundColor = backgroundColor,
             contentColor = contentColor,
-            borderColor = borderColor,
+            borderColor = backgroundColor.copy(alpha = 1f),
             onClick = onClick,
             onPlayClick = onPlayClick,
             onLongClick = onLongClick,

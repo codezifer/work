@@ -59,7 +59,7 @@ fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit
             onClick = onClick,
             onPlayClick = onPlayClick,
             isSelected = isSelected,
-            borderColor = borderColor,
+            borderColor = backgroundColor.copy(alpha = 1f),
             contentHeight = CARD_CONTENT_HEIGHT,
         ) {
             Text(
