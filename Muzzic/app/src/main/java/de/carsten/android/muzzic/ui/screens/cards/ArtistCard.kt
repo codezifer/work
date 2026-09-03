@@ -64,7 +64,7 @@ fun ArtistCard(
             },
             backgroundColor = backgroundColor,
             contentColor = contentColor,
-            borderColor = backgroundColor.copy(alpha = 1f), // Use palette color for border/glow
+            borderColor = borderColor,
             onClick = onClick,
             onPlayClick = onPlayClick,
             onLongClick = onLongClick,

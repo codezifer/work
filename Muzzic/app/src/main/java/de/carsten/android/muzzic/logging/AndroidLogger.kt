@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.BuildConfig
  */
 class AndroidLogger private constructor(private val tag: String) {
     companion object {
-        private const val CALL_STACK_INDEX = 4 // Index to get the actual caller
 
         /**
          * Get logger instance for a specific class
@@ -27,15 +26,12 @@ class AndroidLogger private constructor(private val tag: String) {
      * Get caller information from stack trace
      */
     private fun getCallerInfo(): String = try {
-        val stackTrace = Thread.currentThread().stackTrace
-        if (stackTrace.size > CALL_STACK_INDEX) {
-            val element = stackTrace[CALL_STACK_INDEX]
-            val className = element.className.substringAfterLast('.')
-            val methodName = element.methodName
-            "[$className::$methodName]"
-        } else {
-            "[Unknown::unknown]"
-        }
+        val stackTrace = Throwable().stackTrace
+        val loggerClassName = AndroidLogger::class.java.name
+        val element = stackTrace.firstOrNull { it.className != loggerClassName }
+        val className = element?.className?.substringAfterLast('.') ?: "Unknown"
+        val methodName = element?.methodName ?: "unknown"
+        "[$className::$methodName]"
     } catch (e: Exception) {
         "[Error::getCallerInfo]"
     }

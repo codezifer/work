@@ -56,6 +56,7 @@ fun GenreGrid(
                     genre = genre,
                     onClick = { onGenreClick(genre) },
                     onPlayClick = { onGenrePlayClick(genre) },
+                    borderColor = colorSource.accentColor,
                 )
             }
         }

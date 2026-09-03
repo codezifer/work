@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,7 +29,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.extractColors
 
 @Composable
-fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit = {}, isSelected: Boolean = false) {
+fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit = {}, isSelected: Boolean = false, borderColor: Color = MaterialTheme.colorScheme.primary) {
     val palette by rememberPaletteState(genre.lastAlbumArt?.toAlbumArtUri())
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
@@ -58,6 +59,7 @@ fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit
             onClick = onClick,
             onPlayClick = onPlayClick,
             isSelected = isSelected,
+            borderColor = borderColor,
             contentHeight = CARD_CONTENT_HEIGHT,
         ) {
             Text(

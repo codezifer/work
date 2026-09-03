@@ -10,11 +10,10 @@ import de.carsten.android.muzzic.service.MediaLibraryManager
 abstract class AbstractViewModel(private val playingQueueRepository: PlayingQueueRepository, private val mediaLibraryManager: MediaLibraryManager) : ViewModel() {
 
     protected suspend fun enqueue(songs: List<Song>) {
-        if (songs.isNotEmpty()) {
-            val mediaItems = songs.mapIndexed { index, song -> song.toMediaItem(index) }
-            playingQueueRepository.clear()
-            playingQueueRepository.addSongs(mediaItems)
-            mediaLibraryManager.playPlaylist(mediaItems, 0)
-        }
+        if (songs.isEmpty()) return
+        val mediaItems = songs.mapIndexed { index, song -> song.toMediaItem(index) }
+        playingQueueRepository.clear()
+        playingQueueRepository.addSongs(mediaItems)
+        mediaLibraryManager.playPlaylist(mediaItems, 0)
     }
 }
