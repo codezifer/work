@@ -10,14 +10,45 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ArtistDao {
     @Query(
-        "SELECT DISTINCT UPPER(SUBSTR(artist, 1, 1)) FROM (SELECT DISTINCT artist FROM songs ORDER BY artist ASC) ORDER BY 1",
+        """
+                SELECT DISTINCT
+                    CASE
+                        WHEN artist LIKE 'The %' THEN UPPER(substr(substr(artist, 5), 1, 1))
+                        WHEN artist LIKE 'An %' THEN UPPER(substr(substr(artist, 4), 1, 1))
+                        WHEN artist LIKE 'A %' THEN UPPER(substr(substr(artist, 3), 1, 1))
+                        ELSE artist
+                    END COLLATE NOCASE
+                FROM (
+                    SELECT DISTINCT s.artist
+                    FROM songs s
+                    ORDER BY
+                        CASE
+                            WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5)
+                            WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4)
+                            WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3)
+                            ELSE s.artist
+                        END COLLATE NOCASE
+                ) ORDER BY 1
+                """,
     )
     suspend fun getArtistAlphabet(): List<String>
 
     @Query("SELECT COUNT(*) FROM songs WHERE artist < (SELECT MIN(artist) FROM songs WHERE artist LIKE :letter || '%')")
     suspend fun getArtistLetterPositon(letter: String): Int
 
-    @Query("SELECT DISTINCT artist FROM songs ORDER BY artist ASC")
+    @Query(
+        """
+        SELECT DISTINCT artist
+        FROM songs
+        ORDER BY
+            CASE
+                WHEN artist LIKE 'The %' THEN substr(artist, 5)
+                WHEN artist LIKE 'An %' THEN substr(artist, 4)
+                WHEN artist LIKE 'A %' THEN substr(artist, 3)
+                ELSE artist
+            END COLLATE NOCASE
+        """,
+    )
     suspend fun getAllArtists(): List<String>
 
     @Query("SELECT * FROM songs WHERE artist = :artist ORDER BY album, title")
@@ -30,10 +61,23 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (
+                SELECT MIN(s2.albumArt) as albumArt
+                FROM songs s2
+                WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
+                GROUP BY s2.album
+                ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
+            )) as allAlbumArts
         FROM songs s
         WHERE s.artist LIKE '%' || :query || '%'
-        GROUP BY s.artist ORDER BY s.artist ASC
+        GROUP BY s.artist
+        ORDER BY
+            CASE
+                WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5)
+                WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4)
+                WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3)
+                ELSE s.artist
+            END COLLATE NOCASE
         """,
     )
     suspend fun searchArtists(query: String): List<ArtistAggregation>
@@ -45,9 +89,22 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(s.id) AS songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (
+                SELECT MIN(s2.albumArt) as albumArt
+                FROM songs s2
+                WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
+                GROUP BY s2.album
+                ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
+            )) as allAlbumArts
         FROM songs s
-        GROUP BY s.artist ORDER BY s.artist ASC
+        GROUP BY s.artist
+        ORDER BY
+            CASE
+                WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5)
+                WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4)
+                WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3)
+                ELSE s.artist
+            END COLLATE NOCASE
         """,
     )
     fun getArtistAggregations(): Flow<List<ArtistAggregation>>
@@ -59,10 +116,23 @@ interface ArtistDao {
             COUNT(DISTINCT s.album) as albumCount,
             COUNT(s.id) as songCount,
             (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL GROUP BY s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+            (SELECT GROUP_CONCAT(albumArt) FROM (
+                SELECT MIN(s2.albumArt) as albumArt
+                FROM songs s2
+                WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
+                GROUP BY s2.album
+                ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
+            )) as allAlbumArts
         FROM songs s
         WHERE s.genre = :genre
-        GROUP BY s.artist ORDER BY s.artist ASC
+        GROUP BY s.artist
+        ORDER BY
+            CASE
+                WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5)
+                WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4)
+                WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3)
+                ELSE s.artist
+            END COLLATE NOCASE
         """,
     )
     fun getArtistAggregationsByGenre(genre: String): Flow<List<ArtistAggregation>>
