@@ -37,7 +37,7 @@ import de.carsten.android.muzzic.ui.utils.formatTime
  * @param onDismiss Callback invoked when the dialog is dismissed.
  */
 @Composable
-fun AboutDialog(onDismiss: () -> Unit) {
+fun AboutDialog(onDismiss: () -> Unit = {}) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -96,6 +96,6 @@ fun AboutDialog(onDismiss: () -> Unit) {
 @Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
 fun AboutDialogPreview() {
     AppTheme {
-        AboutDialog(onDismiss = {})
+        AboutDialog()
     }
 }

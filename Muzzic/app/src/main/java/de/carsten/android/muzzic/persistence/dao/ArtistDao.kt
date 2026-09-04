@@ -9,48 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArtistDao {
-    @Query(
-        """
-                SELECT DISTINCT
-                    CASE
-                        WHEN artist LIKE 'The %' THEN UPPER(substr(substr(artist, 5), 1, 1))
-                        WHEN artist LIKE 'An %' THEN UPPER(substr(substr(artist, 4), 1, 1))
-                        WHEN artist LIKE 'A %' THEN UPPER(substr(substr(artist, 3), 1, 1))
-                        ELSE artist
-                    END COLLATE NOCASE
-                FROM (
-                    SELECT DISTINCT s.artist
-                    FROM songs s
-                    ORDER BY
-                        CASE
-                            WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5)
-                            WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4)
-                            WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3)
-                            ELSE s.artist
-                        END COLLATE NOCASE
-                ) ORDER BY 1
-                """,
-    )
-    suspend fun getArtistAlphabet(): List<String>
-
-    @Query("SELECT COUNT(*) FROM songs WHERE artist < (SELECT MIN(artist) FROM songs WHERE artist LIKE :letter || '%')")
-    suspend fun getArtistLetterPositon(letter: String): Int
-
-    @Query(
-        """
-        SELECT DISTINCT artist
-        FROM songs
-        ORDER BY
-            CASE
-                WHEN artist LIKE 'The %' THEN substr(artist, 5)
-                WHEN artist LIKE 'An %' THEN substr(artist, 4)
-                WHEN artist LIKE 'A %' THEN substr(artist, 3)
-                ELSE artist
-            END COLLATE NOCASE
-        """,
-    )
-    suspend fun getAllArtists(): List<String>
-
     @Query("SELECT * FROM songs WHERE artist = :artist ORDER BY album, title")
     suspend fun getSongsByArtist(artist: String): List<Song>
 

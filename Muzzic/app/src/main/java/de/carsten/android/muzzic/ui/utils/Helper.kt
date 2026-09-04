@@ -36,3 +36,21 @@ fun formatTime(timeMs: Long): String {
  * @return the formatted Datetime as String in format dd.MM.yyyy HH:mm:ss.SSS
  */
 fun formatTime(timeMs: String): String = formatTime(timeMs.toLong())
+
+/**
+ * Gets artist name without "The", "An" or "A"
+ *
+ * @return artist name with articles removed
+ */
+fun artistName(artistName: String): String {
+    val lcArtistName = artistName.lowercase()
+    return if (lcArtistName.startsWith("the ")) {
+        artistName.substring(4)
+    } else if (lcArtistName.startsWith("an ")) {
+        artistName.substring(3)
+    } else if (lcArtistName.startsWith("a ")) {
+        artistName.substring(2)
+    } else {
+        artistName
+    }
+}

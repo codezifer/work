@@ -46,7 +46,7 @@ fun <T> FastScrollBox(
 ) {
     val scope = rememberCoroutineScope()
 
-    val alphabet by remember(items) {
+    val alphabet: List<String> by remember(items) {
         derivedStateOf {
             items.map { label(it).take(1).uppercase() }.distinct().sorted()
         }

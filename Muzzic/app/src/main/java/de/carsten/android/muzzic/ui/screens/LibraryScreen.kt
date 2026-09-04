@@ -59,7 +59,6 @@ import de.carsten.android.muzzic.ui.utils.invert
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import java.time.Instant
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LibraryScreen(
@@ -71,7 +70,7 @@ fun LibraryScreen(
     onGenreClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    libraryViewModel: LibraryViewModel = koinViewModel(),
+    libraryViewModel: LibraryViewModel,
     selectionViewModel: SelectionViewModel,
 ) {
     val artists by libraryViewModel.artists.collectAsStateWithLifecycle()

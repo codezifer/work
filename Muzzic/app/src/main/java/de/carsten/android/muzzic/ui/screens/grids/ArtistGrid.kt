@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -18,6 +19,7 @@ import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
+import de.carsten.android.muzzic.ui.utils.artistName
 
 @Composable
 fun ArtistGrid(
@@ -29,11 +31,11 @@ fun ArtistGrid(
     selectedArtists: Set<String> = emptySet(),
     colorSource: ColorSource = composableColorSource(),
 ) {
-    val gridState = rememberLazyGridState()
+    val gridState: LazyGridState = rememberLazyGridState()
 
     FastScrollBox(
         items = artists,
-        label = { it.artistName },
+        label = { artistName(it.artistName) },
         firstVisibleItemIndex = { gridState.firstVisibleItemIndex },
         isScrollInProgress = { gridState.isScrollInProgress },
         scrollToItem = { index -> gridState.scrollToItem(index) },

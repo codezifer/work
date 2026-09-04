@@ -55,69 +55,68 @@ fun AppNavHost(
 ) {
     val navController = remember { appState.navController }
 
-    val onArtistClick =
-        remember(appState, selectionViewModel) {
-            { artistName: String ->
-                appState.onNavigationEvent(
-                    NavigationEvent.ToArtistAlbums(artistName),
-                    selectionViewModel.selectionState.value,
-                )
-            }
+    val onArtistClick = remember(appState, selectionViewModel) {
+        { artistName: String ->
+            appState.onNavigationEvent(
+                NavigationEvent.ToArtistAlbums(artistName),
+                selectionViewModel.selectionState.value,
+            )
         }
+    }
 
-    val onAlbumClick =
-        remember(appState, selectionViewModel) {
-            { artistName: String, albumName: String ->
-                appState.onNavigationEvent(
-                    NavigationEvent.ToAlbumSongs(artistName, albumName),
-                    selectionViewModel.selectionState.value,
-                )
-            }
+    val onAlbumClick = remember(appState, selectionViewModel) {
+        { artistName: String, albumName: String ->
+            appState.onNavigationEvent(
+                NavigationEvent.ToAlbumSongs(artistName, albumName),
+                selectionViewModel.selectionState.value,
+            )
         }
+    }
 
-    val onPlaylistClick =
-        remember(libraryViewModel, playingQueueViewModel, appState) {
-            { playlistDto: PlaylistDto ->
-                libraryViewModel.setIntoPlayingQueue(playlistDto.playlistId)
-                playingQueueViewModel.setPlayQueueName(playlistDto.playlistName)
-                appState.onNavigationEvent(NavigationEvent.ToQueue)
-                appState.showSnackbar("Set ${playlistDto.playlistName}")
-            }
+    val onPlaylistClick = remember(libraryViewModel, playingQueueViewModel, appState) {
+        { playlistDto: PlaylistDto ->
+            libraryViewModel.setIntoPlayingQueue(playlistDto.playlistId)
+            playingQueueViewModel.setPlayQueueName(playlistDto.playlistName)
+            appState.onNavigationEvent(NavigationEvent.ToQueue)
+            appState.showSnackbar("Set ${playlistDto.playlistName}")
         }
+    }
 
-    val onPlayPlaylist =
-        remember(libraryViewModel, playingQueueViewModel) {
-            { playlistDto: PlaylistDto ->
-                libraryViewModel.playPlaylist(playlistDto.playlistId)
-                playingQueueViewModel.setPlayQueueName(playlistDto.playlistName)
-                appState.onNavigationEvent(NavigationEvent.ToPlayer)
-                appState.showSnackbar("Play playlist ${playlistDto.playlistName}")
-            }
+    val onPlayPlaylist = remember(libraryViewModel, playingQueueViewModel) {
+        { playlistDto: PlaylistDto ->
+            libraryViewModel.playPlaylist(playlistDto.playlistId)
+            playingQueueViewModel.setPlayQueueName(playlistDto.playlistName)
+            appState.onNavigationEvent(NavigationEvent.ToPlayer)
+            appState.showSnackbar("Play playlist ${playlistDto.playlistName}")
         }
+    }
 
-    val onDeletePlaylist =
-        remember(libraryViewModel) {
-            { playlistDto: PlaylistDto ->
-                libraryViewModel.deletePlaylist(playlistDto.playlistId)
-            }
+    val onDeletePlaylist = remember(libraryViewModel) {
+        { playlistDto: PlaylistDto ->
+            libraryViewModel.deletePlaylist(playlistDto.playlistId)
         }
+    }
 
-    val onGenreClick =
-        remember(appState, selectionViewModel) {
-            { genreDto: GenreDto ->
-                appState.onNavigationEvent(
-                    NavigationEvent.ToGenreArtists(genreDto.genreName),
-                    selectionViewModel.selectionState.value,
-                )
-            }
+    val onGenreClick = remember(appState, selectionViewModel) {
+        { genreDto: GenreDto ->
+            appState.onNavigationEvent(
+                NavigationEvent.ToGenreArtists(genreDto.genreName),
+                selectionViewModel.selectionState.value,
+            )
         }
+    }
 
-    val onBackClick =
-        remember(appState) {
-            {
-                appState.onNavigationEvent(NavigationEvent.Back)
-            }
+    val onBackClick = remember(appState) {
+        {
+            appState.onNavigationEvent(NavigationEvent.Back)
         }
+    }
+
+    val onSettingsClick = remember(appState) {
+        {
+            appState.onNavigationEvent(NavigationEvent.ToSettings)
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -145,9 +144,8 @@ fun AppNavHost(
                     onAlbumClick = onAlbumClick,
                     onGenreClick = onGenreClick,
                     onPlaylistClick = onPlaylistClick,
-                    onSettingsClick = {
-                        appState.onNavigationEvent(NavigationEvent.ToSettings)
-                    },
+                    onSettingsClick = onSettingsClick,
+                    libraryViewModel = libraryViewModel,
                     selectionViewModel = selectionViewModel,
                 )
             }
@@ -177,7 +175,7 @@ fun AppNavHost(
                 AlbumSongsScreen(
                     modifier = modifier,
                     appState = appState,
-                    onBackClick = { appState.onNavigationEvent(NavigationEvent.Back) },
+                    onBackClick = onBackClick,
                     selectionViewModel = selectionViewModel,
                 )
             }

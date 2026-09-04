@@ -27,6 +27,7 @@ data class ArtistDto(
             MediaMetadata
                 .Builder()
                 .setTitle(artistName)
+                .setArtist(artistName)
                 .setArtworkUri(lastAlbumArt?.toUri())
                 .setExtras(
                     android.os.Bundle().apply {
@@ -47,13 +48,13 @@ fun ArtistAggregation.toDto() = ArtistDto(
     albumArts = this.allAlbumArts?.split(",") ?: listOfNotNull(lastAlbumArt),
 )
 
-fun List<ArtistAggregation>.toDto() = map { it.toDto() }
+fun List<ArtistAggregation>.toDto(): List<ArtistDto> = map { it.toDto() }
 
 fun MediaItem.toArtistDto(): ArtistDto {
     val metadata = mediaMetadata
     val extras = metadata.extras ?: android.os.Bundle.EMPTY
     return ArtistDto(
-        artistName = metadata.title?.toString() ?: "",
+        artistName = metadata.artist?.toString() ?: "",
         albumCount = extras.getInt(MediaKeys.ALBUM_COUNT),
         songCount = extras.getInt(MediaKeys.SONG_COUNT),
         lastAlbumArt = metadata.artworkUri?.toString(),
