@@ -3,7 +3,6 @@ package de.carsten.android.muzzic.viewmodel
 import androidx.annotation.OptIn
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.GenreRepository
@@ -11,12 +10,12 @@ import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.ui.model.AlbumDto
-import de.carsten.android.muzzic.ui.model.ArtistDto
-import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.SongDto
+import de.carsten.android.muzzic.ui.state.LibraryUiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,33 +30,6 @@ class LibraryViewModel(
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
-    val songs: StateFlow<List<Song>> =
-        musicRepository.getAllSongs().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
-
-    val artists: StateFlow<List<ArtistDto>> =
-        artistRepository.getArtistInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
-
-    val albums: StateFlow<List<AlbumDto>> =
-        albumRepository.getAlbumInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
-
-    val genres: StateFlow<List<GenreDto>> =
-        genreRepository.getGenreInformation().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
 
     val playlists: StateFlow<List<PlaylistDto>> =
         playlistRepository.getPlaylistInformation().stateIn(
@@ -66,7 +38,27 @@ class LibraryViewModel(
             initialValue = emptyList(),
         )
 
-    fun playSong(song: Song) {
+    val uiState: StateFlow<LibraryUiState> = combine(
+        musicRepository.getAllSongs(),
+        artistRepository.getArtistInformation(),
+        albumRepository.getAlbumInformation(),
+        genreRepository.getGenreInformation(),
+        playlistRepository.getPlaylistInformation(),
+    ) { songs, artists, albums, genres, playlists ->
+        LibraryUiState(
+            artists = artists,
+            albums = albums,
+            songs = songs,
+            genres = genres,
+            playlists = playlists,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = LibraryUiState(),
+    )
+
+    fun playSong(song: SongDto) {
         mediaLibraryManager.playContent(song.toMediaItem())
     }
 

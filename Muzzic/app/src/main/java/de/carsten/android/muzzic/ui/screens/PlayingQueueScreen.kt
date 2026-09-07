@@ -27,7 +27,6 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
@@ -57,7 +57,6 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PlayingQueueScreen(
@@ -65,15 +64,15 @@ fun PlayingQueueScreen(
     appState: MusicAppState,
     colorSource: ColorSource = composableColorSource(),
     playingQueueViewModel: PlayingQueueViewModel,
-    selectionViewModel: SelectionViewModel = koinViewModel(),
+    selectionViewModel: SelectionViewModel,
 ) {
-    val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsState()
-    val playingQueueName by playingQueueViewModel.currentName.collectAsState()
-    val selectionState by selectionViewModel.selectionState.collectAsState()
-    val currentSong by playingQueueViewModel.currentSong.collectAsState()
-    val isPlaying by playingQueueViewModel.isPlaying.collectAsState()
-    val currentPosition by playingQueueViewModel.currentPosition.collectAsState()
-    val duration by playingQueueViewModel.duration.collectAsState()
+    val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsStateWithLifecycle()
+    val playingQueueName by playingQueueViewModel.currentName.collectAsStateWithLifecycle()
+    val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
+    val currentSong by playingQueueViewModel.currentSong.collectAsStateWithLifecycle()
+    val isPlaying by playingQueueViewModel.isPlaying.collectAsStateWithLifecycle()
+    val currentPosition by playingQueueViewModel.currentPosition.collectAsStateWithLifecycle()
+    val duration by playingQueueViewModel.duration.collectAsStateWithLifecycle()
 
     val progress by remember {
         derivedStateOf {
@@ -113,7 +112,7 @@ fun PlayingQueueScreen(
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayingQueueContent(
+private fun PlayingQueueContent(
     modifier: Modifier,
     name: String = PLAYING_QUEUE,
     playingQueue: List<PlayingQueueDto>,

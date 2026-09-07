@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.DOT
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.CORNER_RADIUS_SMALL
 import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
@@ -46,6 +45,7 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -54,7 +54,7 @@ import java.time.Instant
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongListItem(
-    song: Song,
+    song: SongDto,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     isSelected: Boolean = false,
@@ -175,8 +175,7 @@ fun SongListItem(
 fun SongListItemPreview() {
     AppTheme {
         SongListItem(
-            song =
-            Song(
+            song = SongDto(
                 title = "This is just a Test",
                 album = "Test-Album",
                 artist = "Test-Artist",

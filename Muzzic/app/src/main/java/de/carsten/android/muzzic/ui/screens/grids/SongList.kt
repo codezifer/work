@@ -10,10 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -21,9 +21,9 @@ import java.time.Instant
 
 @Composable
 fun SongList(
-    songs: List<Song>,
-    onSongClick: (Song) -> Unit = {},
-    onSongLongClick: (Song) -> Unit = {},
+    songs: List<SongDto>,
+    onSongClick: (SongDto) -> Unit = {},
+    onSongLongClick: (SongDto) -> Unit = {},
     selectedSongs: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
     colorSource: ColorSource = composableColorSource(),
@@ -71,7 +71,7 @@ fun SongListPreview() {
     AppTheme {
         SongList(
             listOf(
-                Song(
+                SongDto(
                     title = "This is just a Test 1",
                     album = "Test-Album",
                     artist = "Test-Artist",
@@ -83,7 +83,7 @@ fun SongListPreview() {
                     totalTracks = 10,
                     trackNumber = 3,
                 ),
-                Song(
+                SongDto(
                     title = "This is just a Test 2",
                     album = "Test-Album",
                     artist = "Test-Artist",

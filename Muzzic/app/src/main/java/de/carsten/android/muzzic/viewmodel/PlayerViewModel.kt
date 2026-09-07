@@ -12,10 +12,10 @@ import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
 import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.service.VisualizerSink
+import de.carsten.android.muzzic.ui.model.SongDto
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,8 +43,8 @@ open class PlayerViewModel(
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    private val _currentSong = MutableStateFlow<Song?>(null)
-    val currentSong: StateFlow<Song?> = _currentSong
+    private val _currentSong = MutableStateFlow<SongDto?>(null)
+    val currentSong: StateFlow<SongDto?> = _currentSong
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -81,7 +81,7 @@ open class PlayerViewModel(
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _currentSong.value = mediaItem?.let { Song.fromMediaItem(it) }
+                _currentSong.value = mediaItem?.let { SongDto.fromMediaItem(it) }
                 _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
             }
 
@@ -114,7 +114,7 @@ open class PlayerViewModel(
                     b.addListener(playerListener)
                     // Initial state
                     _isPlaying.value = b.isPlaying
-                    _currentSong.value = b.currentMediaItem?.let { Song.fromMediaItem(it) }
+                    _currentSong.value = b.currentMediaItem?.let { SongDto.fromMediaItem(it) }
                     _duration.value = b.duration.takeIf { it > 0 } ?: 0L
                     _shuffleModeEnabled.value = b.shuffleModeEnabled
                     _repeatMode.value = b.repeatMode
@@ -141,7 +141,7 @@ open class PlayerViewModel(
         }
     }
 
-    fun playSong(song: Song) {
+    fun playSong(song: SongDto) {
         mediaLibraryManager.playContent(song.toMediaItem())
     }
 

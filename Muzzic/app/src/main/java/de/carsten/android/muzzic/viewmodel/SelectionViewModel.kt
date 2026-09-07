@@ -3,11 +3,11 @@ package de.carsten.android.muzzic.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.viewmodel.states.Selection
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -189,7 +189,7 @@ class SelectionViewModel(
     fun confirmSelection(onComplete: (String) -> Unit) {
         viewModelScope.launch {
             val state = _selectionState.value
-            val songsToEnqueue = mutableListOf<Song>()
+            val songsToEnqueue = mutableListOf<SongDto>()
 
             // Songs are already resolved in selectedSongs set
             val songIds = state.selectedSongs.toTypedArray()

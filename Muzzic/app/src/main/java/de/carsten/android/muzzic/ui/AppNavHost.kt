@@ -208,6 +208,7 @@ fun AppNavHost(
             PlaylistsScreen(
                 modifier = modifier,
                 appState = appState,
+                libraryViewModel = libraryViewModel,
                 playingQueueViewModel = playingQueueViewModel,
                 colorSource = colorSource,
                 onPlaylistClick = onPlaylistClick,

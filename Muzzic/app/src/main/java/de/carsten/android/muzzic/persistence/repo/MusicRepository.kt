@@ -15,8 +15,11 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.scanning.MusicFileScanner
 import de.carsten.android.muzzic.scanning.PlaylistFileScanner
+import de.carsten.android.muzzic.ui.model.SongDto
 import java.time.YearMonth
 import java.time.ZoneOffset
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class MusicRepository(
     val songDao: SongDao,
@@ -32,7 +35,7 @@ class MusicRepository(
         private const val ONE_YEAR_MS = 31536000000L // one year in milliseconds
     }
 
-    fun getAllSongs() = songDao.getAllSongs()
+    fun getAllSongs(): Flow<List<SongDto>> = songDao.getAllSongs().map { list -> list.map { song -> song.toDto() } }
 
     fun scanMusicLibrary() {
         musicFileScanner.enqueue(context)

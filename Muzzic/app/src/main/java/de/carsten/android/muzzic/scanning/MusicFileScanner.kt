@@ -129,13 +129,11 @@ class MusicFileScanner(
     }
 
     private suspend fun processChunk(chunk: List<File>) = coroutineScope {
-        val songs: List<Song> =
-            chunk
-                .map { file ->
-                    async(Dispatchers.IO) {
-                        extractSongMetadata(file)
-                    }
-                }.awaitAll()
+        val songs: List<Song> = chunk.map { file ->
+            async(Dispatchers.IO) {
+                extractSongMetadata(file)
+            }
+        }.awaitAll()
 
         withContext(Dispatchers.IO) {
             songDao.insertSongs(songs)

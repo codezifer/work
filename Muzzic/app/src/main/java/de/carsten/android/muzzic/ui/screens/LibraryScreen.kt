@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.AppDestinations.ALBUM
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE
@@ -47,6 +46,7 @@ import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
@@ -73,31 +73,26 @@ fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
     selectionViewModel: SelectionViewModel,
 ) {
-    val artists by libraryViewModel.artists.collectAsStateWithLifecycle()
-    val albums by libraryViewModel.albums.collectAsStateWithLifecycle()
-    val songs by libraryViewModel.songs.collectAsStateWithLifecycle()
-    val genres by libraryViewModel.genres.collectAsStateWithLifecycle()
-    val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
+    val libraryUiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
 
-    val filters =
-        listOf(
-            ARTIST to stringResource(R.string.artists),
-            ALBUM to stringResource(R.string.albums),
-            SONG to stringResource(R.string.songs),
-            GENRE to stringResource(R.string.genres),
-            PLAYLIST to stringResource(R.string.playlists),
-        )
+    val filters = listOf(
+        ARTIST to stringResource(R.string.artists),
+        ALBUM to stringResource(R.string.albums),
+        SONG to stringResource(R.string.songs),
+        GENRE to stringResource(R.string.genres),
+        PLAYLIST to stringResource(R.string.playlists),
+    )
 
     AppTheme {
         LibraryScreenContent(
             modifier = modifier,
             filters = filters,
-            artists = artists,
-            albums = albums,
-            songs = songs,
-            genres = genres,
-            playlists = playlists,
+            artists = libraryUiState.artists,
+            albums = libraryUiState.albums,
+            songs = libraryUiState.songs,
+            genres = libraryUiState.genres,
+            playlists = libraryUiState.playlists,
             colorSource = colorSource,
             onArtistClick = { artist ->
                 if (selectionState.isActive) {
@@ -146,7 +141,7 @@ private fun LibraryScreenContent(
     filters: List<Pair<String, String>>,
     artists: List<ArtistDto>,
     albums: List<AlbumDto>,
-    songs: List<Song>,
+    songs: List<SongDto>,
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
     colorSource: ColorSource = composableColorSource(),
@@ -156,8 +151,8 @@ private fun LibraryScreenContent(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onAlbumPlayClick: (String, String) -> Unit = { _, _ -> },
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
-    onSongClick: (Song) -> Unit = {},
-    onSongLongClick: (Song) -> Unit = {},
+    onSongClick: (SongDto) -> Unit = {},
+    onSongLongClick: (SongDto) -> Unit = {},
     onGenreClick: (GenreDto) -> Unit = {},
     onGenrePlayClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
@@ -323,7 +318,7 @@ fun LibraryScreenPreview() {
             ),
             songs =
             listOf(
-                Song(
+                SongDto(
                     title = "This is just a Test",
                     album = "Test-Album",
                     artist = "Test-Artist",
@@ -335,7 +330,7 @@ fun LibraryScreenPreview() {
                     totalTracks = 10,
                     trackNumber = 3,
                 ),
-                Song(
+                SongDto(
                     title = "This is just a Test",
                     album = "Test-Album",
                     artist = "Test-Artist",

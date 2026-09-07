@@ -2,17 +2,16 @@ package de.carsten.android.muzzic.viewmodel
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -27,6 +26,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -177,7 +177,8 @@ class SelectionViewModelTest {
         assertFalse(viewModel.selectionState.value.isActive)
     }
 
-    private fun createSong(id: String, artist: String, album: String) = Song(
+    private fun createSong(id: String, artist: String, album: String) = SongDto(
+        id = id,
         title = "Title $id",
         artist = artist,
         album = album,
@@ -189,5 +190,5 @@ class SelectionViewModelTest {
         rating = 0,
         playCount = 0,
         lastPlayed = Instant.now(),
-    ).apply { this.id = id }
+    )
 }

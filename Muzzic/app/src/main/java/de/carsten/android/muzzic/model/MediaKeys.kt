@@ -21,6 +21,7 @@ object MediaKeys {
     const val PLAYLISTS_ID = "[PLAYLISTS]"
     const val GENRES_ID = "[GENRES]"
     const val CURRENT_QUEUE = "CURRENT_QUEUE"
+    const val SONG_ID = "songId"
 
     // Prefix constants for MediaItems
     const val ARTIST_PREFIX = "$ARTISTS_ID:"

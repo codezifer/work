@@ -25,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.ui.FONT_SIZE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
@@ -35,6 +34,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -75,7 +75,7 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
 @Composable
 private fun PlayerScreenContent(
     modifier: Modifier,
-    currentSong: Song?,
+    currentSong: SongDto?,
     isPlaying: Boolean,
     progress: Float,
     duration: Long,
@@ -163,7 +163,7 @@ fun PlayerScreenPreview() {
     AppTheme {
         PlayerScreenContent(
             Modifier.padding(SPACING_TINY),
-            Song(
+            SongDto(
                 title = "This is a test song",
                 artist = "Test-Artist",
                 album = "Test-Album",
