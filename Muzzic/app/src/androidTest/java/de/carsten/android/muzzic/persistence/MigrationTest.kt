@@ -5,7 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.carsten.android.muzzic.persistence.migrations.Migrations
 import java.io.IOException
-import org.junit.Assert.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,14 +42,14 @@ class MigrationTest {
 
         // Validation 1: play_history should be gone
         val cursor = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='play_history'")
-        assertEquals("Table play_history should have been dropped", 0, cursor.count)
+        assertThat(cursor.count).describedAs("Table play_history should have been dropped").isEqualTo(0)
         cursor.close()
 
         // Validation 2: playlists should still be there
         val playlistCursor = db.query("SELECT * FROM playlists WHERE id = 'p1'")
-        assertEquals("Playlist data should have been preserved", 1, playlistCursor.count)
+        assertThat(playlistCursor.count).describedAs("Playlist data should have been preserved").isEqualTo(1)
         playlistCursor.moveToFirst()
-        assertEquals("Test Playlist", playlistCursor.getString(playlistCursor.getColumnIndex("name")))
+        assertThat(playlistCursor.getString(playlistCursor.getColumnIndex("name"))).isEqualTo("Test Playlist")
         playlistCursor.close()
     }
 
@@ -72,12 +72,12 @@ class MigrationTest {
 
         // Validation 1: play_history table should exist
         val tableCursor = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='play_history'")
-        assertEquals("Table play_history should have been created", 1, tableCursor.count)
+        assertThat(tableCursor.count).describedAs("Table play_history should have been created").isEqualTo(1)
         tableCursor.close()
 
         // Validation 2: index on songId should exist
         val indexCursor = db.query("SELECT name FROM sqlite_master WHERE type='index' AND name='index_play_history_songId'")
-        assertEquals("Index index_play_history_songId should have been created", 1, indexCursor.count)
+        assertThat(indexCursor.count).describedAs("Index index_play_history_songId should have been created").isEqualTo(1)
         indexCursor.close()
 
         // Validation 3: inserted row should be insertable into play_history
@@ -85,7 +85,7 @@ class MigrationTest {
             "INSERT INTO play_history (id, songId, playedAt) VALUES ('h1', 's1', 2000)",
         )
         val historyCursor = db.query("SELECT * FROM play_history WHERE id = 'h1'")
-        assertEquals("Play history row should be present", 1, historyCursor.count)
+        assertThat(historyCursor.count).describedAs("Play history row should be present").isEqualTo(1)
         historyCursor.close()
     }
 
@@ -116,13 +116,13 @@ class MigrationTest {
         )
         expectedIndexes.forEach { indexName ->
             val indexCursor = db.query("SELECT name FROM sqlite_master WHERE type='index' AND name='$indexName'")
-            assertEquals("Index $indexName should have been created", 1, indexCursor.count)
+            assertThat(indexCursor.count).describedAs("Index $indexName should have been created").isEqualTo(1)
             indexCursor.close()
         }
 
         // Validation: existing data should have been preserved
         val songCursor = db.query("SELECT * FROM songs WHERE id = 's1'")
-        assertEquals("Song data should have been preserved", 1, songCursor.count)
+        assertThat(songCursor.count).describedAs("Song data should have been preserved").isEqualTo(1)
         songCursor.close()
     }
 }

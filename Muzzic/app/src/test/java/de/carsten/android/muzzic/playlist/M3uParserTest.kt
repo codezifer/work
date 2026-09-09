@@ -2,7 +2,7 @@ package de.carsten.android.muzzic.playlist
 
 import java.io.File
 import java.nio.file.Files
-import org.junit.Assert.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class M3uParserTest {
@@ -20,8 +20,8 @@ class M3uParserTest {
         val entries = M3uParser.parse(playlistFile)
 
         try {
-            assertEquals(1, entries.size)
-            assertEquals(absolutePath, entries[0].path)
+            assertThat(entries).hasSize(1)
+            assertThat(entries[0].path).isEqualTo(absolutePath)
         } finally {
             tempDir.deleteRecursively()
         }
@@ -41,8 +41,8 @@ class M3uParserTest {
         val entries = M3uParser.parse(playlistFile)
 
         try {
-            assertEquals(1, entries.size)
-            assertEquals(songPath, entries[0].path)
+            assertThat(entries).hasSize(1)
+            assertThat(entries[0].path).isEqualTo(songPath)
         } finally {
             tempDir.deleteRecursively()
         }
@@ -61,8 +61,8 @@ class M3uParserTest {
         val entries = M3uParser.parse(playlistFile)
 
         try {
-            assertEquals(1, entries.size)
-            assertEquals(expectedPath, entries[0].path)
+            assertThat(entries).hasSize(1)
+            assertThat(entries[0].path).isEqualTo(expectedPath)
         } finally {
             tempDir.deleteRecursively()
         }

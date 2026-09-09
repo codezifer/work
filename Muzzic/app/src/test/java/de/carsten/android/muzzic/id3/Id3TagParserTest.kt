@@ -2,26 +2,26 @@ package de.carsten.android.muzzic.id3
 
 import io.mockk.every
 import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
 import org.jaudiotagger.tag.id3.ID3v23Frame
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM
-import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class Id3TagParserTest {
 
     @Test
     fun `parseTrackString parses track and total with various separators`() {
-        assertEquals(Pair(1, 10), Id3TagParser.parseTrackString("1/10"))
-        assertEquals(Pair(1, 10), Id3TagParser.parseTrackString("01/10"))
-        assertEquals(Pair(2, 12), Id3TagParser.parseTrackString("2\\12"))
-        assertEquals(Pair(3, 15), Id3TagParser.parseTrackString("3-15"))
-        assertEquals(Pair(4, 20), Id3TagParser.parseTrackString("4:20"))
-        assertEquals(Pair(5, -1), Id3TagParser.parseTrackString("5"))
-        assertEquals(Pair(-1, -1), Id3TagParser.parseTrackString(""))
-        assertEquals(Pair(-1, -1), Id3TagParser.parseTrackString(null))
+        assertThat(Id3TagParser.parseTrackString("1/10")).isEqualTo(Pair(1, 10))
+        assertThat(Id3TagParser.parseTrackString("01/10")).isEqualTo(Pair(1, 10))
+        assertThat(Id3TagParser.parseTrackString("2\\12")).isEqualTo(Pair(2, 12))
+        assertThat(Id3TagParser.parseTrackString("3-15")).isEqualTo(Pair(3, 15))
+        assertThat(Id3TagParser.parseTrackString("4:20")).isEqualTo(Pair(4, 20))
+        assertThat(Id3TagParser.parseTrackString("5")).isEqualTo(Pair(5, -1))
+        assertThat(Id3TagParser.parseTrackString("")).isEqualTo(Pair(-1, -1))
+        assertThat(Id3TagParser.parseTrackString(null)).isEqualTo(Pair(-1, -1))
     }
 
     @Test
@@ -55,11 +55,11 @@ class Id3TagParserTest {
             },
         )
 
-        assertEquals(2023, metadata.year)
-        assertEquals(128, metadata.rating)
-        assertEquals(42, metadata.playCount)
-        assertEquals(1, metadata.trackNumber)
-        assertEquals(10, metadata.totalTracks)
+        assertThat(metadata.year).isEqualTo(2023)
+        assertThat(metadata.rating).isEqualTo(128)
+        assertThat(metadata.playCount).isEqualTo(42)
+        assertThat(metadata.trackNumber).isEqualTo(1)
+        assertThat(metadata.totalTracks).isEqualTo(10)
     }
 
     @Test
@@ -87,9 +87,9 @@ class Id3TagParserTest {
             },
         )
 
-        assertEquals(255, metadata.rating)
-        assertEquals(5, metadata.trackNumber)
-        assertEquals(20, metadata.totalTracks)
+        assertThat(metadata.rating).isEqualTo(255)
+        assertThat(metadata.trackNumber).isEqualTo(5)
+        assertThat(metadata.totalTracks).isEqualTo(20)
     }
 
     @Test
@@ -121,6 +121,6 @@ class Id3TagParserTest {
             },
         )
 
-        assertEquals(100, metadata.playCount)
+        assertThat(metadata.playCount).isEqualTo(100)
     }
 }

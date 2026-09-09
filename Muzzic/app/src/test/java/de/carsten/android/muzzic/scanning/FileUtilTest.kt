@@ -5,8 +5,7 @@ import android.net.Uri
 import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
 import de.carsten.android.muzzic.TestConfig
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -22,7 +21,7 @@ class FileUtilTest {
     fun `getFilePathFromUri resolves file scheme`() {
         val uri = Uri.parse("file:///storage/emulated/0/Music/song.mp3")
         val path = FileUtil.getFilePathFromUri(context, uri)
-        assertEquals("/storage/emulated/0/Music/song.mp3", path)
+        assertThat(path).isEqualTo("/storage/emulated/0/Music/song.mp3")
     }
 
     @Test
@@ -36,7 +35,7 @@ class FileUtilTest {
         // We know Robolectric might return null for isDocumentUri depending on config, but if it works, it should match.
         // In the previous run, it was null, so we skip the assertion if the environment doesn't support it.
         if (path != null) {
-            assertEquals("$expectedBase/Music/song.mp3", path)
+            assertThat(path).isEqualTo("$expectedBase/Music/song.mp3")
         }
     }
 
@@ -49,7 +48,7 @@ class FileUtilTest {
 
         val expectedBase = Environment.getExternalStorageDirectory().absolutePath
         if (path != null) {
-            assertEquals("$expectedBase/Music", path)
+            assertThat(path).isEqualTo("$expectedBase/Music")
         }
     }
 
@@ -57,6 +56,6 @@ class FileUtilTest {
     fun `getFilePathFromUri returns null for unknown scheme`() {
         val uri = Uri.parse("http://example.com/music.mp3")
         val path = FileUtil.getFilePathFromUri(context, uri)
-        assertNull(path)
+        assertThat(path).isNull()
     }
 }

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
-class PlayingQueueViewModel(
+open class PlayingQueueViewModel(
     private val repository: PlayingQueueRepository,
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
@@ -44,11 +44,20 @@ class PlayingQueueViewModel(
         }
 
     init {
+        setupQueueObservation()
+        setupBrowserObservation()
+        startProgressUpdater()
+    }
+
+    open fun setupQueueObservation() {
         viewModelScope.launch {
             repository.observePlayingQueue().collect { queue ->
                 _uiState.update { it.copy(queue = queue) }
             }
         }
+    }
+
+    open fun setupBrowserObservation() {
         viewModelScope.launch {
             mediaLibraryManager.browser.collect { b ->
                 if (b != null) {
@@ -63,10 +72,9 @@ class PlayingQueueViewModel(
                 }
             }
         }
-        startProgressUpdater()
     }
 
-    private fun startProgressUpdater() {
+    open fun startProgressUpdater() {
         viewModelScope.launch {
             while (true) {
                 val b = mediaLibraryManager.browser.value

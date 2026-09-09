@@ -7,6 +7,7 @@ import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.SongRepository
 import de.carsten.android.muzzic.ui.model.SongDto
+import de.carsten.android.muzzic.viewmodel.states.Selection
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -20,10 +21,8 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,23 +61,23 @@ class SelectionViewModelTest {
         coEvery { artistRepository.getSongsByArtist("Artist 1") } returns listOf(song1)
 
         viewModel.selectionState.test {
-            assertEquals(SelectionState(), awaitItem())
+            assertThat(awaitItem()).isEqualTo(SelectionState())
 
             viewModel.toggleArtistSelection("Artist 1")
             testScheduler.advanceUntilIdle()
 
             val state1 = awaitItem()
-            assertTrue(state1.isActive)
-            assertTrue(state1.selectedArtists.contains("Artist 1"))
-            assertTrue(state1.selectedSongs.contains("1"))
+            assertThat(state1.isActive).isTrue()
+            assertThat(state1.selectedArtists).contains("Artist 1")
+            assertThat(state1.selectedSongs).contains("1")
 
             viewModel.toggleArtistSelection("Artist 1")
             testScheduler.advanceUntilIdle()
 
             val state2 = awaitItem()
-            assertFalse(state2.isActive)
-            assertFalse(state2.selectedArtists.contains("Artist 1"))
-            assertFalse(state2.selectedSongs.contains("1"))
+            assertThat(state2.isActive).isFalse()
+            assertThat(state2.selectedArtists).doesNotContain("Artist 1")
+            assertThat(state2.selectedSongs).doesNotContain("1")
         }
     }
 
@@ -94,9 +93,9 @@ class SelectionViewModelTest {
             testScheduler.advanceUntilIdle()
 
             val state = awaitItem()
-            assertTrue(state.isActive)
-            assertTrue(state.selectedAlbums.contains("Artist 1|Album 1"))
-            assertTrue(state.selectedSongs.contains("1"))
+            assertThat(state.isActive).isTrue()
+            assertThat(state.selectedAlbums).contains("Artist 1|Album 1")
+            assertThat(state.selectedSongs).contains("1")
         }
     }
 
@@ -107,8 +106,8 @@ class SelectionViewModelTest {
 
             viewModel.toggleSongSelection("song_123")
             val state = awaitItem()
-            assertTrue(state.isActive)
-            assertTrue(state.selectedSongs.contains("song_123"))
+            assertThat(state.isActive).isTrue()
+            assertThat(state.selectedSongs).contains("song_123")
         }
     }
 
@@ -121,10 +120,10 @@ class SelectionViewModelTest {
         testScheduler.advanceUntilIdle()
 
         viewModel.selectionState.test {
-            assertTrue(awaitItem().isActive)
+            assertThat(awaitItem().isActive).isTrue()
 
             viewModel.clearSelection()
-            assertFalse(awaitItem().isActive)
+            assertThat(awaitItem().isActive).isFalse()
         }
     }
 
@@ -153,8 +152,8 @@ class SelectionViewModelTest {
         }
 
         // Selection is ENQUEUED after confirmation
-        assertTrue(viewModel.selectionState.value.isActive)
-        assertEquals(de.carsten.android.muzzic.viewmodel.states.Selection.ENQUEUED, viewModel.selectionState.value.value)
+        assertThat(viewModel.selectionState.value.isActive).isTrue()
+        assertThat(viewModel.selectionState.value.value).isEqualTo(Selection.ENQUEUED)
     }
 
     @Test
@@ -174,7 +173,7 @@ class SelectionViewModelTest {
         coVerify {
             playingQueueRepository.removeSongs(any())
         }
-        assertFalse(viewModel.selectionState.value.isActive)
+        assertThat(viewModel.selectionState.value.isActive).isFalse()
     }
 
     private fun createSong(id: String, artist: String, album: String) = SongDto(

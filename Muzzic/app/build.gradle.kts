@@ -178,6 +178,7 @@ dependencies {
     // testing
     testImplementation(composeBomPlatform)
     testImplementation(libs.junit)
+    testImplementation(libs.test.assertj)
     testImplementation(libs.androidx.test.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
@@ -191,6 +192,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.test.assertj)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.koin.test)
 

@@ -4,8 +4,7 @@ import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class FileUtilFlowTest {
@@ -21,11 +20,8 @@ class FileUtilFlowTest {
 
             val files = FileUtil.getFilesFlow(root, setOf("mp3", "m4a")).toList()
 
-            assertEquals(
-                setOf(mp3.absolutePath, m4a.absolutePath),
-                files.map { it.absolutePath }.toSet(),
-            )
-            assertTrue(files.none { it.name == "notes.txt" })
+            assertThat(files.map { it.absolutePath }).containsExactlyInAnyOrder(mp3.absolutePath, m4a.absolutePath)
+            assertThat(files).extracting("name").doesNotContain("notes.txt")
         } finally {
             root.deleteRecursively()
         }
@@ -35,7 +31,7 @@ class FileUtilFlowTest {
     fun `getFilesFlow emits nothing for non-existing root`() = runTest {
         val files = FileUtil.getFilesFlow(File("/nonexistent/muzzic/path"), setOf("mp3")).toList()
 
-        assertTrue(files.isEmpty())
+        assertThat(files).isEmpty()
     }
 
     @Test
@@ -46,7 +42,7 @@ class FileUtilFlowTest {
             File(root, "b.mp3").apply { writeText("") }
             File(root, "c.txt").apply { writeText("") }
 
-            assertEquals(2, FileUtil.countFiles(root, setOf("mp3")))
+            assertThat(FileUtil.countFiles(root, setOf("mp3"))).isEqualTo(2)
         } finally {
             root.deleteRecursively()
         }
@@ -64,7 +60,7 @@ class FileUtilFlowTest {
                     file.name == "keep.mp3"
                 }
 
-            assertEquals(1, counted)
+            assertThat(counted).isEqualTo(1)
         } finally {
             root.deleteRecursively()
         }
