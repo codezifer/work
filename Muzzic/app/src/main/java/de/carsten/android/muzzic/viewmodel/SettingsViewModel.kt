@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.ui.state.SettingsUiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -15,17 +17,12 @@ import kotlinx.coroutines.launch
  */
 class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository, private val musicRepository: MusicRepository) : ViewModel() {
 
-    /**
-     * State flow for the music directory path.
-     */
-    val musicDirectory: StateFlow<String?> = appSettingsRepository.observeMusicDirectory()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    /**
-     * State flow for the playlist directory path.
-     */
-    val playlistDirectory: StateFlow<String?> = appSettingsRepository.observePlaylistDirectory()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val uiState: StateFlow<SettingsUiState> = combine(
+        appSettingsRepository.observeMusicDirectory(),
+        appSettingsRepository.observePlaylistDirectory(),
+    ) { musicDir, playlistDir ->
+        SettingsUiState(musicDir, playlistDir)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     /**
      * Updates the music directory path.

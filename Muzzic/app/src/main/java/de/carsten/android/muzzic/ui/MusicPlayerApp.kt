@@ -74,10 +74,11 @@ fun MusicPlayerApp(
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
     val uiState = appState.getUiState(selectionState)
 
-    val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
+    val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val currentSong = playerUiState.currentSong
     val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
     val isDark = isSystemInDarkTheme()
-    val albumArtPath by remember { mutableStateOf(currentSong?.albumArt) }
+    val albumArtPath = currentSong?.albumArt
 
     val defaultBackground = MaterialTheme.colorScheme.primary
     val defaultContent = MaterialTheme.colorScheme.onPrimary

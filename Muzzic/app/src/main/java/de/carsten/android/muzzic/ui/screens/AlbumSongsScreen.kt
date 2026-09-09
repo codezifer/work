@@ -38,7 +38,7 @@ fun AlbumSongsScreen(
     viewModel: AlbumSongsViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel,
 ) {
-    val songs by viewModel.songs.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     AppTheme {
@@ -64,13 +64,13 @@ fun AlbumSongsScreen(
                 }
                 Column(modifier = Modifier.padding(start = SPACING_MEDIUM)) {
                     Text(
-                        text = viewModel.albumName,
+                        text = uiState.albumName,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = FONT_SIZE_LARGE_TITLE,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = viewModel.artistName,
+                        text = uiState.artistName,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = FONT_SIZE_BODY,
                     )
@@ -78,12 +78,12 @@ fun AlbumSongsScreen(
             }
 
             SongList(
-                songs = songs,
+                songs = uiState.songs,
                 onSongClick = { song ->
                     if (selectionState.isActive) {
                         selectionViewModel.toggleSongSelection(song.id)
                     } else {
-                        viewModel.playSong(song, songs)
+                        viewModel.playSong(song, uiState.songs)
                     }
                 },
                 onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },

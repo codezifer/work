@@ -54,11 +54,11 @@ fun PlaylistsScreen(
     onPlayPlaylist: (PlaylistDto) -> Unit = {},
     onDeletePlaylist: (PlaylistDto) -> Unit = {},
 ) {
-    val libraryUiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
 
     PlaylistScreenContent(
         modifier = modifier,
-        playlists = libraryUiState.playlists,
+        playlists = uiState.playlists,
         colorSource = colorSource,
         onPlaylistClick = onPlaylistClick,
         onPlayClick = onPlayPlaylist,

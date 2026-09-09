@@ -16,6 +16,7 @@ import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.service.VisualizerSink
 import de.carsten.android.muzzic.ui.model.SongDto
+import de.carsten.android.muzzic.ui.state.PlayerUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
@@ -38,34 +40,10 @@ open class PlayerViewModel(
 
     val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
 
+    private val _uiState = MutableStateFlow(PlayerUiState())
+    val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
+
     val amplitudes: StateFlow<List<Float>> = visualizerSink.amplitudes
-
-    private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
-
-    private val _currentSong = MutableStateFlow<SongDto?>(null)
-    val currentSong: StateFlow<SongDto?> = _currentSong
-
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    private val _currentPosition = MutableStateFlow(0L)
-    val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
-
-    private val _duration = MutableStateFlow(0L)
-    val duration: StateFlow<Long> = _duration.asStateFlow()
-
-    private val _progress = MutableStateFlow(0f)
-    val progress: StateFlow<Float> = _progress.asStateFlow()
-
-    private val _shuffleModeEnabled = MutableStateFlow(false)
-    val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled.asStateFlow()
-
-    private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
-    val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
-
-    private val _searchResults = MutableStateFlow<List<MediaItem>>(emptyList())
-    val searchResults: StateFlow<List<MediaItem>> = _searchResults.asStateFlow()
 
     val songs =
         repository.getAllSongs().stateIn(
@@ -77,26 +55,30 @@ open class PlayerViewModel(
     private val playerListener =
         object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _isPlaying.value = isPlaying
+                _uiState.update { it.copy(isPlaying = isPlaying) }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _currentSong.value = mediaItem?.let { SongDto.fromMediaItem(it) }
-                _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
+                _uiState.update { state ->
+                    state.copy(
+                        currentSong = mediaItem?.let { SongDto.fromMediaItem(it) },
+                        duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L,
+                    )
+                }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_READY) {
-                    _duration.value = browser.value?.duration?.takeIf { it > 0 } ?: 0L
+                    _uiState.update { it.copy(duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L) }
                 }
             }
 
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                _shuffleModeEnabled.value = shuffleModeEnabled
+                _uiState.update { it.copy(shuffleModeEnabled = shuffleModeEnabled) }
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
-                _repeatMode.value = repeatMode
+                _uiState.update { it.copy(repeatMode = repeatMode) }
             }
         }
 
@@ -104,22 +86,34 @@ open class PlayerViewModel(
         scanLibrary()
         startProgressUpdater()
         setupBrowserObservation()
+        setupAmplitudesObservation()
     }
 
     open fun setupBrowserObservation() {
         viewModelScope.launch {
             browser.collect { b ->
                 if (b != null) {
-                    _isConnected.value = true
                     b.addListener(playerListener)
-                    // Initial state
-                    _isPlaying.value = b.isPlaying
-                    _currentSong.value = b.currentMediaItem?.let { SongDto.fromMediaItem(it) }
-                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
-                    _shuffleModeEnabled.value = b.shuffleModeEnabled
-                    _repeatMode.value = b.repeatMode
+                    _uiState.update { state ->
+                        state.copy(
+                            isConnected = true,
+                            isPlaying = b.isPlaying,
+                            currentSong = b.currentMediaItem?.let { SongDto.fromMediaItem(it) },
+                            duration = b.duration.takeIf { it > 0 } ?: 0L,
+                            shuffleModeEnabled = b.shuffleModeEnabled,
+                            repeatMode = b.repeatMode,
+                        )
+                    }
                     logger.debug("MediaBrowser connected")
                 }
+            }
+        }
+    }
+
+    private fun setupAmplitudesObservation() {
+        viewModelScope.launch {
+            amplitudes.collect { amps ->
+                _uiState.update { it.copy(amplitudes = amps) }
             }
         }
     }
@@ -131,9 +125,11 @@ open class PlayerViewModel(
                 if (b != null && b.isPlaying) {
                     val pos = b.currentPosition
                     val dur = b.duration
-                    _currentPosition.value = pos
-                    if (dur > 0) {
-                        _progress.value = pos.toFloat() / dur
+                    _uiState.update { state ->
+                        state.copy(
+                            currentPosition = pos,
+                            progress = if (dur > 0) pos.toFloat() / dur else 0f,
+                        )
                     }
                 }
                 delay(AppConfig.Service.PROGRESS_DELAY)
@@ -203,7 +199,7 @@ open class PlayerViewModel(
     }
 
     fun updateRating(rating: Int) {
-        _currentSong.value?.let { song ->
+        uiState.value.currentSong?.let { song ->
             viewModelScope.launch {
                 repository.updateSongRating(song.id, rating)
             }

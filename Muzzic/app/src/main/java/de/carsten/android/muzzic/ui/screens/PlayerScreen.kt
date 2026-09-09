@@ -45,23 +45,17 @@ private val GLASS_CONTAINER_ROUNDING = GLASS_PANEL_CORNER_RADIUS
 
 @Composable
 fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSource: ColorSource, playerViewModel: PlayerViewModel = koinViewModel()) {
-    val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
-    val isPlaying by playerViewModel.isPlaying.collectAsStateWithLifecycle()
-    val progress by playerViewModel.progress.collectAsStateWithLifecycle()
-    val duration by playerViewModel.duration.collectAsStateWithLifecycle()
-    val shuffleModeEnabled by playerViewModel.shuffleModeEnabled.collectAsStateWithLifecycle()
-    val repeatMode by playerViewModel.repeatMode.collectAsStateWithLifecycle()
-    val amplitudesState = playerViewModel.amplitudes.collectAsStateWithLifecycle()
+    val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
 
     PlayerScreenContent(
         modifier = modifier,
-        currentSong = currentSong,
-        isPlaying = isPlaying,
-        progress = progress,
-        duration = duration,
-        shuffleModeEnabled = shuffleModeEnabled,
-        repeatMode = repeatMode,
-        amplitudesProvider = { amplitudesState.value },
+        currentSong = uiState.currentSong,
+        isPlaying = uiState.isPlaying,
+        progress = uiState.progress,
+        duration = uiState.duration,
+        shuffleModeEnabled = uiState.shuffleModeEnabled,
+        repeatMode = uiState.repeatMode,
+        amplitudesProvider = { uiState.amplitudes },
         colorSource = colorSource,
         onPrevClicked = playerViewModel::onPrevClicked,
         onNextClicked = playerViewModel::onNextClicked,

@@ -74,7 +74,7 @@ fun LibraryScreen(
     selectionViewModel: SelectionViewModel,
 ) {
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
-    val libraryUiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
 
     val filters = listOf(
         ARTIST to stringResource(R.string.artists),
@@ -84,15 +84,19 @@ fun LibraryScreen(
         PLAYLIST to stringResource(R.string.playlists),
     )
 
+    var selectedFilter by remember { mutableStateOf(ARTIST) }
+
     AppTheme {
         LibraryScreenContent(
             modifier = modifier,
             filters = filters,
-            artists = libraryUiState.artists,
-            albums = libraryUiState.albums,
-            songs = libraryUiState.songs,
-            genres = libraryUiState.genres,
-            playlists = libraryUiState.playlists,
+            selectedFilter = selectedFilter,
+            onFilterChange = { selectedFilter = it },
+            artists = uiState.artists,
+            albums = uiState.albums,
+            songs = uiState.songs,
+            genres = uiState.genres,
+            playlists = uiState.playlists,
             colorSource = colorSource,
             onArtistClick = { artist ->
                 if (selectionState.isActive) {
@@ -139,6 +143,8 @@ fun LibraryScreen(
 private fun LibraryScreenContent(
     modifier: Modifier = Modifier,
     filters: List<Pair<String, String>>,
+    selectedFilter: String,
+    onFilterChange: (String) -> Unit,
     artists: List<ArtistDto>,
     albums: List<AlbumDto>,
     songs: List<SongDto>,
@@ -161,7 +167,6 @@ private fun LibraryScreenContent(
     selectedAlbums: Set<String> = emptySet(),
     selectedSongs: Set<String> = emptySet(),
 ) {
-    var selectedFilter by remember { mutableStateOf(ARTIST) }
     val selectedContainerColor = colorSource.accentColor.invert()
     val selectedLabelColor = colorSource.contentColor.invert()
     val containerColor = colorSource.accentColor
@@ -202,7 +207,7 @@ private fun LibraryScreenContent(
             items(filters) { (key, label) ->
                 FilterChip(
                     selected = selectedFilter == key,
-                    onClick = { selectedFilter = key },
+                    onClick = { onFilterChange(key) },
                     label = { Text(text = label) },
                     colors =
                     FilterChipDefaults.filterChipColors(
@@ -290,6 +295,8 @@ fun LibraryScreenPreview() {
                 GENRE to "Genres",
                 PLAYLIST to "Playlists",
             ),
+            selectedFilter = ARTIST,
+            onFilterChange = {},
             artists =
             listOf(
                 ArtistDto("Cradle Of Filth", 2, 13),

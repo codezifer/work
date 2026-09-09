@@ -53,13 +53,12 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBackClick: () -> Unit, settingsViewModel: SettingsViewModel = koinViewModel()) {
-    val musicDirectory by settingsViewModel.musicDirectory.collectAsStateWithLifecycle()
-    val playlistDirectory by settingsViewModel.playlistDirectory.collectAsStateWithLifecycle()
+    val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
     SettingsScreenContent(
         modifier = modifier,
-        musicDirectory = musicDirectory,
-        playlistDirectory = playlistDirectory,
+        musicDirectory = uiState.musicDirectory,
+        playlistDirectory = uiState.playlistDirectory,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
     )

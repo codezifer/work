@@ -9,14 +9,13 @@ import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.ui.PLAYING_QUEUE
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.state.PlayingQueueUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -25,52 +24,42 @@ class PlayingQueueViewModel(
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel() {
-    val currentPlayingQueue: StateFlow<List<PlayingQueueDto>> =
-        repository.observePlayingQueue().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
-
-    private val _currentSong = MutableStateFlow<MediaItem?>(null)
-    val currentSong: StateFlow<MediaItem?> = _currentSong.asStateFlow()
-
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    private val _currentPosition = MutableStateFlow(0L)
-    val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
-
-    private val _duration = MutableStateFlow(0L)
-    val duration: StateFlow<Long> = _duration.asStateFlow()
-
-    private val _currentName = MutableStateFlow(PLAYING_QUEUE)
-    val currentName = _currentName.asStateFlow()
+    private val _uiState = MutableStateFlow(PlayingQueueUiState())
+    val uiState: StateFlow<PlayingQueueUiState> = _uiState.asStateFlow()
 
     private val playerListener =
         object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _isPlaying.value = isPlaying
+                _uiState.update { it.copy(isPlaying = isPlaying) }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _currentSong.value = mediaItem
+                _uiState.update { it.copy(currentSong = mediaItem) }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 val b = mediaLibraryManager.browser.value ?: return
-                _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                _uiState.update { it.copy(duration = b.duration.takeIf { it > 0 } ?: 0L) }
             }
         }
 
     init {
         viewModelScope.launch {
+            repository.observePlayingQueue().collect { queue ->
+                _uiState.update { it.copy(queue = queue) }
+            }
+        }
+        viewModelScope.launch {
             mediaLibraryManager.browser.collect { b ->
                 if (b != null) {
                     b.addListener(playerListener)
-                    _isPlaying.value = b.isPlaying
-                    _currentSong.value = b.currentMediaItem
-                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                    _uiState.update {
+                        it.copy(
+                            isPlaying = b.isPlaying,
+                            currentSong = b.currentMediaItem,
+                            duration = b.duration.takeIf { it > 0 } ?: 0L,
+                        )
+                    }
                 }
             }
         }
@@ -82,8 +71,9 @@ class PlayingQueueViewModel(
             while (true) {
                 val b = mediaLibraryManager.browser.value
                 if (b != null && b.isPlaying) {
-                    _currentPosition.value = b.currentPosition
-                    _duration.value = b.duration.takeIf { it > 0 } ?: 0L
+                    val pos = b.currentPosition
+                    val dur = b.duration.takeIf { it > 0 } ?: 0L
+                    _uiState.update { it.copy(currentPosition = pos, duration = dur) }
                 }
                 delay(500)
             }
@@ -101,17 +91,18 @@ class PlayingQueueViewModel(
 
     fun playSongAt(index: Int) {
         val b = mediaLibraryManager.browser.value ?: return
-        if (index in currentPlayingQueue.value.indices) {
+        val currentQueue = uiState.value.queue
+        if (index in currentQueue.indices) {
             // Check if the current player items match our queue
             val match =
-                b.mediaItemCount == currentPlayingQueue.value.size &&
+                b.mediaItemCount == currentQueue.size &&
                     (0 until b.mediaItemCount).all { i ->
-                        b.getMediaItemAt(i).mediaId == currentPlayingQueue.value[i].mediaId
+                        b.getMediaItemAt(i).mediaId == currentQueue[i].mediaId
                     }
 
             if (!match) {
                 // If they don't match, reload the whole queue into the player
-                mediaLibraryManager.playPlaylist(currentPlayingQueue.value.map { it.toMediaItem() }, index)
+                mediaLibraryManager.playPlaylist(currentQueue.map { it.toMediaItem() }, index)
             } else {
                 // If they match, just seek to the correct item
                 b.seekToDefaultPosition(index)
@@ -123,14 +114,15 @@ class PlayingQueueViewModel(
 
     fun saveAsPlaylist(name: String) {
         viewModelScope.launch {
-            playlistRepository.createPlaylistFromSongs(name, currentPlayingQueue.value.map { it.toMediaItem() })
+            playlistRepository.createPlaylistFromSongs(name, uiState.value.queue.map { it.toMediaItem() })
         }
     }
 
     fun moveSong(fromIndex: Int, toIndex: Int) {
-        if (fromIndex !in currentPlayingQueue.value.indices || toIndex !in currentPlayingQueue.value.indices) return
+        val currentQueue = uiState.value.queue
+        if (fromIndex !in currentQueue.indices || toIndex !in currentQueue.indices) return
 
-        val playlist = currentPlayingQueue.value.toMutableList()
+        val playlist = currentQueue.toMutableList()
         val item = playlist.removeAt(fromIndex)
         playlist.add(toIndex, item)
 
@@ -170,17 +162,17 @@ class PlayingQueueViewModel(
 
     fun setPlayQueueName(name: String) {
         viewModelScope.launch {
-            _currentName.value = name
+            _uiState.update { it.copy(name = name) }
         }
     }
 
     fun shuffleQueue() {
-        val shuffled = currentPlayingQueue.value.shuffled()
+        val shuffled = uiState.value.queue.shuffled()
         updateQueue(shuffled)
     }
 
     fun sortQueueByMetadata() {
-        val sorted = currentPlayingQueue.value.sortedWith(
+        val sorted = uiState.value.queue.sortedWith(
             compareBy<PlayingQueueDto> { it.artist }
                 .thenBy { it.albumYear }
                 .thenBy { it.trackNumber },

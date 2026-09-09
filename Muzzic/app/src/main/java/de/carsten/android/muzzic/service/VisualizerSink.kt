@@ -21,7 +21,11 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
     val amplitudes: StateFlow<List<Float>> = _amplitudes.asStateFlow()
 
     private val numBars = 64
+    private val windowSize = 1024
     private var previousBars = FloatArray(numBars) { 0f }
+    private var fftData = FloatArray(windowSize * 2)
+    private var magnitudes = FloatArray(windowSize / 2 - 1)
+    private var bars = FloatArray(numBars)
     private var sampleRate = 44100
     private var channelCount = 2
     private var runningPeak = 0.5f
@@ -35,19 +39,12 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
         val remaining = buffer.remaining()
         if (remaining == 0) return
 
-        // Duplicate buffer to avoid modifying position of the original if needed
-        // but handleBuffer is called by TeeAudioProcessor which expects us to read it.
-        // Actually, TeeAudioProcessor just passes the buffer. We should probably not modify its position
-        // if we want to be safe, but usually it's fine as we are the "tee".
-
         val localBuffer = buffer.duplicate().order(ByteOrder.nativeOrder())
         val shortBuffer = localBuffer.asShortBuffer()
         val availableSamples = shortBuffer.remaining()
 
-        val windowSize = 1024 // Increased from 512 for better frequency resolution
         if (availableSamples < windowSize * channelCount) return
 
-        val fftData = FloatArray(windowSize * 2)
         for (i in 0 until windowSize) {
             val monoSample = if (channelCount >= 2) {
                 (shortBuffer.get().toFloat() + shortBuffer.get().toFloat()) / 2f
@@ -62,39 +59,38 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
 
         performFft(fftData)
 
-        // Magnitudes calculation, skipping the DC component (index 0) to avoid constant offset issues
-        val magnitudes = FloatArray(windowSize / 2 - 1)
+        // Magnitudes calculation
         for (i in 1 until windowSize / 2) {
             val re = fftData[i * 2]
             val im = fftData[i * 2 + 1]
             magnitudes[i - 1] = sqrt(re * re + im * im)
         }
 
-        val bars = FloatArray(numBars)
         val binSize = magnitudes.size / numBars
         for (i in 0 until numBars) {
             var sum = 0f
             for (j in 0 until binSize) {
                 sum += magnitudes[i * binSize + j]
             }
-            bars[i] = (sum / binSize) / windowSize // windowSize-Normierung
+            bars[i] = (sum / binSize) / windowSize
         }
 
         val currentMax = bars.maxOrNull() ?: 0f
         runningPeak = if (currentMax > runningPeak) {
             currentMax
         } else {
-            (runningPeak * 0.97f).coerceAtLeast(0.01f) // floor gegen stille
+            (runningPeak * 0.97f).coerceAtLeast(0.01f)
         }
 
-        val smoothedBars = bars.mapIndexed { index, amplitude ->
+        val smoothedBars = ArrayList<Float>(numBars)
+        for (index in 0 until numBars) {
+            val amplitude = bars[index]
             val normalized = (amplitude / (runningPeak * 0.4f)).coerceIn(0f, 1f)
             val current = previousBars[index]
-            // Increase damping factors for more responsive variation
             val dampingFactor = if (normalized > current) 0.7f else 0.3f
             val smoothed = (current * (1f - dampingFactor)) + (normalized * dampingFactor)
             previousBars[index] = smoothed
-            smoothed
+            smoothedBars.add(smoothed)
         }
 
         _amplitudes.value = smoothedBars

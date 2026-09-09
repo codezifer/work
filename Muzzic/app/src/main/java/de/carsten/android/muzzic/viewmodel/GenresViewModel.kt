@@ -9,10 +9,10 @@ import de.carsten.android.muzzic.persistence.repo.GenreRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE_ARGUMENT
-import de.carsten.android.muzzic.ui.model.ArtistDto
-import de.carsten.android.muzzic.ui.model.GenreDto
+import de.carsten.android.muzzic.ui.state.GenresUiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,18 +25,21 @@ class GenresViewModel(
     playingQueueRepository: PlayingQueueRepository,
     mediaLibraryManager: MediaLibraryManager,
 ) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
-    val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
+    private val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
 
-    val genres: StateFlow<List<GenreDto>> = genreRepository.getGenreInformation().stateIn(
+    val uiState: StateFlow<GenresUiState> = combine(
+        genreRepository.getGenreInformation(),
+        if (genreName != null) artistRepository.getArtistsByGenre(genreName) else flowOf(emptyList()),
+    ) { genres, artists ->
+        GenresUiState(
+            genres = genres,
+            artists = artists,
+            selectedGenreName = genreName,
+        )
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
-
-    val artists: StateFlow<List<ArtistDto>> = (genreName?.let { artistRepository.getArtistsByGenre(it) } ?: flowOf(emptyList())).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
+        initialValue = GenresUiState(selectedGenreName = genreName),
     )
 
     fun playArtist(artistName: String) {

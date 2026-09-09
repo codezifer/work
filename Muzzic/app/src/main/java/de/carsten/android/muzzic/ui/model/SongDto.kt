@@ -94,6 +94,8 @@ data class SongDto(
         )
         .build()
 
+    fun <I : Iterable<SongDto>> I.toMediaItems(): List<MediaItem> = this.mapIndexed { index, songDto -> songDto.toMediaItem(index) }
+
     private fun getExtras(index: Int = 0) = Bundle().apply {
         putString(MediaKeys.SONG_ID, id)
         putInt(MediaKeys.PLAY_COUNT, playCount)

@@ -21,6 +21,8 @@ class PlaylistRepository(val playlistDao: PlaylistDao) {
 
     suspend fun deletePlaylist(playlistId: String): Unit = playlistDao.deletePlaylist(playlistId)
 
+    suspend fun getSongsByPlaylist(playlistName: String): List<SongDto> = playlistDao.getSongsByPlaylist(playlistName).map { song -> song.toDto() }
+
     suspend fun createPlaylistFromSongs(name: String, songs: List<MediaItem>) {
         val playlistId = mediaId(name).toString()
         val playlist = Playlist(name).apply { id = playlistId }

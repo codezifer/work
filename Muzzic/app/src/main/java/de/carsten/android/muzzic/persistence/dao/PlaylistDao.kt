@@ -24,6 +24,17 @@ interface PlaylistDao {
     )
     suspend fun getSongsInPlaylist(playlistId: String): List<Song>
 
+    @Query(
+        value = """
+        SELECT s.*
+        FROM songs s
+        INNER JOIN playlist_songs ps ON ps.songId = s.id
+        INNER JOIN playlists p ON p.id = ps.playlistId
+        WHERE p.name = :playlistName
+        """,
+    )
+    suspend fun getSongsByPlaylist(playlistName: String): List<Song>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlaylist(playlist: Playlist): Long
 

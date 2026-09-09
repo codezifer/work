@@ -41,7 +41,7 @@ fun ArtistAlbumsScreen(
     viewModel: ArtistAlbumsViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel,
 ) {
-    val albums by viewModel.albums.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     AppTheme {
@@ -66,7 +66,7 @@ fun ArtistAlbumsScreen(
                     )
                 }
                 Text(
-                    text = viewModel.artistName,
+                    text = uiState.artistName,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = FONT_SIZE_LARGE_TITLE,
                     fontWeight = FontWeight.Bold,
@@ -75,7 +75,7 @@ fun ArtistAlbumsScreen(
             }
 
             AlbumGrid(
-                albums = albums,
+                albums = uiState.albums,
                 onAlbumClick = { artist, album ->
                     if (selectionState.isActive) {
                         selectionViewModel.toggleAlbumSelection(artist, album)

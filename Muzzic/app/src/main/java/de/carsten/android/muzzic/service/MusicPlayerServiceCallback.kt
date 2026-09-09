@@ -170,16 +170,13 @@ class MusicPlayerServiceCallback(
 
     private suspend fun getGenres(): List<MediaItem> = genreRepository.getGenreInformation().first().map { it.toMediaItem() }
 
-    private suspend fun getSongsByGenre(genreName: String): List<MediaItem> = musicRepository
-        .getAllSongs()
-        .first()
-        .filter { it.genre == genreName }
-        .map { it.toMediaItem() }
+    private suspend fun getSongsByGenre(genreName: String): List<MediaItem> = genreRepository.getSongsByGenre(genreName).map { it.toMediaItem() }
 
-    private suspend fun getPlaylists(): List<MediaItem> {
-        val playlists = playlistRepository.playlistDao.getAllPlaylists().first()
-        return playlists.map { it.toMediaItem() }
-    }
+    private suspend fun getPlaylists(): List<MediaItem> = playlistRepository
+        .playlistDao
+        .getAllPlaylists()
+        .first()
+        .map { it.toMediaItem() }
 
     private fun getPlayingQueue(player: Player): List<MediaItem> {
         val playlist = mutableListOf<MediaItem>()
@@ -210,18 +207,9 @@ class MusicPlayerServiceCallback(
         emptyList()
     }
 
-    private suspend fun getSongsByPlaylist(playlistName: String): List<MediaItem> {
-        val playlist =
-            playlistRepository.playlistDao
-                .getAllPlaylists()
-                .first()
-                .find { it.name == playlistName }
-        return if (playlist != null) {
-            playlistRepository.playlistDao.getSongsInPlaylist(playlist.id).map { it.toMediaItem() }
-        } else {
-            emptyList()
-        }
-    }
+    private suspend fun getSongsByPlaylist(playlistName: String): List<MediaItem> = playlistRepository
+        .getSongsByPlaylist(playlistName)
+        .map { it.toMediaItem() }
 
     private fun createBrowsableItem(id: String, title: String): MediaItem = MediaItem
         .Builder()

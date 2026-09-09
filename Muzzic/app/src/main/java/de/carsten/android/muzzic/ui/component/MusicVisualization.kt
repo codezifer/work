@@ -69,7 +69,7 @@ fun MusicVisualization(
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(color.toArgb(), hsl)
         val targetHsl = hsl.copyOf().apply {
-            this[0] = (this[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f // Rotate hue by specified degrees
+            this[0] = (this[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f
         }
         Color(ColorUtils.HSLToColor(targetHsl)).copy(alpha = color.alpha)
     }
@@ -77,18 +77,21 @@ fun MusicVisualization(
     Canvas(modifier = modifier) {
         val amplitudes = amplitudesProvider()
         val barCount = amplitudes.size.coerceAtLeast(1)
+        if (barCount == 0) return@Canvas
 
         val width = size.width
         val height = size.height
         val centerY = height / 2f
-        val maxSegmentsPerSide = centerY / totalSegStepPx
+        val maxSegmentsPerSide = (centerY / totalSegStepPx).toInt().coerceAtLeast(1)
 
         val barWidth = (width - (barCount - 1) * barSpacingPx) / barCount
 
-        // We use a simplified calculation here instead of re-allocating a State object
-        // to avoid GC pressure during high-frequency audio updates.
+        // Pre-calculate base colors for each segment level to avoid repeated lerp calls
+        val segmentBaseColors = Array(maxSegmentsPerSide) { j ->
+            lerp(color, targetColor, j.toFloat() / maxSegmentsPerSide.toFloat())
+        }
+
         for (i in 0 until barCount) {
-            // Horizontal Symmetry Logic
             val mirroredIndex = if (i < barCount / 2) {
                 ((barCount / 2) - 1) - i
             } else {
@@ -101,24 +104,18 @@ fun MusicVisualization(
                 0f
             }
 
-            // Logarithmic Scaling
-            val scaledAmplitude = if (rawAmplitude > 0f) {
-                (
-                    ln((rawAmplitude * VISUALIZER_LOG_SCALE_FACTOR) + 1f) /
-                        ln(VISUALIZER_LOG_BASE_DIVISOR)
-                    ).coerceIn(0f, 1f)
-            } else {
-                0f
-            }
+            if (rawAmplitude <= 0f) continue
 
-            val activeSegments = (scaledAmplitude * maxSegmentsPerSide).toInt().coerceAtLeast(0)
+            val scaledAmplitude = (ln((rawAmplitude * VISUALIZER_LOG_SCALE_FACTOR) + 1f) / ln(VISUALIZER_LOG_BASE_DIVISOR)).coerceIn(0f, 1f)
+            val activeSegments = (scaledAmplitude * maxSegmentsPerSide).toInt()
+            if (activeSegments <= 0) continue
+
             val x = i * (barWidth + barSpacingPx)
+            val glowAmount = scaledAmplitude * VISUALIZER_GLOW_INTENSITY
 
             for (j in 0 until activeSegments) {
-                // Color Interpolation
-                val gradientFactor = j.toFloat() / maxSegmentsPerSide.coerceAtLeast(1f)
-                val baseColor = lerp(color, targetColor, gradientFactor)
-                val finalColor = lerp(baseColor, Color.White, scaledAmplitude * VISUALIZER_GLOW_INTENSITY)
+                val baseColor = segmentBaseColors[j]
+                val finalColor = if (glowAmount > 0f) lerp(baseColor, Color.White, glowAmount) else baseColor
 
                 // Top segment
                 drawRoundRect(

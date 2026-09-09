@@ -211,7 +211,7 @@ tasks {
     register("prepareRelease") {
         group = "release"
         description = "Prepares code for release build"
-        dependsOn("ktlintFormat")
+        dependsOn("ktlintFormat", "ktlintCheck")
         val appRelease = "$appName-$appVersion"
         doLast {
             println("Prepared release $appRelease")

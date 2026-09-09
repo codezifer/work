@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.model.TestingTags.Screens.FALLBACK_PAINTER
 import de.carsten.android.muzzic.model.TestingTags.Screens.SUCCESS_ASYNC_IMAGE
@@ -30,27 +31,26 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
 fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier: Modifier = Modifier) {
-    val coilModel =
-        when (albumArtInput) {
+    AlbumArtContent(albumArtInput, modifier)
+}
+
+@Composable
+private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val request = remember<ImageRequest>(albumArtInput) {
+        val data = when (albumArtInput) {
             is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
             is AlbumArtInput.FromInputStream -> albumArtInput.inputStream
             is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
             else -> null
         }
-
-    AlbumArtContent(coilModel, modifier)
-}
-
-@Composable
-private fun AlbumArtContent(coilModel: Any?, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val request = remember(coilModel) {
         ImageRequest.Builder(context)
-            .data(coilModel)
+            .data(data)
+            .crossfade(true)
             .build()
     }
 
-    val testTag = if (coilModel == null) FALLBACK_PAINTER else SUCCESS_ASYNC_IMAGE
+    val testTag = if (albumArtInput is AlbumArtInput.None) FALLBACK_PAINTER else SUCCESS_ASYNC_IMAGE
 
     Box(
         contentAlignment = Alignment.Center,

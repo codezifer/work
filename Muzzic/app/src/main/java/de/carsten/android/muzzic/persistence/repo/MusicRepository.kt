@@ -19,6 +19,7 @@ import de.carsten.android.muzzic.ui.model.SongDto
 import java.time.YearMonth
 import java.time.ZoneOffset
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class MusicRepository(
@@ -35,7 +36,9 @@ class MusicRepository(
         private const val ONE_YEAR_MS = 31536000000L // one year in milliseconds
     }
 
-    fun getAllSongs(): Flow<List<SongDto>> = songDao.getAllSongs().map { list -> list.map { song -> song.toDto() } }
+    fun getAllSongs(): Flow<List<SongDto>> = songDao.getAllSongs()
+        .distinctUntilChanged()
+        .map { list -> list.map { song -> song.toDto() } }
 
     fun scanMusicLibrary() {
         musicFileScanner.enqueue(context)

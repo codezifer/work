@@ -42,14 +42,14 @@ fun GenreArtistsScreen(
     onBackClick: () -> Unit = {},
     genresViewModel: GenresViewModel = koinViewModel(),
 ) {
-    val artists by genresViewModel.artists.collectAsStateWithLifecycle()
+    val uiState by genresViewModel.uiState.collectAsStateWithLifecycle()
 
     AppTheme {
         GenreArtistsScreenContent(
             modifier = modifier,
             appState = appState,
-            genreName = genresViewModel.genreName ?: "",
-            artists = artists,
+            genreName = uiState.selectedGenreName ?: "",
+            artists = uiState.artists,
             colorSource = colorSource,
             onArtistClick = onArtistClick,
             onArtistPlayClick = { genresViewModel.playArtist(it) },

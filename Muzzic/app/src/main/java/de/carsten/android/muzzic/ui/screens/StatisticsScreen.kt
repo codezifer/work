@@ -45,22 +45,17 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
         viewModel.loadStats()
     }
 
-    val months by viewModel.monthlyStats.collectAsStateWithLifecycle()
-    val songs by viewModel.topSongs.collectAsStateWithLifecycle()
-    val genres by viewModel.genreStats.collectAsStateWithLifecycle()
-    val monthStats by viewModel.monthStats.collectAsStateWithLifecycle()
-    val monthGenres by viewModel.monthGenreStats.collectAsStateWithLifecycle()
-    val monthSongs by viewModel.topMonthSongs.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     StatisticsScreenContent(
         modifier = modifier,
         appState = appState,
-        months = months,
-        genres = genres,
-        songs = songs,
-        monthStats = monthStats,
-        monthGenres = monthGenres,
-        monthSongs = monthSongs,
+        months = uiState.monthlyStats,
+        genres = uiState.genreStats,
+        songs = uiState.topSongs,
+        monthStats = uiState.monthStats,
+        monthGenres = uiState.monthGenreStats,
+        monthSongs = uiState.topMonthSongs,
     )
 }
 

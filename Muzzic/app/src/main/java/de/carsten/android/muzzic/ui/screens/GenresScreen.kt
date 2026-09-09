@@ -26,13 +26,13 @@ fun GenresScreen(
     genreViewModel: GenresViewModel = koinViewModel(),
     onGenreClick: (GenreDto) -> Unit = {},
 ) {
-    val genres by genreViewModel.genres.collectAsStateWithLifecycle()
+    val uiState by genreViewModel.uiState.collectAsStateWithLifecycle()
 
     AppTheme {
         GenresScreenContent(
             modifier = modifier,
             appState = appState,
-            genres = genres,
+            genres = uiState.genres,
             onGenreClick = onGenreClick,
             onGenrePlayClick = { genre ->
                 genreViewModel.playGenre(genre.genreName)

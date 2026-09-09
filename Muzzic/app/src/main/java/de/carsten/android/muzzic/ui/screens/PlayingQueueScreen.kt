@@ -66,28 +66,23 @@ fun PlayingQueueScreen(
     playingQueueViewModel: PlayingQueueViewModel,
     selectionViewModel: SelectionViewModel,
 ) {
-    val playingQueue by playingQueueViewModel.currentPlayingQueue.collectAsStateWithLifecycle()
-    val playingQueueName by playingQueueViewModel.currentName.collectAsStateWithLifecycle()
+    val uiState by playingQueueViewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
-    val currentSong by playingQueueViewModel.currentSong.collectAsStateWithLifecycle()
-    val isPlaying by playingQueueViewModel.isPlaying.collectAsStateWithLifecycle()
-    val currentPosition by playingQueueViewModel.currentPosition.collectAsStateWithLifecycle()
-    val duration by playingQueueViewModel.duration.collectAsStateWithLifecycle()
 
-    val progress by remember {
+    val progress by remember(uiState.currentPosition, uiState.duration) {
         derivedStateOf {
-            if (duration > 0) currentPosition.toFloat() / duration else 0f
+            if (uiState.duration > 0) uiState.currentPosition.toFloat() / uiState.duration else 0f
         }
     }
 
     AppTheme {
         PlayingQueueContent(
             modifier = modifier,
-            name = playingQueueName,
-            playingQueue = playingQueue,
+            name = uiState.name,
+            playingQueue = uiState.queue,
             selectionState = selectionState,
-            currentSong = currentSong,
-            isPlaying = isPlaying,
+            currentSong = uiState.currentSong,
+            isPlaying = uiState.isPlaying,
             progress = progress,
             colorSource = colorSource,
             onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
