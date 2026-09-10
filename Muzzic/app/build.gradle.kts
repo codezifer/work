@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 val appName = "muzzic"
 val appId = "de.carsten.android.$appName"
@@ -105,6 +105,9 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 dependencies {
+    // sub-modules
+    implementation(project(":logging"))
+
     // kotlin
     val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)
     implementation(kotlinxCoroutinesBom)
