@@ -125,4 +125,34 @@ class MigrationTest {
         assertThat(songCursor.count).describedAs("Song data should have been preserved").isEqualTo(1)
         songCursor.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate4To5() {
+        val testDbName = "migration-test-4to5"
+        var db = helper.createDatabase(testDbName, 4)
+
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'The Beatles', 'Album', 'Death-Core', 3, 1000)",
+        )
+
+        db.close()
+
+        // Re-open the database with version 5 and provide all migrations
+        db = helper.runMigrationsAndValidate(testDbName, 5, true, *Migrations.supply())
+
+        // Validation 1: view should exist
+        val viewCursor = db.query("SELECT name FROM sqlite_master WHERE type='view' AND name='songs_enriched'")
+        assertThat(viewCursor.count).describedAs("View songs_enriched should have been created").isEqualTo(1)
+        viewCursor.close()
+
+        // Validation 2: view should expose derived keys
+        val enrichedCursor = db.query("SELECT normalized_genre, sort_artist FROM songs_enriched WHERE id = 's1'")
+        assertThat(enrichedCursor.count).describedAs("Song should be visible through the view").isEqualTo(1)
+        enrichedCursor.moveToFirst()
+        assertThat(enrichedCursor.getString(enrichedCursor.getColumnIndex("normalized_genre"))).isEqualTo("deathcore")
+        assertThat(enrichedCursor.getString(enrichedCursor.getColumnIndex("sort_artist"))).isEqualTo("Beatles")
+        enrichedCursor.close()
+    }
 }

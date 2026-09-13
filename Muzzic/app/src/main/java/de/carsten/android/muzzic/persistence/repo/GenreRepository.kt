@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.persistence.repo
 
 import de.carsten.android.muzzic.persistence.dao.GenreDao
+import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.toDto
@@ -33,6 +34,24 @@ class GenreRepository(val genreDao: GenreDao) {
     suspend fun getGenreVariants(genre: String): List<String> {
         val key = GenreUtils.normalizeKey(genre)
         return genreDao.getGenreCounts().map { it.genre }.filter { GenreUtils.normalizeKey(it) == key }
+    }
+
+    /**
+     * Maps genre statistics keyed by normalized genre to canonical display names.
+     *
+     * Unknown keys without stored variants (e.g. the blank-genre label) fall back to
+     * themselves. Counts of merged variants are already summed per key by the query.
+     *
+     * @param rawStats statistics with normalized genre keys (see `getGenreStats` queries).
+     * @return statistics with canonical genre names, ordered by count descending.
+     */
+    suspend fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>): List<GenrePlayCount> {
+        val weights = GenreUtils.groupByNormalizedKey(genreDao.getGenreCounts().associate { it.genre to it.count })
+        return rawStats
+            .map { stat ->
+                val variants = weights[GenreUtils.normalizeKey(stat.genre)]
+                GenrePlayCount(variants?.let { GenreUtils.getCanonicalName(it) } ?: stat.genre, stat.count)
+            }.sorted()
     }
 
     /**

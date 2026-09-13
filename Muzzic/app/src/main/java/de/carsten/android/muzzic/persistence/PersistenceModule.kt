@@ -38,6 +38,7 @@ val repoModule =
                 context = androidContext(),
                 musicFileScanner = get(),
                 playlistFileScanner = get(),
+                genreRepository = get(),
             )
         }
         single { ArtistRepository(get(), get()) }

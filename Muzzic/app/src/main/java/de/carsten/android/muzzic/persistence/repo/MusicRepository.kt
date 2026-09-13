@@ -31,6 +31,7 @@ class MusicRepository(
     val context: Context,
     private val musicFileScanner: MusicFileScanner,
     private val playlistFileScanner: PlaylistFileScanner,
+    private val genreRepository: GenreRepository,
 ) {
     companion object {
         private const val ONE_YEAR_MS = 31536000000L // one year in milliseconds
@@ -78,9 +79,18 @@ class MusicRepository(
         return songDao.getMonthlyStats(oneYearAgo, AppConfig.Ui.NUM_OF_MONTHS)
     }
 
+    /**
+     * Returns top genres by play count with canonical genre names.
+     *
+     * Spelling variants are merged before the limit is applied, so variants below
+     * the cutoff still count towards their canonical genre.
+     *
+     * @return top genres ordered by play count descending.
+     */
     suspend fun getGenreStats(): List<GenrePlayCount> {
         val oneYearAgo = System.currentTimeMillis() - ONE_YEAR_MS
-        return songDao.getGenreStats(oneYearAgo, AppConfig.Ui.NUM_OF_TOP_GENRES, UNKNOWN)
+        val rawStats = songDao.getGenreStats(oneYearAgo, UNKNOWN)
+        return genreRepository.getCanonicalGenreStats(rawStats).take(AppConfig.Ui.NUM_OF_TOP_GENRES)
     }
 
     suspend fun getTopSongs(): List<SongPlayCount> = songDao.getTopSongs(AppConfig.Ui.NUM_OF_TOP_SONGS)
@@ -91,7 +101,12 @@ class MusicRepository(
 
     suspend fun getMonthStats(): List<MonthlyPlayCount> = playHistoryDao.getMonthlyStats(startOfCurrentMonth(), AppConfig.Ui.NUM_OF_MONTHS)
 
-    suspend fun getMonthGenreStats(): List<GenrePlayCount> = playHistoryDao.getGenreStats(startOfCurrentMonth())
+    /**
+     * Returns this month's genres by play count with canonical genre names.
+     *
+     * @return genres ordered by play count descending.
+     */
+    suspend fun getMonthGenreStats(): List<GenrePlayCount> = genreRepository.getCanonicalGenreStats(playHistoryDao.getGenreStats(startOfCurrentMonth()))
 
     suspend fun getTopMonthSongs(): List<SongPlayCount> = playHistoryDao.getTopSongs(startOfCurrentMonth(), AppConfig.Ui.NUM_OF_TOP_SONGS)
 

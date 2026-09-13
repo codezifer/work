@@ -59,25 +59,24 @@ interface GenreDao {
     /**
      * Aggregates song statistics by normalized genre key.
      *
-     * The normalization (lowercase, spaces and hyphens removed) mirrors
-     * [de.carsten.android.muzzic.utils.GenreUtils.normalizeKey], so spelling variants
-     * like "Death Core", "Death-Core" and "Deathcore" share one row with exact
-     * distinct artist/album counts and summed song counts and durations.
+     * Groups over [de.carsten.android.muzzic.persistence.entity.SongsEnriched], so
+     * spelling variants like "Death Core", "Death-Core" and "Deathcore" share one row
+     * with exact distinct artist/album counts and summed song counts and durations.
      *
      * @return one entry per normalized genre key, ordered by key.
      */
     @Query(
         """
         SELECT
-            LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalizedKey,
+            s.normalized_genre AS normalizedKey,
             COUNT(DISTINCT s.artist) AS artistCount,
             COUNT(DISTINCT s.album) AS albumCount,
             COUNT(*) AS songCount,
             SUM(s.duration) AS genreDuration,
-            (SELECT s2.albumArt FROM songs s2 WHERE LOWER(REPLACE(REPLACE(s2.genre, ' ', ''), '-', '')) = LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
-            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs s2 WHERE LOWER(REPLACE(REPLACE(s2.genre, ' ', ''), '-', '')) = LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AND s2.albumArt IS NOT NULL GROUP BY s2.artist, s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
-        FROM songs s
-        GROUP BY LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', ''))
+            (SELECT s2.albumArt FROM songs_enriched s2 WHERE s2.normalized_genre = s.normalized_genre ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt) FROM (SELECT MIN(s2.albumArt) as albumArt FROM songs_enriched s2 WHERE s2.normalized_genre = s.normalized_genre AND s2.albumArt IS NOT NULL GROUP BY s2.artist, s2.album ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT})) as allAlbumArts
+        FROM songs_enriched s
+        GROUP BY s.normalized_genre
         ORDER BY normalizedKey ASC
         """,
     )

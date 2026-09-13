@@ -49,10 +49,23 @@ interface SongDao {
     )
     suspend fun getMonthlyStats(fromTimestamp: Long, limit: Int): List<MonthlyPlayCount>
 
+    /**
+     * Sums play counts per normalized genre key.
+     *
+     * Groups over [de.carsten.android.muzzic.persistence.entity.SongsEnriched], so
+     * spelling variants share one row. The [genre][de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount.genre]
+     * holds the normalized key (or [unknownLabel] for blank genres) and is mapped to
+     * the canonical display name by the caller. The limit is applied after the
+     * canonical merge, so variants below the cutoff still count towards their genre.
+     *
+     * @param fromTimestamp only songs updated after this timestamp are counted.
+     * @param unknownLabel label for blank genres.
+     * @return play counts per normalized genre key, ordered by count descending.
+     */
     @Query(
-        "SELECT CASE WHEN (genre IS NULL OR genre = '') THEN :unknownLabel ELSE genre END AS genre, SUM(playCount) AS count FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY 1 ORDER BY count DESC LIMIT :limit",
+        "SELECT CASE WHEN (s.genre IS NULL OR s.genre = '') THEN :unknownLabel ELSE s.normalized_genre END AS genre, SUM(s.playCount) AS count FROM songs_enriched s WHERE s.updatedAt >= :fromTimestamp GROUP BY 1 ORDER BY count DESC",
     )
-    suspend fun getGenreStats(fromTimestamp: Long, limit: Int, unknownLabel: String): List<GenrePlayCount>
+    suspend fun getGenreStats(fromTimestamp: Long, unknownLabel: String): List<GenrePlayCount>
 
     @Query(
         "SELECT *, playCount as totalCount FROM songs ORDER BY rating DESC, playCount DESC LIMIT :limit",

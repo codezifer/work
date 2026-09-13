@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.persistence.repo
 
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -61,5 +62,19 @@ class GenreRepositoryTest {
         assertThat(repository.getGenreVariants("Death Core")).containsExactlyInAnyOrderElementsOf(expected)
         assertThat(repository.getGenreVariants("Death-Core")).containsExactlyInAnyOrderElementsOf(expected)
         assertThat(repository.getGenreVariants("Polka")).isEmpty()
+    }
+
+    @Test
+    fun `getCanonicalGenreStats maps keys to canonical names`() = runTest {
+        val raw = listOf(
+            GenrePlayCount("deathcore", 45),
+            GenrePlayCount("rock", 30),
+            GenrePlayCount("mystery", 10),
+        )
+
+        val result = repository.getCanonicalGenreStats(raw)
+
+        assertThat(result.map { it.genre }).containsExactly("Death Core", "Rock", "mystery")
+        assertThat(result.map { it.count }).containsExactly(45, 30, 10)
     }
 }

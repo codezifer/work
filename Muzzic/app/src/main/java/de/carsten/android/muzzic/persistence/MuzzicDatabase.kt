@@ -22,6 +22,7 @@ import de.carsten.android.muzzic.persistence.entity.PlayingQueue
 import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.persistence.entity.SongsEnriched
 import de.carsten.android.muzzic.persistence.migrations.Migrations
 import de.carsten.android.muzzic.persistence.utils.Converters
 
@@ -38,6 +39,7 @@ import de.carsten.android.muzzic.persistence.utils.Converters
     exportSchema = true,
     version = Migrations.VERSION,
     autoMigrations = [],
+    views = [SongsEnriched::class],
 )
 @TypeConverters(Converters::class)
 abstract class MuzzicDatabase : RoomDatabase() {

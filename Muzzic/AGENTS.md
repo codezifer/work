@@ -529,6 +529,19 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 }
 
+// ✅ Database identifiers are snake_case; Kotlin properties stay camelCase
+// Table, column, view and index names MUST be snake_case. Map them explicitly
+// with @ColumnInfo(name = "...") or SQL aliases (e.g. `genre AS genre_key`);
+// Kotlin properties, POJO fields and DAO parameters stay camelCase.
+// Pre-existing camelCase columns are grandfathered — renaming them requires a
+// table rebuild migration, so the rule applies to new identifiers only.
+@DatabaseView(viewName = "songs_enriched")
+data class SongsEnriched(
+    @Embedded val song: Song,
+    @ColumnInfo(name = "normalized_genre") val normalizedGenre: String,
+    @ColumnInfo(name = "sort_artist") val sortArtist: String
+)
+
 // ✅ Use TypeConverters for complex types
 class Converters {
     @TypeConverter
@@ -903,6 +916,7 @@ android {
 - [ ] ViewModels use `viewModelScope` only
 - [ ] Flows collected with `repeatOnLifecycle`
 - [ ] All public APIs documented with KDoc (short but detailed, including goal, parameters, errors, and result types)
+- [ ] New database identifiers (tables, columns, views, indexes) are snake_case; Kotlin properties stay camelCase
 - [ ] ProGuard rules updated for new dependencies
 - [ ] Accessibility: content descriptions on interactive elements
 - [ ] No sensitive data in logs
