@@ -33,7 +33,7 @@
     <string name="scan_status_cleaning">Bibliothek wird bereinigt…</string>
 
     <!-- Playlists -->
-    <string name="auto_playlists">Automatische Genre-Playlists</string>
+    <string name="auto_playlists">Auto Playlists</string>
     <string name="my_playlists">Meine Playlists</string>
     <string name="create_playlist">Playlist erstellen</string>
     <string name="top_100_format">%s - Top 100</string>
