@@ -1,15 +1,13 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
-import android.os.Environment
-import androidx.core.net.toUri
+import android.net.Uri
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -35,29 +33,18 @@ interface FileScanner {
     suspend fun scan(onProgress: ((String, Int) -> Unit)? = null)
 
     /**
-     * Converting configured directory path starting with content:// or file path to a File.
-     *
-     * @param context android [Context]
-     * @param configuredDir [String] path or URI
-     * @return resolved [File]
-     */
-    fun getScanningRoot(context: Context, configuredDir: String?): File? = if (configuredDir == null) {
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-    } else {
-        FileUtil.getFilePathFromUri(context, configuredDir.toUri())?.let { filePath ->
-            File(filePath)
-        }
-    }
-
-    /**
      * Streams files from root directory with the specified extensions.
      *
      * @param context android [Context]
-     * @param rootDir directory as [File]
+     * @param uri configured directory as [Uri]
      * @param extensions supported file extensions
-     * @return [Flow] of matching [File]
+     * @return [Flow] of chunked [Set] of [ScannedFile]
      */
-    fun scanForFiles(context: Context, rootDir: File, extensions: Set<String>): Flow<File> = FileUtil.getFilesFlow(rootDir, extensions)
+    fun scanForFiles(context: Context, uri: Uri?, extensions: Set<String>): Flow<Set<ScannedFile>> = FileUtil.getScannedFileFlow(
+        context = context,
+        uri = uri,
+        supportedFiles = extensions,
+    )
 
     /**
      * Enqueues a scan task using [WorkManager].

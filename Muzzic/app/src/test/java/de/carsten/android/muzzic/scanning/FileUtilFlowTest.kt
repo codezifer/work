@@ -1,13 +1,49 @@
 package de.carsten.android.muzzic.scanning
 
+import android.content.ContentResolver
+import android.content.Context
+import android.database.MatrixCursor
+import android.net.Uri
+import de.carsten.android.muzzic.TestConfig
+import io.mockk.every
+import io.mockk.mockk
 import java.io.File
 import java.nio.file.Files
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [TestConfig.SDK])
 class FileUtilFlowTest {
+
+    private lateinit var context: Context
+    private lateinit var resolver: ContentResolver
+
+    private val root: Uri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AMusic")
+
+    @Before
+    fun setup() {
+        context = mockk()
+        resolver = mockk()
+        every { context.contentResolver } returns resolver
+    }
+
+    private fun cursorFor(vararg rows: Array<Any?>): MatrixCursor = MatrixCursor(ScannedFile.PROJECTION).apply {
+        rows.forEach { addRow(it) }
+    }
+
+    private fun stubChildren(vararg rows: Array<Any?>) {
+        every { resolver.query(any(), any(), any(), any(), any()) } answers {
+            cursorFor(*rows)
+        }
+    }
 
     @Test
     fun `getFilesFlow emits only matching extensions including nested files`() = runTest {
@@ -36,33 +72,29 @@ class FileUtilFlowTest {
 
     @Test
     fun `countFiles counts only matching files`() = runTest {
-        val root = Files.createTempDirectory("muzzic_count").toFile()
-        try {
-            File(root, "a.mp3").apply { writeText("") }
-            File(root, "b.mp3").apply { writeText("") }
-            File(root, "c.txt").apply { writeText("") }
+        stubChildren(
+            arrayOf<Any?>("primary:Music/a.mp3", "a.mp3", "audio/mpeg", 1L, 1L),
+            arrayOf<Any?>("primary:Music/b.mp3", "b.mp3", "audio/mpeg", 2L, 2L),
+            arrayOf<Any?>("primary:Music/c.txt", "c.txt", "text/plain", 3L, 3L),
+        )
 
-            assertThat(FileUtil.countFiles(root, setOf("mp3"))).isEqualTo(2)
-        } finally {
-            root.deleteRecursively()
-        }
+        val counted = FileUtil.countFiles(context, root, setOf("mp3")).last()
+
+        assertThat(counted).isEqualTo(2)
     }
 
     @Test
     fun `countFiles applies the given predicate`() = runTest {
-        val root = Files.createTempDirectory("muzzic_count_predicate").toFile()
-        try {
-            File(root, "keep.mp3").apply { writeText("") }
-            File(root, "skip.mp3").apply { writeText("") }
+        stubChildren(
+            arrayOf<Any?>("primary:Music/keep.mp3", "keep.mp3", "audio/mpeg", 1L, 1L),
+            arrayOf<Any?>("primary:Music/skip.mp3", "skip.mp3", "audio/mpeg", 2L, 2L),
+        )
 
-            val counted =
-                FileUtil.countFiles(root, setOf("mp3")) { file ->
-                    file.name == "keep.mp3"
-                }
+        val counted =
+            FileUtil.countFiles(context, root, setOf("mp3")) { uri ->
+                uri.toString().endsWith("keep.mp3")
+            }.last()
 
-            assertThat(counted).isEqualTo(1)
-        } finally {
-            root.deleteRecursively()
-        }
+        assertThat(counted).isEqualTo(1)
     }
 }

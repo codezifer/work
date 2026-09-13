@@ -20,4 +20,10 @@ object AppConfig {
         const val NUM_OF_MONTHS = 6
         const val ALBUM_ART_FADE_IN_OUT = 500
     }
+
+    object Scanning {
+        const val CHUNK_SIZE = 50
+        val SUPPORTED_MUSIC_FILES = setOf("mp3")
+        val SUPPORTED_PLAYLIST_FILES = setOf("m3u", "m3u8")
+    }
 }

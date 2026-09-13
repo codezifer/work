@@ -4,8 +4,8 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -13,9 +13,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.runningFold
 
 /**
  * File utility class.
@@ -23,26 +24,6 @@ import kotlinx.coroutines.withContext
 object FileUtil {
 
     private val logger = logger()
-
-    /**
-     * Gets file from parcel file descriptor of an uri.
-     *
-     * @param context android [Context]
-     * @param uri file [Uri]
-     * @return resolved [File]
-     */
-    suspend fun getFileFromUri(context: Context, uri: Uri): File? = withContext(Dispatchers.IO) {
-        var pfd: ParcelFileDescriptor? = null
-
-        try {
-            pfd = context.contentResolver.openFileDescriptor(uri, "r") ?: return@withContext null
-            File("/proc/self/fd/${pfd.fd}")
-        } catch (e: Exception) {
-            null
-        } finally {
-            pfd?.close()
-        }
-    }
 
     /**
      * Streams all files from root directory matching the given extensions.
@@ -73,18 +54,82 @@ object FileUtil {
     }
 
     /**
+     * Scan files for configured tree root chunk wise
+     *
+     * @param context android [Context]
+     * @param uri tree root [Uri]
+     * @param chunkSize chunk size [Int]
+     * @return [Flow] of [List] of [ScannedFile]
+     */
+    fun getScannedFileFlow(context: Context, uri: Uri?, chunkSize: Int = AppConfig.Scanning.CHUNK_SIZE, supportedFiles: Set<String> = emptySet()): Flow<Set<ScannedFile>> = flow {
+        if (uri == null) {
+            emit(setOf())
+            return@flow
+        }
+
+        val resolver = context.contentResolver
+        val chunk = mutableSetOf<ScannedFile>()
+
+        suspend fun walk(documentId: String) {
+            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, documentId)
+            val preparedFiles = resolver.query(childrenUri, ScannedFile.PROJECTION, null, null, null)?.use { cursor ->
+                buildList {
+                    while (cursor.moveToNext()) {
+                        add(ScannedFile.prepare(cursor))
+                    }
+                }
+            } ?: emptyList()
+
+            for (prepared in preparedFiles) {
+                when {
+                    prepared?.mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> {
+                        walk(prepared.documentId)
+                    }
+
+                    else -> {
+                        val isSupported = supportedFiles.any { ext ->
+                            prepared?.displayName?.lowercase()?.endsWith(".${ext.lowercase()}") == true
+                        }
+                        if (isSupported) {
+                            val processed = prepared?.copy(uri = DocumentsContract.buildDocumentUriUsingTree(uri, prepared.documentId))
+                            if (processed != null) {
+                                chunk.add(processed)
+                            }
+                            if (chunk.size >= chunkSize) {
+                                emit(chunk.toSet())
+                                chunk.clear()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        walk(DocumentsContract.getTreeDocumentId(uri))
+        if (chunk.isNotEmpty()) emit(chunk.toSet())
+    }.flowOn(Dispatchers.IO)
+
+    /**
      * Counts files from root directory matching the given extensions.
      *
      * Only files for which [isCounted] returns `true` are counted. Intended to determine
      * the total number of files before a streaming pass, e.g. for progress reporting.
      *
-     * @param root directory as [File]
+     * @param context android [Context]
+     * @param uri configured tree root [Uri]
      * @param extensions supported file extensions
      * @param isCounted predicate applied to each matching file
      * @return number of counted files
      */
-    suspend fun countFiles(root: File, extensions: Set<String>, isCounted: (File) -> Boolean = { true }): Int = withContext(Dispatchers.IO) {
-        getFilesFlow(root, extensions).count(isCounted)
+    fun countFiles(context: Context, uri: Uri?, extensions: Set<String>, isCounted: (Uri) -> Boolean = { true }): Flow<Int> {
+        if (uri == null) return flowOf(0)
+        return getScannedFileFlow(
+            context = context,
+            uri = uri,
+            supportedFiles = extensions,
+        ).runningFold(0) { sum, scannedFiles ->
+            sum + scannedFiles.count { scannedFile -> isCounted(scannedFile.uri) }
+        }
     }
 
     /**

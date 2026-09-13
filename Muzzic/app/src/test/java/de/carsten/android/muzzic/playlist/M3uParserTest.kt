@@ -67,4 +67,16 @@ class M3uParserTest {
             tempDir.deleteRecursively()
         }
     }
+
+    @Test
+    fun testParseInputStreamKeepsRelativePaths() {
+        val content = "#EXTM3U\n#EXTINF:187,Artist - Title\nMusic/song.mp3\ncontent://media/song2.mp3"
+        val entries = M3uParser.parse(content.byteInputStream(Charsets.UTF_8))
+
+        assertThat(entries).hasSize(2)
+        assertThat(entries[0].path).isEqualTo("Music/song.mp3")
+        assertThat(entries[0].title).isEqualTo("Artist - Title")
+        assertThat(entries[0].duration).isEqualTo(187)
+        assertThat(entries[1].path).isEqualTo("content://media/song2.mp3")
+    }
 }

@@ -43,6 +43,15 @@ app/
 - Keep `data/` and `ui/` strictly separated via `domain/` interfaces.
 - Koin modules should be located within the relevant package (e.g., `data/local/databaseModule.kt`).
 
+### File Granularity
+**Intent**: Keep files navigable and diffs reviewable as the model grows.
+**Optimization Purpose**: Reduce merge conflicts and let human and AI collaborators locate a type by file name without searching.
+
+- **One frame = one file**: each model type lives in its own file named after the primary type (e.g., `ApicFrame.kt` for `ApicFrame`).
+- Helper types belonging to exactly one primary type (its enum, value object, or entry class — e.g., `PictureType` belongs to `ApicFrame`) live in the same file.
+- Shared base types (interfaces, headers, sealed hierarchies whose subtypes share the file) stay in the parent package.
+- Maximum: one primary public type per file; group files that grow beyond ~10 types into focused sub-packages instead.
+
 ---
 
 ## 🔤 Kotlin Language Rules

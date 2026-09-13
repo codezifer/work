@@ -1,18 +1,16 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
-import de.carsten.android.muzzic.FLAC
-import de.carsten.android.muzzic.M4A
-import de.carsten.android.muzzic.MP3
-import de.carsten.android.muzzic.MP4
-import de.carsten.android.muzzic.OGG
+import android.media.MediaMetadataRetriever
+import androidx.core.net.toUri
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.TOP_100
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.UNKNOWN_ALBUM
 import de.carsten.android.muzzic.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.UNKNOWN_GENRE
-import de.carsten.android.muzzic.id3.Id3TagParser
+import de.carsten.android.muzzic.id3.Id3
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.persistence.dao.GenreDao
@@ -22,20 +20,21 @@ import de.carsten.android.muzzic.persistence.entity.Playlist
 import de.carsten.android.muzzic.persistence.entity.PlaylistSong
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.withContext
-import org.jaudiotagger.audio.AudioFileIO
 
 /**
  * Implementation of [FileScanner] that scans for music files and extracts their metadata.
+ *
+ * Files are discovered chunk-wise via [FileScanner.scanForFiles] (Storage Access Framework)
+ * and parsed from their content [android.net.Uri] without requiring direct file access.
+ * [Song.filePath] stores the content URI string.
  */
 class MusicFileScanner(
     private val context: Context,
@@ -58,47 +57,29 @@ class MusicFileScanner(
 
         logger.info("Scanning for music files...")
 
-        val configuredDir = appSettingsRepository.getMusicDirectory()
-        val root = getScanningRoot(context, configuredDir) ?: return@coroutineScope
-        val supportedFormats = setOf(MP3, OGG, FLAC, MP4, M4A)
-
+        val configuredDir = appSettingsRepository.getMusicDirectory()?.toUri()
         val currentSongs = songDao.getAllSongs().first()
+        val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
         val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
 
         // Count pass: determine how many files will be parsed. This is the denominator
         // for the determinate progress shown in the scan notification.
-        val totalNewFiles = FileUtil.countFiles(root, supportedFormats) { it.absolutePath !in currentFilePaths }
-
+        val totalNewFiles = FileUtil.countFiles(context, configuredDir, supportedFiles) { uri -> uri.toString() !in currentFilePaths }.last()
         val existingFilePaths = mutableSetOf<String>()
         var processedFiles = 0
-        val chunkSize = 20
-        val pendingChunk = mutableListOf<File>()
 
         // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
-        // parse new files in overlapping chunks while the directory walk continues, so the
+        // parse new files chunk-wise while the directory walk continues, so the
         // library is populated incrementally instead of all at once.
-        scanForFiles(context, root, supportedFormats)
-            .flowOn(Dispatchers.IO)
-            .buffer(chunkSize)
-            .collect { file ->
-                ensureActive()
-                existingFilePaths.add(file.absolutePath)
-                if (file.absolutePath !in currentFilePaths) {
-                    pendingChunk.add(file)
-                    if (pendingChunk.size >= chunkSize) {
-                        processChunk(pendingChunk.toList())
-                        processedFiles += pendingChunk.size
-                        reportProgress(processedFiles, totalNewFiles, onProgress)
-                        pendingChunk.clear()
-                    }
-                }
+        scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
+            ensureActive()
+            scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
+            val newFiles = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
+            if (newFiles.isNotEmpty()) {
+                processChunk(newFiles)
+                processedFiles += newFiles.size
+                reportProgress(processedFiles, totalNewFiles, onProgress)
             }
-
-        if (pendingChunk.isNotEmpty()) {
-            processChunk(pendingChunk.toList())
-            processedFiles += pendingChunk.size
-            reportProgress(processedFiles, totalNewFiles, onProgress)
-            logger.info("... process file chunk of size ${pendingChunk.size} ($processedFiles/$totalNewFiles) ...")
         }
 
         if (totalNewFiles > 0) {
@@ -128,7 +109,7 @@ class MusicFileScanner(
         logger.info("... done scanning for music files")
     }
 
-    private suspend fun processChunk(chunk: List<File>) = coroutineScope {
+    private suspend fun processChunk(chunk: Set<ScannedFile>) = coroutineScope {
         val songs: List<Song> = chunk.map { file ->
             async(Dispatchers.IO) {
                 extractSongMetadata(file)
@@ -141,44 +122,82 @@ class MusicFileScanner(
     }
 
     private fun reportProgress(processedFiles: Int, totalFiles: Int, onProgress: ((String, Int) -> Unit)?) {
-        val progress = (processedFiles.toFloat() / totalFiles * 100).toInt()
+        val progress = if (totalFiles > 0) (processedFiles.toFloat() / totalFiles * 100).toInt() else 100
         onProgress?.invoke(
             context.getString(R.string.scan_status_metadata, progress),
             progress,
         )
     }
 
-    private fun extractSongMetadata(file: File): Song = try {
-        val audioFile = AudioFileIO.read(file)
-        val extractedMetadata = Id3TagParser.extractMetadata(audioFile)
-
-        Song.fromId3(file, extractedMetadata, saveAlbumArt(file))
-    } catch (e: Exception) {
-        logger.error("Failed to extract metadata for ${file.absolutePath}", e)
-        Song(
-            title = UNKNOWN,
-            artist = UNKNOWN_ARTIST,
-            album = UNKNOWN_ALBUM,
-            genre = UNKNOWN_GENRE,
-            duration = 0L,
-            filePath = file.absolutePath,
-        )
+    /**
+     * Extracts song metadata for a scanned file via its content URI stream.
+     *
+     * Falls back to an UNKNOWN placeholder song if the stream cannot be opened
+     * or the tag cannot be parsed.
+     *
+     * @param file scanned file.
+     * @return extracted or fallback [Song] with the content URI string as file path.
+     */
+    private fun extractSongMetadata(file: ScannedFile): Song {
+        val filePath = file.uri.toString()
+        return try {
+            val metadata = context.contentResolver.openInputStream(file.uri)?.use { input ->
+                Id3.parse(input, logger, file.displayName)
+            } ?: return fallbackSong(filePath)
+            val duration = metadata.duration ?: readDuration(file)
+            val albumArt =
+                metadata.albumArt?.takeIf { it.isValid() }?.let { art ->
+                    AlbumArtUri(
+                        filePath = filePath,
+                        offset = art.offset.toLong(),
+                        size = art.length.toLong(),
+                        hashCode = art.hashCode ?: 0,
+                        mimeType = art.mimeType,
+                    ).get()
+                }
+            Song.fromId3(filePath, metadata, albumArt, duration)
+        } catch (e: Exception) {
+            logger.error("Failed to extract metadata for $filePath", e)
+            fallbackSong(filePath)
+        }
     }
 
-    private fun saveAlbumArt(file: File): String? = try {
-        val filePath = file.absolutePath
-        val albumArtOffset = Id3TagParser.getAlbumArtMetadata(file)
-        if (albumArtOffset.isValid) {
-            AlbumArtUri(filePath, albumArtOffset.offset, albumArtOffset.size, albumArtOffset.hashCode).get()
-        } else {
-            logger.debug("No valid album art offset found for $filePath")
-            null
+    /**
+     * Reads the playable duration for a scanned file.
+     *
+     * Used when the ID3 tag carries no TLEN frame.
+     *
+     * @param file scanned file.
+     * @return duration in milliseconds, or 0 if it cannot be determined.
+     */
+    private fun readDuration(file: ScannedFile): Long = try {
+        MediaMetadataRetriever().use { retriever ->
+            retriever.setDataSource(context, file.uri)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
         }
     } catch (e: Exception) {
-        logger.error("An error occurred while saving album art for $file", e)
-        null
+        logger.error("Failed to read duration for ${file.uri}", e)
+        0L
     }
 
+    /**
+     * Creates a placeholder song for files without readable metadata.
+     *
+     * @param filePath content URI string stored as song file path.
+     * @return UNKNOWN [Song].
+     */
+    private fun fallbackSong(filePath: String): Song = Song(
+        title = UNKNOWN,
+        artist = UNKNOWN_ARTIST,
+        album = UNKNOWN_ALBUM,
+        genre = UNKNOWN_GENRE,
+        duration = 0L,
+        filePath = filePath,
+    )
+
+    /**
+     * Refreshes the auto-generated Top-100 playlists per genre.
+     */
     suspend fun updateAutomaticPlaylists() = withContext(Dispatchers.IO) {
         val genres = genreDao.getAllGenres()
         val currentPlaylists = playlistDao.getAllPlaylists().first()

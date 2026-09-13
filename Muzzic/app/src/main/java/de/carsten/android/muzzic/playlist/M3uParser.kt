@@ -42,7 +42,22 @@ object M3uParser {
         return entries
     }
 
-    private fun parsePlaylist(parentDir: File, inputStream: InputStream, entries: MutableList<M3uEntry>) {
+    /**
+     * Parses M3U/M3U8 content from an input stream and returns a list of [M3uEntry] items.
+     *
+     * Without a parent directory, relative track paths are kept as-is while
+     * absolute paths and URIs pass through unchanged.
+     *
+     * @param input The M3U/M3U8 content stream.
+     * @return A list of parsed entries.
+     */
+    fun parse(input: InputStream): List<M3uEntry> {
+        val entries = mutableListOf<M3uEntry>()
+        parsePlaylist(null, input, entries)
+        return entries
+    }
+
+    private fun parsePlaylist(parentDir: File?, inputStream: InputStream, entries: MutableList<M3uEntry>) {
         BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)).use { reader ->
             var line: String?
             var currentTitle: String? = null

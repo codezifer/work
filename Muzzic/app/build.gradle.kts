@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appName = "muzzic"
 val appId = "de.carsten.android.$appName"
@@ -107,6 +107,7 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 dependencies {
     // sub-modules
     implementation(project(":logging"))
+    implementation(project(":id3"))
 
     // kotlin
     val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)
@@ -167,9 +168,6 @@ dependencies {
 
     // okhttp
     implementation(libs.okhttp)
-
-    // jaudiotagger
-    implementation(libs.jaudiotagger)
 
     // paging
     implementation(libs.androidx.paging)

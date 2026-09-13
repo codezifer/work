@@ -10,14 +10,14 @@ import androidx.room.Index
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.UNKNOWN_ALBUM
 import de.carsten.android.muzzic.UNKNOWN_ARTIST
-import de.carsten.android.muzzic.id3.ExtendedMetadata
+import de.carsten.android.muzzic.UNKNOWN_GENRE
+import de.carsten.android.muzzic.id3.model.Id3Metadata
 import de.carsten.android.muzzic.inferMimeType
 import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.songId
 import de.carsten.android.muzzic.toPlayableUri
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.utils.getStarRating
-import java.io.File
 import java.time.Instant
 
 @Entity(
@@ -63,18 +63,31 @@ data class Song(
     }
 
     companion object {
-        fun fromId3(file: File, metadata: ExtendedMetadata, albumArt: String?): Song = Song(
+        /**
+         * Creates a [Song] from parsed [Id3Metadata].
+         *
+         * Blank fields fall back to the UNKNOWN constants. The caller resolves the
+         * playable [duration] (e.g. TLEN tag value with a media retriever fallback)
+         * since metadata alone may not carry it.
+         *
+         * @param filePath playable path or content URI string of the scanned file.
+         * @param metadata parsed ID3 metadata.
+         * @param albumArt resolved album art URI string, if any.
+         * @param duration playable duration in milliseconds.
+         * @return mapped [Song].
+         */
+        fun fromId3(filePath: String, metadata: Id3Metadata, albumArt: String?, duration: Long = metadata.duration ?: 0L): Song = Song(
             title = metadata.title?.takeIf { it.isNotBlank() } ?: UNKNOWN,
             artist = metadata.artist?.takeIf { it.isNotBlank() } ?: UNKNOWN_ARTIST,
             album = metadata.album?.takeIf { it.isNotBlank() } ?: UNKNOWN_ALBUM,
-            genre = metadata.genre?.takeIf { it.isNotBlank() } ?: UNKNOWN,
-            duration = metadata.duration,
-            filePath = file.absolutePath,
-            trackNumber = metadata.trackNumber.coerceAtLeast(0),
-            totalTracks = metadata.totalTracks.coerceAtLeast(0),
-            albumYear = metadata.year,
-            rating = metadata.rating,
-            playCount = metadata.playCount,
+            genre = metadata.genre?.takeIf { it.isNotBlank() } ?: UNKNOWN_GENRE,
+            duration = duration,
+            filePath = filePath,
+            trackNumber = (metadata.track ?: -1).coerceAtLeast(0),
+            totalTracks = (metadata.totalTracks ?: -1).coerceAtLeast(0),
+            albumYear = metadata.albumYear ?: -1,
+            rating = metadata.rating ?: 0,
+            playCount = metadata.playCount ?: 0,
             albumArt = albumArt,
         )
     }

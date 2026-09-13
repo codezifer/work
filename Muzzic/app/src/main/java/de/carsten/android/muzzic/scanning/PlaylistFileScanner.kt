@@ -1,6 +1,8 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
+import androidx.core.net.toUri
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.mediaId
@@ -18,6 +20,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * Implementation of [FileScanner] that imports M3U playlists from the file system.
+ *
+ * Playlists are discovered chunk-wise via [FileScanner.scanForFiles] (Storage Access Framework)
+ * and read from their content [android.net.Uri] without requiring direct file access.
  */
 class PlaylistFileScanner(
     private val context: Context,
@@ -35,18 +40,25 @@ class PlaylistFileScanner(
     override val notificationTitleRes: Int = R.string.scan_playlists
 
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = withContext(Dispatchers.IO) {
-        val configuredDir = appSettingsRepository.getPlaylistDirectory() ?: return@withContext
-        val rootDir = getScanningRoot(context, configuredDir)
-        if (rootDir == null || !rootDir.exists()) return@withContext
+        val configuredDir = appSettingsRepository.getPlaylistDirectory()?.toUri() ?: return@withContext
 
-        val playlistFiles = scanForFiles(context, rootDir, setOf("m3u", "m3u8")).toList()
+        val playlistFiles =
+            scanForFiles(context, configuredDir, AppConfig.Scanning.SUPPORTED_PLAYLIST_FILES)
+                .toList()
+                .flatten()
 
         val totalPlaylists = playlistFiles.size
         playlistFiles.forEachIndexed { index, file ->
             coroutineContext.ensureActive()
-            val entries = M3uParser.parse(file)
+            val entries =
+                try {
+                    context.contentResolver.openInputStream(file.uri)?.use { M3uParser.parse(it) }
+                } catch (e: Exception) {
+                    logger.error("Failed to import playlist ${file.displayName}", e)
+                    null
+                } ?: emptyList()
             if (entries.isNotEmpty()) {
-                val playlistName = file.nameWithoutExtension
+                val playlistName = file.displayName.substringBeforeLast('.')
                 val playlistId = mediaId(playlistName).toString()
                 val playlist = Playlist(playlistName).apply { id = playlistId }
 

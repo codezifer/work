@@ -36,12 +36,6 @@
 -keep class androidx.media3.** { *; }
 -dontwarn androidx.media3.**
 
-# JAudioTagger - Modern version (net.jthink)
--dontwarn org.jaudiotagger.**
--dontwarn java.awt.**
--dontwarn javax.imageio.**
--keep class org.jaudiotagger.** { *; }
-
 # Coil 3
 -keep class coil3.** { *; }
 -keep interface coil3.** { *; }

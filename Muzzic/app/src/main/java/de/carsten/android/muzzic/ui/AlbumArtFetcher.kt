@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.ui
 
 import android.content.Context
+import androidx.core.net.toUri
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -12,6 +13,7 @@ import de.carsten.android.muzzic.ALBUMART_SCHEME
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.AlbumArtUri
 import java.io.File
+import java.io.InputStream
 import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,17 +41,30 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
         return handleLocalFile()
     }
 
+    /**
+     * Reads the embedded image bytes for a local file.
+     *
+     * Content URIs are opened via the [android.content.ContentResolver],
+     * plain paths via [File].
+     *
+     * @return fetch result with the image bytes.
+     */
     private suspend fun handleLocalFile(): FetchResult {
         val buffer =
             withContext(Dispatchers.IO) {
                 try {
-                    val file = File(data.filePath)
-                    file.inputStream().use { inputStream ->
-                        inputStream.skip(data.offset)
+                    val inputStream =
+                        if (data.filePath.startsWith("content://")) {
+                            context.contentResolver.openInputStream(data.filePath.toUri())
+                        } else {
+                            File(data.filePath).inputStream()
+                        } ?: return@withContext null
+                    inputStream.use { input ->
+                        skipFully(input, data.offset)
                         val bytes = ByteArray(data.size.toInt())
                         var totalRead = 0
                         while (totalRead < data.size) {
-                            val read = inputStream.read(bytes, totalRead, data.size.toInt() - totalRead)
+                            val read = input.read(bytes, totalRead, data.size.toInt() - totalRead)
                             if (read == -1) break
                             totalRead += read
                         }
@@ -126,6 +141,24 @@ class AlbumArtFetcher(private val data: AlbumArtUri, private val options: Option
             mimeType = mimeType,
             dataSource = DataSource.NETWORK,
         )
+    }
+
+    /**
+     * Skips exactly [bytes] bytes from the stream.
+     *
+     * A single [InputStream.skip] call is not guaranteed to skip the requested
+     * amount, so repeat until the position is reached or the end is hit.
+     *
+     * @param input source stream.
+     * @param bytes number of bytes to skip.
+     */
+    private fun skipFully(input: InputStream, bytes: Long) {
+        var remaining = bytes
+        while (remaining > 0) {
+            val skipped = input.skip(remaining)
+            if (skipped <= 0) break
+            remaining -= skipped
+        }
     }
 
     private fun cacheFile(url: String): File {
