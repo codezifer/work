@@ -8,4 +8,5 @@ dependencies {
     implementation(projects.logging)
     testImplementation(libs.junit)
     testImplementation(libs.test.assertj)
+    testImplementation(libs.mockk)
 }

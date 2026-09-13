@@ -26,7 +26,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.withContext
 
 /**
@@ -53,60 +52,58 @@ class MusicFileScanner(
     override val notificationTitleRes: Int = R.string.scan_notification_title
 
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = coroutineScope {
-        onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
+        try {
+            logger.info("Start to scan for music files...")
+            onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
 
-        logger.info("Scanning for music files...")
+            val configuredDir = appSettingsRepository.getMusicDirectory()?.toUri()
+            val currentSongs = songDao.getAllSongs().first()
+            val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
+            val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
 
-        val configuredDir = appSettingsRepository.getMusicDirectory()?.toUri()
-        val currentSongs = songDao.getAllSongs().first()
-        val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
-        val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
+            val existingFilePaths = mutableSetOf<String>()
+            var processedFiles = 0
 
-        // Count pass: determine how many files will be parsed. This is the denominator
-        // for the determinate progress shown in the scan notification.
-        val totalNewFiles = FileUtil.countFiles(context, configuredDir, supportedFiles) { uri -> uri.toString() !in currentFilePaths }.last()
-        val existingFilePaths = mutableSetOf<String>()
-        var processedFiles = 0
+            // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
+            // parse new files chunk-wise while the directory walk continues, so the
+            // library is populated incrementally instead of all at once. Single pass avoids duplicate folder traversal.
+            scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
+                ensureActive()
+                scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
+                val newFiles = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
+                if (newFiles.isNotEmpty()) {
+                    processChunk(newFiles)
+                    processedFiles += newFiles.size
+                    reportProgress(processedFiles, onProgress)
+                }
+            }
 
-        // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
-        // parse new files chunk-wise while the directory walk continues, so the
-        // library is populated incrementally instead of all at once.
-        scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
+            if (processedFiles > 0) {
+                updateAutomaticPlaylists()
+            }
+
+            onProgress?.invoke(context.getString(R.string.scan_status_cleaning), AppConfig.Scanning.MAX_PROGRESS)
             ensureActive()
-            scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
-            val newFiles = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
-            if (newFiles.isNotEmpty()) {
-                processChunk(newFiles)
-                processedFiles += newFiles.size
-                reportProgress(processedFiles, totalNewFiles, onProgress)
+
+            // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
+            val missingSongs =
+                currentSongs.filter { song ->
+                    val path = song.filePath
+                    path != null &&
+                        !path.startsWith("content://mock") &&
+                        !path.startsWith("http://") &&
+                        !path.startsWith("https://") &&
+                        path !in existingFilePaths
+                }
+
+            if (missingSongs.isNotEmpty()) {
+                withContext(Dispatchers.IO) {
+                    songDao.deleteSongs(missingSongs)
+                }
             }
+        } finally {
+            logger.info("... Finished to scan for music files.")
         }
-
-        if (totalNewFiles > 0) {
-            updateAutomaticPlaylists()
-        }
-
-        onProgress?.invoke(context.getString(R.string.scan_status_cleaning), 100)
-        ensureActive()
-
-        // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-        val missingSongs =
-            currentSongs.filter { song ->
-                val path = song.filePath
-                path != null &&
-                    !path.startsWith("content://mock") &&
-                    !path.startsWith("http://") &&
-                    !path.startsWith("https://") &&
-                    path !in existingFilePaths
-            }
-
-        if (missingSongs.isNotEmpty()) {
-            withContext(Dispatchers.IO) {
-                songDao.deleteSongs(missingSongs)
-            }
-        }
-
-        logger.info("... done scanning for music files")
     }
 
     private suspend fun processChunk(chunk: Set<ScannedFile>) = coroutineScope {
@@ -121,11 +118,11 @@ class MusicFileScanner(
         }
     }
 
-    private fun reportProgress(processedFiles: Int, totalFiles: Int, onProgress: ((String, Int) -> Unit)?) {
-        val progress = if (totalFiles > 0) (processedFiles.toFloat() / totalFiles * 100).toInt() else 100
+    private fun reportProgress(processedFiles: Int, onProgress: ((String, Int) -> Unit)?) {
+        // Without an expensive count pass, report progress as an indeterminate animation or ongoing count
         onProgress?.invoke(
-            context.getString(R.string.scan_status_metadata, progress),
-            progress,
+            context.getString(R.string.scan_status_metadata, processedFiles),
+            -1, // -1 or custom value to signal an indeterminate progress state
         )
     }
 

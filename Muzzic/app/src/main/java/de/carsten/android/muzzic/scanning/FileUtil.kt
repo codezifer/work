@@ -14,9 +14,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.runningFold
 
 /**
  * File utility class.
@@ -70,8 +68,18 @@ object FileUtil {
         val resolver = context.contentResolver
         val chunk = mutableSetOf<ScannedFile>()
 
-        suspend fun walk(documentId: String) {
-            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, documentId)
+        // Pre-compile extensions to lowercase to avoid memory/string allocations inside loops
+        val lowerExtensions = supportedFiles.map { it.lowercase() }.toSet()
+
+        // Use an iterative stack (ArrayDeque) instead of function recursion to safeguard memory and stack depth
+        val dirStack = ArrayDeque<String>()
+        dirStack.add(DocumentsContract.getTreeDocumentId(uri))
+
+        while (dirStack.isNotEmpty()) {
+            currentCoroutineContext().ensureActive()
+            val currentDocumentId = dirStack.removeLast()
+            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, currentDocumentId)
+
             val preparedFiles = resolver.query(childrenUri, ScannedFile.PROJECTION, null, null, null)?.use { cursor ->
                 buildList {
                     while (cursor.moveToNext()) {
@@ -81,20 +89,18 @@ object FileUtil {
             } ?: emptyList()
 
             for (prepared in preparedFiles) {
+                if (prepared == null) continue
+
                 when {
-                    prepared?.mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> {
-                        walk(prepared.documentId)
+                    prepared.mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> {
+                        dirStack.add(prepared.documentId)
                     }
 
                     else -> {
-                        val isSupported = supportedFiles.any { ext ->
-                            prepared?.displayName?.lowercase()?.endsWith(".${ext.lowercase()}") == true
-                        }
-                        if (isSupported) {
-                            val processed = prepared?.copy(uri = DocumentsContract.buildDocumentUriUsingTree(uri, prepared.documentId))
-                            if (processed != null) {
-                                chunk.add(processed)
-                            }
+                        val ext = prepared.displayName.substringAfterLast('.', "").lowercase()
+                        if (ext in lowerExtensions) {
+                            val processed = prepared.copy(uri = DocumentsContract.buildDocumentUriUsingTree(uri, prepared.documentId))
+                            chunk.add(processed)
                             if (chunk.size >= chunkSize) {
                                 emit(chunk.toSet())
                                 chunk.clear()
@@ -105,32 +111,8 @@ object FileUtil {
             }
         }
 
-        walk(DocumentsContract.getTreeDocumentId(uri))
         if (chunk.isNotEmpty()) emit(chunk.toSet())
     }.flowOn(Dispatchers.IO)
-
-    /**
-     * Counts files from root directory matching the given extensions.
-     *
-     * Only files for which [isCounted] returns `true` are counted. Intended to determine
-     * the total number of files before a streaming pass, e.g. for progress reporting.
-     *
-     * @param context android [Context]
-     * @param uri configured tree root [Uri]
-     * @param extensions supported file extensions
-     * @param isCounted predicate applied to each matching file
-     * @return number of counted files
-     */
-    fun countFiles(context: Context, uri: Uri?, extensions: Set<String>, isCounted: (Uri) -> Boolean = { true }): Flow<Int> {
-        if (uri == null) return flowOf(0)
-        return getScannedFileFlow(
-            context = context,
-            uri = uri,
-            supportedFiles = extensions,
-        ).runningFold(0) { sum, scannedFiles ->
-            sum + scannedFiles.count { scannedFile -> isCounted(scannedFile.uri) }
-        }
-    }
 
     /**
      * Returns the file path from uri.

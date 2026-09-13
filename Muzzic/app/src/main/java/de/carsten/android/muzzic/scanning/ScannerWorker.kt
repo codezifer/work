@@ -8,6 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.logging.logger
 import kotlinx.coroutines.CancellationException
@@ -83,7 +84,7 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
             .setSmallIcon(R.drawable.disc)
             .setContentText(status)
             .setOngoing(true)
-            .setProgress(100, progress, false)
+            .setProgress(AppConfig.Scanning.MAX_PROGRESS, progress, AppConfig.Scanning.INDETERMINATE_PROGRESS)
             .setOnlyAlertOnce(true)
             .build()
 

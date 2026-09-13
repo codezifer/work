@@ -1,11 +1,15 @@
 package de.carsten.android.muzzic.playlist
 
+import de.carsten.android.muzzic.logging.MuzzicLogger
+import io.mockk.mockk
 import java.io.File
 import java.nio.file.Files
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class M3uParserTest {
+
+    private val mockLogger = mockk<MuzzicLogger>(relaxed = true)
 
     @Test
     fun testParseAbsolutePaths() {
@@ -17,7 +21,7 @@ class M3uParserTest {
 
         playlistFile.writeText("#EXTM3U\n$absolutePath")
 
-        val entries = M3uParser.parse(playlistFile)
+        val entries = M3uParser.parse(playlistFile, mockLogger)
 
         try {
             assertThat(entries).hasSize(1)
@@ -38,7 +42,7 @@ class M3uParserTest {
 
         playlistFile.writeText(content, Charsets.UTF_8)
 
-        val entries = M3uParser.parse(playlistFile)
+        val entries = M3uParser.parse(playlistFile, mockLogger)
 
         try {
             assertThat(entries).hasSize(1)
@@ -58,7 +62,7 @@ class M3uParserTest {
 
         playlistFile.writeText("#EXTM3U\n$relativePath")
 
-        val entries = M3uParser.parse(playlistFile)
+        val entries = M3uParser.parse(playlistFile, mockLogger)
 
         try {
             assertThat(entries).hasSize(1)
@@ -71,7 +75,7 @@ class M3uParserTest {
     @Test
     fun testParseInputStreamKeepsRelativePaths() {
         val content = "#EXTM3U\n#EXTINF:187,Artist - Title\nMusic/song.mp3\ncontent://media/song2.mp3"
-        val entries = M3uParser.parse(content.byteInputStream(Charsets.UTF_8))
+        val entries = M3uParser.parse(content.byteInputStream(Charsets.UTF_8), mockLogger)
 
         assertThat(entries).hasSize(2)
         assertThat(entries[0].path).isEqualTo("Music/song.mp3")

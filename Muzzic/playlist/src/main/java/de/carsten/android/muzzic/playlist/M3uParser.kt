@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.playlist
 
+import de.carsten.android.muzzic.logging.MuzzicLogger
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -21,14 +22,15 @@ object M3uParser {
      * @param file The M3U/M3U8 file.
      * @return A list of parsed entries.
      */
-    fun parse(file: File): List<M3uEntry> {
+    fun parse(file: File, logger: MuzzicLogger): List<M3uEntry> {
         val entries = mutableListOf<M3uEntry>()
         if (!file.exists()) return entries
 
         val parentDir = file.parentFile ?: return emptyList()
+        val fileId = file.name
         val inputStream = file.inputStream()
 
-        parsePlaylist(parentDir, inputStream, entries)
+        parsePlaylist(parentDir, inputStream, entries, logger, fileId)
 
         return entries
     }
@@ -40,15 +42,22 @@ object M3uParser {
      * absolute paths and URIs pass through unchanged.
      *
      * @param input The M3U/M3U8 content stream.
+     * @param fileId optional file identifier
      * @return A list of parsed entries.
      */
-    fun parse(input: InputStream): List<M3uEntry> {
-        val entries = mutableListOf<M3uEntry>()
-        parsePlaylist(null, input, entries)
-        return entries
+    fun parse(input: InputStream, logger: MuzzicLogger, fileId: String? = null): List<M3uEntry> {
+        val logFileId = fileId ?: ""
+        try {
+            val entries = mutableListOf<M3uEntry>()
+            logger.info("Start to parse playlist $logFileId ...")
+            parsePlaylist(null, input, entries, logger, fileId)
+            return entries
+        } finally {
+            logger.info("... Finished to parse playlist $logFileId.")
+        }
     }
 
-    private fun parsePlaylist(parentDir: File?, inputStream: InputStream, entries: MutableList<M3uEntry>) {
+    private fun parsePlaylist(parentDir: File?, inputStream: InputStream, entries: MutableList<M3uEntry>, logger: MuzzicLogger, fileId: String? = null) {
         BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)).use { reader ->
             var line: String?
             var currentTitle: String? = null
@@ -78,6 +87,7 @@ object M3uParser {
                 // This line is a track path
                 val resolvedPath = resolvePath(trimmedLine, parentDir)
                 entries.add(M3uEntry(path = resolvedPath, title = currentTitle, duration = currentDuration))
+                logger.debug("Added track $resolvedPath to playlist $fileId")
 
                 // Reset for next entry
                 currentTitle = null

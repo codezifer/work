@@ -9,7 +9,6 @@ import io.mockk.every
 import io.mockk.mockk
 import java.io.File
 import java.nio.file.Files
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -68,33 +67,5 @@ class FileUtilFlowTest {
         val files = FileUtil.getFilesFlow(File("/nonexistent/muzzic/path"), setOf("mp3")).toList()
 
         assertThat(files).isEmpty()
-    }
-
-    @Test
-    fun `countFiles counts only matching files`() = runTest {
-        stubChildren(
-            arrayOf<Any?>("primary:Music/a.mp3", "a.mp3", "audio/mpeg", 1L, 1L),
-            arrayOf<Any?>("primary:Music/b.mp3", "b.mp3", "audio/mpeg", 2L, 2L),
-            arrayOf<Any?>("primary:Music/c.txt", "c.txt", "text/plain", 3L, 3L),
-        )
-
-        val counted = FileUtil.countFiles(context, root, setOf("mp3")).last()
-
-        assertThat(counted).isEqualTo(2)
-    }
-
-    @Test
-    fun `countFiles applies the given predicate`() = runTest {
-        stubChildren(
-            arrayOf<Any?>("primary:Music/keep.mp3", "keep.mp3", "audio/mpeg", 1L, 1L),
-            arrayOf<Any?>("primary:Music/skip.mp3", "skip.mp3", "audio/mpeg", 2L, 2L),
-        )
-
-        val counted =
-            FileUtil.countFiles(context, root, setOf("mp3")) { uri ->
-                uri.toString().endsWith("keep.mp3")
-            }.last()
-
-        assertThat(counted).isEqualTo(1)
     }
 }
