@@ -1,5 +1,7 @@
 package de.carsten.android.muzzic.id3.model.tag
 
+import java.nio.charset.Charset
+
 /**
  * Text encodings usable inside ID3v2 frames.
  *
@@ -9,6 +11,8 @@ package de.carsten.android.muzzic.id3.model.tag
  * @property code encoding description byte as stored in the frame.
  * @property terminator bytes terminating a string in this encoding.
  * @property charsetName JVM charset name used for decoding.
+ * @property charset resolved [Charset], cached once per entry so frame
+ * decoding never calls `Charset.forName` in the hot path.
  */
 enum class TextEncoding(val code: Byte, val terminator: ByteArray, val charsetName: String) {
     /** ISO-8859-1, terminated with a single $00. */
@@ -23,6 +27,9 @@ enum class TextEncoding(val code: Byte, val terminator: ByteArray, val charsetNa
     /** UTF-8, terminated with a single $00. Only v2.4. */
     UTF_8(code = 0x03, terminator = byteArrayOf(0x00), charsetName = "UTF-8"),
     ;
+
+    /** Cached charset for [charsetName], resolved once per enum entry. */
+    val charset: Charset = Charset.forName(charsetName)
 
     /**
      * Checks whether this encoding is valid for the given tag version.

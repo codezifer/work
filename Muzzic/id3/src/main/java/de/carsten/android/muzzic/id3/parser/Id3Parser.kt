@@ -4,6 +4,7 @@ import de.carsten.android.muzzic.id3.exceptions.Id3Exception
 import de.carsten.android.muzzic.id3.model.frame.FrameFormatFlags
 import de.carsten.android.muzzic.id3.model.frame.FrameHeader
 import de.carsten.android.muzzic.id3.model.frame.FrameId
+import de.carsten.android.muzzic.id3.model.frame.FrameIds
 import de.carsten.android.muzzic.id3.model.frame.FrameStatusFlags
 import de.carsten.android.muzzic.id3.model.frame.Id3Frame
 import de.carsten.android.muzzic.id3.model.frame.UnknownFrame
@@ -37,13 +38,25 @@ object Id3Parser {
     /**
      * Parses a complete tag from the stream positioned at its header.
      *
+     * Reads the whole tag body in one `readNBytes` call (needs API 33+,
+     * covered by minSdk 36) and parses frames from that buffer. v2.3
+     * unsynchronisation is reversed once over the entire body because it
+     * covers frame headers as well; v2.4 frames are reversed per body.
+     *
      * @param input source positioned at the first "ID3" byte.
+     * @param options parse tuning, e.g. skipping picture payloads.
      * @return parsed tag.
      * @throws Id3Exception on malformed data or I/O errors.
      */
-    fun parse(input: InputStream): Id3Tag {
+    fun parse(input: InputStream, options: Id3ParseOptions = Id3ParseOptions()): Id3Tag {
         val header = parseHeader(input)
-        val body = readFully(input, header.tagSize, "tag body")
+        var body = readFully(input, header.tagSize, "tag body")
+        // v2.3 unsynchronisation applies to the whole tag body including
+        // frame headers, so reverse it once here instead of per frame.
+        // v2.4 frame headers are never unsynchronised; those bodies are
+        // handled per frame in maybeReverseUnsynchronisation().
+        val tagUnsynchronised = header.version == Id3Version.V2_3 && header.flags.unsynchronisation
+        if (tagUnsynchronised) body = reverseUnsynchronisation(body)
         var index = 0
         val (extendedHeader, headerConsumed) = parseExtendedHeader(header, body, index)
         index += headerConsumed
@@ -64,10 +77,11 @@ object Id3Parser {
                 throw Id3Exception("Frame ${frameHeader.frameId} size exceeds tag body")
             }
             val bodyOffset = TagHeader.SIZE + index
+            // Exclusive per-frame buffer: decoders take ownership, no extra copies.
             var frameBody = body.copyOfRange(index, index + frameHeader.size)
             index += frameHeader.size
-            frameBody = maybeReverseUnsynchronisation(header, frameHeader, frameBody)
-            frames.add(decodeBody(frameHeader, frameBody, bodyOffset))
+            frameBody = maybeReverseUnsynchronisation(header, frameHeader, frameBody, tagUnsynchronised)
+            frames.add(decodeBody(frameHeader, frameBody, bodyOffset, options))
         }
         val footer = parseFooter(header, input)
         return Id3Tag(
@@ -215,13 +229,20 @@ object Id3Parser {
         }
     }
 
-    private fun maybeReverseUnsynchronisation(header: TagHeader, frameHeader: FrameHeader, body: ByteArray): ByteArray {
+    private fun maybeReverseUnsynchronisation(header: TagHeader, frameHeader: FrameHeader, body: ByteArray, tagUnsynchronised: Boolean): ByteArray {
+        // v2.3 tags were already reversed as a whole in parse(); reversing
+        // again would corrupt sizes that legitimately contain $FF.
+        if (tagUnsynchronised) return body
+        // v2.4 frame headers are never unsynchronised, only bodies are.
         val frameUnsynchronised = (frameHeader as? FrameHeader.V24)?.format?.unsynchronisation == true
         return if (header.flags.unsynchronisation || frameUnsynchronised) reverseUnsynchronisation(body) else body
     }
 
-    private fun decodeBody(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-        if (isTransformed(header)) return UnknownFrame(header, DataBytes(body.copyOf(), offset = bodyOffset))
+    private fun decodeBody(header: FrameHeader, body: ByteArray, bodyOffset: Int, options: Id3ParseOptions): Id3Frame {
+        if (isTransformed(header)) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+        if (options.skipPictureData && header.frameId.value == FrameIds.APIC) {
+            return decodeApicSkipped(header, body, bodyOffset)
+        }
         return FrameDecoderRegistry.decode(header, body, bodyOffset)
     }
 

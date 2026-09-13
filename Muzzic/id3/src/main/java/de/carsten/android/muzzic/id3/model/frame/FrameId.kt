@@ -32,18 +32,38 @@ value class FrameId(val value: String) {
         const val LENGTH = 4
 
         /**
+         * Checks whether the bytes at [offset] are tag padding.
+         *
+         * Padding is a run of `$00` bytes; the tag parser stops before
+         * calling [parse] when the next byte is `$00`. Direct callers
+         * should check this first instead of relying on the throw below.
+         *
+         * @param bytes source array with at least [LENGTH] bytes from [offset].
+         * @param offset start offset.
+         * @return true if all [LENGTH] bytes are `$00`.
+         */
+        fun isPadding(bytes: ByteArray, offset: Int = 0): Boolean {
+            if (bytes.size - offset < LENGTH) return false
+            for (index in offset until offset + LENGTH) {
+                if (bytes[index] != 0x00.toByte()) return false
+            }
+            return true
+        }
+
+        /**
          * Parses four raw bytes into a [FrameId].
          *
          * @param bytes source array with at least [LENGTH] bytes from [offset].
          * @param offset start offset.
          * @return parsed identifier.
-         * @throws Id3Exception if the bytes are not a valid identifier.
+         * @throws Id3Exception if fewer than [LENGTH] bytes are available
+         * or the bytes are not a valid identifier (including padding —
+         * check [isPadding] first).
          */
         fun parse(bytes: ByteArray, offset: Int = 0): FrameId {
             if (bytes.size - offset < LENGTH) throw Id3Exception("Need $LENGTH bytes for a frame id")
-            val value = bytes.decodeToString(offset, offset + LENGTH)
-            if (value.all { it == '\u0000' }) throw Id3Exception("Reached padding, no further frames")
-            return FrameId(value)
+            if (isPadding(bytes, offset)) throw Id3Exception("Reached padding, no further frames — check isPadding() first")
+            return FrameId(bytes.decodeToString(offset, offset + LENGTH))
         }
     }
 }

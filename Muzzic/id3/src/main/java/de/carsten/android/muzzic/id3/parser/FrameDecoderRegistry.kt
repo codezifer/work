@@ -64,11 +64,15 @@ object FrameDecoderRegistry {
     /**
      * Decodes a frame body, falling back to [UnknownFrame][de.carsten.android.muzzic.id3.model.frame.UnknownFrame].
      *
+     * The [body] array is referenced, not copied, by the [UnknownFrame]
+     * fallback and by binary frames holding payload views. Callers handing
+     * over reusable buffers must pass a copy; [Id3Parser] already does.
+     *
      * @param header parsed frame header.
-     * @param body plain frame body bytes.
+     * @param body plain frame body bytes, referenced (not copied) on fallback.
      * @param bodyOffset absolute stream position of `body[0]`.
      * @return typed frame or [UnknownFrame][de.carsten.android.muzzic.id3.model.frame.UnknownFrame].
      */
     fun decode(header: FrameHeader, body: ByteArray, bodyOffset: Int = 0): Id3Frame = decoders[header.frameId.value]?.invoke(header, body, bodyOffset)
-        ?: UnknownFrame(header, DataBytes(body.copyOf(), offset = bodyOffset))
+        ?: UnknownFrame(header, DataBytes(body, offset = bodyOffset))
 }
