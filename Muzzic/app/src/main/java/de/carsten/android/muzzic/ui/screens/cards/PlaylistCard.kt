@@ -65,9 +65,9 @@ fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
 
         SubtitleInformation(
             listOf(
-                Pair(Icons.Default.Person, "${playlist.artistCount} Artists"),
-                Pair(Icons.Default.Album, "${playlist.albumCount} Albums"),
-                Pair(Icons.Default.MusicNote, "${playlist.songCount} Songs"),
+                Pair(Icons.Default.Person, "${playlist.artistCount}"),
+                Pair(Icons.Default.Album, "${playlist.albumCount}"),
+                Pair(Icons.Default.MusicNote, "${playlist.songCount}"),
             ),
             fontColor = it.copy(alpha = 0.8f),
         )

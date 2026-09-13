@@ -75,9 +75,9 @@ fun GenreCard(genre: GenreDto, onClick: () -> Unit = {}, onPlayClick: () -> Unit
 
             SubtitleInformation(
                 listOf(
-                    Pair(Icons.Default.Person, "${genre.artistCount} Artists"),
-                    Pair(Icons.Default.Album, "${genre.albumCount} Albums"),
-                    Pair(Icons.Default.MusicNote, "${genre.songCount} Songs"),
+                    Pair(Icons.Default.Person, "${genre.artistCount}"),
+                    Pair(Icons.Default.Album, "${genre.albumCount}"),
+                    Pair(Icons.Default.MusicNote, "${genre.songCount}"),
                 ),
                 fontColor = it.copy(alpha = 0.8f),
             )

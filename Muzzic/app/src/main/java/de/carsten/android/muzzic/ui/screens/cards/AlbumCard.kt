@@ -95,7 +95,7 @@ fun AlbumCard(
         SubtitleInformation(
             listOf(
                 Pair(Icons.Default.Person, album.artistName),
-                Pair(Icons.Default.MusicNote, "${album.songCount} Songs"),
+                Pair(Icons.Default.MusicNote, "${album.songCount}"),
                 Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),
             ),
             fontColor = it.copy(alpha = 0.8f),

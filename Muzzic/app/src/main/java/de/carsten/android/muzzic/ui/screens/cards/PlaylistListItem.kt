@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,9 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.CORNER_RADIUS_SMALL
 import de.carsten.android.muzzic.ui.FONT_SIZE_BODY
-import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
 import de.carsten.android.muzzic.ui.ICON_SIZE_CONTROL_SMALL
 import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYLIST_THUMB
@@ -109,17 +112,22 @@ fun PlaylistListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text =
-                    if (showGenre) {
-                        "${playlist.playlistGenre} • ${playlist.songCount} Songs • ${playlist.artistCount} Artists"
-                    } else {
-                        "${playlist.songCount} Songs • ${playlist.artistCount} Artists"
-                    },
-                    color = colorSource.onNeutralColor,
-                    fontSize = FONT_SIZE_CAPTION,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+
+                val entries = if (showGenre) {
+                    listOf(
+                        Pair(Icons.Default.Groups, playlist.playlistGenre ?: UNKNOWN),
+                        Pair(Icons.Default.Person, "${playlist.artistCount}"),
+                        Pair(Icons.Default.MusicNote, "${playlist.songCount}"),
+                    )
+                } else {
+                    listOf(
+                        Pair(Icons.Default.Person, "${playlist.artistCount}"),
+                        Pair(Icons.Default.MusicNote, "${playlist.songCount}"),
+                    )
+                }
+                SubtitleInformation(
+                    iconTextPairs = entries,
+                    center = false,
                 )
             }
 

@@ -1,6 +1,6 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.7.1"
+appVersion = "0.7.2"
 appJvmVersion = "17"
 appMinSdk = "36"
 appMaxSdk = "37"

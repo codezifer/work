@@ -85,8 +85,8 @@ fun ArtistCard(
 
             SubtitleInformation(
                 listOf(
-                    Pair(Icons.Default.Album, "${artist.albumCount} Albums"),
-                    Pair(Icons.Default.MusicNote, "${artist.songCount} Songs"),
+                    Pair(Icons.Default.Album, "${artist.albumCount}"),
+                    Pair(Icons.Default.MusicNote, "${artist.songCount}"),
                 ),
                 fontColor = it.copy(alpha = 0.8f),
             )

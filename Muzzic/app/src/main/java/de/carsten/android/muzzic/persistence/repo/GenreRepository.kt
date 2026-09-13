@@ -70,6 +70,7 @@ class GenreRepository(val genreDao: GenreDao) {
         val weightsByKey = variantAggregations
             .groupBy({ GenreUtils.normalizeKey(it.genreName) }) { it }
             .mapValues { (_, aggregations) -> aggregations.associate { it.genreName to it.songCount } }
+
         canonicalAggregations.mapNotNull { canonical ->
             val variants = weightsByKey[canonical.normalizedKey] ?: return@mapNotNull null
             canonical.toDto(GenreUtils.getCanonicalName(variants))

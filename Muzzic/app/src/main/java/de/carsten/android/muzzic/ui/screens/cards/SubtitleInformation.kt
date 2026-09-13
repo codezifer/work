@@ -29,10 +29,23 @@ import de.carsten.android.muzzic.ui.SUBTITLE_SPACING
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 @Composable
-fun SubtitleInformation(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
+fun SubtitleInformation(
+    iconTextPairs: List<Pair<ImageVector, String>>,
+    fontColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    center: Boolean = true,
+    end: Boolean = false,
+) {
+    val hAlignment = if (center) {
+        Alignment.CenterHorizontally
+    } else if (end) {
+        Alignment.End
+    } else {
+        Alignment.Start
+    }
+
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, hAlignment),
         verticalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING),
     ) {
         iconTextPairs.forEachIndexed { idx, (img, text) ->
@@ -73,6 +86,39 @@ fun SubtitleInformationPreview() {
                 Pair(Icons.Default.Album, "500 Albums"),
                 Pair(Icons.Default.MusicNote, "5000 Songs"),
             ),
+        )
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
+fun SubtitleInformationAlignmentStartPreview() {
+    AppTheme {
+        SubtitleInformation(
+            iconTextPairs = listOf(
+                Pair(Icons.Default.Person, "50 Artists"),
+                Pair(Icons.Default.Album, "500 Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Songs"),
+            ),
+            center = false,
+        )
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE)
+fun SubtitleInformationAlignmentEndPreview() {
+    AppTheme {
+        SubtitleInformation(
+            iconTextPairs = listOf(
+                Pair(Icons.Default.Person, "50 Artists"),
+                Pair(Icons.Default.Album, "500 Albums"),
+                Pair(Icons.Default.MusicNote, "5000 Songs"),
+            ),
+            center = false,
+            end = true,
         )
     }
 }

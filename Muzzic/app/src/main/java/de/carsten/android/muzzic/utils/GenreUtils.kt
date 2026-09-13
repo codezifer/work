@@ -1,6 +1,6 @@
 package de.carsten.android.muzzic.utils
 
-import java.util.Locale
+import de.carsten.android.muzzic.UNKNOWN
 
 /**
  * Utility for genre name normalization and canonicalization.
@@ -15,7 +15,7 @@ object GenreUtils {
      * @param genre The raw genre name.
      * @return A normalized key for grouping.
      */
-    fun normalizeKey(genre: String): String = genre.lowercase(Locale.ROOT)
+    fun normalizeKey(genre: String): String = genre.lowercase()
         .replace(" ", "")
         .replace("-", "")
 
@@ -46,17 +46,18 @@ object GenreUtils {
      * @return The canonical name for the genre group.
      */
     fun getCanonicalName(variants: Map<String, Int>): String {
-        if (variants.isEmpty()) return "Unknown"
+        if (variants.isEmpty()) return UNKNOWN
 
         val entries = variants.entries.toList()
 
         // 1. Try to find variants with spaces, and pick the most frequent one among them
-        val withSpaces = entries.filter { it.key.contains(" ") && !it.key.contains("-") }
+        val withSpaces = entries
+            .filter { it.key.contains(" ") && !it.key.contains("-") }
             .maxByOrNull { it.value }
 
         if (withSpaces != null) return withSpaces.key
 
         // 2. Otherwise just pick the most frequent one
-        return entries.maxByOrNull { it.value }?.key ?: "Unknown"
+        return entries.maxByOrNull { it.value }?.key ?: UNKNOWN
     }
 }
