@@ -10,10 +10,11 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-    plugins {
-        kotlin("jvm") version "2.4.0"
-    }
 }
+// NOTE: foojay version is intentionally hardcoded here.
+// The settings `plugins {}` block is evaluated before the version catalog,
+// so `alias(libs....)` is not available in this scope. Keep in sync with
+// `foojayResolver` in gradle/libs.versions.toml.
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
@@ -22,9 +23,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://jitpack.io/")
     }
 }
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "Muzzic"
-include(":app", "logging", "id3")
+include(":app", ":logging", ":id3", ":playlist")

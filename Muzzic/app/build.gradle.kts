@@ -106,8 +106,9 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 
 dependencies {
     // sub-modules
-    implementation(project(":logging"))
-    implementation(project(":id3"))
+    implementation(projects.logging)
+    implementation(projects.id3)
+    implementation(projects.playlist)
 
     // kotlin
     val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)
