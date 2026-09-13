@@ -6,6 +6,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.model.AlbumArt
 import de.carsten.android.muzzic.model.MediaKeys
+import de.carsten.android.muzzic.persistence.entity.aggregation.CanonicalGenreAggregation
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenreAggregation
 
 @Immutable
@@ -54,6 +55,16 @@ fun GenreAggregation.toDto() = GenreDto(
 )
 
 fun List<GenreAggregation>.toDto() = map { it.toDto() }
+
+fun CanonicalGenreAggregation.toDto(canonicalName: String) = GenreDto(
+    genreName = canonicalName,
+    artistCount = this.artistCount,
+    albumCount = this.albumCount,
+    songCount = this.songCount,
+    genreDuration = this.genreDuration,
+    lastAlbumArt = this.lastAlbumArt,
+    albumArts = this.allAlbumArts?.split(",") ?: listOfNotNull(lastAlbumArt),
+)
 
 fun MediaItem.toGenreDto(): GenreDto {
     val metadata = mediaMetadata

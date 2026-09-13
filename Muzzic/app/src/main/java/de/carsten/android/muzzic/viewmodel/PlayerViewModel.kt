@@ -132,7 +132,7 @@ open class PlayerViewModel(
                         )
                     }
                 }
-                delay(AppConfig.Service.PROGRESS_DELAY)
+                delay(AppConfig.Service.PROGRESS_DELAY_MS)
             }
         }
     }

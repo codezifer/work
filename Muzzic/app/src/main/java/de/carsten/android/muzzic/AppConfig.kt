@@ -7,11 +7,12 @@ object AppConfig {
     object Persistence {
         const val ALBUM_ART_LIMIT = 9
         const val DATABASE_NAME = "muzzic.db"
+        const val NUM_TOP_SONGS = 100
     }
 
     object Service {
         val PLAYLIST_SYNC_DURATION = 5.minutes
-        val PROGRESS_DELAY = 500.milliseconds
+        val PROGRESS_DELAY_MS = 500.milliseconds
     }
 
     object Ui {

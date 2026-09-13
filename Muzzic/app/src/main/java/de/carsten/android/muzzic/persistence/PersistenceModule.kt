@@ -40,7 +40,7 @@ val repoModule =
                 playlistFileScanner = get(),
             )
         }
-        single { ArtistRepository(get()) }
+        single { ArtistRepository(get(), get()) }
         single { AlbumRepository(get()) }
         single { GenreRepository(get()) }
         single { SongRepository(get()) }
