@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import de.carsten.android.muzzic.AppConfig
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -31,6 +32,25 @@ interface FileScanner {
      * @param onProgress Callback to report scan progress (status message, percentage 0-100).
      */
     suspend fun scan(onProgress: ((String, Int) -> Unit)? = null)
+
+    /**
+     * Calculates and reports scan progress.
+     *
+     * @param current Current number of processed items.
+     * @param total Total number of items to process.
+     * @param status Status message to display.
+     * @param onProgress Callback to report progress to.
+     * @return The calculated percentage (0-100), or -1 if indeterminate.
+     */
+    fun reportScanProgress(current: Int, total: Int, status: String, onProgress: ((String, Int) -> Unit)?): Int {
+        val progress = if (total > 0) {
+            ((current.toFloat() / total) * AppConfig.Scanning.MAX_PROGRESS).toInt()
+        } else {
+            -1
+        }
+        onProgress?.invoke(status, progress)
+        return progress
+    }
 
     /**
      * Streams files from root directory with the specified extensions.

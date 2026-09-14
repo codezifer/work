@@ -25,7 +25,7 @@ object AppConfig {
     object Scanning {
         const val CHUNK_SIZE = 50
         const val MAX_PROGRESS = 100
-        const val INDETERMINATE_PROGRESS = true
+        const val INDETERMINATE_PROGRESS = false
         val SUPPORTED_MUSIC_FILES = setOf("mp3")
         val SUPPORTED_PLAYLIST_FILES = setOf("m3u", "m3u8")
     }

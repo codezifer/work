@@ -93,7 +93,7 @@ fun AlbumCard(
         Spacer(modifier = Modifier.height(CARD_CONTENT_SPACING))
 
         SubtitleInformation(
-            listOf(
+            iconTextPairs = listOf(
                 Pair(Icons.Default.Person, album.artistName),
                 Pair(Icons.Default.MusicNote, "${album.songCount}"),
                 Pair(Icons.Default.CalendarMonth, album.albumYear.toString()),

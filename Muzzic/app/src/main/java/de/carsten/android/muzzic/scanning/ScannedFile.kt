@@ -6,6 +6,19 @@ import android.provider.DocumentsContract
 import de.carsten.android.muzzic.logging.logger
 
 data class ScannedFile(val uri: Uri = Uri.EMPTY, val documentId: String, val displayName: String, val mimeType: String, val size: Long, val lastModified: Long) {
+
+    data class Indices(val id: Int, val name: Int, val mime: Int, val size: Int, val modified: Int) {
+        companion object {
+            fun from(cursor: Cursor) = Indices(
+                id = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
+                name = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME),
+                mime = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                size = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE),
+                modified = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_LAST_MODIFIED),
+            )
+        }
+    }
+
     companion object {
         private val logger = logger()
         val PROJECTION = arrayOf(
@@ -16,23 +29,19 @@ data class ScannedFile(val uri: Uri = Uri.EMPTY, val documentId: String, val dis
             DocumentsContract.Document.COLUMN_LAST_MODIFIED,
         )
 
-        fun prepare(cursor: Cursor): ScannedFile? {
-            try {
-                val documentIdIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-                val displayNameIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                val mimeTypeIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
-                val sizeIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE)
-                val lastModifiedIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+        fun prepare(cursor: Cursor): ScannedFile? = prepare(cursor, Indices.from(cursor))
 
+        fun prepare(cursor: Cursor, indices: Indices): ScannedFile? {
+            try {
                 return ScannedFile(
-                    documentId = cursor.getString(documentIdIdx),
-                    displayName = cursor.getString(displayNameIdx),
-                    mimeType = cursor.getString(mimeTypeIdx),
-                    size = cursor.getLong(sizeIdx),
-                    lastModified = cursor.getLong(lastModifiedIdx),
+                    documentId = cursor.getString(indices.id),
+                    displayName = cursor.getString(indices.name),
+                    mimeType = cursor.getString(indices.mime),
+                    size = cursor.getLong(indices.size),
+                    lastModified = cursor.getLong(indices.modified),
                 )
             } catch (e: Exception) {
-                logger.error("Unable to iterate over current curser!", e)
+                logger.error("Unable to iterate over current cursor!", e)
                 return null
             }
         }

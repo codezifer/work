@@ -18,7 +18,6 @@ import de.carsten.android.muzzic.playlist.M3uParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 
 /**
@@ -46,13 +45,10 @@ class PlaylistFileScanner(
         try {
             logger.info("Start to scan for playlists files ...")
             val configuredDir = appSettingsRepository.getPlaylistDirectory()?.toUri() ?: return@withContext
+            val supportedFiles = AppConfig.Scanning.SUPPORTED_PLAYLIST_FILES
 
-            val playlistFiles =
-                scanForFiles(context, configuredDir, AppConfig.Scanning.SUPPORTED_PLAYLIST_FILES)
-                    .toList()
-                    .flatten()
-
-            val totalPlaylists = playlistFiles.size
+            val totalPlaylists = FileUtil.countFiles(context, configuredDir, supportedFiles)
+            var processedPlaylists = 0
 
             // Match songs in DB by path - Load once before the loop to prevent CursorWindow OutOfMemory errors
             // Resolve SAF content:// URIs back to real filesystem absolute paths for proper comparison
@@ -76,40 +72,44 @@ class PlaylistFileScanner(
                 }
             }
 
-            playlistFiles.forEachIndexed { index, file ->
-                coroutineContext.ensureActive()
-                val entries: List<M3uEntry> = try {
-                    context.contentResolver.openInputStream(file.uri)?.use { inputStream ->
-                        M3uParser.parse(inputStream, logger, file.displayName)
-                    }
-                } catch (e: Exception) {
-                    logger.error("Failed to import playlist ${file.displayName}", e)
-                    null
-                } ?: emptyList()
+            scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
+                scannedFiles.forEach { file ->
+                    ensureActive()
+                    val entries: List<M3uEntry> = try {
+                        context.contentResolver.openInputStream(file.uri)?.use { inputStream ->
+                            M3uParser.parse(inputStream, logger, file.displayName)
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Failed to import playlist ${file.displayName}", e)
+                        null
+                    } ?: emptyList()
 
-                if (entries.isNotEmpty()) {
-                    val playlistName = file.displayName.substringBeforeLast('.')
-                    val playlistId = mediaId(playlistName).toString()
-                    val playlist = Playlist(playlistName).apply { id = playlistId }
+                    if (entries.isNotEmpty()) {
+                        val playlistName = file.displayName.substringBeforeLast('.')
+                        val playlistId = mediaId(playlistName).toString()
+                        val playlist = Playlist(playlistName).apply { id = playlistId }
 
-                    playlistDao.insertPlaylist(playlist)
-                    playlistDao.clearPlaylist(playlistId)
+                        playlistDao.insertPlaylist(playlist)
+                        playlistDao.clearPlaylist(playlistId)
 
-                    val playlistSongs = mutableListOf<PlaylistSong>()
-                    entries.forEachIndexed { songIndex, entry ->
-                        val matchedSong = pathToSong[entry.path]
-                        if (matchedSong != null) {
-                            playlistSongs.add(
-                                PlaylistSong(playlistId, matchedSong.id, songIndex),
-                            )
+                        val playlistSongs = mutableListOf<PlaylistSong>()
+                        entries.forEachIndexed { songIndex, entry ->
+                            val matchedSong = pathToSong[entry.path]
+                            if (matchedSong != null) {
+                                playlistSongs.add(
+                                    PlaylistSong(playlistId, matchedSong.id, songIndex),
+                                )
+                            }
+                        }
+                        if (playlistSongs.isNotEmpty()) {
+                            playlistDao.insertPlaylistSongs(playlistSongs)
                         }
                     }
-                    if (playlistSongs.isNotEmpty()) {
-                        playlistDao.insertPlaylistSongs(playlistSongs)
-                    }
+                    processedPlaylists++
+                    val progress = reportScanProgress(processedPlaylists, totalPlaylists, "", null)
+                    val status = context.getString(R.string.scan_status_metadata, progress)
+                    onProgress?.invoke(status, progress)
                 }
-                val progress = ((index + 1).toFloat() / totalPlaylists * AppConfig.Scanning.MAX_PROGRESS).toInt()
-                onProgress?.invoke("Importing $totalPlaylists playlists...", progress)
             }
         } finally {
             logger.info("... Finished to scan playlist files.")

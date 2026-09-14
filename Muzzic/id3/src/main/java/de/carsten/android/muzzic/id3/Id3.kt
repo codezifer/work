@@ -40,14 +40,14 @@ object Id3 {
     fun parseTag(input: InputStream, logger: MuzzicLogger, fileId: String? = null, options: Id3ParseOptions = Id3ParseOptions()): Id3Tag {
         val logFiledId = { prefix: String -> if (fileId == null) "" else "$prefix $fileId" }
         try {
-            logger.info("Starting to parse Id3 metadata from input stream ${logFiledId("for")} ...")
+            logger.debug("Starting to parse Id3 metadata from input stream ${logFiledId("for")} ...")
             return Id3Parser.parse(input, options)
         } catch (e: Exception) {
             logger.error("An error occurred while parsing id3 metadata ${logFiledId("for")}!", e)
             if (e is Id3Exception) throw e
             throw Id3Exception(e.message ?: "Failed parsing id3 metadata", e)
         } finally {
-            logger.info("... Finished to parse Id3 metadata from input stream ${logFiledId("for")}.")
+            logger.debug("... Finished to parse Id3 metadata from input stream ${logFiledId("for")}.")
         }
     }
 }

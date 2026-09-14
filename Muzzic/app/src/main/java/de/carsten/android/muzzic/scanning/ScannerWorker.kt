@@ -41,7 +41,7 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
 
             scanner.scan { status, progress ->
                 try {
-                    val info = createForegroundInfo(scanner, status, progress)
+                    val info: ForegroundInfo = createForegroundInfo(scanner, status, progress)
                     notificationManager.notify(NOTIFICATION_ID, info.notification)
                 } catch (e: Exception) {
                     logger.error("While scanning an error occurred:", e)
@@ -84,7 +84,7 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
             .setSmallIcon(R.drawable.disc)
             .setContentText(status)
             .setOngoing(true)
-            .setProgress(AppConfig.Scanning.MAX_PROGRESS, progress, AppConfig.Scanning.INDETERMINATE_PROGRESS)
+            .setProgress(AppConfig.Scanning.MAX_PROGRESS, progress, progress >= 0)
             .setOnlyAlertOnce(true)
             .build()
 

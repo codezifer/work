@@ -38,10 +38,10 @@ fun ArtistAlbumsScreen(
     colorSource: ColorSource = composableColorSource(),
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
-    viewModel: ArtistAlbumsViewModel = koinViewModel(),
+    artistAlbumsViewModel: ArtistAlbumsViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by artistAlbumsViewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
     AppTheme {
@@ -83,7 +83,7 @@ fun ArtistAlbumsScreen(
                         onAlbumClick(artist, album)
                     }
                 },
-                onAlbumPlayClick = { artist, album -> viewModel.playAlbum(artist, album) },
+                onAlbumPlayClick = { artist, album -> artistAlbumsViewModel.playAlbum(artist, album) },
                 onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
                 selectedAlbums = selectionState.selectedAlbums,
                 colorSource = colorSource,

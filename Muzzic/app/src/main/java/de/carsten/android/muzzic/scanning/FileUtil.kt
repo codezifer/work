@@ -15,6 +15,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
 /**
  * File utility class.
@@ -65,40 +66,22 @@ object FileUtil {
             return@flow
         }
 
-        val resolver = context.contentResolver
         val chunk = mutableSetOf<ScannedFile>()
-
-        // Pre-compile extensions to lowercase to avoid memory/string allocations inside loops
         val lowerExtensions = supportedFiles.map { it.lowercase() }.toSet()
 
-        // Use an iterative stack (ArrayDeque) instead of function recursion to safeguard memory and stack depth
-        val dirStack = ArrayDeque<String>()
-        dirStack.add(DocumentsContract.getTreeDocumentId(uri))
+        traverseSafTree(context, uri, ScannedFile.PROJECTION) { cursor, dirStack ->
+            val indices = ScannedFile.Indices.from(cursor)
 
-        while (dirStack.isNotEmpty()) {
-            currentCoroutineContext().ensureActive()
-            val currentDocumentId = dirStack.removeLast()
-            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, currentDocumentId)
-
-            val preparedFiles = resolver.query(childrenUri, ScannedFile.PROJECTION, null, null, null)?.use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        add(ScannedFile.prepare(cursor))
-                    }
-                }
-            } ?: emptyList()
-
-            for (prepared in preparedFiles) {
-                if (prepared == null) continue
-
-                when {
-                    prepared.mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> {
-                        dirStack.add(prepared.documentId)
-                    }
-
-                    else -> {
-                        val ext = prepared.displayName.substringAfterLast('.', "").lowercase()
-                        if (ext in lowerExtensions) {
+            while (cursor.moveToNext()) {
+                val mimeType = cursor.getString(indices.mime)
+                if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                    dirStack.add(cursor.getString(indices.id))
+                } else {
+                    val displayName = cursor.getString(indices.name)
+                    val ext = displayName.substringAfterLast('.', "").lowercase()
+                    if (ext in lowerExtensions) {
+                        val prepared = ScannedFile.prepare(cursor, indices)
+                        if (prepared != null) {
                             val processed = prepared.copy(uri = DocumentsContract.buildDocumentUriUsingTree(uri, prepared.documentId))
                             chunk.add(processed)
                             if (chunk.size >= chunkSize) {
@@ -113,6 +96,49 @@ object FileUtil {
 
         if (chunk.isNotEmpty()) emit(chunk.toSet())
     }.flowOn(Dispatchers.IO)
+
+    /**
+     * Optimized method to count files matching the supported extensions.
+     *
+     * @param context android [Context]
+     * @param uri tree root [Uri]
+     * @param supportedFiles supported file extensions
+     * @return count of supported files
+     */
+    suspend fun countFiles(context: Context, uri: Uri?, supportedFiles: Set<String>): Int = withContext(Dispatchers.IO) {
+        if (uri == null) return@withContext 0
+        var count = 0
+        val lowerExtensions = supportedFiles.map { it.lowercase() }.toSet()
+        val projection = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+        )
+
+        logger.debug("Start counting files ...")
+        traverseSafTree(context, uri, projection) { cursor, dirStack ->
+            val idIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+            val nameIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            val mimeIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
+
+            while (cursor.moveToNext()) {
+                val mimeType = cursor.getString(mimeIdx)
+                if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                    dirStack.add(cursor.getString(idIdx))
+                } else {
+                    val displayName = cursor.getString(nameIdx)
+                    val ext = displayName.substringAfterLast('.', "").lowercase()
+                    if (ext in lowerExtensions) {
+                        count++
+                    }
+                }
+            }
+        }
+
+        logger.debug("... Finished counting files, $count counted files.")
+
+        count
+    }
 
     /**
      * Returns the file path from uri.
@@ -194,6 +220,27 @@ object FileUtil {
             return "$volume/$path"
         }
         return null
+    }
+
+    private suspend inline fun traverseSafTree(
+        context: Context,
+        treeUri: Uri,
+        projection: Array<String>,
+        crossinline onCursorReady: suspend (cursor: Cursor, dirStack: ArrayDeque<String>) -> Unit,
+    ) {
+        val resolver = context.contentResolver
+        val dirStack = ArrayDeque<String>()
+        dirStack.add(DocumentsContract.getTreeDocumentId(treeUri))
+
+        while (dirStack.isNotEmpty()) {
+            currentCoroutineContext().ensureActive()
+            val currentDocumentId = dirStack.removeLast()
+            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, currentDocumentId)
+
+            resolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
+                onCursorReady(cursor, dirStack)
+            }
+        }
     }
 
     private fun getDataColumn(context: Context, uri: Uri, selection: String?, selectionArgs: Array<String>?): String? {

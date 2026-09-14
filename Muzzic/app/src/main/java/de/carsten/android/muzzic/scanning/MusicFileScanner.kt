@@ -62,40 +62,46 @@ class MusicFileScanner(
             val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
             val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
 
+            val countedFiles = FileUtil.countFiles(context, configuredDir, supportedFiles)
             val existingFilePaths = mutableSetOf<String>()
             var processedFiles = 0
+            var scannedFilesCount = 0
 
             // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
             // parse new files chunk-wise while the directory walk continues, so the
             // library is populated incrementally instead of all at once. Single pass avoids duplicate folder traversal.
             scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
                 ensureActive()
+                scannedFilesCount += scannedFiles.size
                 scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
                 val newFiles = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
                 if (newFiles.isNotEmpty()) {
                     processChunk(newFiles)
                     processedFiles += newFiles.size
-                    reportProgress(processedFiles, onProgress)
                 }
+                val progress = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+                val progressMessage = context.getString(R.string.scan_status_metadata, progress)
+                onProgress?.invoke(progressMessage, progress)
             }
 
             if (processedFiles > 0) {
                 updateAutomaticPlaylists()
             }
 
-            onProgress?.invoke(context.getString(R.string.scan_status_cleaning), AppConfig.Scanning.MAX_PROGRESS)
+            val progress = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+            val finalProgressMessage = context.getString(R.string.scan_status_metadata, progress)
+            onProgress?.invoke(finalProgressMessage, progress)
             ensureActive()
 
             // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-            val missingSongs =
-                currentSongs.filter { song ->
-                    val path = song.filePath
-                    path != null &&
-                        !path.startsWith("content://mock") &&
-                        !path.startsWith("http://") &&
-                        !path.startsWith("https://") &&
-                        path !in existingFilePaths
-                }
+            val missingSongs = currentSongs.filter { song ->
+                val path = song.filePath
+                path != null &&
+                    !path.startsWith("content://mock") &&
+                    !path.startsWith("http://") &&
+                    !path.startsWith("https://") &&
+                    path !in existingFilePaths
+            }
 
             if (missingSongs.isNotEmpty()) {
                 withContext(Dispatchers.IO) {
@@ -117,14 +123,6 @@ class MusicFileScanner(
         withContext(Dispatchers.IO) {
             songDao.insertSongs(songs)
         }
-    }
-
-    private fun reportProgress(processedFiles: Int, onProgress: ((String, Int) -> Unit)?) {
-        // Without an expensive count pass, report progress as an indeterminate animation or ongoing count
-        onProgress?.invoke(
-            context.getString(R.string.scan_status_metadata, processedFiles),
-            -1, // -1 or custom value to signal an indeterminate progress state
-        )
     }
 
     /**

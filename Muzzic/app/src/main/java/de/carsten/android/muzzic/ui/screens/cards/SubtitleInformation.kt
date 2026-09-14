@@ -20,6 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import de.carsten.android.muzzic.ui.BULLET_POINT
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SUBTITLE_FONTSIZE
@@ -32,20 +36,13 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 fun SubtitleInformation(
     iconTextPairs: List<Pair<ImageVector, String>>,
     fontColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    center: Boolean = true,
-    end: Boolean = false,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    iconSize: Dp = SUBTITLE_ICONSIZE,
+    fontSize: TextUnit = SUBTITLE_FONTSIZE,
 ) {
-    val hAlignment = if (center) {
-        Alignment.CenterHorizontally
-    } else if (end) {
-        Alignment.End
-    } else {
-        Alignment.Start
-    }
-
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, hAlignment),
+        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, horizontalAlignment),
         verticalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING),
     ) {
         iconTextPairs.forEachIndexed { idx, (img, text) ->
@@ -53,14 +50,14 @@ fun SubtitleInformation(
                 Icon(
                     imageVector = img,
                     tint = fontColor,
-                    modifier = Modifier.size(SUBTITLE_ICONSIZE),
+                    modifier = Modifier.size(iconSize),
                     contentDescription = "icon",
                 )
                 Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
                 Text(
                     text = text,
                     color = fontColor,
-                    fontSize = SUBTITLE_FONTSIZE,
+                    fontSize = fontSize,
                 )
             }
 
@@ -68,7 +65,7 @@ fun SubtitleInformation(
                 Text(
                     text = BULLET_POINT,
                     color = fontColor,
-                    fontSize = SUBTITLE_FONTSIZE,
+                    fontSize = fontSize,
                 )
             }
         }
@@ -81,7 +78,7 @@ fun SubtitleInformation(
 fun SubtitleInformationPreview() {
     AppTheme {
         SubtitleInformation(
-            listOf(
+            iconTextPairs = listOf(
                 Pair(Icons.Default.Person, "50 Artists"),
                 Pair(Icons.Default.Album, "500 Albums"),
                 Pair(Icons.Default.MusicNote, "5000 Songs"),
@@ -101,7 +98,9 @@ fun SubtitleInformationAlignmentStartPreview() {
                 Pair(Icons.Default.Album, "500 Albums"),
                 Pair(Icons.Default.MusicNote, "5000 Songs"),
             ),
-            center = false,
+            horizontalAlignment = Alignment.Start,
+            iconSize = 22.dp,
+            fontSize = 22.sp,
         )
     }
 }
@@ -117,8 +116,9 @@ fun SubtitleInformationAlignmentEndPreview() {
                 Pair(Icons.Default.Album, "500 Albums"),
                 Pair(Icons.Default.MusicNote, "5000 Songs"),
             ),
-            center = false,
-            end = true,
+            horizontalAlignment = Alignment.End,
+            iconSize = 16.dp,
+            fontSize = 16.sp,
         )
     }
 }

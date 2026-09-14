@@ -127,7 +127,7 @@ fun PlaylistListItem(
                 }
                 SubtitleInformation(
                     iconTextPairs = entries,
-                    center = false,
+                    horizontalAlignment = Alignment.Start,
                 )
             }
 
