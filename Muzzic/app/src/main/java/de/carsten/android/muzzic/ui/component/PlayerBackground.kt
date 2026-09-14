@@ -17,6 +17,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.ui.BACKGROUND_OVERLAY_ALPHA
+import de.carsten.android.muzzic.ui.BLUR_BG_PX
 import de.carsten.android.muzzic.ui.theme.CustomColors
 
 /**
@@ -53,7 +54,7 @@ fun PlayerBackground(albumArtPath: String?, blurRadius: Dp) {
         ) { targetPath ->
             if (targetPath != null) {
                 AsyncImage(
-                    model = targetPath,
+                    model = rememberCoverImageRequest(targetPath, targetPath, BLUR_BG_PX),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

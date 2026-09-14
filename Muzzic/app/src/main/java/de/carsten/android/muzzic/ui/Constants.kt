@@ -182,3 +182,23 @@ val SUBTITLE_ICONSIZE = 14.dp
 val SUBTITLE_FONTSIZE = FONT_SIZE_TINY
 val SUBTITLE_SPACING = 2.dp
 val SUBTITLE_ICON_TEXT_SPACING = 1.dp
+
+/**
+ * Fixed thumbnail edge length for collage tiles (56.dp thumb split into a 3x3 grid).
+ */
+const val COLLAGE_TILE_PX = 128
+
+/**
+ * Fixed edge length for full-width card covers (aspect 1.1-1.4).
+ */
+const val CARD_COVER_PX = 512
+
+/**
+ * Fixed edge length for blurred backgrounds; blur hides detail so a small size is sufficient.
+ */
+const val BLUR_BG_PX = 256
+
+/**
+ * Fixed edge length for the player detail artwork.
+ */
+const val PLAYER_ART_PX = 1024

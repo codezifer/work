@@ -12,15 +12,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.BLUR_BG_PX
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -36,13 +34,11 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  */
 @Composable
 fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRadius: Dp = BLUR_RADIUS_LARGE, contentScale: ContentScale = ContentScale.Crop) {
+    val imageRequest = rememberCoverImageRequest(data, data as? String, BLUR_BG_PX)
     Box(modifier = modifier) {
         // 1. Fully Blurred Background Layer
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(data)
-                .crossfade(true)
-                .build(),
+            model = imageRequest,
             contentDescription = null,
             modifier = Modifier
                 .matchParentSize()
@@ -55,10 +51,7 @@ fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRad
         // 2. Clear Foreground Layer with Horizontal Gradient Mask
         // We use BlendMode.DstIn to mask the clear image with an alpha gradient.
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(data)
-                .crossfade(true)
-                .build(),
+            model = imageRequest,
             contentDescription = null,
             modifier = Modifier
                 .matchParentSize()

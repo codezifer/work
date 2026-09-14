@@ -26,7 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -154,7 +156,7 @@ private fun CollageItem(cover: CoverSource, modifier: Modifier = Modifier) {
         when (cover) {
             is CoverSource.FromPath -> {
                 AsyncImage(
-                    model = cover.path,
+                    model = rememberCoverImageRequest(cover.path, cover.path, COLLAGE_TILE_PX),
                     contentDescription = stringResource(R.string.album_art),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,

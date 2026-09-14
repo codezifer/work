@@ -29,8 +29,10 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
+import de.carsten.android.muzzic.ui.CARD_COVER_PX
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.extractColors
@@ -62,7 +64,7 @@ fun AlbumCard(
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
-                    model = album.lastAlbumArt,
+                    model = rememberCoverImageRequest(album.lastAlbumArt, album.lastAlbumArt, CARD_COVER_PX),
                     contentDescription = stringResource(R.string.album_art),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
