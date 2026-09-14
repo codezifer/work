@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.controls
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,12 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.AppDestinations
 import de.carsten.android.muzzic.ui.FONT_SIZE_SMALL
 import de.carsten.android.muzzic.ui.GLASS_PANEL_CORNER_RADIUS
@@ -34,16 +37,16 @@ import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
-sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String, var onClick: () -> Unit = {}) {
-    object Player : BottomNavItem(AppDestinations.PLAYER, Icons.Default.PlayArrow, "Player")
+sealed class BottomNavItem(val route: String, val icon: ImageVector, @StringRes val labelRes: Int) {
+    object Player : BottomNavItem(AppDestinations.PLAYER, Icons.Default.PlayArrow, R.string.nav_player)
 
-    object Library : BottomNavItem(AppDestinations.LIBRARY_GRAPH, Icons.Default.LibraryMusic, "Library")
+    object Library : BottomNavItem(AppDestinations.LIBRARY_GRAPH, Icons.Default.LibraryMusic, R.string.nav_library)
 
-    object Queue : BottomNavItem(AppDestinations.QUEUE, Icons.Default.Queue, "Queue")
+    object Queue : BottomNavItem(AppDestinations.QUEUE, Icons.Default.Queue, R.string.nav_queue)
 
-    object Playlists : BottomNavItem(AppDestinations.PLAYLISTS, Icons.AutoMirrored.Filled.PlaylistPlay, "Playlists")
+    object Playlists : BottomNavItem(AppDestinations.PLAYLISTS, Icons.AutoMirrored.Filled.PlaylistPlay, R.string.nav_playlists)
 
-    object Statistics : BottomNavItem(AppDestinations.STATISTICS, Icons.Default.BarChart, "Statistics")
+    object Statistics : BottomNavItem(AppDestinations.STATISTICS, Icons.Default.BarChart, R.string.nav_stats)
 }
 
 val bottomNavItems =
@@ -61,7 +64,7 @@ val bottomNavItems =
  * @param modifier Modifier for the container.
  * @param navController Controller to handle navigation.
  * @param colorSource Current colors from [ColorSource].
- * @param clickHandlers Optional map of click handlers for each item.
+ * @param clickHandlers Optional map of click handlers for each item, keyed by route.
  */
 @Composable
 fun BottomNavigationBar(
@@ -88,6 +91,7 @@ fun BottomNavigationBar(
         ) {
             bottomNavItems.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                val label = stringResource(item.labelRes)
                 NavigationBarItem(
                     selected = selected,
                     onClick = {
@@ -98,10 +102,10 @@ fun BottomNavigationBar(
                             launchSingleTop = true
                             restoreState = true
                         }
-                        clickHandlers[item.label]?.invoke()
+                        clickHandlers[item.route]?.invoke()
                     },
-                    icon = { Icon(item.icon, contentDescription = item.label) },
-                    label = { Text(item.label, fontSize = FONT_SIZE_SMALL) },
+                    icon = { Icon(item.icon, contentDescription = label) },
+                    label = { Text(label, fontSize = FONT_SIZE_SMALL) },
                     colors =
                     NavigationBarItemDefaults.colors(
                         selectedIconColor = colorSource.contentColor,

@@ -156,13 +156,13 @@ private fun SettingsScreenContent(
         SettingsSection(title = stringResource(R.string.library_config)) {
             DirectorySetting(
                 label = stringResource(R.string.music_directory),
-                path = musicDirectory ?: "Not set",
+                path = musicDirectory ?: stringResource(R.string.not_set),
                 onSelect = { musicDirLauncher.launch(null) },
             )
             Spacer(modifier = Modifier.height(SPACING_MEDIUM))
             DirectorySetting(
                 label = stringResource(R.string.playlist_directory),
-                path = playlistDirectory ?: "Not set",
+                path = playlistDirectory ?: stringResource(R.string.not_set),
                 onSelect = { playlistDirLauncher.launch(null) },
             )
         }

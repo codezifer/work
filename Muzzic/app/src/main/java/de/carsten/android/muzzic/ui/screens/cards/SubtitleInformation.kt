@@ -51,7 +51,7 @@ fun SubtitleInformation(
                     imageVector = img,
                     tint = fontColor,
                     modifier = Modifier.size(iconSize),
-                    contentDescription = "icon",
+                    contentDescription = null,
                 )
                 Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
                 Text(

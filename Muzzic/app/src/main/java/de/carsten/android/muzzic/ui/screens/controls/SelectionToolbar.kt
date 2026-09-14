@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.ELEVATION_MEDIUM
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
@@ -79,13 +81,19 @@ fun SelectionToolbar(
     colorSource: ColorSource = composableColorSource(),
     selectedCount: Int = 0,
     confirmIcon: ImageVector = Icons.Default.Add,
-    confirmLabel: String = "Add to Queue",
+    confirmLabel: String? = null,
     onConfirm: (String) -> Unit = {},
     onCancel: (String) -> Unit = {},
     onClearQueue: (String) -> Unit = {},
     onPersistQueue: (String) -> Unit = {},
     onSaveAsPlaylist: (String) -> Unit = {},
 ) {
+    val resolvedConfirmLabel = confirmLabel ?: stringResource(R.string.add_to_queue)
+    val cancelSelectionLabel = stringResource(R.string.cancel_selection)
+    val clearQueueLabel = stringResource(R.string.clear_queue)
+    val saveAsPlaylistLabel = stringResource(R.string.save_as_playlist)
+    val persistQueueLabel = stringResource(R.string.persist_queue)
+    val selectedCountText = stringResource(R.string.selected_count_format, selectedCount)
     Card(
         modifier =
         modifier
@@ -121,42 +129,42 @@ fun SelectionToolbar(
                 when (targetMode) {
                     ToolbarMode.SELECTION -> {
                         TooltipIconButton(
-                            onClick = { onCancel("Cancel Selection") },
+                            onClick = { onCancel(cancelSelectionLabel) },
                             icon = Icons.Default.Close,
-                            contentDescription = "Cancel Selection",
+                            contentDescription = cancelSelectionLabel,
                         )
                         Spacer(modifier = Modifier.width(SPACE_WIDTH))
                         Text(
-                            text = "$selectedCount selected",
+                            text = selectedCountText,
                             fontSize = FONT_SIZE,
                             color = colorSource.labelColor,
                             modifier = Modifier.padding(horizontal = PADDING_H),
                         )
                         Spacer(modifier = Modifier.width(SPACE_WIDTH))
                         TooltipIconButton(
-                            onClick = { onConfirm(confirmLabel) },
+                            onClick = { onConfirm(resolvedConfirmLabel) },
                             icon = confirmIcon,
-                            contentDescription = confirmLabel,
+                            contentDescription = resolvedConfirmLabel,
                         )
                     }
 
                     ToolbarMode.QUEUE_MGMT -> {
                         TooltipIconButton(
-                            onClick = { onClearQueue("Clear Queue") },
+                            onClick = { onClearQueue(clearQueueLabel) },
                             icon = Icons.Default.Delete,
-                            contentDescription = "Clear Queue",
+                            contentDescription = clearQueueLabel,
                         )
                         Spacer(modifier = Modifier.width(SPACE_WIDTH))
                         TooltipIconButton(
-                            onClick = { onSaveAsPlaylist("Save as Playlist") },
+                            onClick = { onSaveAsPlaylist(saveAsPlaylistLabel) },
                             icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                            contentDescription = "Save as Playlist",
+                            contentDescription = saveAsPlaylistLabel,
                         )
                         Spacer(modifier = Modifier.width(SPACE_WIDTH))
                         TooltipIconButton(
-                            onClick = { onPersistQueue("Persist Queue") },
+                            onClick = { onPersistQueue(persistQueueLabel) },
                             icon = Icons.Default.Save,
-                            contentDescription = "Persist Queue",
+                            contentDescription = persistQueueLabel,
                         )
                     }
                 }

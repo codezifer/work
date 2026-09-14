@@ -19,8 +19,10 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
 import de.carsten.android.muzzic.ui.ICON_SIZE_EXTRA_LARGE
@@ -95,7 +97,7 @@ fun PlayButton(
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Play",
+                contentDescription = stringResource(R.string.play),
                 tint = iconColor,
                 modifier = Modifier.size(size.times(0.75f)),
             )

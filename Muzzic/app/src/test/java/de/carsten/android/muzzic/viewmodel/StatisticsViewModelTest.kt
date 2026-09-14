@@ -2,11 +2,15 @@ package de.carsten.android.muzzic.viewmodel
 
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
+import de.carsten.android.muzzic.persistence.repo.GenreRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -19,6 +23,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class StatisticsViewModelTest {
     private val repository: MusicRepository = mockk()
+    private val genreRepository: GenreRepository = mockk()
+    private val playlistRepository: PlaylistRepository = mockk()
     private lateinit var viewModel: StatisticsViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -33,8 +39,11 @@ class StatisticsViewModelTest {
         coEvery { repository.getMonthStats() } returns emptyList()
         coEvery { repository.getMonthGenreStats() } returns emptyList()
         coEvery { repository.getTopMonthSongs() } returns emptyList()
+        coEvery { repository.getLibrarySummary() } returns mockk(relaxed = true)
+        every { genreRepository.getGenreInformation() } returns flowOf(emptyList())
+        every { playlistRepository.getPlaylistInformation() } returns flowOf(emptyList())
 
-        viewModel = StatisticsViewModel(repository)
+        viewModel = StatisticsViewModel(repository, genreRepository, playlistRepository)
     }
 
     @After

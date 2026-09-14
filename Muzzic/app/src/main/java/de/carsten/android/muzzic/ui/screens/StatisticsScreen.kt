@@ -24,15 +24,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.model.GenreDto
+import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
+import de.carsten.android.muzzic.ui.screens.cards.GenreDurationCard
 import de.carsten.android.muzzic.ui.screens.cards.GenreStatsCard
+import de.carsten.android.muzzic.ui.screens.cards.LibrarySummaryCard
 import de.carsten.android.muzzic.ui.screens.cards.MonthlyStatsCard
+import de.carsten.android.muzzic.ui.screens.cards.PlaylistDurationCard
 import de.carsten.android.muzzic.ui.screens.cards.SongStatsCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
@@ -56,6 +62,9 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
         monthStats = uiState.monthStats,
         monthGenres = uiState.monthGenreStats,
         monthSongs = uiState.topMonthSongs,
+        librarySummary = uiState.librarySummary,
+        genreDurations = uiState.genreDurations,
+        playlistDurations = uiState.playlistDurations,
     )
 }
 
@@ -69,12 +78,16 @@ private fun StatisticsScreenContent(
     monthStats: List<MonthlyPlayCount> = emptyList(),
     monthGenres: List<GenrePlayCount> = emptyList(),
     monthSongs: List<SongPlayCount> = emptyList(),
+    librarySummary: LibrarySummary? = null,
+    genreDurations: List<GenreDto> = emptyList(),
+    playlistDurations: List<PlaylistDto> = emptyList(),
     initialTabIndex: Int = 0,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(initialTabIndex) }
     val tabs = listOf(
         stringResource(R.string.stats_tab_overall),
         stringResource(R.string.stats_tab_month),
+        stringResource(R.string.stats_tab_library),
     )
 
     Column(
@@ -108,35 +121,62 @@ private fun StatisticsScreenContent(
                 .padding(horizontal = SPACING_LARGE, vertical = SPACING_LARGE),
             verticalArrangement = Arrangement.spacedBy(SPACING_LARGE),
         ) {
-            if (selectedTab == 0) {
-                // Overall statistics (based on cumulative song data)
-                item {
-                    MonthlyStatsCard(months)
+            when (selectedTab) {
+                0 -> {
+                    // Overall statistics (based on cumulative song data)
+                    item {
+                        MonthlyStatsCard(months)
+                    }
+
+                    // Genre distribution
+                    item {
+                        GenreStatsCard(genres)
+                    }
+
+                    // Top songs
+                    item {
+                        SongStatsCard(songs)
+                    }
                 }
 
-                // Genre distribution
-                item {
-                    GenreStatsCard(genres)
+                1 -> {
+                    // Current month statistics (based on play_history)
+                    item {
+                        MonthlyStatsCard(monthStats)
+                    }
+
+                    // Genre distribution of the current month
+                    item {
+                        GenreStatsCard(monthGenres)
+                    }
+
+                    // Top songs of the current month
+                    item {
+                        SongStatsCard(topSongs = monthSongs, titelText = stringResource(R.string.top_songs_month))
+                    }
                 }
 
-                // Top songs
-                item {
-                    SongStatsCard(songs)
-                }
-            } else {
-                // Current month statistics (based on play_history)
-                item {
-                    MonthlyStatsCard(monthStats)
-                }
+                2 -> {
+                    // Library summary
+                    librarySummary?.let {
+                        item {
+                            LibrarySummaryCard(it)
+                        }
+                    }
 
-                // Genre distribution of the current month
-                item {
-                    GenreStatsCard(monthGenres)
-                }
+                    // Genre playtime distribution
+                    if (genreDurations.isNotEmpty()) {
+                        item {
+                            GenreDurationCard(genreDurations)
+                        }
+                    }
 
-                // Top songs of the current month
-                item {
-                    SongStatsCard(topSongs = monthSongs, titelText = stringResource(R.string.top_songs_month))
+                    // Playlist playtime distribution
+                    if (playlistDurations.isNotEmpty()) {
+                        item {
+                            PlaylistDurationCard(playlistDurations)
+                        }
+                    }
                 }
             }
         }
@@ -233,6 +273,38 @@ fun StatisticsScreenMonthPreview() {
                 ),
             ),
             initialTabIndex = 1,
+        )
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true)
+fun StatisticsScreenLibraryPreview() {
+    AppTheme {
+        StatisticsScreenContent(
+            months = emptyList(),
+            genres = emptyList(),
+            songs = emptyList(),
+            librarySummary = LibrarySummary(
+                artistCount = 142,
+                albumCount = 328,
+                songCount = 4512,
+                genreCount = 18,
+                playlistCount = 12,
+            ),
+            genreDurations = listOf(
+                GenreDto("Black Metal", 25, 12, 120, 43200000),
+                GenreDto("Post Punk", 18, 9, 85, 28800000),
+                GenreDto("Ambient", 12, 6, 60, 21600000),
+                GenreDto("Doom Metal", 10, 5, 45, 18000000),
+            ),
+            playlistDurations = listOf(
+                PlaylistDto("1", "Night Drive", false, null, 20, 5, 40, 7200000),
+                PlaylistDto("2", "Study Focus", false, null, 15, 4, 35, 5400000),
+                PlaylistDto("3", "Morning Ritual", false, null, 10, 3, 25, 3600000),
+            ),
+            initialTabIndex = 2,
         )
     }
 }

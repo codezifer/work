@@ -11,6 +11,7 @@ import de.carsten.android.muzzic.persistence.dao.PlaylistDao
 import de.carsten.android.muzzic.persistence.dao.SongDao
 import de.carsten.android.muzzic.persistence.entity.PlayHistory
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import de.carsten.android.muzzic.scanning.MusicFileScanner
@@ -109,6 +110,8 @@ class MusicRepository(
     suspend fun getMonthGenreStats(): List<GenrePlayCount> = genreRepository.getCanonicalGenreStats(playHistoryDao.getGenreStats(startOfCurrentMonth()))
 
     suspend fun getTopMonthSongs(): List<SongPlayCount> = playHistoryDao.getTopSongs(startOfCurrentMonth(), AppConfig.Ui.NUM_OF_TOP_SONGS)
+
+    suspend fun getLibrarySummary(): LibrarySummary = songDao.getLibrarySummary()
 
     private fun startOfCurrentMonth(): Long = YearMonth.now().atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 }

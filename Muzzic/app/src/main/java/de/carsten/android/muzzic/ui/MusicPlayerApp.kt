@@ -102,6 +102,11 @@ fun MusicPlayerApp(
 
     var showSavePlaylistDialog by remember { mutableStateOf(false) }
 
+    val playlistSavedFormat = stringResource(R.string.snackbar_playlist_saved_format)
+    val removedFromQueueMessage = stringResource(R.string.snackbar_removed_from_queue)
+    val addToQueueLabel = stringResource(R.string.add_to_queue)
+    val removeFromQueueLabel = stringResource(R.string.remove_from_queue)
+
     if (showSavePlaylistDialog) {
         TextInputDialog(
             title = stringResource(R.string.playlist_save),
@@ -109,7 +114,7 @@ fun MusicPlayerApp(
             onConfirm = { name ->
                 playlistViewModel.persistCurrentQueueAsPlaylist(name)
                 showSavePlaylistDialog = false
-                appState.showSnackbar("Playlist '$name' saved")
+                appState.showSnackbar(playlistSavedFormat.format(name))
             },
             onDismiss = { showSavePlaylistDialog = false },
         )
@@ -174,20 +179,20 @@ fun MusicPlayerApp(
                 colorSource = colorSource,
                 clickHandlers =
                 mapOf(
-                    BottomNavItem.Player.label to {
+                    BottomNavItem.Player.route to {
                         appState.onNavigationEvent(NavigationEvent.ToPlayer, selectionState)
                     },
-                    BottomNavItem.Library.label to {
+                    BottomNavItem.Library.route to {
                         selectionViewModel.clearSelection()
                         appState.onNavigationEvent(NavigationEvent.ToLibrary, selectionState)
                     },
-                    BottomNavItem.Queue.label to {
+                    BottomNavItem.Queue.route to {
                         appState.onNavigationEvent(NavigationEvent.ToQueue, selectionState)
                     },
-                    BottomNavItem.Playlists.label to {
+                    BottomNavItem.Playlists.route to {
                         appState.onNavigationEvent(NavigationEvent.ToPlaylists, selectionState)
                     },
-                    BottomNavItem.Statistics.label to {
+                    BottomNavItem.Statistics.route to {
                         appState.onNavigationEvent(NavigationEvent.ToStatistics, selectionState)
                     },
                 ),
@@ -218,12 +223,12 @@ fun MusicPlayerApp(
                     selectedCount = selectionState.selectedSongs.size,
                     colorSource = colorSource,
                     confirmIcon = if (uiState is AppUiState.Queue) Icons.Default.Delete else Icons.Default.Add,
-                    confirmLabel = if (uiState is AppUiState.Queue) "Remove from Queue" else "Add to Queue",
-                    onConfirm = remember(uiState) {
+                    confirmLabel = if (uiState is AppUiState.Queue) removeFromQueueLabel else addToQueueLabel,
+                    onConfirm = remember(uiState, removedFromQueueMessage) {
                         {
                             if (uiState is AppUiState.Queue) {
                                 selectionViewModel.confirmRemoval {
-                                    appState.showSnackbar("Removed from Queue")
+                                    appState.showSnackbar(removedFromQueueMessage)
                                 }
                             } else {
                                 playingQueueViewModel.setPlayQueueName(PLAYING_QUEUE)

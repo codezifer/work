@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 
 /**
@@ -24,8 +26,8 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
  * @param onDismiss Callback invoked when the dialog is dismissed or cancelled.
  * @param initialValue Optional initial text for the input field.
  * @param label Optional label for the input field.
- * @param confirmLabel Label for the confirmation button.
- * @param dismissLabel Label for the dismiss button.
+ * @param confirmLabel Label for the confirmation button. Defaults to [R.string.dialog_confirm].
+ * @param dismissLabel Label for the dismiss button. Defaults to [R.string.cancel].
  */
 @Composable
 fun TextInputDialog(
@@ -34,10 +36,12 @@ fun TextInputDialog(
     onDismiss: () -> Unit,
     initialValue: String = "",
     label: String = "",
-    confirmLabel: String = "Confirm",
-    dismissLabel: String = "Cancel",
+    confirmLabel: String? = null,
+    dismissLabel: String? = null,
 ) {
     var text by remember { mutableStateOf(initialValue) }
+    val resolvedConfirmLabel = confirmLabel ?: stringResource(R.string.dialog_confirm)
+    val resolvedDismissLabel = dismissLabel ?: stringResource(R.string.cancel)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -60,12 +64,12 @@ fun TextInputDialog(
                 onClick = { onConfirm(text) },
                 enabled = text.isNotBlank(),
             ) {
-                Text(confirmLabel)
+                Text(resolvedConfirmLabel)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(dismissLabel)
+                Text(resolvedDismissLabel)
             }
         },
     )

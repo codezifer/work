@@ -230,7 +230,7 @@ private fun PlayingQueueContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = "Remove",
+                                    contentDescription = stringResource(R.string.remove_description),
                                     tint = Color.White,
                                     modifier = Modifier
                                         .padding(end = SPACING_LARGE)

@@ -78,7 +78,7 @@ fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, 
                     .background(placeholderBrush),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Placeholder")
+                Icon(imageVector = Icons.Default.MusicNote, contentDescription = stringResource(R.string.placeholder_description))
             }
         } else {
             CollageGrid(displayedCovers, rows, columns)
@@ -166,7 +166,7 @@ private fun CollageItem(cover: CoverSource, modifier: Modifier = Modifier) {
             is CoverSource.FromVector -> {
                 Icon(
                     imageVector = cover.imageVector,
-                    contentDescription = "Placeholder Icon",
+                    contentDescription = stringResource(R.string.placeholder_description),
                     modifier = Modifier.fillMaxSize(0.5f),
                 )
             }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
@@ -27,7 +28,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
 
 @Composable
-fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResource(R.string.songs_distribution).replace("@@{songs}@@", AppConfig.Ui.NUM_OF_TOP_SONGS.toString())) {
+fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResource(R.string.songs_distribution, AppConfig.Ui.NUM_OF_TOP_SONGS)) {
     AppTheme {
         MuzzicCard(
             backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -81,10 +82,12 @@ fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResou
                         horizontalAlignment = Alignment.End,
                     ) {
                         Text(
-                            text = "$playCount Plays",
+                            text = stringResource(R.string.plays_format, playCount),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = FONT_SIZE_CAPTION,
                             fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
 
                         StarRating(

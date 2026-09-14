@@ -134,7 +134,7 @@ fun PlayingQueueItem(
         ) {
             Icon(
                 imageVector = Icons.Default.DragHandle,
-                contentDescription = "Reorder",
+                contentDescription = stringResource(R.string.reorder_description),
                 modifier =
                 dragModifier
                     .size(ICON_SIZE_DRAG_HANDLE),

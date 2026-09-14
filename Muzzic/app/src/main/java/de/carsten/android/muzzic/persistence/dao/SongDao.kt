@@ -8,6 +8,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
+import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,18 @@ interface SongDao {
 
     @Query("SELECT * FROM songs WHERE id IN (:songId)")
     suspend fun getSongsByIds(vararg songId: String): List<Song>
+
+    @Query(
+        """
+        SELECT
+            (SELECT COUNT(*) FROM songs) AS songCount,
+            (SELECT COUNT(DISTINCT artist) FROM songs) AS artistCount,
+            (SELECT COUNT(DISTINCT artist || album) FROM songs) AS albumCount,
+            (SELECT COUNT(DISTINCT normalized_genre) FROM songs_enriched) AS genreCount,
+            (SELECT COUNT(*) FROM playlists) AS playlistCount
+        """,
+    )
+    suspend fun getLibrarySummary(): LibrarySummary
 
     @Query(
         "SELECT SUM(playCount) as count, strftime('%Y-%m', datetime(updatedAt/1000, 'unixepoch')) as month FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY month ORDER BY month LIMIT :limit",
