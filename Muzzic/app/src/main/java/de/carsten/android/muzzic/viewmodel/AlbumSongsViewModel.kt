@@ -15,11 +15,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(UnstableApi::class)
-class AlbumSongsViewModel(savedStateHandle: SavedStateHandle, private val albumRepository: AlbumRepository, private val mediaLibraryManager: MediaLibraryManager) : ViewModel() {
+class AlbumSongsViewModel(savedStateHandle: SavedStateHandle, private val albumRepository: AlbumRepository, private val mediaLibraryManager: MediaLibraryManager) :
+    ViewModel(),
+    UiStateViewModel<AlbumSongsUiState> {
     private val artistName: String = checkNotNull(savedStateHandle["artistName"])
     private val albumName: String = checkNotNull(savedStateHandle["albumName"])
 
-    val uiState: StateFlow<AlbumSongsUiState> =
+    override val uiState: StateFlow<AlbumSongsUiState> =
         albumRepository.getSongsByAlbum(artistName, albumName).map { songs ->
             AlbumSongsUiState(
                 artistName = artistName,

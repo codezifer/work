@@ -5,11 +5,9 @@ import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
 
-class PlaylistViewModel(val repository: PlaylistRepository, val playingQueueRepository: PlayingQueueRepository) :
-    ViewModel(),
-    KoinComponent {
+class PlaylistViewModel(val repository: PlaylistRepository, val playingQueueRepository: PlayingQueueRepository) : ViewModel() {
+
     fun persistCurrentQueueAsPlaylist(name: String) {
         viewModelScope.launch {
             val queued = playingQueueRepository.getCompleteQueue()

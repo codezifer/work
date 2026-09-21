@@ -19,6 +19,7 @@ data class GenreDto(
     override val lastAlbumArt: String? = null,
     override val albumArts: List<String> = emptyList(),
 ) : AlbumArt,
+    UiDto,
     Comparable<GenreDto> {
 
     override fun compareTo(other: GenreDto): Int = this.genreName.compareTo(other.genreName)
@@ -42,6 +43,8 @@ data class GenreDto(
                 .setIsPlayable(false)
                 .build(),
         ).build()
+
+    override fun lazyKey(): String = this.genreName
 }
 
 fun GenreAggregation.toDto() = GenreDto(

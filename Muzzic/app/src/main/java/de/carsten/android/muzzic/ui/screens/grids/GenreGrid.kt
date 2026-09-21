@@ -49,8 +49,8 @@ fun GenreGrid(
         ) {
             items(
                 items = genres,
-                key = { genre -> genre.genreName },
-                contentType = { "Genre" },
+                key = { it.lazyKey() },
+                contentType = { it.lazyContentType() },
             ) { genre ->
                 GenreCard(
                     genre = genre,

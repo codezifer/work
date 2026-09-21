@@ -18,6 +18,7 @@ import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import java.time.Instant
+import kotlin.uuid.Uuid
 
 @Composable
 fun SongList(
@@ -49,8 +50,8 @@ fun SongList(
         ) {
             items(
                 items = songs,
-                key = { song -> song.id },
-                contentType = { "Song" },
+                key = { it.lazyKey() },
+                contentType = { it.lazyContentType() },
             ) { song ->
                 SongListItem(
                     song = song,
@@ -72,6 +73,7 @@ fun SongListPreview() {
         SongList(
             listOf(
                 SongDto(
+                    id = Uuid.random().toString(),
                     title = "This is just a Test 1",
                     album = "Test-Album",
                     artist = "Test-Artist",
@@ -84,6 +86,7 @@ fun SongListPreview() {
                     trackNumber = 3,
                 ),
                 SongDto(
+                    id = Uuid.random().toString(),
                     title = "This is just a Test 2",
                     album = "Test-Album",
                     artist = "Test-Artist",

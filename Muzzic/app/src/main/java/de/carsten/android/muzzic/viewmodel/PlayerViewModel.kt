@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
 
 @OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
 open class PlayerViewModel(
@@ -35,13 +34,13 @@ open class PlayerViewModel(
     private val visualizerSink: VisualizerSink,
     application: Application,
 ) : AndroidViewModel(application),
-    KoinComponent {
+    UiStateViewModel<PlayerUiState> {
     private val logger = this.logger()
 
     val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
 
     private val _uiState = MutableStateFlow(PlayerUiState())
-    val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
+    override val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     val amplitudes: StateFlow<List<Float>> = visualizerSink.amplitudes
 

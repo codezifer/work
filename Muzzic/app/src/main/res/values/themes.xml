@@ -26,12 +26,4 @@
             false
         </item>
     </style>
-
-    <style name="Theme.Muzzic.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/muzzic_logo2</item>
-        <item name="windowSplashScreenIconBackgroundColor">@color/background</item>
-        <item name="postSplashScreenTheme">@style/Theme.Muzzic</item>
-        <item name="android:windowSplashScreenBrandingImage">@drawable/muzzic_logo4</item>
-    </style>
 </resources>

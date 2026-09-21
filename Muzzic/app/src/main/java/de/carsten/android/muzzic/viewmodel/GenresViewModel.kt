@@ -24,10 +24,11 @@ class GenresViewModel(
     private val artistRepository: ArtistRepository,
     playingQueueRepository: PlayingQueueRepository,
     mediaLibraryManager: MediaLibraryManager,
-) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
+) : AbstractViewModel(playingQueueRepository, mediaLibraryManager),
+    UiStateViewModel<GenresUiState> {
     private val genreName: String? = savedStateHandle[GENRE_ARGUMENT]
 
-    val uiState: StateFlow<GenresUiState> = combine(
+    override val uiState: StateFlow<GenresUiState> = combine(
         genreRepository.getGenreInformation(),
         if (genreName != null) artistRepository.getArtistsByGenre(genreName) else flowOf(emptyList()),
     ) { genres, artists ->

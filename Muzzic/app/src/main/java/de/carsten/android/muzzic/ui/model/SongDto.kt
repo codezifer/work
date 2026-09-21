@@ -34,7 +34,9 @@ data class SongDto(
     val queuePosition: Int = 0,
     val createdAt: Instant = Instant.EPOCH,
     val updatedAt: Instant = Instant.EPOCH,
-) {
+) : UiDto,
+    Comparable<SongDto> {
+
     companion object {
         fun fromMediaItem(mediaItem: MediaItem): SongDto {
             val metadata = mediaItem.mediaMetadata
@@ -94,7 +96,9 @@ data class SongDto(
         )
         .build()
 
-    fun <I : Iterable<SongDto>> I.toMediaItems(): List<MediaItem> = this.mapIndexed { index, songDto -> songDto.toMediaItem(index) }
+    override fun lazyKey(): String = this.id
+
+    override fun compareTo(other: SongDto): Int = this.id.compareTo(other.id)
 
     private fun getExtras(index: Int = 0) = Bundle().apply {
         putString(MediaKeys.SONG_ID, id)

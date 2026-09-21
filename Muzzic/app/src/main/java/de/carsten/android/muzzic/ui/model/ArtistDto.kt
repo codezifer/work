@@ -16,6 +16,7 @@ data class ArtistDto(
     override val lastAlbumArt: String? = null,
     override val albumArts: List<String> = emptyList(),
 ) : AlbumArt,
+    UiDto,
     Comparable<ArtistDto> {
 
     override fun compareTo(other: ArtistDto): Int = this.artistName.compareTo(other.artistName)
@@ -38,6 +39,8 @@ data class ArtistDto(
                 .setIsPlayable(false)
                 .build(),
         ).build()
+
+    override fun lazyKey(): String = this.artistName
 }
 
 fun ArtistAggregation.toDto() = ArtistDto(

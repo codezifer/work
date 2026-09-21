@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -45,18 +45,17 @@ fun ArtistGrid(
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(2),
-            modifier =
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = GRID_HORIZONTAL_PADDING),
             verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {
-            itemsIndexed(
+            items(
                 items = artists,
-                key = { _, artist -> artist.artistName },
-                contentType = { _, _ -> "Artist" },
-            ) { _, artist ->
+                key = { it.lazyKey() },
+                contentType = { it.lazyContentType() },
+            ) { artist ->
                 ArtistCard(
                     artist = artist,
                     onClick = { onArtistClick(artist.artistName) },

@@ -29,9 +29,10 @@ class LibraryViewModel(
     private val playlistRepository: PlaylistRepository,
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
-) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
+) : AbstractViewModel(playingQueueRepository, mediaLibraryManager),
+    UiStateViewModel<LibraryUiState> {
 
-    val uiState: StateFlow<LibraryUiState> = combine(
+    override val uiState: StateFlow<LibraryUiState> = combine(
         musicRepository.getAllSongs().distinctUntilChanged(),
         artistRepository.getArtistInformation().distinctUntilChanged(),
         albumRepository.getAlbumInformation().distinctUntilChanged(),

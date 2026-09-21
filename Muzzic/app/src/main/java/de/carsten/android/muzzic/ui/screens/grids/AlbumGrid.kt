@@ -42,8 +42,7 @@ fun AlbumGrid(
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(2),
-            modifier =
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = GRID_HORIZONTAL_PADDING),
             verticalArrangement = Arrangement.spacedBy(GRID_SPACING),
@@ -51,8 +50,8 @@ fun AlbumGrid(
         ) {
             items(
                 items = albums,
-                key = { album -> "${album.artistName}_${album.albumName}_${album.albumYear}" },
-                contentType = { "Album" },
+                key = { it.lazyKey() },
+                contentType = { it.lazyContentType() },
             ) { album ->
                 AlbumCard(
                     album = album,

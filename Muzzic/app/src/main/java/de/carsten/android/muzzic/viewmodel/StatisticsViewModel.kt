@@ -14,9 +14,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StatisticsViewModel(private val repository: MusicRepository, private val genreRepository: GenreRepository, private val playlistRepository: PlaylistRepository) :
-    ViewModel() {
+    ViewModel(),
+    UiStateViewModel<StatisticsUiState> {
     private val _uiState = MutableStateFlow(StatisticsUiState())
-    val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
+    override val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
 
     init {
         // Initial load

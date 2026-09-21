@@ -105,8 +105,8 @@ private fun InternalPlaylistGrid(playlists: List<PlaylistDto>, onPlaylistClick: 
     ) {
         items(
             items = playlists,
-            key = { playlist -> playlist.playlistId },
-            contentType = { "Playlist" },
+            key = { it.lazyKey() },
+            contentType = { it.lazyContentType() },
         ) { playlist ->
             PlaylistCard(
                 playlist = playlist,

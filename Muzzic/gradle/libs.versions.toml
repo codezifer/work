@@ -6,7 +6,7 @@ appMinSdk = "36"
 appMaxSdk = "37"
 # Dependencies Versions
 activityCompose = "1.13.0"
-agp = "9.4.0"
+agp = "9.4.1"
 appcompat = "1.8.0"
 assertj = "3.27.7"
 coil3 = "3.6.2"

@@ -22,10 +22,11 @@ class ArtistAlbumsViewModel(
     private val albumRepository: AlbumRepository,
     private val playingQueueRepository: PlayingQueueRepository,
     private val mediaLibraryManager: MediaLibraryManager,
-) : AbstractViewModel(playingQueueRepository, mediaLibraryManager) {
+) : AbstractViewModel(playingQueueRepository, mediaLibraryManager),
+    UiStateViewModel<ArtistAlbumsUiState> {
     private val artistName: String = checkNotNull(savedStateHandle[ARTIST_ARGUMENT])
 
-    val uiState: StateFlow<ArtistAlbumsUiState> =
+    override val uiState: StateFlow<ArtistAlbumsUiState> =
         albumRepository.getAlbumsByArtist(artistName).map { albums ->
             ArtistAlbumsUiState(
                 artistName = artistName,

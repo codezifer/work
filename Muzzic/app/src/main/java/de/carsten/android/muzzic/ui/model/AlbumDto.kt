@@ -12,6 +12,7 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.AlbumAggregation
 @Immutable
 data class AlbumDto(val albumName: String, val albumYear: Int, val artistName: String, val songCount: Int, val albumDuration: Long, override val lastAlbumArt: String? = null) :
     AlbumArt,
+    UiDto,
     Comparable<AlbumDto> {
 
     override fun compareTo(other: AlbumDto): Int {
@@ -56,6 +57,8 @@ data class AlbumDto(val albumName: String, val albumYear: Int, val artistName: S
                 .setIsPlayable(false)
                 .build(),
         ).build()
+
+    override fun lazyKey(): String = "${artistName}_${albumName}_$albumYear"
 }
 
 fun AlbumAggregation.toDto() = AlbumDto(

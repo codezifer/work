@@ -15,9 +15,11 @@ import kotlinx.coroutines.launch
  * ViewModel for the Settings screen.
  * Manages app-wide configuration and manual library tasks.
  */
-class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository, private val musicRepository: MusicRepository) : ViewModel() {
+class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository, private val musicRepository: MusicRepository) :
+    ViewModel(),
+    UiStateViewModel<SettingsUiState> {
 
-    val uiState: StateFlow<SettingsUiState> = combine(
+    override val uiState: StateFlow<SettingsUiState> = combine(
         appSettingsRepository.observeMusicDirectory(),
         appSettingsRepository.observePlaylistDirectory(),
     ) { musicDir, playlistDir ->

@@ -23,9 +23,10 @@ open class PlayingQueueViewModel(
     private val repository: PlayingQueueRepository,
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
-) : ViewModel() {
+) : ViewModel(),
+    UiStateViewModel<PlayingQueueUiState> {
     private val _uiState = MutableStateFlow(PlayingQueueUiState())
-    val uiState: StateFlow<PlayingQueueUiState> = _uiState.asStateFlow()
+    override val uiState: StateFlow<PlayingQueueUiState> = _uiState.asStateFlow()
 
     private val playerListener =
         object : Player.Listener {

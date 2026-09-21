@@ -25,6 +25,7 @@ data class PlaylistDto(
     override val albumArts: List<String> = emptyList(),
     val collageCovers: List<CoverSource> = emptyList(),
 ) : AlbumArt,
+    UiDto,
     Comparable<PlaylistDto> {
 
     override fun compareTo(other: PlaylistDto): Int {
@@ -59,6 +60,8 @@ data class PlaylistDto(
                 .setIsPlayable(false)
                 .build(),
         ).build()
+
+    override fun lazyKey(): String = this.playlistId
 }
 
 fun PlaylistAggregation.toDto(): PlaylistDto {
