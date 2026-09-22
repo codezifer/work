@@ -4,12 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -48,11 +49,13 @@ fun SongList(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(
+            itemsIndexed(
                 items = songs,
-                key = { it.lazyKey() },
-                contentType = { it.lazyContentType() },
-            ) { song ->
+                key = { index, song ->
+                    if (song.id != UNKNOWN && song.id.isNotBlank()) song.id else "${song.title}_$index"
+                },
+                contentType = { _, song -> song.lazyContentType() },
+            ) { _, song ->
                 SongListItem(
                     song = song,
                     onClick = { onSongClick(song) },

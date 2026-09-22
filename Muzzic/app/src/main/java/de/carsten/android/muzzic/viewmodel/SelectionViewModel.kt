@@ -21,14 +21,17 @@ class SelectionViewModel(
     private val albumRepository: AlbumRepository,
     private val songRepository: SongRepository,
     private val playingQueueRepository: PlayingQueueRepository,
-) : ViewModel() {
+) : ViewModel(),
+    UiStateViewModel<SelectionState> {
     private val _selectionState = MutableStateFlow(SelectionState())
+
+    override val uiState: StateFlow<SelectionState> = _selectionState.asStateFlow()
 
     /**
      * State representing the current multi-selection.
      * Includes whether selection is active and the sets of selected artists, albums, and songs.
      */
-    val selectionState: StateFlow<SelectionState> = _selectionState.asStateFlow()
+    val selectionState: StateFlow<SelectionState> get() = uiState
 
     /**
      * Tracks songs that were enqueued during the current selection session.
