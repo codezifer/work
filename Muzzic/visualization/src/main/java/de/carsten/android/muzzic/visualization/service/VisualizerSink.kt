@@ -1,7 +1,8 @@
-package de.carsten.android.muzzic.service
+package de.carsten.android.muzzic.visualization.service
 
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.audio.TeeAudioProcessor
+import de.carsten.android.muzzic.visualization.projectm.ProjectMNativeBridge
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.cos
@@ -44,6 +45,16 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
         val availableSamples = shortBuffer.remaining()
 
         if (availableSamples < windowSize * channelCount) return
+
+        // Extract PCM float samples for projectM audio processing
+        val pcmFloats = FloatArray(windowSize * channelCount)
+        val pcmReadBuffer = shortBuffer.duplicate()
+        for (i in pcmFloats.indices) {
+            if (pcmReadBuffer.hasRemaining()) {
+                pcmFloats[i] = pcmReadBuffer.get().toFloat() / 32768f
+            }
+        }
+        ProjectMNativeBridge.addPcm(pcmFloats, channelCount)
 
         for (i in 0 until windowSize) {
             val monoSample = if (channelCount >= 2) {

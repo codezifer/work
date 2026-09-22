@@ -28,4 +28,4 @@ dependencyResolutionManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "Muzzic"
-include(":app", ":logging", ":id3", ":playlist")
+include(":app", ":logging", ":id3", ":playlist", ":visualization")

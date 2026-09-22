@@ -1,4 +1,4 @@
-package de.carsten.android.muzzic.ui.component
+package de.carsten.android.muzzic.visualization.component
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -20,28 +20,35 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
-import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.SPACING_LARGE
-import de.carsten.android.muzzic.ui.VISUALIZER_BAR_SPACING
-import de.carsten.android.muzzic.ui.VISUALIZER_GLOW_INTENSITY
-import de.carsten.android.muzzic.ui.VISUALIZER_HUE_COLOR_DEGREE
-import de.carsten.android.muzzic.ui.VISUALIZER_LOG_BASE_DIVISOR
-import de.carsten.android.muzzic.ui.VISUALIZER_LOG_SCALE_FACTOR
-import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_HEIGHT
-import de.carsten.android.muzzic.ui.VISUALIZER_SEGMENT_SPACING
-import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.visualization.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.visualization.VISUALIZER_BAR_SPACING
+import de.carsten.android.muzzic.visualization.VISUALIZER_GLOW_INTENSITY
+import de.carsten.android.muzzic.visualization.VISUALIZER_HUE_COLOR_DEGREE
+import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_BASE_DIVISOR
+import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_SCALE_FACTOR
+import de.carsten.android.muzzic.visualization.VISUALIZER_SEGMENT_HEIGHT
+import de.carsten.android.muzzic.visualization.VISUALIZER_SEGMENT_SPACING
 import kotlin.math.ln
 
 /**
- * A real-time audio visualizer component featuring segmented bars, horizontal symmetry,
- * and vertical color gradients.
- *
- * This component handles the mathematical transformations directly within the drawing phase
- * to minimize allocations and maximize performance during high-frequency audio updates.
+ * Supported rendering engines for music visualization.
+ */
+enum class VisualizerEngine {
+    /** 2D segmented bar graph drawn via Compose Canvas */
+    BARS,
+
+    /** 3D OpenGL Milkdrop visualizer powered by libprojectM */
+    PROJECT_M,
+}
+
+/**
+ * A real-time audio visualizer component supporting 2D segmented bars and 3D ProjectM Milkdrop visuals.
  *
  * @param amplitudesProvider Lambda providing the current list of normalized audio amplitudes (0.0 to 1.0).
  * @param modifier Modifier for the visualizer container.
+ * @param engine Visualization rendering engine to use (default: [VisualizerEngine.BARS]).
  * @param color The base accent color for the visualization.
  * @param isPlaying Whether the visualization is currently active.
  * @param segmentHeight Height of each individual segment in a bar.
@@ -50,6 +57,41 @@ import kotlin.math.ln
  */
 @Composable
 fun MusicVisualization(
+    amplitudesProvider: () -> List<Float>,
+    modifier: Modifier = Modifier,
+    engine: VisualizerEngine = VisualizerEngine.BARS,
+    color: Color = MaterialTheme.colorScheme.primary,
+    isPlaying: Boolean = true,
+    segmentHeight: Dp = VISUALIZER_SEGMENT_HEIGHT,
+    segmentSpacing: Dp = VISUALIZER_SEGMENT_SPACING,
+    barSpacing: Dp = VISUALIZER_BAR_SPACING,
+) {
+    when (engine) {
+        VisualizerEngine.BARS -> {
+            SegmentedBarsVisualizer(
+                amplitudesProvider = amplitudesProvider,
+                modifier = modifier,
+                color = color,
+                isPlaying = isPlaying,
+                segmentHeight = segmentHeight,
+                segmentSpacing = segmentSpacing,
+                barSpacing = barSpacing,
+            )
+        }
+
+        VisualizerEngine.PROJECT_M -> {
+            AndroidView(
+                factory = { context ->
+                    ProjectMGLSurfaceView(context)
+                },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SegmentedBarsVisualizer(
     amplitudesProvider: () -> List<Float>,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
@@ -139,13 +181,13 @@ fun MusicVisualization(
 
 @Composable
 @Preview(showBackground = true, name = "Light Mode")
-@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true, name = "Dark Mode")
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "Dark Mode")
 fun MusicVisualizationPreview() {
-    AppTheme {
+    MaterialTheme {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(SPACING_LARGE)
+                .padding(16.dp)
                 .height(100.dp),
         ) {
             MusicVisualization(

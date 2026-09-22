@@ -5,8 +5,8 @@ import androidx.media3.session.MediaBrowser
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.service.VisualizerSink
 import de.carsten.android.muzzic.ui.state.PlayerUiState
+import de.carsten.android.muzzic.visualization.service.VisualizerSink
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

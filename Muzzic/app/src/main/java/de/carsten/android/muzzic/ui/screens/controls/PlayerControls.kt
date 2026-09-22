@@ -40,10 +40,10 @@ import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYER_MAIN
 import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYER_PLAY_PAUSE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
-import de.carsten.android.muzzic.ui.component.MusicVisualization
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.visualization.component.MusicVisualization
 
 /**
  * A dedicated component for player controls with integrated music visualization background.

@@ -1,11 +1,11 @@
-package de.carsten.android.muzzic.ui.state
+package de.carsten.android.muzzic.visualization.state
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import de.carsten.android.muzzic.ui.VISUALIZER_GLOW_INTENSITY
-import de.carsten.android.muzzic.ui.VISUALIZER_LOG_BASE_DIVISOR
-import de.carsten.android.muzzic.ui.VISUALIZER_LOG_SCALE_FACTOR
+import de.carsten.android.muzzic.visualization.VISUALIZER_GLOW_INTENSITY
+import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_BASE_DIVISOR
+import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_SCALE_FACTOR
 import kotlin.math.ln
 
 /**

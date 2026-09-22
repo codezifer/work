@@ -14,9 +14,9 @@ import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
 import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.service.VisualizerSink
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.PlayerUiState
+import de.carsten.android.muzzic.visualization.service.VisualizerSink
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

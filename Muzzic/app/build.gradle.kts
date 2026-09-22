@@ -109,6 +109,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.id3)
     implementation(projects.playlist)
+    implementation(projects.visualization)
 
     // kotlin
     val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)

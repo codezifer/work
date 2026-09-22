@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.TeeAudioProcessor
+import de.carsten.android.muzzic.visualization.service.VisualizerSink
 
 /**
  * Manages the ExoPlayer instance and provides high-level playback controls.
