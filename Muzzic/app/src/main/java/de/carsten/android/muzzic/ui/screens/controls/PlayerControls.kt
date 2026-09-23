@@ -44,6 +44,7 @@ import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.visualization.component.MusicVisualization
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 /**
  * A dedicated component for player controls with integrated music visualization background.
@@ -61,6 +62,8 @@ fun PlayerControls(
     onToggleShuffle: () -> Unit,
     onToggleRepeat: () -> Unit,
     modifier: Modifier = Modifier,
+    visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
+    projectMPreset: String? = null,
 ) {
     Box(
         modifier = modifier
@@ -81,6 +84,8 @@ fun PlayerControls(
         // Background Visualization
         MusicVisualization(
             amplitudesProvider = amplitudesProvider,
+            engine = visualizerEngine,
+            presetName = projectMPreset,
             isPlaying = isPlaying,
             color = colorSource.accentColor.copy(alpha = 0.4f),
             modifier = Modifier.matchParentSize(),

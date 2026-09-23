@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.persistence.repo
 
 import de.carsten.android.muzzic.persistence.dao.GenericSettingDao
 import de.carsten.android.muzzic.persistence.entity.GenericSetting
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -13,6 +14,8 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
     companion object {
         const val KEY_MUSIC_DIRECTORY = "music_directory"
         const val KEY_PLAYLIST_DIRECTORY = "playlist_directory"
+        const val KEY_VISUALIZER_ENGINE = "visualizer_engine"
+        const val KEY_PROJECTM_PRESET = "projectm_preset"
     }
 
     /**
@@ -47,5 +50,46 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
      */
     suspend fun savePlaylistDirectory(path: String) {
         genericSettingDao.insertOrUpdate(GenericSetting(KEY_PLAYLIST_DIRECTORY, path))
+    }
+
+    /**
+     * Observes the active visualizer engine setting (defaults to [VisualizerEngine.BARS]).
+     */
+    fun observeVisualizerEngine(): Flow<VisualizerEngine> = genericSettingDao.observeSetting(KEY_VISUALIZER_ENGINE).map { setting ->
+        setting?.value?.let { name ->
+            runCatching { VisualizerEngine.valueOf(name) }.getOrNull()
+        } ?: VisualizerEngine.BARS
+    }
+
+    /**
+     * Gets the active visualizer engine setting.
+     */
+    suspend fun getVisualizerEngine(): VisualizerEngine {
+        val value = genericSettingDao.getSetting(KEY_VISUALIZER_ENGINE)?.value ?: return VisualizerEngine.BARS
+        return runCatching { VisualizerEngine.valueOf(value) }.getOrDefault(VisualizerEngine.BARS)
+    }
+
+    /**
+     * Saves the active visualizer engine setting.
+     */
+    suspend fun saveVisualizerEngine(engine: VisualizerEngine) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_VISUALIZER_ENGINE, engine.name))
+    }
+
+    /**
+     * Observes the selected ProjectM preset name.
+     */
+    fun observeProjectMPreset(): Flow<String?> = genericSettingDao.observeSetting(KEY_PROJECTM_PRESET).map { it?.value }
+
+    /**
+     * Gets the selected ProjectM preset name.
+     */
+    suspend fun getProjectMPreset(): String? = genericSettingDao.getSetting(KEY_PROJECTM_PRESET)?.value
+
+    /**
+     * Saves the selected ProjectM preset name.
+     */
+    suspend fun saveProjectMPreset(presetName: String) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_PROJECTM_PRESET, presetName))
     }
 }

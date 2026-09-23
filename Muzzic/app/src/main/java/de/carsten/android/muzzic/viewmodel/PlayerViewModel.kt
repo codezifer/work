@@ -12,6 +12,7 @@ import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
 import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
+import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,6 +34,7 @@ open class PlayerViewModel(
     private val repository: MusicRepository,
     private val mediaLibraryManager: MediaLibraryManager,
     private val visualizerSink: VisualizerSink,
+    private val appSettingsRepository: AppSettingsRepository,
     application: Application,
 ) : AndroidViewModel(application),
     UiStateViewModel<PlayerUiState> {
@@ -86,6 +89,7 @@ open class PlayerViewModel(
         startProgressUpdater()
         setupBrowserObservation()
         setupAmplitudesObservation()
+        setupSettingsObservation()
     }
 
     open fun setupBrowserObservation() {
@@ -117,31 +121,15 @@ open class PlayerViewModel(
         }
     }
 
-    open fun startProgressUpdater() {
+    private fun setupSettingsObservation() {
         viewModelScope.launch {
-            while (true) {
-                val b = browser.value
-                if (b != null && b.isPlaying) {
-                    val pos = b.currentPosition
-                    val dur = b.duration
-                    _uiState.update { state ->
-                        state.copy(
-                            currentPosition = pos,
-                            progress = if (dur > 0) pos.toFloat() / dur else 0f,
-                        )
-                    }
-                }
-                delay(AppConfig.Service.PROGRESS_DELAY_MS)
-            }
+            combine(
+                appSettingsRepository.observeVisualizerEngine(),
+                appSettingsRepository.observeProjectMPreset(),
+            ) { engine, preset ->
+                _uiState.update { it.copy(visualizerEngine = engine, projectMPreset = preset) }
+            }.collect {}
         }
-    }
-
-    fun playSong(song: SongDto) {
-        mediaLibraryManager.playContent(song.toMediaItem())
-    }
-
-    fun loadPlaylist(mediaItems: List<MediaItem>) {
-        mediaLibraryManager.preparePlaylist(mediaItems)
     }
 
     fun togglePlayPause() {
@@ -153,23 +141,23 @@ open class PlayerViewModel(
         }
     }
 
-    fun onPrevClicked() {
-        browser.value?.let { player ->
-            if (player.hasPreviousMediaItem()) {
-                player.seekToPreviousMediaItem()
-            } else if (player.mediaItemCount > 0) {
-                player.seekToDefaultPosition(player.mediaItemCount - 1)
-            }
-        }
+    fun onNextClicked() {
+        browser.value?.seekToNextMediaItem()
     }
 
-    fun onNextClicked() {
-        browser.value?.let { player ->
-            if (player.hasNextMediaItem()) {
-                player.seekToNextMediaItem()
-            } else if (player.mediaItemCount > 0) {
-                player.seekToDefaultPosition(0)
-            }
+    fun onPrevClicked() {
+        browser.value?.seekToPreviousMediaItem()
+    }
+
+    fun onProgressChanged(progress: Float) {
+        val b = browser.value ?: return
+        val targetPosition = (b.duration * progress).toLong()
+        b.seekTo(targetPosition)
+        _uiState.update {
+            it.copy(
+                progress = progress,
+                currentPosition = targetPosition,
+            )
         }
     }
 
@@ -183,24 +171,64 @@ open class PlayerViewModel(
         val nextMode = when (b.repeatMode) {
             Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
             Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
             else -> Player.REPEAT_MODE_OFF
         }
         b.repeatMode = nextMode
     }
 
-    fun onProgressChanged(progress: Float) {
+    fun playSong(songId: String) {
         val b = browser.value ?: return
-        val dur = b.duration
-        if (dur > 0) {
-            b.seekTo((progress * dur).toLong())
+        val targetIndex = (0 until b.mediaItemCount).firstOrNull { i ->
+            b.getMediaItemAt(i).mediaId == songId
+        }
+
+        if (targetIndex != null) {
+            b.seekTo(targetIndex, 0L)
+            b.prepare()
+            b.play()
         }
     }
 
-    fun updateRating(rating: Int) {
-        uiState.value.currentSong?.let { song ->
-            viewModelScope.launch {
-                repository.updateSongRating(song.id, rating)
+    fun playArtist(artistName: String) {
+        val b = browser.value ?: return
+        viewModelScope.launch {
+            val children = mediaLibraryManager.getChildren("$ARTISTS_ID/$artistName")
+            if (children.isNotEmpty()) {
+                b.setMediaItems(children)
+                b.prepare()
+                b.play()
+            }
+        }
+    }
+
+    fun playAlbum(albumTitle: String) {
+        val b = browser.value ?: return
+        viewModelScope.launch {
+            val children = mediaLibraryManager.getChildren("$ALBUMS_ID/$albumTitle")
+            if (children.isNotEmpty()) {
+                b.setMediaItems(children)
+                b.prepare()
+                b.play()
+            }
+        }
+    }
+
+    open fun startProgressUpdater() {
+        viewModelScope.launch {
+            while (true) {
+                val b = browser.value
+                if (b != null && b.isPlaying && b.duration > 0) {
+                    val pos = b.currentPosition
+                    val dur = b.duration
+                    _uiState.update {
+                        it.copy(
+                            currentPosition = pos,
+                            duration = dur,
+                            progress = pos.toFloat() / dur.toFloat(),
+                        )
+                    }
+                }
+                delay(AppConfig.Service.PROGRESS_DELAY_MS)
             }
         }
     }
@@ -209,25 +237,5 @@ open class PlayerViewModel(
         viewModelScope.launch {
             repository.scanMusicLibrary()
         }
-    }
-
-    // Example of how to browse via MediaBrowser
-    fun loadArtists(callback: (List<MediaItem>) -> Unit) {
-        viewModelScope.launch {
-            val artists = mediaLibraryManager.getChildren(ARTISTS_ID)
-            callback(artists)
-        }
-    }
-
-    fun loadAlbums(callback: (List<MediaItem>) -> Unit) {
-        viewModelScope.launch {
-            val albums = mediaLibraryManager.getChildren(ALBUMS_ID)
-            callback(albums)
-        }
-    }
-
-    fun search(query: String, callback: (List<MediaItem>) -> Unit) {
-        val b = browser.value ?: return
-        b.search(query, null)
     }
 }

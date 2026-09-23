@@ -92,6 +92,13 @@ object ProjectMNativeBridge {
         }
     }
 
+    /** Loads a specific preset by filename with a smooth transition. */
+    fun selectPreset(presetName: String) {
+        if (isNativeLibraryLoaded) {
+            nativeSelectPreset(presetName)
+        }
+    }
+
     /** Destroys the native projectM instance and frees its resources. */
     fun release() {
         if (isNativeLibraryLoaded) {
@@ -99,11 +106,17 @@ object ProjectMNativeBridge {
         }
     }
 
+    /** Indicates whether the native projectM instance is active and ready to consume PCM audio. */
+    val isActive: Boolean
+        get() = isNativeLibraryLoaded && nativeIsActive()
+
     private external fun nativeInit(presetDirPath: String)
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeRender()
     private external fun nativeAddPcm(pcmData: FloatArray, channels: Int)
     private external fun nativeNextPreset()
     private external fun nativePreviousPreset()
+    private external fun nativeSelectPreset(presetName: String)
+    private external fun nativeIsActive(): Boolean
     private external fun nativeRelease()
 }

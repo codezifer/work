@@ -39,6 +39,7 @@ import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
 
 private val GLASS_CONTAINER_ROUNDING = GLASS_PANEL_CORNER_RADIUS
@@ -56,6 +57,8 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
         shuffleModeEnabled = uiState.shuffleModeEnabled,
         repeatMode = uiState.repeatMode,
         amplitudesProvider = { uiState.amplitudes },
+        visualizerEngine = uiState.visualizerEngine,
+        projectMPreset = uiState.projectMPreset,
         colorSource = colorSource,
         onPrevClicked = playerViewModel::onPrevClicked,
         onNextClicked = playerViewModel::onNextClicked,
@@ -76,6 +79,8 @@ private fun PlayerScreenContent(
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
     amplitudesProvider: () -> List<Float>,
+    visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
+    projectMPreset: String? = null,
     colorSource: ColorSource = composableColorSource(),
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
@@ -138,6 +143,8 @@ private fun PlayerScreenContent(
                 shuffleModeEnabled = shuffleModeEnabled,
                 repeatMode = repeatMode,
                 amplitudesProvider = amplitudesProvider,
+                visualizerEngine = visualizerEngine,
+                projectMPreset = projectMPreset,
                 colorSource = colorSource,
                 onPreviousClicked = onPrevClicked,
                 onPlayPauseClicked = onPlayPauseClicked,

@@ -60,6 +60,7 @@ fun MusicVisualization(
     amplitudesProvider: () -> List<Float>,
     modifier: Modifier = Modifier,
     engine: VisualizerEngine = VisualizerEngine.BARS,
+    presetName: String? = null,
     color: Color = MaterialTheme.colorScheme.primary,
     isPlaying: Boolean = true,
     segmentHeight: Dp = VISUALIZER_SEGMENT_HEIGHT,
@@ -82,7 +83,12 @@ fun MusicVisualization(
         VisualizerEngine.PROJECT_M -> {
             AndroidView(
                 factory = { context ->
-                    ProjectMGLSurfaceView(context)
+                    ProjectMGLSurfaceView(context).apply {
+                        this.presetName = presetName
+                    }
+                },
+                update = { view ->
+                    view.presetName = presetName
                 },
                 modifier = modifier,
             )

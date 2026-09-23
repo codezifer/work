@@ -29,7 +29,44 @@ static std::mutex g_mutex;
 static int g_viewportWidth = 800;
 static int g_viewportHeight = 600;
 
+#include <dlfcn.h>
+#include <EGL/egl.h>
+
+/**
+ * Custom GL proc loader for Android EGL.
+ *
+ * On Android, eglGetProcAddress loads extension functions but returns NULL for
+ * core OpenGL ES 2.0/3.0 functions. This loader tries eglGetProcAddress first and
+ * falls back to dlsym on libGLESv3.so / libGLESv2.so for core functions.
+ */
+static void* android_gl_load_proc(const char* name, void* /* user_data */) {
+    if (name == nullptr) {
+        return nullptr;
+    }
+    void* proc = reinterpret_cast<void*>(eglGetProcAddress(name));
+    if (proc != nullptr) {
+        return proc;
+    }
+    static void* glesHandle = nullptr;
+    if (glesHandle == nullptr) {
+        glesHandle = dlopen("libGLESv3.so", RTLD_NOW | RTLD_GLOBAL);
+        if (glesHandle == nullptr) {
+            glesHandle = dlopen("libGLESv2.so", RTLD_NOW | RTLD_GLOBAL);
+        }
+    }
+    if (glesHandle != nullptr) {
+        proc = dlsym(glesHandle, name);
+    }
+    return proc;
+}
+
 #ifdef HAVE_PROJECTM
+static void projectm_log_func(const char* message, projectm_log_level /* log_level */, void* /* user_data */) {
+    if (message != nullptr) {
+        LOGE("[projectM-Core] %s", message);
+    }
+}
+
 // Opaque projectM instance, created on the GL thread in nativeInit.
 static projectm_handle g_projectM = nullptr;
 // Absolute path of the directory holding the .milk preset files.
@@ -99,11 +136,23 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
     g_presetDir = presetDir;
     scanPresetDirLocked();
     if (g_projectM == nullptr) {
+        const char* glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        const char* glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+        const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        LOGI("GL Context Info - Version: %s, Vendor: %s, Renderer: %s",
+             glVersion ? glVersion : "NULL",
+             glVendor ? glVendor : "NULL",
+             glRenderer ? glRenderer : "NULL");
+
+        // Register log callback to capture core projectM initialization errors.
+        projectm_set_log_callback(projectm_log_func, false, nullptr);
+        projectm_set_log_level(PROJECTM_LOG_LEVEL_DEBUG, false);
+
         // Must run on the GL thread with a current EGL context (called from
         // GLSurfaceView.Renderer.onSurfaceCreated).
-        g_projectM = projectm_create();
+        g_projectM = projectm_create_with_opengl_load_proc(android_gl_load_proc, nullptr);
         if (g_projectM == nullptr) {
-            LOGE("projectm_create failed: no current GL context?");
+            LOGE("projectm_create_with_opengl_load_proc failed: no current GL context or GLES initialization error");
         } else {
             projectm_set_window_size(
                     g_projectM,
@@ -223,6 +272,47 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
     if (g_projectM != nullptr && !g_presets.empty()) {
         loadPresetLocked(g_presetIndex + g_presets.size() - 1);
     }
+#endif
+}
+
+JNIEXPORT void JNICALL
+Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeSelectPreset(
+        JNIEnv* env,
+        jobject /* this */,
+        jstring presetName) {
+    if (presetName == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_mutex);
+#ifdef HAVE_PROJECTM
+    const char* nameStr = env->GetStringUTFChars(presetName, nullptr);
+    if (nameStr != nullptr && g_projectM != nullptr) {
+        std::string name(nameStr);
+        const std::string path = g_presetDir + "/" + name;
+        projectm_load_preset_file(g_projectM, path.c_str(), true);
+        LOGI("Selecting preset by name: %s", path.c_str());
+
+        // Update g_presetIndex if name is in g_presets list
+        auto it = std::find(g_presets.begin(), g_presets.end(), name);
+        if (it != g_presets.end()) {
+            g_presetIndex = std::distance(g_presets.begin(), it);
+        }
+    }
+    if (nameStr != nullptr) {
+        env->ReleaseStringUTFChars(presetName, nameStr);
+    }
+#endif
+}
+
+JNIEXPORT jboolean JNICALL
+Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeIsActive(
+        JNIEnv* /* env */,
+        jobject /* this */) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+#ifdef HAVE_PROJECTM
+    return g_projectM != nullptr ? JNI_TRUE : JNI_FALSE;
+#else
+    return JNI_FALSE;
 #endif
 }
 

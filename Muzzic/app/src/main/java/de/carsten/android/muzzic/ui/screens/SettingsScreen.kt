@@ -21,6 +21,11 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,9 +51,11 @@ import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -59,6 +66,9 @@ fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBac
         modifier = modifier,
         musicDirectory = uiState.musicDirectory,
         playlistDirectory = uiState.playlistDirectory,
+        visualizerEngine = uiState.visualizerEngine,
+        projectMPreset = uiState.projectMPreset,
+        availablePresets = uiState.availablePresets,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
     )
@@ -70,6 +80,9 @@ private fun SettingsScreenContent(
     context: Context = LocalContext.current,
     musicDirectory: String? = null,
     playlistDirectory: String? = null,
+    visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
+    projectMPreset: String? = null,
+    availablePresets: List<String> = emptyList(),
     settingsViewModel: SettingsViewModel? = null,
     onBackClick: () -> Unit = {},
 ) {
@@ -77,13 +90,10 @@ private fun SettingsScreenContent(
         contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         uri?.let {
-            // We need to persist permissions and get the actual path if possible
             context.contentResolver.takePersistableUriPermission(
                 it,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
-            // For now, we store the URI string. A more robust implementation
-            // would resolve this to a File path or use DocumentFile.
             settingsViewModel?.updateMusicDirectory(it.toString())
         }
     }
@@ -169,6 +179,22 @@ private fun SettingsScreenContent(
 
         Spacer(modifier = Modifier.height(SPACING_LARGE))
 
+        SettingsSection(title = stringResource(R.string.visualization_setting)) {
+            VisualizerSetting(
+                currentEngine = visualizerEngine,
+                currentPreset = projectMPreset,
+                availablePresets = availablePresets,
+                onEngineSelected = { engine ->
+                    settingsViewModel?.updateVisualizerEngine(engine)
+                },
+                onPresetSelected = { presetName ->
+                    settingsViewModel?.updateProjectMPreset(presetName)
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(SPACING_LARGE))
+
         SettingsSection(title = stringResource(R.string.manual_tasks)) {
             Button(
                 onClick = { settingsViewModel?.scanMusicLibrary() },
@@ -189,6 +215,101 @@ private fun SettingsScreenContent(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.clear_database))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VisualizerSetting(
+    currentEngine: VisualizerEngine,
+    currentPreset: String?,
+    availablePresets: List<String>,
+    onEngineSelected: (VisualizerEngine) -> Unit,
+    onPresetSelected: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
+        Text(
+            text = stringResource(R.string.visualizer_engine),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+
+        var engineExpanded by remember { mutableStateOf(false) }
+        val engineLabel = when (currentEngine) {
+            VisualizerEngine.BARS -> stringResource(R.string.visualizer_engine_bars)
+            VisualizerEngine.PROJECT_M -> stringResource(R.string.visualizer_engine_projectm)
+        }
+
+        ExposedDropdownMenuBox(
+            expanded = engineExpanded,
+            onExpandedChange = { engineExpanded = !engineExpanded },
+        ) {
+            OutlinedTextField(
+                value = engineLabel,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = engineExpanded) },
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                textStyle = MaterialTheme.typography.bodyMedium,
+            )
+            ExposedDropdownMenu(
+                expanded = engineExpanded,
+                onDismissRequest = { engineExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.visualizer_engine_bars)) },
+                    onClick = {
+                        onEngineSelected(VisualizerEngine.BARS)
+                        engineExpanded = false
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.visualizer_engine_projectm)) },
+                    onClick = {
+                        onEngineSelected(VisualizerEngine.PROJECT_M)
+                        engineExpanded = false
+                    },
+                )
+            }
+        }
+
+        if (currentEngine == VisualizerEngine.PROJECT_M && availablePresets.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(SPACING_TINY))
+            Text(
+                text = stringResource(R.string.projectm_preset),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+
+            var presetExpanded by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = presetExpanded,
+                onExpandedChange = { presetExpanded = !presetExpanded },
+            ) {
+                OutlinedTextField(
+                    value = currentPreset ?: availablePresets.first(),
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = presetExpanded) },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                )
+                ExposedDropdownMenu(
+                    expanded = presetExpanded,
+                    onDismissRequest = { presetExpanded = false },
+                ) {
+                    availablePresets.forEach { preset ->
+                        DropdownMenuItem(
+                            text = { Text(preset) },
+                            onClick = {
+                                onPresetSelected(preset)
+                                presetExpanded = false
+                            },
+                        )
+                    }
+                }
             }
         }
     }

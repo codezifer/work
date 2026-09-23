@@ -7,7 +7,7 @@ namespace Renderer {
 
 /**
  * @brief Wraps a vertex array object.
- * Creates, destroys and binds a single VAO.
+ * Creates, destroys and binds a single VAO, tracking active bindings to avoid no-op state changes.
  */
 class VertexArray
 {
@@ -25,16 +25,22 @@ public:
      */
     virtual ~VertexArray()
     {
+        if (s_currentBoundVao == m_vaoID) {
+            s_currentBoundVao = 0;
+        }
         glDeleteVertexArrays(1, &m_vaoID);
         m_vaoID = 0;
     }
 
     /**
-     * Binds the stored VAO.
+     * Binds the stored VAO if not already bound.
      */
     void Bind() const
     {
-        glBindVertexArray(m_vaoID);
+        if (s_currentBoundVao != m_vaoID) {
+            glBindVertexArray(m_vaoID);
+            s_currentBoundVao = m_vaoID;
+        }
     }
 
     /**
@@ -42,14 +48,16 @@ public:
      */
     static void Unbind()
     {
-        glBindVertexArray(0);
+        if (s_currentBoundVao != 0) {
+            glBindVertexArray(0);
+            s_currentBoundVao = 0;
+        }
     }
 
 private:
     GLuint m_vaoID{0}; //!< The vertex array object ID for this mesh's vertex data.
-
+    inline static GLuint s_currentBoundVao{0};
 };
-
 
 } // namespace Renderer
 } // namespace libprojectM

@@ -73,6 +73,11 @@
     <string name="library_config">Bibliothekskonfiguration</string>
     <string name="music_directory">Musikverzeichnis</string>
     <string name="playlist_directory">Playlist-Verzeichnis</string>
+    <string name="visualization_setting">Musik-Visualisierung</string>
+    <string name="visualizer_engine">Visualisierungs-Engine</string>
+    <string name="visualizer_engine_bars">Klassische Segmentierte Balken</string>
+    <string name="visualizer_engine_projectm">ProjectM 3D (Milkdrop)</string>
+    <string name="projectm_preset">Milkdrop-Preset</string>
     <string name="manual_tasks">Manuelle Aufgaben</string>
     <string name="scan_playlists">Playlists einscannen</string>
     <string name="clear_database">Datenbank leeren</string>

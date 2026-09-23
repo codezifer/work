@@ -42,6 +42,15 @@ extensions.configure<ApplicationExtension> {
         buildConfigField("long", "BUILD_TIME", appBuildTime.toString())
     }
 
+    testOptions {
+        unitTests.all {
+            it.jvmArgs(
+                "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+            )
+        }
+    }
+
     signingConfigs {
         create("release") {
             storeFile = file("$rootDir/app/keystore/release-key.jks")

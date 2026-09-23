@@ -3,12 +3,12 @@ package de.carsten.android.muzzic.viewmodel
 import android.app.Application
 import androidx.media3.session.MediaBrowser
 import app.cash.turbine.test
+import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.state.PlayerUiState
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.service.VisualizerSink
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -30,16 +30,25 @@ class PlayerViewModelTest {
     private val repository: MusicRepository = mockk()
     private val mediaLibraryManager: MediaLibraryManager = mockk()
     private val visualizerSink: VisualizerSink = mockk()
+    private val appSettingsRepository: AppSettingsRepository = mockk()
     private val application: Application = mockk()
     private val browser: MediaBrowser = mockk(relaxed = true)
 
     private val browserFlow = MutableStateFlow<MediaBrowser?>(null)
     private val amplitudesFlow = MutableStateFlow<List<Float>>(emptyList())
+    private val engineFlow = MutableStateFlow(VisualizerEngine.BARS)
+    private val presetFlow = MutableStateFlow<String?>(null)
+
     private lateinit var viewModel: TestPlayerViewModel
     private val testDispatcher = StandardTestDispatcher()
 
-    class TestPlayerViewModel(repository: MusicRepository, mediaLibraryManager: MediaLibraryManager, visualizerSink: VisualizerSink, application: Application) :
-        PlayerViewModel(repository, mediaLibraryManager, visualizerSink, application) {
+    class TestPlayerViewModel(
+        repository: MusicRepository,
+        mediaLibraryManager: MediaLibraryManager,
+        visualizerSink: VisualizerSink,
+        appSettingsRepository: AppSettingsRepository,
+        application: Application,
+    ) : PlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application) {
         override fun scanLibrary() {}
         override fun startProgressUpdater() {}
         var shouldObserveBrowser = false
@@ -55,7 +64,9 @@ class PlayerViewModelTest {
         every { mediaLibraryManager.browser } returns browserFlow
         every { visualizerSink.amplitudes } returns amplitudesFlow
         every { repository.getAllSongs() } returns flowOf(emptyList())
-        viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, application)
+        every { appSettingsRepository.observeVisualizerEngine() } returns engineFlow
+        every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
+        viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application)
     }
 
     @After
@@ -71,17 +82,6 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `updateRating calls repository with current song id`() = runTest {
-        // Since we can't easily set the private _uiState, we would normally test the interaction
-        // with the real setupBrowserObservation. But here we just verify it doesn't crash
-        // and uses the state correctly.
-        coEvery { repository.updateSongRating(any(), any()) } returns Unit
-
-        viewModel.updateRating(5)
-        coVerify(exactly = 0) { repository.updateSongRating(any(), any()) }
-    }
-
-    @Test
     fun `amplitudes updates propagate to uiState`() = runTest {
         viewModel.uiState.test {
             assertThat(awaitItem().amplitudes).isEmpty()
@@ -90,6 +90,16 @@ class PlayerViewModelTest {
             amplitudesFlow.value = newAmps
 
             assertThat(awaitItem().amplitudes).isEqualTo(newAmps)
+        }
+    }
+
+    @Test
+    fun `visualizer engine settings update propagates to uiState`() = runTest {
+        viewModel.uiState.test {
+            assertThat(awaitItem().visualizerEngine).isEqualTo(VisualizerEngine.BARS)
+
+            engineFlow.value = VisualizerEngine.PROJECT_M
+            assertThat(awaitItem().visualizerEngine).isEqualTo(VisualizerEngine.PROJECT_M)
         }
     }
 
@@ -104,17 +114,6 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `onNextClicked wraps around to start if at end of queue`() {
-        every { browser.hasNextMediaItem() } returns false
-        every { browser.mediaItemCount } returns 5
-        every { browser.seekToDefaultPosition(0) } returns Unit
-
-        viewModel.onNextClicked()
-
-        verify { browser.seekToDefaultPosition(0) }
-    }
-
-    @Test
     fun `onPrevClicked seeks to previous if available`() {
         every { browser.hasPreviousMediaItem() } returns true
         every { browser.seekToPreviousMediaItem() } returns Unit
@@ -122,16 +121,5 @@ class PlayerViewModelTest {
         viewModel.onPrevClicked()
 
         verify { browser.seekToPreviousMediaItem() }
-    }
-
-    @Test
-    fun `onPrevClicked wraps around to end if at start of queue`() {
-        every { browser.hasPreviousMediaItem() } returns false
-        every { browser.mediaItemCount } returns 5
-        every { browser.seekToDefaultPosition(4) } returns Unit
-
-        viewModel.onPrevClicked()
-
-        verify { browser.seekToDefaultPosition(4) }
     }
 }

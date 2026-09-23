@@ -46,15 +46,17 @@ class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
 
         if (availableSamples < windowSize * channelCount) return
 
-        // Extract PCM float samples for projectM audio processing
-        val pcmFloats = FloatArray(windowSize * channelCount)
-        val pcmReadBuffer = shortBuffer.duplicate()
-        for (i in pcmFloats.indices) {
-            if (pcmReadBuffer.hasRemaining()) {
-                pcmFloats[i] = pcmReadBuffer.get().toFloat() / 32768f
+        // Extract PCM float samples for projectM audio processing if native instance is active
+        if (ProjectMNativeBridge.isActive) {
+            val pcmFloats = FloatArray(windowSize * channelCount)
+            val pcmReadBuffer = shortBuffer.duplicate()
+            for (i in pcmFloats.indices) {
+                if (pcmReadBuffer.hasRemaining()) {
+                    pcmFloats[i] = pcmReadBuffer.get().toFloat() / 32768f
+                }
             }
+            ProjectMNativeBridge.addPcm(pcmFloats, channelCount)
         }
-        ProjectMNativeBridge.addPcm(pcmFloats, channelCount)
 
         for (i in 0 until windowSize) {
             val monoSample = if (channelCount >= 2) {

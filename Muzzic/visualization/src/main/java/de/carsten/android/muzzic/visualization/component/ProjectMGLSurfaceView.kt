@@ -15,8 +15,22 @@ class ProjectMGLSurfaceView @JvmOverloads constructor(context: Context, attrs: A
 
     private val renderer = ProjectMRenderer(context)
 
+    var presetName: String? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                if (!value.isNullOrEmpty()) {
+                    queueEvent {
+                        ProjectMNativeBridge.selectPreset(value)
+                    }
+                }
+            }
+        }
+
     init {
-        setEGLContextClientVersion(2)
+        setEGLContextClientVersion(3)
+        setEGLConfigChooser(8, 8, 8, 8, 16, 8)
+        setZOrderMediaOverlay(true)
         setRenderer(renderer)
         renderMode = RENDERMODE_CONTINUOUSLY
     }
@@ -26,11 +40,16 @@ class ProjectMGLSurfaceView @JvmOverloads constructor(context: Context, attrs: A
         ProjectMNativeBridge.release()
     }
 
-    private class ProjectMRenderer(private val context: Context) : Renderer {
+    private inner class ProjectMRenderer(private val context: Context) : Renderer {
 
         override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
             val presetDir = PresetManager.ensurePresetsExtracted(context)
             ProjectMNativeBridge.init(presetDir)
+            presetName?.let { name ->
+                if (name.isNotEmpty()) {
+                    ProjectMNativeBridge.selectPreset(name)
+                }
+            }
         }
 
         override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {

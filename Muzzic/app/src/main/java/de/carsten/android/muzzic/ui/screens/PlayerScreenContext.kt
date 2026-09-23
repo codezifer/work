@@ -38,6 +38,7 @@ import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.PlayerControls
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,8 @@ fun PlayerScreenContext(
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
     amplitudesProvider: () -> List<Float> = { emptyList() },
+    visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
+    projectMPreset: String? = null,
     colorSource: ColorSource = composableColorSource(),
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
@@ -169,6 +172,8 @@ fun PlayerScreenContext(
             shuffleModeEnabled = shuffleModeEnabled,
             repeatMode = repeatMode,
             amplitudesProvider = amplitudesProvider,
+            visualizerEngine = visualizerEngine,
+            projectMPreset = projectMPreset,
             colorSource = colorSource,
             onPlayPauseClicked = onPlayPauseClicked,
             onNextClicked = onNextClicked,

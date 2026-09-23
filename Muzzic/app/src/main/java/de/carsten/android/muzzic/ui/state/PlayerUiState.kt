@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.ui.state
 
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.ui.model.SongDto
+import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 data class PlayerUiState(
     val isConnected: Boolean = false,
@@ -13,4 +14,6 @@ data class PlayerUiState(
     val shuffleModeEnabled: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val amplitudes: List<Float> = emptyList(),
+    val visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
+    val projectMPreset: String? = null,
 )

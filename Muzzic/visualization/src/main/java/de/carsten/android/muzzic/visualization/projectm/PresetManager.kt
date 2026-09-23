@@ -44,4 +44,24 @@ object PresetManager {
 
         return targetDir.absolutePath
     }
+
+    /**
+     * Returns a list of available .milk preset file names.
+     */
+    fun getAvailablePresets(context: Context): List<String> {
+        val dirPath = ensurePresetsExtracted(context)
+        val dir = File(dirPath)
+        return dir.listFiles { _, name -> name.endsWith(".milk", ignoreCase = true) }
+            ?.map { it.name }
+            ?.sorted()
+            ?: emptyList()
+    }
+
+    /**
+     * Returns the full file path for a specific preset file name.
+     */
+    fun getPresetFilePath(context: Context, fileName: String): String {
+        val dirPath = ensurePresetsExtracted(context)
+        return File(dirPath, fileName).absolutePath
+    }
 }
