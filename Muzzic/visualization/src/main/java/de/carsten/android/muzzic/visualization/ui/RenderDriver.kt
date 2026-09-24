@@ -1,17 +1,16 @@
 package de.carsten.android.muzzic.visualization.ui
 
-import android.opengl.GLSurfaceView
 import android.view.Choreographer
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.render.LedBarRenderer
 
 /**
- * Choreographer-driven frame controller for scheduling `GLSurfaceView.requestRender()` calls.
+ * Choreographer-driven frame controller invoking [requestRender] at display rate.
  *
  * Automatically pauses frame scheduling when playback stops and bars have settled to zero (`isIdle`),
  * dropping CPU and GPU load to ~0%.
  */
-class RenderDriver(val glSurfaceView: GLSurfaceView, val renderer: LedBarRenderer, val processor: SpectrumProcessor? = null) {
+class RenderDriver(val requestRender: () -> Unit, val renderer: LedBarRenderer, val processor: SpectrumProcessor? = null) {
     @Volatile var isPlaying: Boolean = true
         set(value) {
             field = value
@@ -29,7 +28,7 @@ class RenderDriver(val glSurfaceView: GLSurfaceView, val renderer: LedBarRendere
 
             val shouldRender = isPlaying || !renderer.isIdle
             if (shouldRender) {
-                glSurfaceView.requestRender()
+                requestRender()
                 choreographer.postFrameCallback(this)
             } else {
                 // Bars have settled while paused: stop the loop and cut the

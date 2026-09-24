@@ -29,12 +29,11 @@ visualization/
 │   │       └── MusicVisualizerState.kt  # State holder & math calculations for 2D visualizer
 │   ├── assets/
 │   │   └── presets/                     # Default Milkdrop .milk preset files
-│   ├── cpp/
-│   │   ├── CMakeLists.txt               # CMake configuration linking libprojectM.so & projectm_bridge.cpp
-│   │   ├── projectm_bridge.cpp          # C++ JNI bridge implementation (C API only, see note above)
-│   │   └── include/                     # C++ header files (ProjectM.hpp, etc.)
-│   │       └── projectM-4/              # Public C API headers (projectM.h, audio.h, core.h, ...) +
-│   │                                     # generated version.h / projectM_export.h
+ │   ├── cpp/
+ │   │   ├── CMakeLists.txt               # CMake configuration linking libprojectM.so & projectm_bridge.cpp
+ │   │   ├── projectm_bridge.cpp          # C++ JNI bridge implementation (C API only, see note above)
+ │   │   └── include/projectM-4/          # Public C API headers (projectM.h, audio.h, core.h, ...) +
+ │   │                                     # generated version.h / projectM_export.h
 │   ├── jniLibs/                         # Pre-compiled libprojectM.so binaries (projectM 4.2.0)
 │   │   ├── arm64-v8a/
 │   │   ├── x86_64/
@@ -106,11 +105,10 @@ chmod +x build_projectm.sh
    done
    ```
 
-3. **Copy C++ Header Files**:
+3. **Copy the public C API headers** (only these are needed — the internal
+   C++ headers of `src/libprojectM` are intentionally NOT vendored, since the
+   prebuilt library only exports the C API):
    ```bash
-   mkdir -p src/main/cpp/include
-   cp -r /tmp/projectm_src/src/libprojectM/*.h src/main/cpp/include/
-   # Plus the public C API headers and the generated build headers:
    mkdir -p src/main/cpp/include/projectM-4
    cp /tmp/projectm_src/src/api/include/projectM-4/*.h src/main/cpp/include/projectM-4/
    cp /tmp/build-arm64-v8a/src/api/include/projectM-4/version.h \

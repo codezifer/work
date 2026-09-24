@@ -77,3 +77,7 @@ This document records conservative design decisions and technical trade-offs mad
 ### 17. Translucent Surface for Mirrored Bars
 - **Decision**: `SpectrumVisualizer` uses a translucent holder format (`PixelFormat.TRANSLUCENT`, RGBA8888) for `MIRRORED_BARS` and the BARS shader outputs non-premultiplied alpha with `SRC_ALPHA/ONE_MINUS_SRC_ALPHA` blending (off-intensity `0` hides unlit LEDs exactly like the legacy Canvas `continue`).
 - **Rationale**: The BARS strip sits over app UI (player controls); an opaque black clear color would box it in. The LED tower keeps its opaque surface. Theme derivation (`barsThemeFrom`) uses pure-Kotlin HSL math instead of `ColorUtils` so it stays JVM-testable without Robolectric.
+
+### 18. TextureView Instead of GLSurfaceView
+- **Decision**: `SpectrumVisualizer` hosts a `TextureView` (`isOpaque = false`) with a minimal `EglManager` (EGL14 RGBA8888 ES3 context, manual swap) instead of `GLSurfaceView`. `LedBarRenderer` is platform-agnostic (plain `onSurfaceCreated/onSurfaceChanged/onDrawFrame`), `RenderDriver` takes a `requestRender` lambda, and EGL init failure recomposes to `CanvasFallbackVisualizer`.
+- **Rationale**: `SurfaceView` surfaces live behind the app window, so transparency reveals whatever is behind the app (usually dark wallpaper) instead of the app UI — true glass was impossible, and Compose `clip()` does not apply. `TextureView` composites inside the window: transparency, pill clipping, and alpha all behave. `ProjectMGLSurfaceView` is untouched (opaque native path, separate files).

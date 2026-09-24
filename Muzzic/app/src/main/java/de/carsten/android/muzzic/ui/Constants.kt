@@ -102,6 +102,8 @@ const val GLASS_CONTAINER_ALPHA = 0.7f
 /**
  * Glass Effect Overlay Alphas
  */
+const val GLASS_OVERLAY_ALPHA_FAINT = 0.1f
+const val GLASS_OVERLAY_ALPHA_SOFT = 0.3f
 const val GLASS_OVERLAY_ALPHA_NORMAL = 0.5f
 const val GLASS_OVERLAY_ALPHA_LOW = 0.4f
 const val GLASS_OVERLAY_ALPHA_MEDIUM = 0.6f

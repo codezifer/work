@@ -130,14 +130,20 @@ for ABI in "${ABIS[@]}"; do
     echo "Successfully copied libprojectM libraries to ${DEST_JNI_DIR}/"
 done
 
-echo "=== Copying C++ header files ==="
-DEST_INC="${PWD}/src/main/cpp/include"
-mkdir -p "${DEST_INC}"
-(cd "${SRC_DIR}/src/libprojectM" && find . \( -name "*.h" -o -name "*.hpp" \) -exec cp --parents {} "${DEST_INC}/" \;)
-
 echo "=== Copying public C API headers ==="
+# NOTE: Only the public C API is copied. The internal C++ headers of
+# src/libprojectM are intentionally NOT vendored: the prebuilt library only
+# exports the C API (hidden C++ visibility), and stale C++ headers invite
+# link failures. The bridge uses <projectM-4/projectM.h> exclusively.
+# (`*.h` alone would also match C++ `*.hpp` files, so exclude those explicitly.)
+DEST_INC="${PWD}/src/main/cpp/include"
 mkdir -p "${DEST_INC}/projectM-4"
-cp "${SRC_DIR}/src/api/include/projectM-4/"*.h "${DEST_INC}/projectM-4/"
+for HEADER in "${SRC_DIR}/src/api/include/projectM-4/"*.h; do
+    case "${HEADER}" in
+        *.hpp) continue ;;
+        *) cp "${HEADER}" "${DEST_INC}/projectM-4/" ;;
+    esac
+done
 # version.h and projectM_export.h are generated at configure time; take them
 # from the first ABI build directory.
 for GENERATED in version.h projectM_export.h; do

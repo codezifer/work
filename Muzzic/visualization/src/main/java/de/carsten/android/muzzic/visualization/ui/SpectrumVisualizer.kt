@@ -2,8 +2,8 @@ package de.carsten.android.muzzic.visualization.ui
 
 import android.app.ActivityManager
 import android.content.Context
-import android.graphics.PixelFormat
-import android.opengl.GLSurfaceView
+import android.graphics.SurfaceTexture
+import android.view.TextureView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,14 +24,17 @@ import de.carsten.android.muzzic.visualization.VisualizerConfig
 import de.carsten.android.muzzic.visualization.VisualizerTheme
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
+import de.carsten.android.muzzic.visualization.render.EglManager
 import de.carsten.android.muzzic.visualization.render.LedBarRenderer
 import de.carsten.android.muzzic.visualization.render.RenderStyle
 
 /**
  * Real-time LED bar spectrum visualizer Composable.
  *
- * Automatically hosts a GLES 3.0 `GLSurfaceView` when supported, or falls back seamlessly to
- * [CanvasFallbackVisualizer] on legacy hardware.
+ * Hosts a `TextureView` (composited inside the app window, so transparency reveals
+ * the app UI beneath and Compose clip/alpha apply) when GLES 3.0 is available,
+ * or falls back seamlessly to [CanvasFallbackVisualizer] on legacy hardware
+ * or EGL initialization failure.
  *
  * @param bus Audio spectrum ring buffer.
  * @param isPlaying Whether audio playback is currently active.
@@ -74,37 +78,75 @@ fun SpectrumVisualizer(
         renderer.style = style
     }
 
+    var glFailed by remember { mutableStateOf(false) }
+    if (glFailed) {
+        CanvasFallbackVisualizer(
+            bus = bus,
+            isPlaying = isPlaying,
+            modifier = modifier,
+            config = config,
+            theme = theme,
+        )
+        return
+    }
+
+    val eglManager = remember { EglManager() }
     var renderDriver by remember { mutableStateOf<RenderDriver?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
+    // Surface callbacks fire asynchronously; always read the latest value.
+    val currentIsPlaying by rememberUpdatedState(isPlaying)
 
     AndroidView(
         factory = { ctx ->
-            GLSurfaceView(ctx).apply {
-                setEGLContextClientVersion(3)
-                if (style == RenderStyle.MIRRORED_BARS) {
-                    // Translucent surface so the host layout shows through
-                    // unlit areas (classic bars draw no background).
-                    holder.setFormat(PixelFormat.TRANSLUCENT)
-                    setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-                } else {
-                    setEGLConfigChooser(8, 8, 8, 8, 0, 0)
+            TextureView(ctx).apply {
+                // Transparent compositing: unlit areas reveal the app UI beneath.
+                isOpaque = false
+                surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                        if (!eglManager.init(surface, width, height)) {
+                            glFailed = true
+                            return
+                        }
+                        renderer.onSurfaceCreated()
+                        renderer.onSurfaceChanged(width, height)
+                        val driver = RenderDriver(
+                            requestRender = {
+                                if (eglManager.isReady) {
+                                    renderer.onDrawFrame()
+                                    eglManager.swapBuffers()
+                                }
+                            },
+                            renderer = renderer,
+                            processor = processor,
+                        )
+                        renderDriver = driver
+                        driver.isPlaying = currentIsPlaying
+                    }
+
+                    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+                        renderer.onSurfaceChanged(width, height)
+                    }
+
+                    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+                        renderDriver?.stop()
+                        renderDriver = null
+                        renderer.release()
+                        eglManager.release()
+                        return true
+                    }
+
+                    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
                 }
-                setRenderer(renderer)
-                renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-                preserveEGLContextOnPause = true
-            }.also { view ->
-                val driver = RenderDriver(view, renderer, processor)
-                renderDriver = driver
             }
         },
         update = {
             renderDriver?.isPlaying = isPlaying
         },
-        onRelease = { view ->
+        onRelease = {
             renderDriver?.stop()
             renderDriver = null
-            // GL resources must be deleted on the GL thread, not the UI thread.
-            view.queueEvent { renderer.release() }
+            renderer.release()
+            eglManager.release()
         },
         modifier = modifier.fillMaxSize(),
     )

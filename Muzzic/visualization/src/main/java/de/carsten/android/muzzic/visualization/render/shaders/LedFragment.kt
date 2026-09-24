@@ -49,7 +49,9 @@ ${ShaderSnippets.ROUNDED_BOX_SDF}
     vec3 zone = t < uZoneStart.x ? uColLow : (t < uZoneStart.y ? uColMid : uColHigh);
     vec3 c    = zone * mix(uOffIntensity, 1.0, on);
 
-    fragColor = vec4(mix(uBackground, c, led), 1.0);
+    // Alpha follows LED coverage so unlit areas stay transparent on
+    // translucent surfaces (ignored on opaque surfaces).
+    fragColor = vec4(mix(uBackground, c, led), led);
 }
 """
 }

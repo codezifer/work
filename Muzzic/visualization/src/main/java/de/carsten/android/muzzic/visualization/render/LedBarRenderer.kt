@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.visualization.render
 
 import android.opengl.GLES30
-import android.opengl.GLSurfaceView
 import android.util.Log
 import de.carsten.android.muzzic.visualization.MAX_RENDER_DT_SEC
 import de.carsten.android.muzzic.visualization.MAX_SPECTRUM_BANDS
@@ -16,8 +15,6 @@ import de.carsten.android.muzzic.visualization.bus.SpectrumBus
 import de.carsten.android.muzzic.visualization.render.shaders.BarsFragment
 import de.carsten.android.muzzic.visualization.render.shaders.FullscreenVertex
 import de.carsten.android.muzzic.visualization.render.shaders.LedFragment
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 
 /**
  * Render styles supported by [LedBarRenderer].
@@ -49,13 +46,17 @@ private const val TAG = "LedBarRenderer"
 
 /**
  * OpenGL ES 3.0 renderer implementation for the LED bar spectrum visualizer.
+ *
+ * Platform-agnostic: the host (currently a `TextureView` via [EglManager]) owns the
+ * EGL context and calls [onSurfaceCreated], [onSurfaceChanged], and [onDrawFrame]
+ * on a single thread with the context current.
  */
 class LedBarRenderer(
     val bus: SpectrumBus,
     var config: VisualizerConfig = VisualizerConfig(),
     var theme: VisualizerTheme = VisualizerTheme.ClassicGreen,
     var style: RenderStyle = RenderStyle.LED,
-) : GLSurfaceView.Renderer {
+) {
 
     @Volatile var isIdle: Boolean = false
         private set
@@ -104,7 +105,7 @@ class LedBarRenderer(
     private var lastDrawNanos = System.nanoTime()
     private var renderTimeSec = 0f
 
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+    fun onSurfaceCreated() {
         program = GlUtil.createProgram(FullscreenVertex.SOURCE, LedFragment.SOURCE)
         barsProgram = GlUtil.createProgram(FullscreenVertex.SOURCE, BarsFragment.SOURCE)
         if (program == 0) {
@@ -146,13 +147,13 @@ class LedBarRenderer(
         lastDrawNanos = System.nanoTime()
     }
 
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+    fun onSurfaceChanged(width: Int, height: Int) {
         viewportWidth = width
         viewportHeight = height
         GLES30.glViewport(0, 0, width, height)
     }
 
-    override fun onDrawFrame(gl: GL10?) {
+    fun onDrawFrame() {
         if (viewportWidth <= 0 || viewportHeight <= 0) return
 
         val now = System.nanoTime()
@@ -203,6 +204,10 @@ class LedBarRenderer(
         GLES30.glClearColor(theme.background.red, theme.background.green, theme.background.blue, theme.background.alpha)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
 
+        // Non-premultiplied alpha blending against the translucent surface.
+        GLES30.glEnable(GLES30.GL_BLEND)
+        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+
         GLES30.glUseProgram(program)
 
         GLES30.glUniform2f(uResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
@@ -223,6 +228,8 @@ class LedBarRenderer(
         GLES30.glUniform3f(uBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
+
+        GLES30.glDisable(GLES30.GL_BLEND)
     }
 
     private fun drawMirroredBars() {

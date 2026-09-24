@@ -34,6 +34,8 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_FAT
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_FAINT
+import de.carsten.android.muzzic.ui.GLASS_OVERLAY_ALPHA_SOFT
 import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.ICON_SIZE_PLAYER_MAIN
@@ -70,13 +72,16 @@ fun PlayerControls(
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
 ) {
+    // Glassy pill for the GLES visualizers (their surfaces are transparent);
+    // projectM renders opaquely and keeps the stronger backdrop.
+    val pillBackgroundAlpha = if (visualizerEngine == VisualizerEngine.PROJECT_M) GLASS_OVERLAY_ALPHA_SOFT else GLASS_OVERLAY_ALPHA_FAINT
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .clip(CircleShape)
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = pillBackgroundAlpha),
                 shape = CircleShape,
             )
             .border(

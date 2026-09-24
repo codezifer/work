@@ -111,10 +111,14 @@ fun MusicVisualization(
 
         VisualizerEngine.LED_SPECTRUM -> {
             if (spectrumBus != null) {
+                // Transparent background: the LED shapes carry their own alpha,
+                // the host layout shows through everywhere else.
+                val ledTheme = remember { VisualizerTheme.ClassicGreen.copy(background = Color.Transparent) }
                 SpectrumVisualizer(
                     bus = spectrumBus,
                     isPlaying = isPlaying,
                     modifier = modifier,
+                    theme = ledTheme,
                     processor = spectrumProcessor,
                 )
             } else {
