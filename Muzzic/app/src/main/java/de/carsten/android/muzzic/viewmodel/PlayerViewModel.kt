@@ -45,7 +45,8 @@ open class PlayerViewModel(
     private val _uiState = MutableStateFlow(PlayerUiState())
     override val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
-    val amplitudes: StateFlow<List<Float>> = visualizerSink.amplitudes
+    val spectrumBus = visualizerSink.spectrumBus
+    val spectrumProcessor = visualizerSink.spectrumProcessor
 
     val songs =
         repository.getAllSongs().stateIn(
@@ -88,7 +89,6 @@ open class PlayerViewModel(
         scanLibrary()
         startProgressUpdater()
         setupBrowserObservation()
-        setupAmplitudesObservation()
         setupSettingsObservation()
     }
 
@@ -113,21 +113,22 @@ open class PlayerViewModel(
         }
     }
 
-    private fun setupAmplitudesObservation() {
-        viewModelScope.launch {
-            amplitudes.collect { amps ->
-                _uiState.update { it.copy(amplitudes = amps) }
-            }
-        }
-    }
-
     private fun setupSettingsObservation() {
         viewModelScope.launch {
             combine(
                 appSettingsRepository.observeVisualizerEngine(),
                 appSettingsRepository.observeProjectMPreset(),
-            ) { engine, preset ->
-                _uiState.update { it.copy(visualizerEngine = engine, projectMPreset = preset) }
+                appSettingsRepository.observeBarsShimmerEnabled(),
+                appSettingsRepository.observeBarsTipGlowEnabled(),
+            ) { engine, preset, shimmerEnabled, tipGlowEnabled ->
+                _uiState.update {
+                    it.copy(
+                        visualizerEngine = engine,
+                        projectMPreset = preset,
+                        barsShimmerEnabled = shimmerEnabled,
+                        barsTipGlowEnabled = tipGlowEnabled,
+                    )
+                }
             }.collect {}
         }
     }

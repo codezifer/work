@@ -29,15 +29,16 @@ import org.junit.Test
 class PlayerViewModelTest {
     private val repository: MusicRepository = mockk()
     private val mediaLibraryManager: MediaLibraryManager = mockk()
-    private val visualizerSink: VisualizerSink = mockk()
+    private val visualizerSink: VisualizerSink = mockk(relaxed = true)
     private val appSettingsRepository: AppSettingsRepository = mockk()
     private val application: Application = mockk()
     private val browser: MediaBrowser = mockk(relaxed = true)
 
     private val browserFlow = MutableStateFlow<MediaBrowser?>(null)
-    private val amplitudesFlow = MutableStateFlow<List<Float>>(emptyList())
     private val engineFlow = MutableStateFlow(VisualizerEngine.BARS)
     private val presetFlow = MutableStateFlow<String?>(null)
+    private val shimmerFlow = MutableStateFlow(true)
+    private val tipGlowFlow = MutableStateFlow(true)
 
     private lateinit var viewModel: TestPlayerViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -62,10 +63,13 @@ class PlayerViewModelTest {
         Dispatchers.setMain(testDispatcher)
         browserFlow.value = browser
         every { mediaLibraryManager.browser } returns browserFlow
-        every { visualizerSink.amplitudes } returns amplitudesFlow
+        every { visualizerSink.spectrumBus } returns mockk(relaxed = true)
+        every { visualizerSink.spectrumProcessor } returns mockk(relaxed = true)
         every { repository.getAllSongs() } returns flowOf(emptyList())
         every { appSettingsRepository.observeVisualizerEngine() } returns engineFlow
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
+        every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
+        every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
         viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application)
     }
 
@@ -82,14 +86,17 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `amplitudes updates propagate to uiState`() = runTest {
+    fun `bars effect toggles propagate to uiState`() = runTest {
         viewModel.uiState.test {
-            assertThat(awaitItem().amplitudes).isEmpty()
+            val initial = awaitItem()
+            assertThat(initial.barsShimmerEnabled).isTrue()
+            assertThat(initial.barsTipGlowEnabled).isTrue()
 
-            val newAmps = listOf(0.1f, 0.2f)
-            amplitudesFlow.value = newAmps
+            shimmerFlow.value = false
+            assertThat(awaitItem().barsShimmerEnabled).isFalse()
 
-            assertThat(awaitItem().amplitudes).isEqualTo(newAmps)
+            tipGlowFlow.value = false
+            assertThat(awaitItem().barsTipGlowEnabled).isFalse()
         }
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,6 +72,8 @@ fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBac
         visualizerEngine = uiState.visualizerEngine,
         projectMPreset = uiState.projectMPreset,
         availablePresets = uiState.availablePresets,
+        barsShimmerEnabled = uiState.barsShimmerEnabled,
+        barsTipGlowEnabled = uiState.barsTipGlowEnabled,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
     )
@@ -83,6 +88,8 @@ private fun SettingsScreenContent(
     visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
     projectMPreset: String? = null,
     availablePresets: List<String> = emptyList(),
+    barsShimmerEnabled: Boolean = true,
+    barsTipGlowEnabled: Boolean = true,
     settingsViewModel: SettingsViewModel? = null,
     onBackClick: () -> Unit = {},
 ) {
@@ -184,11 +191,19 @@ private fun SettingsScreenContent(
                 currentEngine = visualizerEngine,
                 currentPreset = projectMPreset,
                 availablePresets = availablePresets,
+                barsShimmerEnabled = barsShimmerEnabled,
+                barsTipGlowEnabled = barsTipGlowEnabled,
                 onEngineSelected = { engine ->
                     settingsViewModel?.updateVisualizerEngine(engine)
                 },
                 onPresetSelected = { presetName ->
                     settingsViewModel?.updateProjectMPreset(presetName)
+                },
+                onBarsShimmerToggled = { enabled ->
+                    settingsViewModel?.updateBarsShimmerEnabled(enabled)
+                },
+                onBarsTipGlowToggled = { enabled ->
+                    settingsViewModel?.updateBarsTipGlowEnabled(enabled)
                 },
             )
         }
@@ -228,6 +243,10 @@ private fun VisualizerSetting(
     availablePresets: List<String>,
     onEngineSelected: (VisualizerEngine) -> Unit,
     onPresetSelected: (String) -> Unit,
+    barsShimmerEnabled: Boolean = true,
+    barsTipGlowEnabled: Boolean = true,
+    onBarsShimmerToggled: (Boolean) -> Unit = {},
+    onBarsTipGlowToggled: (Boolean) -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
         Text(
@@ -240,6 +259,7 @@ private fun VisualizerSetting(
         val engineLabel = when (currentEngine) {
             VisualizerEngine.BARS -> stringResource(R.string.visualizer_engine_bars)
             VisualizerEngine.PROJECT_M -> stringResource(R.string.visualizer_engine_projectm)
+            VisualizerEngine.LED_SPECTRUM -> stringResource(R.string.visualizer_engine_led_spectrum)
         }
 
         ExposedDropdownMenuBox(
@@ -272,7 +292,28 @@ private fun VisualizerSetting(
                         engineExpanded = false
                     },
                 )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.visualizer_engine_led_spectrum)) },
+                    onClick = {
+                        onEngineSelected(VisualizerEngine.LED_SPECTRUM)
+                        engineExpanded = false
+                    },
+                )
             }
+        }
+
+        if (currentEngine == VisualizerEngine.BARS) {
+            Spacer(modifier = Modifier.height(SPACING_TINY))
+            EffectSwitchRow(
+                label = stringResource(R.string.visualizer_bars_shimmer),
+                checked = barsShimmerEnabled,
+                onCheckedChange = onBarsShimmerToggled,
+            )
+            EffectSwitchRow(
+                label = stringResource(R.string.visualizer_bars_tip_glow),
+                checked = barsTipGlowEnabled,
+                onCheckedChange = onBarsTipGlowToggled,
+            )
         }
 
         if (currentEngine == VisualizerEngine.PROJECT_M && availablePresets.isNotEmpty()) {
@@ -312,6 +353,27 @@ private fun VisualizerSetting(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EffectSwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = label },
+        )
     }
 }
 

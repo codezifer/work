@@ -13,7 +13,8 @@ data class PlayerUiState(
     val progress: Float = 0f,
     val shuffleModeEnabled: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
-    val amplitudes: List<Float> = emptyList(),
     val visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
     val projectMPreset: String? = null,
+    val barsShimmerEnabled: Boolean = true,
+    val barsTipGlowEnabled: Boolean = true,
 )

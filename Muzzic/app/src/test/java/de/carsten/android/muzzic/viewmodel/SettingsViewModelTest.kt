@@ -36,6 +36,8 @@ class SettingsViewModelTest {
     private val playlistDirFlow = MutableStateFlow<String?>(null)
     private val engineFlow = MutableStateFlow(VisualizerEngine.BARS)
     private val presetFlow = MutableStateFlow<String?>(null)
+    private val shimmerFlow = MutableStateFlow(true)
+    private val tipGlowFlow = MutableStateFlow(true)
 
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -46,6 +48,8 @@ class SettingsViewModelTest {
         every { appSettingsRepository.observePlaylistDirectory() } returns playlistDirFlow
         every { appSettingsRepository.observeVisualizerEngine() } returns engineFlow
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
+        every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
+        every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
         Dispatchers.setMain(testDispatcher)
         viewModel = SettingsViewModel(appSettingsRepository, musicRepository, application)
     }
@@ -91,6 +95,31 @@ class SettingsViewModelTest {
         testScheduler.advanceUntilIdle()
 
         coVerify { appSettingsRepository.saveProjectMPreset("test.milk") }
+    }
+
+    @Test
+    fun `bars effect toggles update repository and uiState`() = runTest {
+        coEvery { appSettingsRepository.saveBarsShimmerEnabled(false) } returns Unit
+        coEvery { appSettingsRepository.saveBarsTipGlowEnabled(false) } returns Unit
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.barsShimmerEnabled).isTrue()
+            assertThat(initial.barsTipGlowEnabled).isTrue()
+
+            shimmerFlow.value = false
+            assertThat(awaitItem().barsShimmerEnabled).isFalse()
+
+            tipGlowFlow.value = false
+            assertThat(awaitItem().barsTipGlowEnabled).isFalse()
+        }
+
+        viewModel.updateBarsShimmerEnabled(false)
+        viewModel.updateBarsTipGlowEnabled(false)
+        testScheduler.advanceUntilIdle()
+
+        coVerify { appSettingsRepository.saveBarsShimmerEnabled(false) }
+        coVerify { appSettingsRepository.saveBarsTipGlowEnabled(false) }
     }
 
     @Test

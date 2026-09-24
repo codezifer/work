@@ -15,6 +15,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
+ * Bundled visualizer options for settings observation.
+ */
+private data class VisualizerOptions(val engine: VisualizerEngine, val preset: String?, val shimmerEnabled: Boolean, val tipGlowEnabled: Boolean)
+
+/**
  * ViewModel for the Settings screen.
  * Manages app-wide configuration and manual library tasks.
  */
@@ -25,16 +30,24 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
     override val uiState: StateFlow<SettingsUiState> = combine(
         appSettingsRepository.observeMusicDirectory(),
         appSettingsRepository.observePlaylistDirectory(),
-        appSettingsRepository.observeVisualizerEngine(),
-        appSettingsRepository.observeProjectMPreset(),
-    ) { musicDir, playlistDir, visualizerEngine, projectMPreset ->
+        combine(
+            appSettingsRepository.observeVisualizerEngine(),
+            appSettingsRepository.observeProjectMPreset(),
+            appSettingsRepository.observeBarsShimmerEnabled(),
+            appSettingsRepository.observeBarsTipGlowEnabled(),
+        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled ->
+            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled)
+        },
+    ) { musicDir, playlistDir, visualizer ->
         val availablePresets = PresetManager.getAvailablePresets(getApplication())
         SettingsUiState(
             musicDirectory = musicDir,
             playlistDirectory = playlistDir,
-            visualizerEngine = visualizerEngine,
-            projectMPreset = projectMPreset ?: availablePresets.firstOrNull(),
+            visualizerEngine = visualizer.engine,
+            projectMPreset = visualizer.preset ?: availablePresets.firstOrNull(),
             availablePresets = availablePresets,
+            barsShimmerEnabled = visualizer.shimmerEnabled,
+            barsTipGlowEnabled = visualizer.tipGlowEnabled,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
@@ -53,6 +66,24 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
     fun updateProjectMPreset(presetName: String) {
         viewModelScope.launch {
             appSettingsRepository.saveProjectMPreset(presetName)
+        }
+    }
+
+    /**
+     * Updates the mirrored-BARS shimmer effect toggle.
+     */
+    fun updateBarsShimmerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            appSettingsRepository.saveBarsShimmerEnabled(enabled)
+        }
+    }
+
+    /**
+     * Updates the mirrored-BARS tip-glow effect toggle.
+     */
+    fun updateBarsTipGlowEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            appSettingsRepository.saveBarsTipGlowEnabled(enabled)
         }
     }
 

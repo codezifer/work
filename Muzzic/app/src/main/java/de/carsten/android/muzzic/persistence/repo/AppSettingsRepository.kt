@@ -16,6 +16,8 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
         const val KEY_PLAYLIST_DIRECTORY = "playlist_directory"
         const val KEY_VISUALIZER_ENGINE = "visualizer_engine"
         const val KEY_PROJECTM_PRESET = "projectm_preset"
+        const val KEY_BARS_SHIMMER_ENABLED = "bars_shimmer_enabled"
+        const val KEY_BARS_TIP_GLOW_ENABLED = "bars_tip_glow_enabled"
     }
 
     /**
@@ -91,5 +93,33 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
      */
     suspend fun saveProjectMPreset(presetName: String) {
         genericSettingDao.insertOrUpdate(GenericSetting(KEY_PROJECTM_PRESET, presetName))
+    }
+
+    /**
+     * Observes the mirrored-BARS shimmer effect toggle (defaults to true).
+     */
+    fun observeBarsShimmerEnabled(): Flow<Boolean> = genericSettingDao.observeSetting(KEY_BARS_SHIMMER_ENABLED).map { setting ->
+        setting?.value?.toBooleanStrictOrNull() ?: true
+    }
+
+    /**
+     * Saves the mirrored-BARS shimmer effect toggle.
+     */
+    suspend fun saveBarsShimmerEnabled(enabled: Boolean) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_BARS_SHIMMER_ENABLED, enabled.toString()))
+    }
+
+    /**
+     * Observes the mirrored-BARS tip-glow effect toggle (defaults to true).
+     */
+    fun observeBarsTipGlowEnabled(): Flow<Boolean> = genericSettingDao.observeSetting(KEY_BARS_TIP_GLOW_ENABLED).map { setting ->
+        setting?.value?.toBooleanStrictOrNull() ?: true
+    }
+
+    /**
+     * Saves the mirrored-BARS tip-glow effect toggle.
+     */
+    suspend fun saveBarsTipGlowEnabled(enabled: Boolean) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_BARS_TIP_GLOW_ENABLED, enabled.toString()))
     }
 }

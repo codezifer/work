@@ -8,4 +8,6 @@ data class SettingsUiState(
     val visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
     val projectMPreset: String? = null,
     val availablePresets: List<String> = emptyList(),
+    val barsShimmerEnabled: Boolean = true,
+    val barsTipGlowEnabled: Boolean = true,
 )

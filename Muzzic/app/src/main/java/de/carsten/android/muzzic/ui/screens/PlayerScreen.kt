@@ -39,6 +39,8 @@ import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
+import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
+import de.carsten.android.muzzic.visualization.bus.SpectrumBus
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
 
@@ -56,9 +58,12 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
         duration = uiState.duration,
         shuffleModeEnabled = uiState.shuffleModeEnabled,
         repeatMode = uiState.repeatMode,
-        amplitudesProvider = { uiState.amplitudes },
         visualizerEngine = uiState.visualizerEngine,
         projectMPreset = uiState.projectMPreset,
+        barsShimmerEnabled = uiState.barsShimmerEnabled,
+        barsTipGlowEnabled = uiState.barsTipGlowEnabled,
+        spectrumBus = playerViewModel.spectrumBus,
+        spectrumProcessor = playerViewModel.spectrumProcessor,
         colorSource = colorSource,
         onPrevClicked = playerViewModel::onPrevClicked,
         onNextClicked = playerViewModel::onNextClicked,
@@ -78,9 +83,12 @@ private fun PlayerScreenContent(
     duration: Long,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
-    amplitudesProvider: () -> List<Float>,
     visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
     projectMPreset: String? = null,
+    barsShimmerEnabled: Boolean = true,
+    barsTipGlowEnabled: Boolean = true,
+    spectrumBus: SpectrumBus? = null,
+    spectrumProcessor: SpectrumProcessor? = null,
     colorSource: ColorSource = composableColorSource(),
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
@@ -142,9 +150,12 @@ private fun PlayerScreenContent(
                 duration = duration,
                 shuffleModeEnabled = shuffleModeEnabled,
                 repeatMode = repeatMode,
-                amplitudesProvider = amplitudesProvider,
                 visualizerEngine = visualizerEngine,
                 projectMPreset = projectMPreset,
+                barsShimmerEnabled = barsShimmerEnabled,
+                barsTipGlowEnabled = barsTipGlowEnabled,
+                spectrumBus = spectrumBus,
+                spectrumProcessor = spectrumProcessor,
                 colorSource = colorSource,
                 onPreviousClicked = onPrevClicked,
                 onPlayPauseClicked = onPlayPauseClicked,
@@ -174,7 +185,6 @@ fun PlayerScreenPreview() {
             duration = 225000L,
             shuffleModeEnabled = false,
             repeatMode = Player.REPEAT_MODE_OFF,
-            amplitudesProvider = { List(16) { 0.5f } },
             colorSource = composableColorSource(),
             onPrevClicked = {},
             onPlayPauseClicked = {},

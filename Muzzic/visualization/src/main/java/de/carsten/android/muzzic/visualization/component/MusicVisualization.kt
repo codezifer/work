@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.visualization.component
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,74 +9,90 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.graphics.ColorUtils
+import de.carsten.android.muzzic.visualization.BARS_SEGMENT_COUNT
+import de.carsten.android.muzzic.visualization.DEFAULT_SHIMMER_STRENGTH
+import de.carsten.android.muzzic.visualization.DEFAULT_SPECTRUM_BANDS
+import de.carsten.android.muzzic.visualization.DEFAULT_TIP_GLOW_STRENGTH
 import de.carsten.android.muzzic.visualization.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.visualization.VISUALIZER_BAR_SPACING
-import de.carsten.android.muzzic.visualization.VISUALIZER_GLOW_INTENSITY
-import de.carsten.android.muzzic.visualization.VISUALIZER_HUE_COLOR_DEGREE
-import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_BASE_DIVISOR
-import de.carsten.android.muzzic.visualization.VISUALIZER_LOG_SCALE_FACTOR
-import de.carsten.android.muzzic.visualization.VISUALIZER_SEGMENT_HEIGHT
-import de.carsten.android.muzzic.visualization.VISUALIZER_SEGMENT_SPACING
-import kotlin.math.ln
+import de.carsten.android.muzzic.visualization.PREVIEW_SYNTH_FRAME_AGE_NANOS
+import de.carsten.android.muzzic.visualization.VisualizerConfig
+import de.carsten.android.muzzic.visualization.VisualizerTheme
+import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
+import de.carsten.android.muzzic.visualization.bus.SpectrumBus
+import de.carsten.android.muzzic.visualization.render.RenderStyle
+import de.carsten.android.muzzic.visualization.ui.CanvasFallbackVisualizer
+import de.carsten.android.muzzic.visualization.ui.SpectrumVisualizer
 
 /**
  * Supported rendering engines for music visualization.
  */
 enum class VisualizerEngine {
-    /** 2D segmented bar graph drawn via Compose Canvas */
+    /** Mirrored segmented bars rendered via GLES 3.0 (classic look, modern pipeline). */
     BARS,
 
     /** 3D OpenGL Milkdrop visualizer powered by libprojectM */
     PROJECT_M,
+
+    /** 80s HiFi LED Bar Spectrum Analyzer powered by GLES 3.0 */
+    LED_SPECTRUM,
 }
 
 /**
- * A real-time audio visualizer component supporting 2D segmented bars and 3D ProjectM Milkdrop visuals.
+ * A real-time audio visualizer component supporting mirrored GLES bars, 3D ProjectM
+ * Milkdrop visuals, and the 80s HiFi GLES 3.0 LED spectrum analyzer.
  *
- * @param amplitudesProvider Lambda providing the current list of normalized audio amplitudes (0.0 to 1.0).
+ * Both bar engines are fed by the shared [SpectrumBus] (logarithmic bands with
+ * dB scaling, tilt compensation, and auto-gain); no legacy FFT path remains.
+ *
  * @param modifier Modifier for the visualizer container.
  * @param engine Visualization rendering engine to use (default: [VisualizerEngine.BARS]).
- * @param color The base accent color for the visualization.
+ * @param presetName Name of the selected ProjectM preset (if using [VisualizerEngine.PROJECT_M]).
+ * @param spectrumBus Spectrum ring buffer instance for the GLES engines.
+ * @param spectrumProcessor Audio processor instance for the GLES engines.
+ * @param color The base accent color for the BARS gradient.
  * @param isPlaying Whether the visualization is currently active.
- * @param segmentHeight Height of each individual segment in a bar.
- * @param segmentSpacing Vertical spacing between segments.
- * @param barSpacing Horizontal spacing between bars.
+ * @param shimmerEnabled Whether lit BARS segments shimmer (no-op for other engines).
+ * @param tipGlowEnabled Whether BARS tip segments get a white highlight (no-op for other engines).
  */
 @Composable
 fun MusicVisualization(
-    amplitudesProvider: () -> List<Float>,
     modifier: Modifier = Modifier,
     engine: VisualizerEngine = VisualizerEngine.BARS,
     presetName: String? = null,
+    spectrumBus: SpectrumBus? = null,
+    spectrumProcessor: SpectrumProcessor? = null,
     color: Color = MaterialTheme.colorScheme.primary,
     isPlaying: Boolean = true,
-    segmentHeight: Dp = VISUALIZER_SEGMENT_HEIGHT,
-    segmentSpacing: Dp = VISUALIZER_SEGMENT_SPACING,
-    barSpacing: Dp = VISUALIZER_BAR_SPACING,
+    shimmerEnabled: Boolean = true,
+    tipGlowEnabled: Boolean = true,
 ) {
     when (engine) {
         VisualizerEngine.BARS -> {
-            SegmentedBarsVisualizer(
-                amplitudesProvider = amplitudesProvider,
-                modifier = modifier,
-                color = color,
-                isPlaying = isPlaying,
-                segmentHeight = segmentHeight,
-                segmentSpacing = segmentSpacing,
-                barSpacing = barSpacing,
-            )
+            if (spectrumBus != null) {
+                val barsTheme = remember(color) { VisualizerTheme.barsThemeFrom(color) }
+                val barsConfig = remember(shimmerEnabled, tipGlowEnabled) {
+                    VisualizerConfig().copy(
+                        segmentCount = BARS_SEGMENT_COUNT,
+                        shimmerStrength = if (shimmerEnabled) DEFAULT_SHIMMER_STRENGTH else 0f,
+                        tipGlowStrength = if (tipGlowEnabled) DEFAULT_TIP_GLOW_STRENGTH else 0f,
+                    )
+                }
+                SpectrumVisualizer(
+                    bus = spectrumBus,
+                    isPlaying = isPlaying,
+                    modifier = modifier,
+                    config = barsConfig,
+                    theme = barsTheme,
+                    style = RenderStyle.MIRRORED_BARS,
+                    processor = spectrumProcessor,
+                )
+            } else {
+                Box(modifier = modifier)
+            }
         }
 
         VisualizerEngine.PROJECT_M -> {
@@ -93,93 +108,17 @@ fun MusicVisualization(
                 modifier = modifier,
             )
         }
-    }
-}
 
-@Composable
-private fun SegmentedBarsVisualizer(
-    amplitudesProvider: () -> List<Float>,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
-    isPlaying: Boolean = true,
-    segmentHeight: Dp = VISUALIZER_SEGMENT_HEIGHT,
-    segmentSpacing: Dp = VISUALIZER_SEGMENT_SPACING,
-    barSpacing: Dp = VISUALIZER_BAR_SPACING,
-) {
-    val density = LocalDensity.current
-    val segHeightPx = remember(density, segmentHeight) { with(density) { segmentHeight.toPx() } }
-    val segSpacingPx = remember(density, segmentSpacing) { with(density) { segmentSpacing.toPx() } }
-    val barSpacingPx = remember(density, barSpacing) { with(density) { barSpacing.toPx() } }
-    val totalSegStepPx = segHeightPx + segSpacingPx
-
-    // Pre-calculate the target color for the gradient edges
-    val targetColor = remember(color) {
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(color.toArgb(), hsl)
-        val targetHsl = hsl.copyOf().apply {
-            this[0] = (this[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f
-        }
-        Color(ColorUtils.HSLToColor(targetHsl)).copy(alpha = color.alpha)
-    }
-
-    Canvas(modifier = modifier) {
-        val amplitudes = amplitudesProvider()
-        val barCount = amplitudes.size.coerceAtLeast(1)
-        if (barCount == 0) return@Canvas
-
-        val width = size.width
-        val height = size.height
-        val centerY = height / 2f
-        val maxSegmentsPerSide = (centerY / totalSegStepPx).toInt().coerceAtLeast(1)
-
-        val barWidth = (width - (barCount - 1) * barSpacingPx) / barCount
-
-        // Pre-calculate base colors for each segment level to avoid repeated lerp calls
-        val segmentBaseColors = Array(maxSegmentsPerSide) { j ->
-            lerp(color, targetColor, j.toFloat() / maxSegmentsPerSide.toFloat())
-        }
-
-        for (i in 0 until barCount) {
-            val mirroredIndex = if (i < barCount / 2) {
-                ((barCount / 2) - 1) - i
-            } else {
-                i - barCount / 2
-            }
-
-            val rawAmplitude = if (isPlaying && mirroredIndex < amplitudes.size) {
-                amplitudes[mirroredIndex]
-            } else {
-                0f
-            }
-
-            if (rawAmplitude <= 0f) continue
-
-            val scaledAmplitude = (ln((rawAmplitude * VISUALIZER_LOG_SCALE_FACTOR) + 1f) / ln(VISUALIZER_LOG_BASE_DIVISOR)).coerceIn(0f, 1f)
-            val activeSegments = (scaledAmplitude * maxSegmentsPerSide).toInt()
-            if (activeSegments <= 0) continue
-
-            val x = i * (barWidth + barSpacingPx)
-            val glowAmount = scaledAmplitude * VISUALIZER_GLOW_INTENSITY
-
-            for (j in 0 until activeSegments) {
-                val baseColor = segmentBaseColors[j]
-                val finalColor = if (glowAmount > 0f) lerp(baseColor, Color.White, glowAmount) else baseColor
-
-                // Top segment
-                drawRoundRect(
-                    color = finalColor,
-                    topLeft = Offset(x, centerY - (j + 1) * totalSegStepPx + segSpacingPx / 2f),
-                    size = Size(barWidth, segHeightPx),
-                    cornerRadius = CornerRadius(barWidth / 4f, barWidth / 4f),
+        VisualizerEngine.LED_SPECTRUM -> {
+            if (spectrumBus != null) {
+                SpectrumVisualizer(
+                    bus = spectrumBus,
+                    isPlaying = isPlaying,
+                    modifier = modifier,
+                    processor = spectrumProcessor,
                 )
-
-                // Bottom segment (mirrored vertically)
-                drawRoundRect(
-                    color = finalColor,
-                    topLeft = Offset(x, centerY + j * totalSegStepPx + segSpacingPx / 2f),
-                    size = Size(barWidth, segHeightPx),
-                    cornerRadius = CornerRadius(barWidth / 4f, barWidth / 4f),
-                )
+            } else {
+                Box(modifier = modifier)
             }
         }
     }
@@ -196,16 +135,22 @@ fun MusicVisualizationPreview() {
                 .padding(16.dp)
                 .height(100.dp),
         ) {
-            MusicVisualization(
-                amplitudesProvider = {
-                    listOf(
-                        0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f,
-                        0.7f, 0.4f, 0.3f, 0.8f, 0.5f, 0.2f, 0.6f, 0.4f,
-                    )
-                },
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.primary,
+            // Static preview through the Canvas fallback with a pre-filled bus.
+            // The frame is backdated past the latency window so the fallback picks it up.
+            val bus = remember {
+                SpectrumBus().also { filled ->
+                    val values = FloatArray(DEFAULT_SPECTRUM_BANDS) { i ->
+                        listOf(0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f)[i % 8]
+                    }
+                    filled.write(System.nanoTime() - PREVIEW_SYNTH_FRAME_AGE_NANOS, values, DEFAULT_SPECTRUM_BANDS)
+                }
+            }
+            CanvasFallbackVisualizer(
+                bus = bus,
                 isPlaying = true,
+                modifier = Modifier.fillMaxSize(),
+                config = VisualizerConfig(segmentCount = BARS_SEGMENT_COUNT),
+                theme = VisualizerTheme.barsThemeFrom(MaterialTheme.colorScheme.primary),
             )
         }
     }

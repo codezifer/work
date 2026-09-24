@@ -43,6 +43,8 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
+import de.carsten.android.muzzic.visualization.bus.SpectrumBus
 import de.carsten.android.muzzic.visualization.component.MusicVisualization
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
@@ -54,7 +56,6 @@ fun PlayerControls(
     isPlaying: Boolean,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
-    amplitudesProvider: () -> List<Float>,
     colorSource: ColorSource,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
@@ -64,6 +65,10 @@ fun PlayerControls(
     modifier: Modifier = Modifier,
     visualizerEngine: VisualizerEngine = VisualizerEngine.BARS,
     projectMPreset: String? = null,
+    barsShimmerEnabled: Boolean = true,
+    barsTipGlowEnabled: Boolean = true,
+    spectrumBus: SpectrumBus? = null,
+    spectrumProcessor: SpectrumProcessor? = null,
 ) {
     Box(
         modifier = modifier
@@ -83,11 +88,14 @@ fun PlayerControls(
     ) {
         // Background Visualization
         MusicVisualization(
-            amplitudesProvider = amplitudesProvider,
             engine = visualizerEngine,
             presetName = projectMPreset,
+            spectrumBus = spectrumBus,
+            spectrumProcessor = spectrumProcessor,
             isPlaying = isPlaying,
             color = colorSource.accentColor.copy(alpha = 0.4f),
+            shimmerEnabled = barsShimmerEnabled,
+            tipGlowEnabled = barsTipGlowEnabled,
             modifier = Modifier.matchParentSize(),
         )
 
@@ -211,7 +219,6 @@ fun PlayerControlsPreview() {
                 isPlaying = true,
                 shuffleModeEnabled = true,
                 repeatMode = Player.REPEAT_MODE_ALL,
-                amplitudesProvider = { listOf(0.2f, 0.5f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f, 0.5f, 0.2f, 0.8f, 0.4f, 0.6f, 0.9f, 0.3f, 0.7f) },
                 colorSource = composableColorSource(),
                 onPlayPauseClicked = {},
                 onNextClicked = {},

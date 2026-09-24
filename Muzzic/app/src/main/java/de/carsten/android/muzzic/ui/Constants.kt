@@ -53,25 +53,6 @@ val GRID_SPACING = 6.dp
 val GRID_HORIZONTAL_PADDING = 12.dp
 
 /**
- * Music Visualization Specific Dimensions
- */
-val VISUALIZER_SEGMENT_HEIGHT = 4.dp
-val VISUALIZER_SEGMENT_SPACING = 2.dp
-val VISUALIZER_BAR_SPACING = 3.dp
-
-/**
- * Music Visualization Color degrees
- */
-val VISUALIZER_HUE_COLOR_DEGREE = 40
-
-/**
- * Music Visualization Scaling and Effect Tokens
- */
-const val VISUALIZER_LOG_SCALE_FACTOR = 3f
-const val VISUALIZER_LOG_BASE_DIVISOR = 4f
-const val VISUALIZER_GLOW_INTENSITY = 0.35f
-
-/**
  * Indicator Slider Specific Dimensions
  */
 val INDICATOR_SLIDER_OFFSET_Y = (-40).dp
