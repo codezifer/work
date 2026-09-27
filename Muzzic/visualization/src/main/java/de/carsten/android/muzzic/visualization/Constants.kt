@@ -137,6 +137,15 @@ const val MAX_LIGHTNESS = 1f
 /** Saturation below which a color counts as achromatic (grays). */
 const val ACHROMATIC_SATURATION_THRESHOLD = 0.05f
 
+/** Minimum saturation enforced for derived visualizer themes. */
+const val MIN_VIVID_SATURATION = 0.5f
+
+/** Minimum lightness enforced for derived visualizer themes. */
+const val MIN_VIVID_LIGHTNESS = 0.3f
+
+/** Maximum lightness enforced for derived visualizer themes. */
+const val MAX_VIVID_LIGHTNESS = 0.65f
+
 // ---------------------------------------------------------------------------
 // Platform and debug values
 // ---------------------------------------------------------------------------

@@ -1,10 +1,15 @@
 package de.carsten.android.muzzic.visualization
 
 import androidx.compose.ui.graphics.Color
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertTrue
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.Test
+
+/**
+ * Tolerance for HSL values round-tripped through Compose [Color], which
+ * quantizes sRGB channels to 8 bit (one step is 1/255).
+ */
+private const val COLOR_EPS = 0.01f
 
 class LedThemeTest {
 
@@ -13,8 +18,8 @@ class LedThemeTest {
         val base = Color.Red
         val theme = VisualizerTheme.ledThemeFrom(base)
 
-        assertEquals(base, theme.colLow)
-        assertEquals(Color.Transparent, theme.background)
+        assertThat(theme.colLow).isEqualTo(base)
+        assertThat(theme.background).isEqualTo(Color.Transparent)
     }
 
     @Test
@@ -24,21 +29,31 @@ class LedThemeTest {
         val midHsl = VisualizerTheme.rgbToHsl(theme.colMid.red, theme.colMid.green, theme.colMid.blue)
         val highHsl = VisualizerTheme.rgbToHsl(theme.colHigh.red, theme.colHigh.green, theme.colHigh.blue)
 
-        assertEquals(60f, midHsl[0], 1f)
-        assertEquals(0f, highHsl[0], 1f)
-        assertTrue(midHsl[2] > 0.5f)
-        assertTrue(highHsl[2] > midHsl[2])
+        assertThat(midHsl[0]).isCloseTo(60f, within(1f))
+        assertThat(highHsl[0]).isCloseTo(0f, within(1f))
+        assertThat(midHsl[2]).isGreaterThan(0.5f)
+        assertThat(highHsl[2]).isGreaterThan(midHsl[2])
     }
 
     @Test
-    fun `achromatic base falls back to a lightness ladder`() {
+    fun `gray album-art accent becomes vivid instead of gray`() {
         val gray = Color(0.4f, 0.4f, 0.4f)
         val theme = VisualizerTheme.ledThemeFrom(gray)
+        val lowHsl = VisualizerTheme.rgbToHsl(theme.colLow.red, theme.colLow.green, theme.colLow.blue)
 
-        assertEquals(gray, theme.colLow)
-        assertNotEquals(gray, theme.colMid)
-        assertTrue(theme.colMid.red > gray.red)
-        assertTrue(theme.colHigh.red > theme.colMid.red)
+        assertThat(lowHsl[1]).isCloseTo(0.5f, within(COLOR_EPS))
+        assertThat(theme.colLow).isNotEqualTo(gray)
+        assertThat(theme.colLow).isNotEqualTo(theme.colMid)
+    }
+
+    @Test
+    fun `near-white album-art accent stays visibly colored`() {
+        val pale = Color(0.95f, 0.93f, 0.9f)
+        val theme = VisualizerTheme.ledThemeFrom(pale)
+        val lowHsl = VisualizerTheme.rgbToHsl(theme.colLow.red, theme.colLow.green, theme.colLow.blue)
+
+        assertThat(lowHsl[1]).isCloseTo(0.5f, within(COLOR_EPS))
+        assertThat(lowHsl[2]).isCloseTo(0.65f, within(COLOR_EPS))
     }
 
     @Test
@@ -46,10 +61,10 @@ class LedThemeTest {
         val base = Color.Red.copy(alpha = 0.4f)
         val theme = VisualizerTheme.ledThemeFrom(base)
 
-        assertNotEquals("Mid zone should differ from base by hue shift", base, theme.colMid)
-        assertNotEquals("High zone should differ from base by hue shift", base, theme.colHigh)
-        assertNotEquals("Mid and high zones should differ from each other", theme.colMid, theme.colHigh)
-        assertEquals(base.alpha, theme.colMid.alpha, 1e-6f)
-        assertEquals(base.alpha, theme.colHigh.alpha, 1e-6f)
+        assertThat(theme.colMid).`as`("Mid zone should differ from base by hue shift").isNotEqualTo(base)
+        assertThat(theme.colHigh).`as`("High zone should differ from base by hue shift").isNotEqualTo(base)
+        assertThat(theme.colMid).`as`("Mid and high zones should differ from each other").isNotEqualTo(theme.colHigh)
+        assertThat(theme.colMid.alpha).isCloseTo(base.alpha, within(1e-6f))
+        assertThat(theme.colHigh.alpha).isCloseTo(base.alpha, within(1e-6f))
     }
 }

@@ -1,6 +1,6 @@
 package de.carsten.android.muzzic.visualization
 
-import org.junit.Assert.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 /**
@@ -12,16 +12,16 @@ class ConfigDefaultsTest {
     @Test
     fun `visualizer config defaults match named constants`() {
         val config = VisualizerConfig()
-        assertEquals(DEFAULT_SPECTRUM_BANDS, config.bandCount)
-        assertEquals(DEFAULT_MIRRORED_COLUMNS, config.columnCount)
-        assertEquals(DEFAULT_SHIMMER_STRENGTH, config.shimmerStrength, 0f)
-        assertEquals(DEFAULT_TIP_GLOW_STRENGTH, config.tipGlowStrength, 0f)
-        assertEquals(DEFAULT_GLOW_STRENGTH, config.glowStrength, 0f)
-        assertEquals(DEFAULT_LED_SEGMENT_COUNT, config.segmentCount)
+        assertThat(config.bandCount).isEqualTo(DEFAULT_SPECTRUM_BANDS)
+        assertThat(config.columnCount).isEqualTo(DEFAULT_MIRRORED_COLUMNS)
+        assertThat(config.shimmerStrength).isEqualTo(DEFAULT_SHIMMER_STRENGTH)
+        assertThat(config.tipGlowStrength).isEqualTo(DEFAULT_TIP_GLOW_STRENGTH)
+        assertThat(config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
+        assertThat(config.segmentCount).isEqualTo(DEFAULT_LED_SEGMENT_COUNT)
     }
 
     @Test
     fun `mirrored columns cover every band exactly twice`() {
-        assertEquals(DEFAULT_SPECTRUM_BANDS * 2, DEFAULT_MIRRORED_COLUMNS)
+        assertThat(DEFAULT_SPECTRUM_BANDS * 2).isEqualTo(DEFAULT_MIRRORED_COLUMNS)
     }
 }

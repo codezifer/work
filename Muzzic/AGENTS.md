@@ -760,6 +760,7 @@ class UserViewModelTest {
 ```
 
 - **Prefer fakes over mocks** for repositories and data sources (Google's current strong recommendation). A `FakeUserRepository` backed by an in-memory list is easier to reason about and reuse than a MockK stub repeated per test. Reserve MockK for collaborators that are impractical to fake (e.g. platform callbacks with complex contracts).
+- **Use AssertJ for all assertions** — `org.assertj.core.api.Assertions.assertThat` (with `within` for float closeness), never `org.junit.Assert`. JUnit provides the runner (`@Test`, `@Before`) only.
 - When testing a `StateFlow`, assert on the `.value` property directly where possible, and account for `WhileSubscribed(...)` timing when the flow is built with `stateIn`.
 
 ---

@@ -72,6 +72,11 @@ Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
   ab — Basisfarbe in der Mitte, um `VISUALIZER_HUE_COLOR_DEGREE` (40°)
   gedrehte Zielfarbe außen. Eigene **reine Kotlin**-HSL-Konvertierung
   (bewusst ohne `ColorUtils`, damit JVM-Tests laufen — siehe `BarsThemeTest`).
+- Beide Fabriken laufen zuerst durch `ensureVivid`: blasse/graue
+  Album-Art-Akzente werden in einen lebendigen Bereich gezwungen
+  (Sättigung ≥ `MIN_VIVID_SATURATION`, Helligkeit in
+  `MIN_VIVID_LIGHTNESS`…`MAX_VIVID_LIGHTNESS`), damit nie weiße Blöcke
+  entstehen; lebhafte Farben passieren unverändert.
 - `ledThemeFrom(base)`: leitet aus derselben Akzentfarbe (Album-Art) das
   LED-Zonen-Theme ab — Low = Basis, Mid −`LED_MID_HUE_SHIFT_DEG` (60°) +
   `LED_MID_LIGHTNESS_BOOST`, High −`LED_HIGH_HUE_SHIFT_DEG` (120°) +

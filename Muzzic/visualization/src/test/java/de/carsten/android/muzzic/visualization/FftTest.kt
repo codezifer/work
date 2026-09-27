@@ -4,8 +4,8 @@ import de.carsten.android.muzzic.visualization.audio.Fft
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.math.sqrt
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.Test
 
 class FftTest {
@@ -39,8 +39,8 @@ class FftTest {
             }
         }
 
-        assertEquals(targetBin, maxBin)
-        assertTrue(maxMag > 10f)
+        assertThat(maxBin).isEqualTo(targetBin)
+        assertThat(maxMag).isGreaterThan(10f)
     }
 
     @Test
@@ -54,8 +54,8 @@ class FftTest {
         fft.transform(real, imag)
 
         for (i in 0 until fftSize) {
-            assertEquals(0f, real[i], 1e-6f)
-            assertEquals(0f, imag[i], 1e-6f)
+            assertThat(real[i]).isCloseTo(0f, within(1e-6f))
+            assertThat(imag[i]).isCloseTo(0f, within(1e-6f))
         }
     }
 }

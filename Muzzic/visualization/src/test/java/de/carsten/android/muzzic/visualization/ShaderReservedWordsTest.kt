@@ -3,7 +3,7 @@ package de.carsten.android.muzzic.visualization
 import de.carsten.android.muzzic.visualization.render.shaders.BarsFragment
 import de.carsten.android.muzzic.visualization.render.shaders.FullscreenVertex
 import de.carsten.android.muzzic.visualization.render.shaders.LedFragment
-import org.junit.Assert.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 /**
@@ -49,22 +49,20 @@ class ShaderReservedWordsTest {
             "BarsFragment" to BarsFragment.SOURCE,
         )
         for ((name, source) in sources) {
-            val violations = reservedTokensIn(source)
-            assertTrue(
-                "Shader $name uses reserved GLSL ES keywords: $violations",
-                violations.isEmpty(),
-            )
+            assertThat(reservedTokensIn(source))
+                .`as`("Shader $name uses reserved GLSL ES keywords")
+                .isEmpty()
         }
     }
 
     @Test
     fun `shared SDF snippet is composed into both raster shaders`() {
         for ((name, source) in listOf("LedFragment" to LedFragment.SOURCE, "BarsFragment" to BarsFragment.SOURCE)) {
-            assertTrue("$name should contain the shared SDF block", "length(max(q, 0.0))" in source)
+            assertThat(source).`as`("$name should contain the shared SDF block").contains("length(max(q, 0.0))")
         }
         // Both raster shaders must declare what the snippet expects.
         for ((name, source) in listOf("LedFragment" to LedFragment.SOURCE, "BarsFragment" to BarsFragment.SOURCE)) {
-            assertTrue("$name should define cellPx", "cellPx" in source)
+            assertThat(source).`as`("$name should define cellPx").contains("cellPx")
         }
     }
 }

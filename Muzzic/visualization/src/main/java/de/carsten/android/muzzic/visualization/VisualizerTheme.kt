@@ -50,11 +50,12 @@ data class VisualizerTheme(
          * Canvas bars). Background stays transparent so the host layout shows through.
          */
         fun barsThemeFrom(base: Color): VisualizerTheme {
-            val hsl = rgbToHsl(base.red, base.green, base.blue)
+            val vivid = ensureVivid(base)
+            val hsl = rgbToHsl(vivid.red, vivid.green, vivid.blue)
             hsl[0] = (hsl[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f
-            val target = hslToColor(hsl[0], hsl[1], hsl[2]).copy(alpha = base.alpha)
+            val target = hslToColor(hsl[0], hsl[1], hsl[2]).copy(alpha = vivid.alpha)
             return VisualizerTheme(
-                colLow = base,
+                colLow = vivid,
                 colMid = target,
                 colHigh = target,
                 background = Color.Transparent,
@@ -72,7 +73,8 @@ data class VisualizerTheme(
          * Near-achromatic bases fall back to a pure lightness ladder.
          */
         fun ledThemeFrom(base: Color): VisualizerTheme {
-            val lowHsl = rgbToHsl(base.red, base.green, base.blue)
+            val vivid = ensureVivid(base)
+            val lowHsl = rgbToHsl(vivid.red, vivid.green, vivid.blue)
             val (mid, high) = if (lowHsl[1] < ACHROMATIC_SATURATION_THRESHOLD) {
                 hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_MID_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS)) to
                     hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_HIGH_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS))
@@ -89,11 +91,29 @@ data class VisualizerTheme(
                     )
             }
             return VisualizerTheme(
-                colLow = base,
-                colMid = mid.copy(alpha = base.alpha),
-                colHigh = high.copy(alpha = base.alpha),
+                colLow = vivid,
+                colMid = mid.copy(alpha = vivid.alpha),
+                colHigh = high.copy(alpha = vivid.alpha),
                 background = Color.Transparent,
             )
+        }
+
+        /**
+         * Guards theme derivation against washed-out album-art accents.
+         *
+         * Pale or gray palette colors would render as white blocks, so
+         * saturation and lightness are clamped into a vivid range while hue
+         * and alpha stay untouched. Already-vivid colors pass through unchanged.
+         *
+         * @param base Album-art accent color.
+         * @return color safe to derive zone themes from.
+         */
+        internal fun ensureVivid(base: Color): Color {
+            val hsl = rgbToHsl(base.red, base.green, base.blue)
+            val vividS = hsl[1].coerceAtLeast(MIN_VIVID_SATURATION)
+            val vividL = hsl[2].coerceIn(MIN_VIVID_LIGHTNESS, MAX_VIVID_LIGHTNESS)
+            if (vividS == hsl[1] && vividL == hsl[2]) return base
+            return hslToColor(hsl[0], vividS, vividL).copy(alpha = base.alpha)
         }
 
         /**

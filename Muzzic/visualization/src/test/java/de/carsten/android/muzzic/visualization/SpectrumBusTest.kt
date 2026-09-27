@@ -1,5 +1,6 @@
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
-import org.junit.Assert.assertEquals
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.Test
 
 class SpectrumBusTest {
@@ -17,14 +18,14 @@ class SpectrumBusTest {
         val outValues = FloatArray(8)
 
         val count = bus.readAtOrBefore(1500L, outValues)
-        assertEquals(4, count)
-        assertEquals(0.1f, outValues[0], 1e-4f)
-        assertEquals(0.2f, outValues[1], 1e-4f)
+        assertThat(count).isEqualTo(4)
+        assertThat(outValues[0]).isCloseTo(0.1f, within(1e-4f))
+        assertThat(outValues[1]).isCloseTo(0.2f, within(1e-4f))
 
         val count2 = bus.readAtOrBefore(2500L, outValues)
-        assertEquals(4, count2)
-        assertEquals(0.5f, outValues[0], 1e-4f)
-        assertEquals(0.6f, outValues[1], 1e-4f)
+        assertThat(count2).isEqualTo(4)
+        assertThat(outValues[0]).isCloseTo(0.5f, within(1e-4f))
+        assertThat(outValues[1]).isCloseTo(0.6f, within(1e-4f))
     }
 
     @Test
@@ -37,7 +38,7 @@ class SpectrumBusTest {
         val outValues = FloatArray(4)
         val count = bus.readAtOrBefore(1000L, outValues)
 
-        assertEquals(0, count)
+        assertThat(count).isEqualTo(0)
     }
 
     @Test
@@ -45,11 +46,11 @@ class SpectrumBusTest {
         val bus = SpectrumBus(capacity = 8, maxBands = 4)
         val values = floatArrayOf(1f, 1f, 1f, 1f)
 
-        assertEquals(0L, bus.newestTimestampNanos())
+        assertThat(bus.newestTimestampNanos()).isEqualTo(0L)
 
         bus.write(100L, values, 4)
         bus.write(300L, values, 4)
 
-        assertEquals(300L, bus.newestTimestampNanos())
+        assertThat(bus.newestTimestampNanos()).isEqualTo(300L)
     }
 }

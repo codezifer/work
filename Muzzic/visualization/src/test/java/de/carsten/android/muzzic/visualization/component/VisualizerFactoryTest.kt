@@ -6,8 +6,7 @@ import de.carsten.android.muzzic.visualization.DEFAULT_GLOW_STRENGTH
 import de.carsten.android.muzzic.visualization.DEFAULT_SHIMMER_STRENGTH
 import de.carsten.android.muzzic.visualization.DEFAULT_TIP_GLOW_STRENGTH
 import de.carsten.android.muzzic.visualization.render.RenderStyle
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class VisualizerFactoryTest {
@@ -20,11 +19,11 @@ class VisualizerFactoryTest {
             Color.Red,
         ) as VisualizerDefinition.Spectrum
 
-        assertEquals(RenderStyle.MIRRORED_BARS, definition.style)
-        assertEquals(BARS_SEGMENT_COUNT, definition.config.segmentCount)
-        assertEquals(DEFAULT_SHIMMER_STRENGTH, definition.config.shimmerStrength, 0f)
-        assertEquals(DEFAULT_TIP_GLOW_STRENGTH, definition.config.tipGlowStrength, 0f)
-        assertEquals(Color.Red, definition.theme.colLow)
+        assertThat(definition.style).isEqualTo(RenderStyle.MIRRORED_BARS)
+        assertThat(definition.config.segmentCount).isEqualTo(BARS_SEGMENT_COUNT)
+        assertThat(definition.config.shimmerStrength).isEqualTo(DEFAULT_SHIMMER_STRENGTH)
+        assertThat(definition.config.tipGlowStrength).isEqualTo(DEFAULT_TIP_GLOW_STRENGTH)
+        assertThat(definition.theme.colLow).isEqualTo(Color.Red)
     }
 
     @Test
@@ -35,8 +34,8 @@ class VisualizerFactoryTest {
             Color.Red,
         ) as VisualizerDefinition.Spectrum
 
-        assertEquals(0f, definition.config.shimmerStrength, 0f)
-        assertEquals(0f, definition.config.tipGlowStrength, 0f)
+        assertThat(definition.config.shimmerStrength).isEqualTo(0f)
+        assertThat(definition.config.tipGlowStrength).isEqualTo(0f)
     }
 
     @Test
@@ -48,9 +47,9 @@ class VisualizerFactoryTest {
             base,
         ) as VisualizerDefinition.Spectrum
 
-        assertEquals(RenderStyle.LED, definition.style)
-        assertEquals(Color.Transparent, definition.theme.background)
-        assertEquals(base, definition.theme.colLow)
+        assertThat(definition.style).isEqualTo(RenderStyle.LED)
+        assertThat(definition.theme.background).isEqualTo(Color.Transparent)
+        assertThat(definition.theme.colLow).isEqualTo(base)
     }
 
     @Test
@@ -66,8 +65,8 @@ class VisualizerFactoryTest {
             Color.Red,
         ) as VisualizerDefinition.Spectrum
 
-        assertEquals(DEFAULT_GLOW_STRENGTH, bars.config.glowStrength, 0f)
-        assertEquals(DEFAULT_GLOW_STRENGTH, led.config.glowStrength, 0f)
+        assertThat(bars.config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
+        assertThat(led.config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
     }
 
     @Test
@@ -78,7 +77,7 @@ class VisualizerFactoryTest {
             Color.Red,
         ) as VisualizerDefinition.ProjectM
 
-        assertEquals("preset.milk", definition.presetName)
+        assertThat(definition.presetName).isEqualTo("preset.milk")
     }
 
     @Test
@@ -89,7 +88,7 @@ class VisualizerFactoryTest {
             Color.Red,
         ) as VisualizerDefinition.ProjectM
 
-        assertNull(definition.presetName)
+        assertThat(definition.presetName).isNull()
     }
 
     @Test(expected = IllegalArgumentException::class)

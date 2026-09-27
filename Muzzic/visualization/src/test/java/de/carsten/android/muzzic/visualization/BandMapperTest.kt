@@ -1,5 +1,5 @@
 import de.carsten.android.muzzic.visualization.audio.BandMapper
-import org.junit.Assert.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class BandMapperTest {
@@ -15,10 +15,9 @@ class BandMapperTest {
         )
 
         for (i in 0 until bandMapper.bandCount - 1) {
-            assertTrue(
-                "Center frequency at band $i (${bandMapper.fCenter[i]}) should be < next band (${bandMapper.fCenter[i + 1]})",
-                bandMapper.fCenter[i] < bandMapper.fCenter[i + 1],
-            )
+            assertThat(bandMapper.fCenter[i])
+                .`as`("Center frequency at band $i (${bandMapper.fCenter[i]}) should be < next band (${bandMapper.fCenter[i + 1]})")
+                .isLessThan(bandMapper.fCenter[i + 1])
         }
     }
 
@@ -41,7 +40,7 @@ class BandMapperTest {
             if (outBandAmp[b] > 0f) activeBands++
         }
 
-        assertTrue("At least one band should receive amplitude", activeBands > 0)
+        assertThat(activeBands).`as`("At least one band should receive amplitude").isGreaterThan(0)
     }
 
     @Test
@@ -55,13 +54,12 @@ class BandMapperTest {
                 fMaxHz = 16000f,
             )
             for (i in 0 until bandMapper.bandCount - 1) {
-                assertTrue(
-                    "Center at $sampleRate Hz band $i should increase",
-                    bandMapper.fCenter[i] < bandMapper.fCenter[i + 1],
-                )
+                assertThat(bandMapper.fCenter[i])
+                    .`as`("Center at $sampleRate Hz band $i should increase")
+                    .isLessThan(bandMapper.fCenter[i + 1])
             }
-            assertTrue(bandMapper.fCenter[0] > 40f)
-            assertTrue(bandMapper.fCenter[bandMapper.bandCount - 1] < 16000f)
+            assertThat(bandMapper.fCenter[0]).isGreaterThan(40f)
+            assertThat(bandMapper.fCenter[bandMapper.bandCount - 1]).isLessThan(16000f)
         }
     }
 
@@ -83,9 +81,9 @@ class BandMapperTest {
         val outBandAmp = FloatArray(32)
         bandMapper.map(fftAmp, outBandAmp)
 
-        assertTrue("Narrow bass band 1 should interpolate, was ${outBandAmp[1]}", outBandAmp[1] > 0f)
+        assertThat(outBandAmp[1]).`as`("Narrow bass band 1 should interpolate, was ${outBandAmp[1]}").isGreaterThan(0f)
         for (b in 0 until 32) {
-            assertTrue("Band $b must not be NaN", !outBandAmp[b].isNaN())
+            assertThat(outBandAmp[b]).`as`("Band $b must not be NaN").isNotNaN()
         }
     }
 
@@ -119,10 +117,9 @@ class BandMapperTest {
                     expected = b
                 }
             }
-            assertTrue(
-                "At $sampleRate Hz peak band $argMax should be near 1 kHz band $expected",
-                kotlin.math.abs(argMax - expected) <= 1,
-            )
+            assertThat(kotlin.math.abs(argMax - expected))
+                .`as`("At $sampleRate Hz peak band $argMax should be near 1 kHz band $expected")
+                .isLessThanOrEqualTo(1)
         }
     }
 }
