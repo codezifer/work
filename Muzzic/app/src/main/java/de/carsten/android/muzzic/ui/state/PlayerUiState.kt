@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.ui.state
 
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.ui.model.SongDto
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 data class PlayerUiState(
@@ -17,4 +18,5 @@ data class PlayerUiState(
     val projectMPreset: String? = null,
     val barsShimmerEnabled: Boolean = true,
     val barsTipGlowEnabled: Boolean = true,
+    val visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
 )

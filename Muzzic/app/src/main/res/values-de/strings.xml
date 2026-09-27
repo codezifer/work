@@ -81,6 +81,16 @@
     <string name="projectm_preset">Milkdrop-Preset</string>
     <string name="visualizer_bars_shimmer">Glitzern auf aktiven Balken</string>
     <string name="visualizer_bars_tip_glow">Glanz an den Balkenenden</string>
+    <string name="visualizer_color_source">Visualizer-Farben</string>
+    <string name="visualizer_color_album_art">Album-Art (dynamisch)</string>
+    <string name="visualizer_color_red">Rot</string>
+    <string name="visualizer_color_orange">Orange</string>
+    <string name="visualizer_color_yellow">Gelb</string>
+    <string name="visualizer_color_green_80s">80er-Grün</string>
+    <string name="visualizer_color_cyan">Cyan</string>
+    <string name="visualizer_color_ice_blue">Eisblau</string>
+    <string name="visualizer_color_blue">Blau</string>
+    <string name="visualizer_color_magenta">Magenta</string>
     <string name="manual_tasks">Manuelle Aufgaben</string>
     <string name="scan_playlists">Playlists einscannen</string>
     <string name="clear_database">Datenbank leeren</string>

@@ -26,8 +26,14 @@ classDiagram
         +start()
         +stop()
     }
-    class LedBarRenderer {
+    class FrameRenderer {
         +isIdle : Boolean
+        +onSurfaceCreated()
+        +onSurfaceChanged(w, h)
+        +onDrawFrame()
+        +release()
+    }
+    class LedBarRenderer {
         +smoother : LedBarSmoother
         +onSurfaceCreated()
         +onSurfaceChanged(w, h)
@@ -47,7 +53,8 @@ classDiagram
     }
     SpectrumVisualizer *-- EglManager
     SpectrumVisualizer *-- RenderDriver
-    RenderDriver --> LedBarRenderer : requestRender
+    RenderDriver --> FrameRenderer : requestRender + isIdle
+    LedBarRenderer --|> FrameRenderer : implementiert
     LedBarRenderer *-- LedBarSmoother
     LedBarRenderer ..> GlUtil : Programme bauen
     LedBarRenderer ..> SpectrumBus : readAtOrBefore
@@ -88,7 +95,9 @@ GLES 3.0 nahtlos auf den Canvas-Fallback umschaltet.
 ## 4.3 `RenderDriver` (`ui/RenderDriver.kt`)
 
 **Aufgabe:** Frame-Schrittmacher per `Choreographer` (Display-Vsync) mit
-**Auto-Stop bei Stille**.
+**Auto-Stop bei Stille**. Hängt nur vom `FrameRenderer`-Interface ab
+(`requestRender` + `isIdle`), nicht vom konkreten `LedBarRenderer` — dadurch
+für künftige Renderer wiederverwendbar.
 
 ```mermaid
 stateDiagram-v2
@@ -108,6 +117,9 @@ stateDiagram-v2
 ## 4.4 `LedBarRenderer` (`render/LedBarRenderer.kt`)
 
 **Aufgabe:** Liest Bus-Frames, glättet sie, lädt Uniforms, zeichnet.
+Einzige `FrameRenderer`-Implementierung (`render/FrameRenderer.kt`: `isIdle`,
+`onSurfaceCreated/Changed`, `onDrawFrame`, `release`) — sie bedient beide
+Stile (`RenderStyle.LED` und `MIRRORED_BARS`) in einer Klasse.
 
 `onDrawFrame()` in fünf Schritten:
 
@@ -128,6 +140,18 @@ transparenten Surface), Uniforms laden (Auflösung, Bandwerte als
 **vec4-gepackte Arrays** — 16×vec4 = 64 Bänder, passend zu `MAX_SPECTRUM_BANDS`
 —, Farben, Geometrie), `glDrawArrays(TRIANGLES, 0, 3)` (Fullscreen-Dreieck),
 Blending aus.
+
+**Halo (Neon-Look):** Beide Draw-Pfade addieren um lit Segmente einen äußeren
+Schein (`uGlow`, Standard `DEFAULT_GLOW_STRENGTH` = 0,8): exponentieller
+Falloff mit der SDF-Distanz (Radius `GLOW_FALLOFF_RADIUS_PX` = 8 px, geteilt
+via `ShaderSnippets`). Das Halo ist zonenfarben mit 1-px-Weißsaum an
+der Blockkante; lit Blöcke werden nur minimal pegelabhängig heiß (LED:
+max. 0,12-Mix, BARS: Amplituden-Weiß-Mix) — die Zonenfarben bleiben
+dominant. Das Halo erweitert die Coverage über den Block hinaus, damit der
+Schein auf transparenten Surfaces sichtbar bleibt; `uGlow = 0` reproduziert
+exakt das frühere Verhalten. Der Canvas-Fallback spiegelt das mit leicht
+weißlichem Halo (`HALO_WHITE_MIX`) und pegelabhängig aufgehellten lit
+Segmenten (`HOT_CORE_MIX`).
 
 `onSurfaceCreated()` kompiliert **beide** Programme und cached alle
 Uniform-Locations; schlägt eines fehl, wird geloggt und der jeweils andere
@@ -161,7 +185,9 @@ Pro Band und Frame (`update`, `dt` geclampt):
 
 Tuning-Knöpfe: `VisualizerConfig.ledHalfSize` (LED-Größe als Zellanteil),
 `cornerRadius`, `segmentCount`, `shimmerStrength`/`tipGlowStrength`
-(0 = Effekt aus), `VisualizerTheme` (Farben, Zonen, `offIntensity`).
+(0 = Effekt aus; Shimmer wirkt in beiden GLES-Engines auf lit LEDs),
+`glowStrength` (Außen-Halo, 0 = aus),
+`VisualizerTheme` (Farben, Zonen, `offIntensity`).
 
 ## 4.7 `CanvasFallbackVisualizer` (`ui/CanvasFallbackVisualizer.kt`)
 
@@ -173,7 +199,8 @@ und Peak-Logik mit `PEAK_VISIBILITY_THRESHOLD`).
   mit derselben Latenz; füllt bei Pause/leerem Bus Nullen.
 - Zeichnet pro Band × Segment ein `drawRoundRect` (Eckenradius aus
   `cornerRadius`, Größe aus `ledHalfSize`); an = Zonenfarbe, aus = gedimmt
-  (`offIntensity`).
+  (`offIntensity`). Lit Segmente bekommen zusätzlich ein Halo
+  (expandiertes, schwach-alpha RoundedRect, skaliert mit `glowStrength`).
 - Dient gleichzeitig als **Preview-Renderer** (`MusicVisualizationPreview`
   befüllt einen Bus per Hand und zeigt ihn via Fallback — ohne GL-Kontext).
 

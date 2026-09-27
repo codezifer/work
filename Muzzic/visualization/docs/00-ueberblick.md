@@ -11,7 +11,7 @@ Rendering-Engines.
 | Engine (`VisualizerEngine`) | Optik | Technik | Audio-Quelle |
 |---|---|---|---|
 | `BARS` | Gespiegelte Segment-Balken (Bass in der Mitte, wächst beidseitig von der Bildmitte) | Eigenes GLES-3.0-Fullscreen-Shader-Programm | `SpectrumBus` |
-| `LED_SPECTRUM` | 80er-HiFi-LED-Türme (grün/gelb/rot + Peak-Hold-Marker) | Eigenes GLES-3.0-Fullscreen-Shader-Programm | `SpectrumBus` |
+| `LED_SPECTRUM` | 80er-HiFi-LED-Türme (Zonenfarben aus der Album-Art-Farbe + Peak-Hold-Marker + Halo) | Eigenes GLES-3.0-Fullscreen-Shader-Programm | `SpectrumBus` |
 | `PROJECT_M` | 3D-Milkdrop-Effekte (flüssig, psychedelisch) | `libprojectM` (C++-Engine) via JNI + OpenGL | PCM-Float direkt |
 
 Die beiden GLES-Engines (`BARS`, `LED_SPECTRUM`) teilen sich die **komplette
@@ -19,7 +19,11 @@ Audio-Analyse-Pipeline**: ExoPlayer → `VisualizerSink` → `SpectrumProcessor`
 (FFT → Band-Mapping → Auto-Gain) → `SpectrumBus` → Renderer. Nur die
 Shader-Programme und das Farbschema unterscheiden sich. `PROJECT_M` läuft
 dagegen auf einem **eigenen Pfad**: Es bekommt rohe PCM-Samples direkt aus dem
-`VisualizerSink` und rendert alles selbst in nativem C++-Code.
+`VisualizerSink` und rendert alles selbst in nativem C++-Code. Die Auswahl
+erfolgt über die Generalisierungsschicht `VisualizerEngine` → `VisualizerParams`
+→ `VisualizerFactory` → `VisualizerDefinition` (Details in Kapitel 6); beide
+GLES-Stile teilen sich dabei die eine `FrameRenderer`-Implementierung
+`LedBarRenderer`.
 
 ## Warum zwei Pfade?
 

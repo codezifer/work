@@ -82,6 +82,16 @@
     <string name="projectm_preset">Milkdrop preset</string>
     <string name="visualizer_bars_shimmer">Shimmer on lit bars</string>
     <string name="visualizer_bars_tip_glow">Tip glow on bar ends</string>
+    <string name="visualizer_color_source">Visualizer colors</string>
+    <string name="visualizer_color_album_art">Album art (dynamic)</string>
+    <string name="visualizer_color_red">Red</string>
+    <string name="visualizer_color_orange">Orange</string>
+    <string name="visualizer_color_yellow">Yellow</string>
+    <string name="visualizer_color_green_80s">80s green</string>
+    <string name="visualizer_color_cyan">Cyan</string>
+    <string name="visualizer_color_ice_blue">Ice blue</string>
+    <string name="visualizer_color_blue">Blue</string>
+    <string name="visualizer_color_magenta">Magenta</string>
     <string name="manual_tasks">Manual tasks</string>
     <string name="scan_playlists">Scan playlists</string>
     <string name="clear_database">Clear database</string>

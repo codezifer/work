@@ -56,9 +56,9 @@ class LedBarRenderer(
     var config: VisualizerConfig = VisualizerConfig(),
     var theme: VisualizerTheme = VisualizerTheme.ClassicGreen,
     var style: RenderStyle = RenderStyle.LED,
-) {
+) : FrameRenderer {
 
-    @Volatile var isIdle: Boolean = false
+    @Volatile override var isIdle: Boolean = false
         private set
 
     val smoother = LedBarSmoother(config.bandCount)
@@ -78,6 +78,9 @@ class LedBarRenderer(
     private var uCornerRadiusLoc = -1
     private var uOffIntensityLoc = -1
     private var uBackgroundLoc = -1
+    private var uGlowLoc = -1
+    private var uShimmerLoc = -1
+    private var uTimeLoc = -1
 
     // Mirrored-BARS program uniform locations.
     private var bResLoc = -1
@@ -95,6 +98,7 @@ class LedBarRenderer(
     private var bCornerRadiusLoc = -1
     private var bOffIntensityLoc = -1
     private var bBackgroundLoc = -1
+    private var bGlowLoc = -1
 
     private val targetValues = FloatArray(MAX_SPECTRUM_BANDS)
     private val packedBands = FloatArray(MAX_SPECTRUM_BANDS)
@@ -105,7 +109,7 @@ class LedBarRenderer(
     private var lastDrawNanos = System.nanoTime()
     private var renderTimeSec = 0f
 
-    fun onSurfaceCreated() {
+    override fun onSurfaceCreated() {
         program = GlUtil.createProgram(FullscreenVertex.SOURCE, LedFragment.SOURCE)
         barsProgram = GlUtil.createProgram(FullscreenVertex.SOURCE, BarsFragment.SOURCE)
         if (program == 0) {
@@ -124,6 +128,9 @@ class LedBarRenderer(
             uCornerRadiusLoc = GLES30.glGetUniformLocation(program, "uCornerRadius")
             uOffIntensityLoc = GLES30.glGetUniformLocation(program, "uOffIntensity")
             uBackgroundLoc = GLES30.glGetUniformLocation(program, "uBackground")
+            uGlowLoc = GLES30.glGetUniformLocation(program, "uGlow")
+            uShimmerLoc = GLES30.glGetUniformLocation(program, "uShimmer")
+            uTimeLoc = GLES30.glGetUniformLocation(program, "uTime")
         }
         if (barsProgram == 0) {
             Log.w(TAG, "BARS program failed to compile/link; falling back to LED style")
@@ -143,17 +150,18 @@ class LedBarRenderer(
             bCornerRadiusLoc = GLES30.glGetUniformLocation(barsProgram, "uCornerRadius")
             bOffIntensityLoc = GLES30.glGetUniformLocation(barsProgram, "uOffIntensity")
             bBackgroundLoc = GLES30.glGetUniformLocation(barsProgram, "uBackground")
+            bGlowLoc = GLES30.glGetUniformLocation(barsProgram, "uGlow")
         }
         lastDrawNanos = System.nanoTime()
     }
 
-    fun onSurfaceChanged(width: Int, height: Int) {
+    override fun onSurfaceChanged(width: Int, height: Int) {
         viewportWidth = width
         viewportHeight = height
         GLES30.glViewport(0, 0, width, height)
     }
 
-    fun onDrawFrame() {
+    override fun onDrawFrame() {
         if (viewportWidth <= 0 || viewportHeight <= 0) return
 
         val now = System.nanoTime()
@@ -226,6 +234,9 @@ class LedBarRenderer(
         GLES30.glUniform1f(uCornerRadiusLoc, config.cornerRadius)
         GLES30.glUniform1f(uOffIntensityLoc, theme.offIntensity)
         GLES30.glUniform3f(uBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
+        GLES30.glUniform1f(uGlowLoc, config.glowStrength)
+        GLES30.glUniform1f(uShimmerLoc, config.shimmerStrength)
+        GLES30.glUniform1f(uTimeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
 
@@ -265,6 +276,7 @@ class LedBarRenderer(
         GLES30.glUniform1f(bCornerRadiusLoc, config.cornerRadius)
         GLES30.glUniform1f(bOffIntensityLoc, theme.offIntensity)
         GLES30.glUniform3f(bBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
+        GLES30.glUniform1f(bGlowLoc, config.glowStrength)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
 
@@ -274,7 +286,7 @@ class LedBarRenderer(
     /**
      * Releases OpenGL resources when surface is destroyed.
      */
-    fun release() {
+    override fun release() {
         if (program != 0) {
             GLES30.glDeleteProgram(program)
             program = 0

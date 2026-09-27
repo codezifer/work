@@ -7,6 +7,7 @@ import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.state.PlayerUiState
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.service.VisualizerSink
 import io.mockk.every
@@ -39,6 +40,7 @@ class PlayerViewModelTest {
     private val presetFlow = MutableStateFlow<String?>(null)
     private val shimmerFlow = MutableStateFlow(true)
     private val tipGlowFlow = MutableStateFlow(true)
+    private val colorSourceFlow = MutableStateFlow(VisualizerColorSource.ALBUM_ART)
 
     private lateinit var viewModel: TestPlayerViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -70,6 +72,7 @@ class PlayerViewModelTest {
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
         every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
+        every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
         viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application)
     }
 
@@ -107,6 +110,16 @@ class PlayerViewModelTest {
 
             engineFlow.value = VisualizerEngine.PROJECT_M
             assertThat(awaitItem().visualizerEngine).isEqualTo(VisualizerEngine.PROJECT_M)
+        }
+    }
+
+    @Test
+    fun `visualizer color source propagates to uiState`() = runTest {
+        viewModel.uiState.test {
+            assertThat(awaitItem().visualizerColorSource).isEqualTo(VisualizerColorSource.ALBUM_ART)
+
+            colorSourceFlow.value = VisualizerColorSource.MAGENTA
+            assertThat(awaitItem().visualizerColorSource).isEqualTo(VisualizerColorSource.MAGENTA)
         }
     }
 

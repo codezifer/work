@@ -9,6 +9,7 @@ import kotlin.math.min
  * @property columnCount Number of visual columns in mirrored BARS mode (defaults to 2 * bandCount).
  * @property shimmerStrength Shimmer modulation on lit mirrored bars (0 disables the effect).
  * @property tipGlowStrength White highlight mix on the tip segment of mirrored bars (0 disables the effect).
+ * @property glowStrength Outer halo around lit segments in both GLES engines (0 disables the effect).
  * @property segmentCount Number of LED segments per bar (e.g., 20).
  * @property ledHalfSize Half size of an LED segment in normalized cell proportions (e.g. 0.40, 0.34).
  * @property cornerRadius Relative corner radius for rounded LEDs (e.g. 0.25).
@@ -22,6 +23,7 @@ data class VisualizerConfig(
     val columnCount: Int = DEFAULT_MIRRORED_COLUMNS,
     val shimmerStrength: Float = DEFAULT_SHIMMER_STRENGTH,
     val tipGlowStrength: Float = DEFAULT_TIP_GLOW_STRENGTH,
+    val glowStrength: Float = DEFAULT_GLOW_STRENGTH,
     val segmentCount: Int = DEFAULT_LED_SEGMENT_COUNT,
     val ledHalfSize: Pair<Float, Float> = Pair(0.40f, 0.34f),
     val cornerRadius: Float = 0.25f,

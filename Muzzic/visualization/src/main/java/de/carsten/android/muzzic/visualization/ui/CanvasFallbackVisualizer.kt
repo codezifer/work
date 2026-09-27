@@ -24,7 +24,9 @@ import kotlinx.coroutines.isActive
 /**
  * Fallback Compose Canvas implementation of the LED bar spectrum analyzer.
  *
- * Renders rounded LED bars with zone colors, peak markers, and off-state LEDs when GLES 3.0 is unavailable.
+ * Renders rounded LED bars with zone colors, peak markers, an outer halo
+ * around lit segments (`VisualizerConfig.glowStrength`), and off-state LEDs
+ * when GLES 3.0 is unavailable.
  */
 @Composable
 fun CanvasFallbackVisualizer(
@@ -101,6 +103,15 @@ fun CanvasFallbackVisualizer(
                     zoneColor.copy(alpha = theme.offIntensity)
                 }
 
+                if (isOn && config.glowStrength > 0f) {
+                    drawRoundRect(
+                        color = zoneColor.copy(alpha = zoneColor.alpha * HALO_ALPHA_FACTOR * config.glowStrength),
+                        topLeft = Offset(xCenter - halfW * HALO_EXPAND_X, yCenter - halfH * HALO_EXPAND_Y),
+                        size = Size(halfW * 2f * HALO_EXPAND_X, halfH * 2f * HALO_EXPAND_Y),
+                        cornerRadius = CornerRadius(cornerR * HALO_EXPAND_X, cornerR * HALO_EXPAND_X),
+                    )
+                }
+
                 drawRoundRect(
                     color = finalColor,
                     topLeft = Offset(xCenter - halfW, yCenter - halfH),
@@ -111,3 +122,7 @@ fun CanvasFallbackVisualizer(
         }
     }
 }
+
+private const val HALO_ALPHA_FACTOR = 0.5f
+private const val HALO_EXPAND_X = 1.6f
+private const val HALO_EXPAND_Y = 2.0f

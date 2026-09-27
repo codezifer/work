@@ -905,6 +905,17 @@ android {
 
 ---
 
+## 📚 Documentation
+**Intent**: Keep human-readable docs in sync with the code so architecture, flows, and diagrams stay trustworthy.
+**Optimization Purpose**: Prevent doc rot by making doc updates part of the change itself instead of a separate cleanup task.
+
+- **Docs follow code**: Every change that affects documented behavior or structure MUST update the corresponding docs in the same change — e.g. new/renamed/removed public types, changed data flows, new modules or engines, changed lifecycle/threading, outdated diagrams (PlantUML in `docs/`, mermaid in module `docs/`).
+- **Docs live with the code**: App-level docs go in `docs/` (e.g. `docs/class_diagram.puml`); module docs go in the module's `docs/` folder (e.g. `visualization/docs/` with `README.md` as index). KDoc on public APIs stays the source of truth for API details; markdown docs cover architecture, flows, and cross-file relationships.
+- **Missing docs get created**: If the touched area has no doc yet, create one following the existing structure (index entry in the folder's `README.md` where one exists, same chapter schema and diagram style as neighboring docs).
+- **Keep it proportional**: Fix the facts and diagrams the change invalidates; do not rewrite unrelated chapters in the same change.
+
+---
+
 ## ✅ Pre-Commit Checklist
 **Intent**: Ensure final code quality and adherence to rules before merging.
 **Optimization Purpose**: Reduce review overhead and prevent common issues from entering the main branch.
@@ -916,6 +927,7 @@ android {
 - [ ] ViewModels use `viewModelScope` only
 - [ ] Flows collected with `repeatOnLifecycle`
 - [ ] All public APIs documented with KDoc (short but detailed, including goal, parameters, errors, and result types)
+- [ ] Affected docs updated or created (`docs/`, module `docs/`, diagrams)
 - [ ] New database identifiers (tables, columns, views, indexes) are snake_case; Kotlin properties stay camelCase
 - [ ] ProGuard rules updated for new dependencies
 - [ ] Accessibility: content descriptions on interactive elements

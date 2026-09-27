@@ -58,6 +58,7 @@ import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
 
@@ -74,6 +75,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBac
         availablePresets = uiState.availablePresets,
         barsShimmerEnabled = uiState.barsShimmerEnabled,
         barsTipGlowEnabled = uiState.barsTipGlowEnabled,
+        visualizerColorSource = uiState.visualizerColorSource,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
     )
@@ -90,6 +92,7 @@ private fun SettingsScreenContent(
     availablePresets: List<String> = emptyList(),
     barsShimmerEnabled: Boolean = true,
     barsTipGlowEnabled: Boolean = true,
+    visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     settingsViewModel: SettingsViewModel? = null,
     onBackClick: () -> Unit = {},
 ) {
@@ -193,6 +196,7 @@ private fun SettingsScreenContent(
                 availablePresets = availablePresets,
                 barsShimmerEnabled = barsShimmerEnabled,
                 barsTipGlowEnabled = barsTipGlowEnabled,
+                currentColorSource = visualizerColorSource,
                 onEngineSelected = { engine ->
                     settingsViewModel?.updateVisualizerEngine(engine)
                 },
@@ -204,6 +208,9 @@ private fun SettingsScreenContent(
                 },
                 onBarsTipGlowToggled = { enabled ->
                     settingsViewModel?.updateBarsTipGlowEnabled(enabled)
+                },
+                onColorSourceSelected = { source ->
+                    settingsViewModel?.updateVisualizerColorSource(source)
                 },
             )
         }
@@ -247,6 +254,8 @@ private fun VisualizerSetting(
     barsTipGlowEnabled: Boolean = true,
     onBarsShimmerToggled: (Boolean) -> Unit = {},
     onBarsTipGlowToggled: (Boolean) -> Unit = {},
+    currentColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
+    onColorSourceSelected: (VisualizerColorSource) -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
         Text(
@@ -316,6 +325,44 @@ private fun VisualizerSetting(
             )
         }
 
+        if (currentEngine == VisualizerEngine.BARS || currentEngine == VisualizerEngine.LED_SPECTRUM) {
+            Spacer(modifier = Modifier.height(SPACING_TINY))
+            Text(
+                text = stringResource(R.string.visualizer_color_source),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+
+            var colorExpanded by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = colorExpanded,
+                onExpandedChange = { colorExpanded = !colorExpanded },
+            ) {
+                OutlinedTextField(
+                    value = colorSourceLabel(currentColorSource),
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                )
+                ExposedDropdownMenu(
+                    expanded = colorExpanded,
+                    onDismissRequest = { colorExpanded = false },
+                ) {
+                    VisualizerColorSource.entries.forEach { source ->
+                        DropdownMenuItem(
+                            text = { Text(colorSourceLabel(source)) },
+                            onClick = {
+                                onColorSourceSelected(source)
+                                colorExpanded = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
         if (currentEngine == VisualizerEngine.PROJECT_M && availablePresets.isNotEmpty()) {
             Spacer(modifier = Modifier.height(SPACING_TINY))
             Text(
@@ -354,6 +401,19 @@ private fun VisualizerSetting(
             }
         }
     }
+}
+
+@Composable
+private fun colorSourceLabel(source: VisualizerColorSource): String = when (source) {
+    VisualizerColorSource.ALBUM_ART -> stringResource(R.string.visualizer_color_album_art)
+    VisualizerColorSource.RED -> stringResource(R.string.visualizer_color_red)
+    VisualizerColorSource.ORANGE -> stringResource(R.string.visualizer_color_orange)
+    VisualizerColorSource.YELLOW -> stringResource(R.string.visualizer_color_yellow)
+    VisualizerColorSource.GREEN_80S -> stringResource(R.string.visualizer_color_green_80s)
+    VisualizerColorSource.CYAN -> stringResource(R.string.visualizer_color_cyan)
+    VisualizerColorSource.ICE_BLUE -> stringResource(R.string.visualizer_color_ice_blue)
+    VisualizerColorSource.BLUE -> stringResource(R.string.visualizer_color_blue)
+    VisualizerColorSource.MAGENTA -> stringResource(R.string.visualizer_color_magenta)
 }
 
 @Composable

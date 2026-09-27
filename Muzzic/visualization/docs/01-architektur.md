@@ -18,13 +18,19 @@ flowchart LR
         direction TB
         SB[("SpectrumBus")]
         MV["MusicVisualization"]
+        VF["VisualizerFactory"]
+        VD["VisualizerDefinition\n(Spectrum | ProjectM)"]
         SV["SpectrumVisualizer"]
         RD["RenderDriver"]
+        FR["FrameRenderer\n(Interface)"]
         LBR["LedBarRenderer"]
         SM["LedBarSmoother"]
         CF["CanvasFallback"]
-        SB --> SV --> RD --> LBR --> SM
-        MV -->|"BARS / LED"| SV
+        SB --> SV --> RD --> FR
+        LBR --|> FR
+        MV --> VF --> VD
+        VD -->|"Spectrum"| SV
+        VD -->|"ProjectM"| GLS
         SV -.->|"ohne GLES 3.0"| CF
     end
     subgraph C3["3 · ProjectM (nativ)"]
@@ -53,9 +59,9 @@ Bänder aus dem `SpectrumBus`; ProjectM bekommt Roh-PCM und macht alles selbst.
 | `service` | `VisualizerSink` — einziger Einstiegspunkt, verteilt PCM an beide Pfade | `audio`, `bus`, `projectm` |
 | `audio` | `SpectrumProcessor`, `Fft`, `BandMapper`, `AutoGain` — reine Signalverarbeitung, **kein Android**, JVM-testbar | nur `bus`, `Constants` |
 | `bus` | `SpectrumBus` — Thread-Brücke, **kein Android**, JVM-testbar | nur `Constants` |
-| `ui` | `SpectrumVisualizer`, `RenderDriver`, `CanvasFallbackVisualizer` — Compose-Hülle + Frame-Steuerung | `bus`, `render`, `audio` (nur Typ `SpectrumProcessor`) |
-| `component` | `MusicVisualization` (Engine-Weiche), `ProjectMGLSurfaceView` (GL-Hülle) | `ui`, `projectm` |
-| `render` | `LedBarRenderer`, `LedBarSmoother`, `EglManager`, `GlUtil`, `shaders.*` — OpenGL-Zeichnung + Glättung | `bus` |
+| `ui` | `SpectrumVisualizer`, `RenderDriver` (hängt nur vom `FrameRenderer`-Interface ab), `CanvasFallbackVisualizer` — Compose-Hülle + Frame-Steuerung | `bus`, `render`, `audio` (nur Typ `SpectrumProcessor`) |
+| `component` | `MusicVisualization` (dünner Host), `VisualizerEngine`, `VisualizerParams`, `VisualizerColorSource` (Album-Art vs. Fix-Hues), `VisualizerDefinition` + `VisualizerFactory` (Engine-Auswahl, unit-testbar), `ProjectMGLSurfaceView` (GL-Hülle) | `ui`, `projectm` |
+| `render` | `FrameRenderer` (Lifecycle-Interface), `LedBarRenderer` (einzige Implementierung für BARS + LED), `LedBarSmoother`, `EglManager`, `GlUtil`, `shaders.*` — OpenGL-Zeichnung + Glättung | `bus` |
 | `projectm` | `ProjectMNativeBridge`, `PresetManager` — JNI-Fassade + Asset-Verwaltung | nichts (nur Android-SDK) |
 | `debug` | `SyntheticSpectrumSource` — künstliche Test-Signale ohne Audio | `bus` |
 | Wurzel | `VisualizerConfig`, `VisualizerTheme`, `Constants` — reine Daten/Konstanten | nichts |
@@ -81,7 +87,7 @@ flowchart LR
         M1 <--> M2
     end
     subgraph RT["GL-Thread"]
-        R1["LedBarRenderer.onDrawFrame\n(EGL-Kontext, Main-Thread*)"]
+        R1["FrameRenderer.onDrawFrame\n(EGL-Kontext, Main-Thread*)\nimplementiert von LedBarRenderer"]
         R2["ProjectMGLSurfaceView.Renderer\n(eigener GLSurfaceView-Thread)"]
     end
     A3 -.->|"Seqlock, lock-frei"| R1

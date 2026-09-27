@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -38,6 +39,7 @@ class SettingsViewModelTest {
     private val presetFlow = MutableStateFlow<String?>(null)
     private val shimmerFlow = MutableStateFlow(true)
     private val tipGlowFlow = MutableStateFlow(true)
+    private val colorSourceFlow = MutableStateFlow(VisualizerColorSource.ALBUM_ART)
 
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -50,6 +52,7 @@ class SettingsViewModelTest {
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
         every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
+        every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
         Dispatchers.setMain(testDispatcher)
         viewModel = SettingsViewModel(appSettingsRepository, musicRepository, application)
     }
@@ -85,6 +88,23 @@ class SettingsViewModelTest {
         testScheduler.advanceUntilIdle()
 
         coVerify { appSettingsRepository.saveVisualizerEngine(VisualizerEngine.PROJECT_M) }
+    }
+
+    @Test
+    fun `visualizer color source propagates to uiState and updates repository`() = runTest {
+        coEvery { appSettingsRepository.saveVisualizerColorSource(VisualizerColorSource.GREEN_80S) } returns Unit
+
+        viewModel.uiState.test {
+            assertThat(awaitItem().visualizerColorSource).isEqualTo(VisualizerColorSource.ALBUM_ART)
+
+            colorSourceFlow.value = VisualizerColorSource.GREEN_80S
+            assertThat(awaitItem().visualizerColorSource).isEqualTo(VisualizerColorSource.GREEN_80S)
+        }
+
+        viewModel.updateVisualizerColorSource(VisualizerColorSource.GREEN_80S)
+        testScheduler.advanceUntilIdle()
+
+        coVerify { appSettingsRepository.saveVisualizerColorSource(VisualizerColorSource.GREEN_80S) }
     }
 
     @Test

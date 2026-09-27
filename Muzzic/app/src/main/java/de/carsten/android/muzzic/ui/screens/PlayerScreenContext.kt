@@ -40,6 +40,7 @@ import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +59,7 @@ fun PlayerScreenContext(
     projectMPreset: String? = null,
     barsShimmerEnabled: Boolean = true,
     barsTipGlowEnabled: Boolean = true,
+    visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
     colorSource: ColorSource = composableColorSource(),
@@ -180,6 +182,7 @@ fun PlayerScreenContext(
             projectMPreset = projectMPreset,
             barsShimmerEnabled = barsShimmerEnabled,
             barsTipGlowEnabled = barsTipGlowEnabled,
+            visualizerColorSource = visualizerColorSource,
             spectrumBus = spectrumBus,
             spectrumProcessor = spectrumProcessor,
             colorSource = colorSource,

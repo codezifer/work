@@ -1,9 +1,10 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.10.0"
+appVersion = "0.10.1"
 appJvmVersion = "17"
 appMinSdk = "36"
 appMaxSdk = "37"
+cmakeVersion = "3.22.1"
 # Dependencies Versions
 activityCompose = "1.13.0"
 agp = "9.4.1"

@@ -120,13 +120,15 @@ open class PlayerViewModel(
                 appSettingsRepository.observeProjectMPreset(),
                 appSettingsRepository.observeBarsShimmerEnabled(),
                 appSettingsRepository.observeBarsTipGlowEnabled(),
-            ) { engine, preset, shimmerEnabled, tipGlowEnabled ->
+                appSettingsRepository.observeVisualizerColorSource(),
+            ) { engine, preset, shimmerEnabled, tipGlowEnabled, colorSource ->
                 _uiState.update {
                     it.copy(
                         visualizerEngine = engine,
                         projectMPreset = preset,
                         barsShimmerEnabled = shimmerEnabled,
                         barsTipGlowEnabled = tipGlowEnabled,
+                        visualizerColorSource = colorSource,
                     )
                 }
             }.collect {}

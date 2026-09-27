@@ -63,6 +63,40 @@ data class VisualizerTheme(
         }
 
         /**
+         * Derives an LED-tower theme from a base color (e.g. the album-art accent).
+         *
+         * Keeps the 80s HiFi zone character: the zones spread 120° across the
+         * color wheel towards warm (low = base hue, mid −60°, high −120°) with
+         * rising lightness, so every base color gets a visible gradation. A
+         * green base reproduces the classic green → yellow → red ladder.
+         * Near-achromatic bases fall back to a pure lightness ladder.
+         */
+        fun ledThemeFrom(base: Color): VisualizerTheme {
+            val lowHsl = rgbToHsl(base.red, base.green, base.blue)
+            val (mid, high) = if (lowHsl[1] < ACHROMATIC_SATURATION_THRESHOLD) {
+                hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_MID_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS)) to
+                    hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_HIGH_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS))
+            } else {
+                hslToColor(
+                    (lowHsl[0] + LED_MID_HUE_SHIFT_DEG.toFloat() + HUE_WHEEL_DEG) % HUE_WHEEL_DEG,
+                    lowHsl[1],
+                    (lowHsl[2] + LED_MID_LIGHTNESS_BOOST).coerceAtMost(MAX_LIGHTNESS),
+                ) to
+                    hslToColor(
+                        (lowHsl[0] + LED_HIGH_HUE_SHIFT_DEG.toFloat() + HUE_WHEEL_DEG) % HUE_WHEEL_DEG,
+                        lowHsl[1],
+                        (lowHsl[2] + LED_HIGH_LIGHTNESS_BOOST).coerceAtMost(MAX_LIGHTNESS),
+                    )
+            }
+            return VisualizerTheme(
+                colLow = base,
+                colMid = mid.copy(alpha = base.alpha),
+                colHigh = high.copy(alpha = base.alpha),
+                background = Color.Transparent,
+            )
+        }
+
+        /**
          * Pure-Kotlin RGB to HSL conversion (h in 0..360, s/l in 0..1).
          *
          * Avoids `androidx.core.graphics.ColorUtils`, which calls into

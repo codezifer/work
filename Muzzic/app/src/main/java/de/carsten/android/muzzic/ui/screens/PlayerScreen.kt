@@ -41,6 +41,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
 
@@ -62,6 +63,7 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
         projectMPreset = uiState.projectMPreset,
         barsShimmerEnabled = uiState.barsShimmerEnabled,
         barsTipGlowEnabled = uiState.barsTipGlowEnabled,
+        visualizerColorSource = uiState.visualizerColorSource,
         spectrumBus = playerViewModel.spectrumBus,
         spectrumProcessor = playerViewModel.spectrumProcessor,
         colorSource = colorSource,
@@ -87,6 +89,7 @@ private fun PlayerScreenContent(
     projectMPreset: String? = null,
     barsShimmerEnabled: Boolean = true,
     barsTipGlowEnabled: Boolean = true,
+    visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
     colorSource: ColorSource = composableColorSource(),
@@ -154,6 +157,7 @@ private fun PlayerScreenContent(
                 projectMPreset = projectMPreset,
                 barsShimmerEnabled = barsShimmerEnabled,
                 barsTipGlowEnabled = barsTipGlowEnabled,
+                visualizerColorSource = visualizerColorSource,
                 spectrumBus = spectrumBus,
                 spectrumProcessor = spectrumProcessor,
                 colorSource = colorSource,

@@ -38,6 +38,21 @@ const val DEFAULT_SHIMMER_STRENGTH = 0.08f
 /** Default white highlight mix on mirrored bar tip segments. */
 const val DEFAULT_TIP_GLOW_STRENGTH = 0.35f
 
+/** Default outer halo strength around lit segments (0 disables the effect). */
+const val DEFAULT_GLOW_STRENGTH = 0.8f
+
+/** Hue rotation in degrees for the LED mid zone relative to the base color. */
+const val LED_MID_HUE_SHIFT_DEG = -60
+
+/** Hue rotation in degrees for the LED high zone relative to the base color. */
+const val LED_HIGH_HUE_SHIFT_DEG = -120
+
+/** Lightness boost for the LED mid zone relative to the base color. */
+const val LED_MID_LIGHTNESS_BOOST = 0.05f
+
+/** Lightness boost for the LED high zone relative to the base color. */
+const val LED_HIGH_LIGHTNESS_BOOST = 0.1f
+
 /** Preallocated spectrum frame slots; 64 frames cover ~740 ms at ~86 analyses/s. */
 const val SPECTRUM_BUS_CAPACITY_FRAMES = 64
 
@@ -112,6 +127,15 @@ const val DEFAULT_ZONE_MID_START = 0.60f
 
 /** Fractional bar height where the high (red) zone starts. */
 const val DEFAULT_ZONE_HIGH_START = 0.85f
+
+/** Full hue wheel span in degrees, for wrapping hue rotations. */
+const val HUE_WHEEL_DEG = 360f
+
+/** Maximum lightness value in HSL conversions. */
+const val MAX_LIGHTNESS = 1f
+
+/** Saturation below which a color counts as achromatic (grays). */
+const val ACHROMATIC_SATURATION_THRESHOLD = 0.05f
 
 // ---------------------------------------------------------------------------
 // Platform and debug values

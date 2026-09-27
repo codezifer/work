@@ -6,7 +6,8 @@ package de.carsten.android.muzzic.visualization.render.shaders
  * Visual columns are mirrored horizontally (bass in the center) and folded
  * vertically (bidirectional bars growing from the vertical center). Colors
  * form a base-to-target gradient from center to edge with amplitude-driven
- * white glow, time-based shimmer on lit LEDs, and a tip highlight.
+ * white glow, time-based shimmer on lit LEDs, a tip highlight, and an outer
+ * halo around lit segments (`uGlow`).
  *
  * Note: `half` is a reserved word in GLSL ES 3.00 and must never be used as an
  * identifier here (see ShaderReservedWordsTest).
@@ -32,6 +33,7 @@ uniform vec2  uLedHalfSize;     // LED segment half-size in cell fraction
 uniform float uCornerRadius;    // Relative corner radius
 uniform float uOffIntensity;    // Brightness for inactive LEDs, 0 hides them
 uniform vec3  uBackground;      // Background RGB color
+uniform float uGlow;            // Outer halo strength around lit LEDs, 0 disables
 
 out vec4 fragColor;
 
@@ -75,10 +77,17 @@ ${ShaderSnippets.ROUNDED_BOX_SDF}
     float isTip = step(abs(seg - (litCount - 0.5)), 0.5) * step(0.5, litCount) * on;
     onCol = mix(onCol, vec3(1.0), uTipGlow * isTip);
 
-    vec3 c = mix(grad * uOffIntensity, onCol, on);
+    // Outer halo: exponential falloff with pixel-space SDF distance (see GLOW_FALLOFF_RADIUS_PX).
+    // Zone-colored halo with an overbright rim at the block edge (no white, so
+    // the gradient hues stay dominant); the tips stay hot through the
+    // amplitude-driven white mix in onCol above.
+    float halo = exp(-max(sd, 0.0) / ${ShaderSnippets.GLOW_FALLOFF_RADIUS_PX}) * uGlow * on;
+    vec3 haloCol = mix(grad * 1.4, grad, clamp(max(sd, 0.0) / 1.0, 0.0, 1.0));
+    vec3 c = mix(grad * uOffIntensity, onCol, on) + haloCol * halo;
+    float cover = clamp(led + halo, 0.0, 1.0);
 
     float vis = max(on, step(0.001, uOffIntensity));
-    fragColor = vec4(mix(uBackground, c, led), led * uAlpha * vis);
+    fragColor = vec4(mix(uBackground, c, cover), cover * uAlpha * vis);
 }
 """
 }

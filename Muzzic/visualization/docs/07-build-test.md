@@ -30,7 +30,7 @@ build_projectm.sh → jniLibs/<ABI>/*.so → Gradle → libprojectm_bridge.so
 ## 7.3 Unit-Tests (`src/test/.../visualization/`)
 
 Alle JVM-Tests (kein Emulator nötig — möglich, weil `audio`/`bus` kein
-Android enthalten):
+Android enthalten; `VisualizerFactoryTest` braucht nur Compose-`Color`-Daten):
 
 | Test | Sichert ab |
 |---|---|
@@ -42,6 +42,8 @@ Android enthalten):
 | `LedBarSmootherTest` | Attack/Decay/Peak-Hold-Zeiten |
 | `MirroredBarsTest` | Center-Mirror-Abbildung (`mirroredBandIndex`) |
 | `BarsThemeTest` | HSL-Ableitung (`barsThemeFrom`) |
+| `LedThemeTest` | LED-Zonen-Ableitung aus der Akzentfarbe (`ledThemeFrom`) |
+| `VisualizerFactoryTest` | Engine→Definition-Auflösung (`VisualizerFactory`), Params-Mismatch-Abweisung |
 | `ConfigDefaultsTest` | Sinnvolle Defaults (fängt versehentliche Änderungen) |
 | `ShaderReservedWordsTest` | Kein `half` o. a. reservierte Wörter im GLSL |
 

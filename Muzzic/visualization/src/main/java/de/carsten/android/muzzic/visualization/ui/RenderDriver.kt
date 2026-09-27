@@ -2,7 +2,7 @@ package de.carsten.android.muzzic.visualization.ui
 
 import android.view.Choreographer
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
-import de.carsten.android.muzzic.visualization.render.LedBarRenderer
+import de.carsten.android.muzzic.visualization.render.FrameRenderer
 
 /**
  * Choreographer-driven frame controller invoking [requestRender] at display rate.
@@ -10,7 +10,7 @@ import de.carsten.android.muzzic.visualization.render.LedBarRenderer
  * Automatically pauses frame scheduling when playback stops and bars have settled to zero (`isIdle`),
  * dropping CPU and GPU load to ~0%.
  */
-class RenderDriver(val requestRender: () -> Unit, val renderer: LedBarRenderer, val processor: SpectrumProcessor? = null) {
+class RenderDriver(val requestRender: () -> Unit, val renderer: FrameRenderer, val processor: SpectrumProcessor? = null) {
     @Volatile var isPlaying: Boolean = true
         set(value) {
             field = value

@@ -23,4 +23,12 @@ object ShaderSnippets {
     float sd        = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
     float led       = 1.0 - smoothstep(-0.75, 0.75, sd);      // ~1.5 px antialiasing
 """
+
+    /**
+     * Exponential halo falloff radius in pixels, shared by both raster shaders.
+     *
+     * The halo term is `exp(-max(sd, 0.0) / GLOW_FALLOFF_RADIUS_PX)`: at one
+     * radius distance ~37% strength remains, at three radii ~5%.
+     */
+    const val GLOW_FALLOFF_RADIUS_PX = 8f
 }

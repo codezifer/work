@@ -4,6 +4,7 @@ val appTargetSdk = libs.versions.appMaxSdk.get().toInt()
 val appMinSdk = libs.versions.appMinSdk.get().toInt()
 val rootJvmVersion = libs.versions.appJvmVersion.get().toInt()
 val androidNdkVersion = libs.versions.ndk.get()
+val cmakeVersion = libs.versions.cmakeVersion.get()
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
 
 plugins {
@@ -32,7 +33,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = cmakeVersion
         }
     }
 
@@ -85,6 +86,10 @@ dependencies {
     // koin
     implementation(libs.koin.android)
     implementation(libs.koin.android.compose)
+
+    // compose tooling
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.manifest)
 
     // testing
     testImplementation(libs.junit)

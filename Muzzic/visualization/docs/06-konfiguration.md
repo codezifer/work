@@ -2,26 +2,39 @@
 
 ## 6.1 `MusicVisualization` (`component/MusicVisualization.kt`)
 
-**Aufgabe:** Die einzige Composable, die die App kennen muss. Engine-Weiche
-mit drei Ästen:
+**Aufgabe:** Die einzige Composable, die die App kennen muss. Dünner Host:
+Engine + Params werden per `remember` in eine `VisualizerParams` übersetzt,
+`VisualizerFactory` löst sie in eine `VisualizerDefinition` auf, das
+Composable hostet nur noch das aufgelöste Ziel:
 
 ```mermaid
 flowchart TB
-    MV["MusicVisualization(engine, ...)"] --> B{"engine?"}
-    B -->|"BARS"| SB1["SpectrumVisualizer\n(style=MIRRORED_BARS,\nTheme aus Akzentfarbe,\n16 Segmente)"]
-    B -->|"LED_SPECTRUM"| SB2["SpectrumVisualizer\n(style=LED,\nClassicGreen transparent)"]
-    B -->|"PROJECT_M"| AV["AndroidView(ProjectMGLSurfaceView)\npresetName durchgereicht"]
-    SB1 & SB2 -->|"bus == null?"| EMPTY["leere Box"]
+    MV["MusicVisualization(engine, params, ...)"] --> VF["VisualizerFactory.resolve"]
+    VF -->|"Spectrum"| SB1["SpectrumVisualizer\n(config/theme/style\nje Engine)"]
+    VF -->|"ProjectM"| AV["AndroidView(ProjectMGLSurfaceView)\npresetName durchgereicht"]
+    SB1 -->|"bus == null?"| EMPTY["leere Box"]
 ```
 
-- `BARS` baut Theme (`VisualizerTheme.barsThemeFrom(color)`) und Config
-  (16 Segmente, Shimmer/Tip-Glow je nach Flags) per `remember` und reicht
-  `spectrumBus` + `spectrumProcessor` durch. Ohne Bus: leere `Box` (kein
-  Crash, kein Platzhalter-Flackern).
-- `LED_SPECTRUM` nutzt `ClassicGreen` mit **transparentem** Hintergrund —
-  die LED-Formen tragen ihr eigenes Alpha, das Host-Layout scheint durch.
-- `PROJECT_M` bettet die `GLSurfaceView` per `AndroidView` ein; `update`
-  reicht Preset-Wechsel nach.
+- `BARS` → `BarsParams(shimmer, tipGlow)` → `Spectrum`-Definition mit
+  `MIRRORED_BARS`-Stil, Theme aus Akzentfarbe (`barsThemeFrom`), 16 Segmenten.
+  Ohne Bus: leere `Box` (kein Crash, kein Platzhalter-Flackern).
+- `LED_SPECTRUM` → `LedSpectrumParams` → `Spectrum`-Definition mit `LED`-Stil
+  und Theme aus der Akzentfarbe (`ledThemeFrom`: Low = Basis, Mid +20° Hue,
+  High +40° Hue, **transparenter** Hintergrund) — die LED-Formen tragen
+  ihr eigenes Alpha, das Host-Layout scheint durch.
+- `PROJECT_M` → `ProjectMParams(presetName)` → `ProjectM`-Definition; die
+  `GLSurfaceView` wird per `AndroidView` eingebettet, `update` reicht
+  Preset-Wechsel nach.
+- Öffentliche Signatur unverändert (`engine`, `presetName`, `spectrumBus`,
+  `spectrumProcessor`, `color`, `isPlaying`, `shimmerEnabled`,
+  `tipGlowEnabled`), damit kein App-Code angepasst werden musste. Neue Engine
+  = neuer `VisualizerEngine`-Eintrag + Params + Factory-Zweig
+  (`VisualizerFactoryTest` sichert die Auflösung auf der JVM ab).
+- **Farbquelle:** Die Basisfarbe `color` stammt aus der App-Einstellung
+  `VisualizerColorSource` (`ALBUM_ART` = Album-Art-Akzent, sonst Fix-Hue über
+  den Farbkreis). Persistenz via `AppSettingsRepository` (`GenericSetting`),
+  Auswahl im Settings-Dropdown (nur bei BARS/LED), Auflösung in
+  `PlayerControls` (`baseColor(accent)` → `MusicVisualization`).
 - `MusicVisualizationPreview` zeigt beide Modi (hell/dunkel): befüllt einen
   `SpectrumBus` per Hand mit 8 Beispielwerten, **rückdatiert** um
   `PREVIEW_SYNTH_FRAME_AGE_NANOS` (damit der Frame im Latenzfenster liegt) und
@@ -41,6 +54,8 @@ Reine Datenklassen (Defaults = Standard-Look):
   dB-Skala `floorDb` −54 → `topDb` −6, Tilt +3 dB/Oktave,
   Auto-Gain (`agTargetTopDb` −6, `agMaxGainDb` 18, `agReleaseDbPerSec` 2,0).
 - `SmootherConfig`: `fallPerSec` 1,6, `holdSec` 0,35, `peakFallPerSec` 0,5.
+- `glowStrength` (0,8): Außen-Halo um lit Segmente in beiden GLES-Engines
+  (Radius `GLOW_FALLOFF_RADIUS_PX` = 8 px, 0 = aus).
 
 Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
 `tiltDbPerOctave`; leise Tracks flach → `agMaxGainDb`; Bild eilt Ton voraus →
@@ -57,6 +72,12 @@ Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
   ab — Basisfarbe in der Mitte, um `VISUALIZER_HUE_COLOR_DEGREE` (40°)
   gedrehte Zielfarbe außen. Eigene **reine Kotlin**-HSL-Konvertierung
   (bewusst ohne `ColorUtils`, damit JVM-Tests laufen — siehe `BarsThemeTest`).
+- `ledThemeFrom(base)`: leitet aus derselben Akzentfarbe (Album-Art) das
+  LED-Zonen-Theme ab — Low = Basis, Mid −`LED_MID_HUE_SHIFT_DEG` (60°) +
+  `LED_MID_LIGHTNESS_BOOST`, High −`LED_HIGH_HUE_SHIFT_DEG` (120°) +
+  `LED_HIGH_LIGHTNESS_BOOST`, Hintergrund transparent. Grün als Basis ergibt
+  exakt die klassische Grün → Gelb → Rot-Leiter; Grautöne fallen auf eine
+  reine Helligkeitsstaffel zurück (siehe `LedThemeTest`).
 
 ## 6.4 `Constants.kt`
 

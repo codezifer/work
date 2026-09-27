@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.persistence.repo
 
 import de.carsten.android.muzzic.persistence.dao.GenericSettingDao
 import de.carsten.android.muzzic.persistence.entity.GenericSetting
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,6 +19,7 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
         const val KEY_PROJECTM_PRESET = "projectm_preset"
         const val KEY_BARS_SHIMMER_ENABLED = "bars_shimmer_enabled"
         const val KEY_BARS_TIP_GLOW_ENABLED = "bars_tip_glow_enabled"
+        const val KEY_VISUALIZER_COLOR_SOURCE = "visualizer_color_source"
     }
 
     /**
@@ -121,5 +123,29 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
      */
     suspend fun saveBarsTipGlowEnabled(enabled: Boolean) {
         genericSettingDao.insertOrUpdate(GenericSetting(KEY_BARS_TIP_GLOW_ENABLED, enabled.toString()))
+    }
+
+    /**
+     * Observes the visualizer color source setting (defaults to [VisualizerColorSource.ALBUM_ART]).
+     */
+    fun observeVisualizerColorSource(): Flow<VisualizerColorSource> = genericSettingDao.observeSetting(KEY_VISUALIZER_COLOR_SOURCE).map { setting ->
+        setting?.value?.let { name ->
+            runCatching { VisualizerColorSource.valueOf(name) }.getOrNull()
+        } ?: VisualizerColorSource.ALBUM_ART
+    }
+
+    /**
+     * Gets the visualizer color source setting.
+     */
+    suspend fun getVisualizerColorSource(): VisualizerColorSource {
+        val value = genericSettingDao.getSetting(KEY_VISUALIZER_COLOR_SOURCE)?.value ?: return VisualizerColorSource.ALBUM_ART
+        return runCatching { VisualizerColorSource.valueOf(value) }.getOrDefault(VisualizerColorSource.ALBUM_ART)
+    }
+
+    /**
+     * Saves the visualizer color source setting.
+     */
+    suspend fun saveVisualizerColorSource(colorSource: VisualizerColorSource) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_VISUALIZER_COLOR_SOURCE, colorSource.name))
     }
 }

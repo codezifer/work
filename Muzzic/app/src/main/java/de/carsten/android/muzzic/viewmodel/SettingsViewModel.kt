@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.ui.state.SettingsUiState
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.projectm.PresetManager
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +18,13 @@ import kotlinx.coroutines.launch
 /**
  * Bundled visualizer options for settings observation.
  */
-private data class VisualizerOptions(val engine: VisualizerEngine, val preset: String?, val shimmerEnabled: Boolean, val tipGlowEnabled: Boolean)
+private data class VisualizerOptions(
+    val engine: VisualizerEngine,
+    val preset: String?,
+    val shimmerEnabled: Boolean,
+    val tipGlowEnabled: Boolean,
+    val colorSource: VisualizerColorSource,
+)
 
 /**
  * ViewModel for the Settings screen.
@@ -35,8 +42,9 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             appSettingsRepository.observeProjectMPreset(),
             appSettingsRepository.observeBarsShimmerEnabled(),
             appSettingsRepository.observeBarsTipGlowEnabled(),
-        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled ->
-            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled)
+            appSettingsRepository.observeVisualizerColorSource(),
+        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, colorSource ->
+            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, colorSource)
         },
     ) { musicDir, playlistDir, visualizer ->
         val availablePresets = PresetManager.getAvailablePresets(getApplication())
@@ -48,6 +56,7 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             availablePresets = availablePresets,
             barsShimmerEnabled = visualizer.shimmerEnabled,
             barsTipGlowEnabled = visualizer.tipGlowEnabled,
+            visualizerColorSource = visualizer.colorSource,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
@@ -84,6 +93,15 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
     fun updateBarsTipGlowEnabled(enabled: Boolean) {
         viewModelScope.launch {
             appSettingsRepository.saveBarsTipGlowEnabled(enabled)
+        }
+    }
+
+    /**
+     * Updates the visualizer color source setting.
+     */
+    fun updateVisualizerColorSource(colorSource: VisualizerColorSource) {
+        viewModelScope.launch {
+            appSettingsRepository.saveVisualizerColorSource(colorSource)
         }
     }
 

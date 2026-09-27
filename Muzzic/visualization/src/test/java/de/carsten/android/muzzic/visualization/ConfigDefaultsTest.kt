@@ -16,6 +16,7 @@ class ConfigDefaultsTest {
         assertEquals(DEFAULT_MIRRORED_COLUMNS, config.columnCount)
         assertEquals(DEFAULT_SHIMMER_STRENGTH, config.shimmerStrength, 0f)
         assertEquals(DEFAULT_TIP_GLOW_STRENGTH, config.tipGlowStrength, 0f)
+        assertEquals(DEFAULT_GLOW_STRENGTH, config.glowStrength, 0f)
         assertEquals(DEFAULT_LED_SEGMENT_COUNT, config.segmentCount)
     }
 

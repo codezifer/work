@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.state
 
+import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
 data class SettingsUiState(
@@ -10,4 +11,5 @@ data class SettingsUiState(
     val availablePresets: List<String> = emptyList(),
     val barsShimmerEnabled: Boolean = true,
     val barsTipGlowEnabled: Boolean = true,
+    val visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
 )
