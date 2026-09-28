@@ -11,7 +11,7 @@
 | dB-Skala | `20·log10(Amp)`; Anzeige-Fenster −54…−6 dB (`floorDb`/`topDb`) |
 | EGL | Schnittstelle zwischen OpenGL und Fenster-Surface (`EglManager`, `GLSurfaceView`) |
 | Fullscreen-Dreieck | Ein Dreieck, das den Screen füllt; alle LED-Pixel entstehen im Fragment-Shader |
-| GLES 3.0 | OpenGL ES 3.0; Voraussetzung für `LedBarRenderer` (sonst Canvas-Fallback) |
+| GLES 3.0 | OpenGL ES 3.0; Voraussetzung für `LedBarRenderer` (ohne funktionierenden Kontext: leere Box) |
 | Hann-Fenster | Einblendfunktion vor der FFT gegen Spektral-Leckage |
 | Hop-Size | Samples zwischen zwei Analysen (512 ≈ 86 Hz bei 44,1 kHz) |
 | JNI | Java Native Interface; Brücke Kotlin ↔ C++ (`ProjectMNativeBridge` ↔ `projectm_bridge.cpp`) |

@@ -11,7 +11,7 @@ Visualisierungsmodul einsteigen wollen.
 | 1 | [Architektur](01-architektur.md)          | Blockschaltbild, Komponenten, Thread-Modell                                                                     |
 | 2 | [Audio-Pipeline](02-audio-pipeline.md)    | `VisualizerSink`, `SpectrumProcessor`, `Fft`, `BandMapper`, `AutoGain`                                          |
 | 3 | [SpectrumBus](03-spectrum-bus.md)         | Lock-freier Ringbuffer zwischen Audio- und Render-Thread                                                        |
-| 4 | [GLES-Rendering](04-rendering-gles.md)    | `SpectrumVisualizer`, `EglManager`, `RenderDriver`, `FrameRenderer`, `LedBarRenderer`, `LedBarSmoother`, Shader, Canvas-Fallback |
+| 4 | [GLES-Rendering](04-rendering-gles.md)    | `SpectrumVisualizer`, `EglManager`, `RenderDriver`, `FrameRenderer`, `LedBarRenderer`, `LedBarSmoother`, Shader, Previews |
 | 5 | [ProjectM / Nativ](05-projectm-nativ.md)  | `ProjectMGLSurfaceView`, `ProjectMNativeBridge`, `PresetManager`, `projectm_bridge.cpp`, Build                  |
 | 6 | [Konfiguration & UI](06-konfiguration.md) | `MusicVisualization`, `VisualizerEngine`, `VisualizerParams`, `VisualizerDefinition`/`VisualizerFactory`, `VisualizerConfig`, `VisualizerTheme`, `Constants`, `SyntheticSpectrumSource` |
 | 7 | [Build & Test](07-build-test.md)          | NDK/CMake/ABIs, `build_projectm.sh`, Unit-Tests                                                                 |

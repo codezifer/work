@@ -8,7 +8,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Handles time-compensated bar attack, linear decay, and peak-hold dynamics.
+ * Handles time-compensated bar attack, linear decay, peak-hold dynamics, and a
+ * slower trail memory for light-trail afterglow.
  *
  * Fully deterministic pure-Kotlin state holder, allowing execution and unit testing on JVM.
  *
@@ -17,19 +18,28 @@ import kotlin.math.min
 class LedBarSmoother(val maxBands: Int = MAX_SPECTRUM_BANDS) {
     val bands = FloatArray(maxBands)
     val peaks = FloatArray(maxBands)
+
+    /**
+     * Trail memory per band: tracks [bands] but falls with [SmootherConfig.trailFallPerSec],
+     * so the renderer can paint fading ghosts above the live frontier (light trail).
+     * Invariant: `trail[b] >= bands[b]` for active bands.
+     */
+    val trail = FloatArray(maxBands)
     private val hold = FloatArray(maxBands)
 
     /**
-     * Resets all bar, peak, and hold values to zero.
+     * Resets all bar, peak, trail, and hold values to zero.
      */
     fun reset() {
         bands.fill(0f)
         peaks.fill(0f)
+        trail.fill(0f)
         hold.fill(0f)
     }
 
     /**
-     * Updates bar and peak values based on elapsed time [dtSec] and target spectrum values.     *
+     * Updates bar, peak, and trail values based on elapsed time [dtSec] and target spectrum values.
+     *
      * @param target Array of target normalized band values (0.0..1.0).
      * @param bandCount Active number of bands in [target].
      * @param dtSec Elapsed time in seconds since last frame.
@@ -67,20 +77,26 @@ class LedBarSmoother(val maxBands: Int = MAX_SPECTRUM_BANDS) {
             bands[b] = bar.coerceIn(0f, 1f)
             peaks[b] = peak.coerceIn(0f, 1f)
             hold[b] = max(0f, h)
+
+            // 3. Trail memory: instant attack, slow decay — lags behind the bar
+            // so ghosts fade out block by block after the frontier passes.
+            trail[b] = max(bands[b], trail[b] - cfg.trailFallPerSec * dt).coerceIn(0f, 1f)
         }
 
         // Clear any remaining bands outside active count
         for (b in activeBands until maxBands) {
             bands[b] = 0f
             peaks[b] = 0f
+            trail[b] = 0f
             hold[b] = 0f
         }
     }
 
     /**
-     * Returns the maximum over active bar and peak values.
+     * Returns the maximum over active bar, peak, and trail values.
      *
-     * Used by render loops to detect the settled (idle) state.
+     * Used by render loops to detect the settled (idle) state; the trail is
+     * included so loops keep running until afterglow ghosts have faded.
      *
      * @param bandCount Active number of bands.
      */
@@ -90,6 +106,7 @@ class LedBarSmoother(val maxBands: Int = MAX_SPECTRUM_BANDS) {
         for (b in 0 until activeBands) {
             if (bands[b] > maxVal) maxVal = bands[b]
             if (peaks[b] > maxVal) maxVal = peaks[b]
+            if (trail[b] > maxVal) maxVal = trail[b]
         }
         return maxVal
     }

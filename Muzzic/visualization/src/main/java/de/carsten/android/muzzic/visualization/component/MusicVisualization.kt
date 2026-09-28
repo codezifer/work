@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.visualization.component
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,20 +10,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import de.carsten.android.muzzic.visualization.BARS_SEGMENT_COUNT
-import de.carsten.android.muzzic.visualization.DEFAULT_SPECTRUM_BANDS
 import de.carsten.android.muzzic.visualization.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.visualization.PREVIEW_SYNTH_FRAME_AGE_NANOS
 import de.carsten.android.muzzic.visualization.VisualizerConfig
 import de.carsten.android.muzzic.visualization.VisualizerTheme
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
-import de.carsten.android.muzzic.visualization.ui.CanvasFallbackVisualizer
 import de.carsten.android.muzzic.visualization.ui.SpectrumVisualizer
+import kotlin.math.min
 
 /**
  * A real-time audio visualizer component supporting mirrored GLES bars, 3D ProjectM
@@ -114,19 +116,9 @@ fun MusicVisualizationPreview() {
                 .padding(16.dp)
                 .height(100.dp),
         ) {
-            // Static preview through the Canvas fallback with a pre-filled bus.
-            // The frame is backdated past the latency window so the fallback picks it up.
-            val bus = remember {
-                SpectrumBus().also { filled ->
-                    val values = FloatArray(DEFAULT_SPECTRUM_BANDS) { i ->
-                        listOf(0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f)[i % 8]
-                    }
-                    filled.write(System.nanoTime() - PREVIEW_SYNTH_FRAME_AGE_NANOS, values, DEFAULT_SPECTRUM_BANDS)
-                }
-            }
-            CanvasFallbackVisualizer(
-                bus = bus,
-                isPlaying = true,
+            // GLES needs a device GL context, so previews render a static mock
+            // of LED bars (same geometry and zone colors, no audio or animation).
+            StaticBarsPreview(
                 modifier = Modifier.fillMaxSize(),
                 config = VisualizerConfig(segmentCount = BARS_SEGMENT_COUNT),
                 theme = VisualizerTheme.barsThemeFrom(MaterialTheme.colorScheme.primary),
@@ -134,3 +126,61 @@ fun MusicVisualizationPreview() {
         }
     }
 }
+
+/**
+ * Static, preview-only mock of LED bars with fixed levels.
+ *
+ * Uses the same cell geometry, zone colors, and dimming as the GLES engines so
+ * theme changes stay visible in previews; deliberately free of bus I/O,
+ * smoothing, and animation.
+ */
+@Composable
+private fun StaticBarsPreview(modifier: Modifier = Modifier, config: VisualizerConfig = VisualizerConfig(), theme: VisualizerTheme = VisualizerTheme.ClassicGreen) {
+    val values = remember(config.bandCount) {
+        FloatArray(config.bandCount) { i -> PREVIEW_BAR_VALUES[i % PREVIEW_BAR_VALUES.size] }
+    }
+
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
+        if (width <= 0f || height <= 0f) return@Canvas
+
+        val bandCount = config.bandCount
+        val segCount = config.segmentCount
+        val cellW = width / bandCount
+        val cellH = height / segCount
+
+        val halfW = config.ledHalfSize.first * cellW
+        val halfH = config.ledHalfSize.second * cellH
+        val cornerR = config.cornerRadius * min(cellW, cellH)
+
+        drawRect(color = theme.background)
+
+        for (b in 0 until bandCount) {
+            val barVal = values[b]
+            val xCenter = (b + 0.5f) * cellW
+
+            for (s in 0 until segCount) {
+                val t = (s + 0.5f) / segCount
+                val isLit = (s + 0.5f) / segCount <= barVal
+                if (!isLit && theme.offIntensity <= 0.001f) continue
+
+                val zoneColor = when {
+                    t < theme.zoneStart.first -> theme.colLow
+                    t < theme.zoneStart.second -> theme.colMid
+                    else -> theme.colHigh
+                }
+                val finalColor = if (isLit) zoneColor else zoneColor.copy(alpha = theme.offIntensity)
+
+                drawRoundRect(
+                    color = finalColor,
+                    topLeft = Offset(xCenter - halfW, height - (s + 0.5f) * cellH - halfH),
+                    size = Size(halfW * 2f, halfH * 2f),
+                    cornerRadius = CornerRadius(cornerR, cornerR),
+                )
+            }
+        }
+    }
+}
+
+private val PREVIEW_BAR_VALUES = floatArrayOf(0.1f, 0.4f, 0.8f, 0.3f, 0.6f, 0.9f, 0.2f, 0.5f)

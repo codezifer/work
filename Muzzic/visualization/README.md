@@ -38,9 +38,8 @@ visualization/
 │   │   ├── bus/
 │   │   │   └── SpectrumBus.kt           # Lock-freier SPSC-Ringbuffer (Audio- → Render-Thread)
 │   │   ├── ui/
-│   │   │   ├── SpectrumVisualizer.kt    # TextureView-Hülle mit GLES-Check + Lifecycle
-│   │   │   ├── RenderDriver.kt          # Choreographer-Frame-Steuerung mit Auto-Stop
-│   │   │   └── CanvasFallbackVisualizer.kt # Compose-Canvas-Fallback ohne GLES 3.0
+│   │   │   ├── SpectrumVisualizer.kt    # TextureView-Hülle mit Lifecycle (ohne GL: leere Box)
+│   │   │   └── RenderDriver.kt          # Choreographer-Frame-Steuerung mit Auto-Stop
 │   │   ├── render/
 │   │   │   ├── LedBarRenderer.kt        # GLES-3.0-Renderer (LED-Türme + gespiegelte Balken)
 │   │   │   ├── LedBarSmoother.kt        # Attack/Decay/Peak-Hold-Glättung (JVM-testbar)
@@ -147,7 +146,7 @@ chmod +x build_projectm.sh
 ## How It Works in Muzzic
 
 1. **Audio Capture**: ExoPlayer passes audio buffers to `VisualizerSink` (`TeeAudioProcessor.AudioBufferSink`).
-2. **GLES Spectrum Path**: `VisualizerSink` → `SpectrumProcessor` (Hann window → `Fft` → `BandMapper` → `AutoGain`) → normalized bands (0..1) into `SpectrumBus`; `LedBarRenderer` reads them with latency compensation (`visualLatencyMs`), smooths via `LedBarSmoother`, and draws a fullscreen shader (`LedFragment` / `BarsFragment`), driven by `RenderDriver` (Choreographer, auto-stop when idle). Without GLES 3.0, `CanvasFallbackVisualizer` draws the same state in Compose Canvas.
+2. **GLES Spectrum Path**: `VisualizerSink` → `SpectrumProcessor` (Hann window → `Fft` → `BandMapper` → `AutoGain`) → normalized bands (0..1) into `SpectrumBus`; `LedBarRenderer` reads them with latency compensation (`visualLatencyMs`), smooths via `LedBarSmoother`, and draws a fullscreen shader (`LedFragment` / `BarsFragment`), driven by `RenderDriver` (Choreographer, auto-stop when idle). Without a working GLES 3.0 context the `SpectrumVisualizer` renders an empty placeholder (no Canvas fallback).
 3. **PCM Stream**: `VisualizerSink` feeds raw PCM float samples to `ProjectMNativeBridge.addPcm()` → `projectm_pcm_add_float()` (count is per channel).
 4. **OpenGL Rendering**: `ProjectMGLSurfaceView` triggers `projectm_opengl_render_frame()` on the EGL rendering thread. The instance is created with `projectm_create()` in `onSurfaceCreated` (a current GL context is required).
 4. **Preset Extraction**: `PresetManager` copies bundled `.milk` files from `assets/presets/` to `context.filesDir/projectm/presets/` on launch. The native bridge scans this directory at init, loads the first preset immediately and cycles through the rest via next/previous with smooth transitions.

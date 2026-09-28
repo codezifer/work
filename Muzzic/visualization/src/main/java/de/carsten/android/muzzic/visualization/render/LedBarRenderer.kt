@@ -95,6 +95,8 @@ class LedBarRenderer(
     private var uSegmentsLoc = -1
     private var uBandsLoc = -1
     private var uPeaksLoc = -1
+    private var uTrailLoc = -1
+    private var uTrailStrengthLoc = -1
     private var uColLowLoc = -1
     private var uColMidLoc = -1
     private var uColHighLoc = -1
@@ -105,6 +107,11 @@ class LedBarRenderer(
     private var uBackgroundLoc = -1
     private var uGlowLoc = -1
     private var uShimmerLoc = -1
+    private var uHotCoreLoc = -1
+    private var uSpecularLoc = -1
+    private var uBleedLoc = -1
+    private var uGlowGradeLoc = -1
+    private var uFadeLoc = -1
     private var uTimeLoc = -1
 
     // Mirrored-BARS program uniform locations.
@@ -128,6 +135,7 @@ class LedBarRenderer(
     private val targetValues = FloatArray(MAX_SPECTRUM_BANDS)
     private val packedBands = FloatArray(MAX_SPECTRUM_BANDS)
     private val packedPeaks = FloatArray(MAX_SPECTRUM_BANDS)
+    private val packedTrail = FloatArray(MAX_SPECTRUM_BANDS)
 
     private var viewportWidth = 0
     private var viewportHeight = 0
@@ -145,6 +153,8 @@ class LedBarRenderer(
             uSegmentsLoc = GLES30.glGetUniformLocation(program, "uSegments")
             uBandsLoc = GLES30.glGetUniformLocation(program, "uBands")
             uPeaksLoc = GLES30.glGetUniformLocation(program, "uPeaks")
+            uTrailLoc = GLES30.glGetUniformLocation(program, "uTrail")
+            uTrailStrengthLoc = GLES30.glGetUniformLocation(program, "uTrailStrength")
             uColLowLoc = GLES30.glGetUniformLocation(program, "uColLow")
             uColMidLoc = GLES30.glGetUniformLocation(program, "uColMid")
             uColHighLoc = GLES30.glGetUniformLocation(program, "uColHigh")
@@ -155,6 +165,11 @@ class LedBarRenderer(
             uBackgroundLoc = GLES30.glGetUniformLocation(program, "uBackground")
             uGlowLoc = GLES30.glGetUniformLocation(program, "uGlow")
             uShimmerLoc = GLES30.glGetUniformLocation(program, "uShimmer")
+            uHotCoreLoc = GLES30.glGetUniformLocation(program, "uHotCore")
+            uSpecularLoc = GLES30.glGetUniformLocation(program, "uSpecular")
+            uBleedLoc = GLES30.glGetUniformLocation(program, "uBleed")
+            uGlowGradeLoc = GLES30.glGetUniformLocation(program, "uGlowGrade")
+            uFadeLoc = GLES30.glGetUniformLocation(program, "uFade")
             uTimeLoc = GLES30.glGetUniformLocation(program, "uTime")
         }
         if (barsProgram == 0) {
@@ -215,10 +230,11 @@ class LedBarRenderer(
         val maxVal = smoother.maxValue(config.bandCount)
         isIdle = (readBands <= 0 || isStale) && maxVal < RENDERER_IDLE_VALUE_THRESHOLD
 
-        // 4. Pack band and peak arrays for vec4 uniforms
+        // 4. Pack band, peak, and trail arrays for vec4 uniforms
         val vec4Count = (config.bandCount + 3) / 4
         System.arraycopy(smoother.bands, 0, packedBands, 0, config.bandCount)
         System.arraycopy(smoother.peaks, 0, packedPeaks, 0, config.bandCount)
+        System.arraycopy(smoother.trail, 0, packedTrail, 0, config.bandCount)
 
         // 5. Apply static uniforms (colors, geometry) only when config/theme/style changed
         applyStaticUniformsIfNeeded()
@@ -254,6 +270,12 @@ class LedBarRenderer(
             GLES30.glUniform3f(uBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
             GLES30.glUniform1f(uGlowLoc, config.glowStrength)
             GLES30.glUniform1f(uShimmerLoc, config.shimmerStrength)
+            GLES30.glUniform1f(uHotCoreLoc, config.hotCoreStrength)
+            GLES30.glUniform1f(uSpecularLoc, config.specularStrength)
+            GLES30.glUniform1f(uBleedLoc, config.bleedStrength)
+            GLES30.glUniform1f(uGlowGradeLoc, config.glowGradeStrength)
+            GLES30.glUniform1f(uFadeLoc, config.fadeStrength)
+            GLES30.glUniform1f(uTrailStrengthLoc, config.trailStrength)
         }
         if (barsProgram != 0) {
             GLES30.glUseProgram(barsProgram)
@@ -289,6 +311,7 @@ class LedBarRenderer(
         GLES30.glUniform2f(uResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
         GLES30.glUniform4fv(uBandsLoc, vec4Count, packedBands, 0)
         GLES30.glUniform4fv(uPeaksLoc, vec4Count, packedPeaks, 0)
+        GLES30.glUniform4fv(uTrailLoc, vec4Count, packedTrail, 0)
         GLES30.glUniform1f(uTimeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)

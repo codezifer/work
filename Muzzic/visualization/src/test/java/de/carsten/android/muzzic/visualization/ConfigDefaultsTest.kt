@@ -17,6 +17,12 @@ class ConfigDefaultsTest {
         assertThat(config.shimmerStrength).isEqualTo(DEFAULT_SHIMMER_STRENGTH)
         assertThat(config.tipGlowStrength).isEqualTo(DEFAULT_TIP_GLOW_STRENGTH)
         assertThat(config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
+        assertThat(config.hotCoreStrength).isEqualTo(DEFAULT_HOT_CORE_STRENGTH)
+        assertThat(config.specularStrength).isEqualTo(DEFAULT_SPECULAR_STRENGTH)
+        assertThat(config.bleedStrength).isEqualTo(DEFAULT_BLEED_STRENGTH)
+        assertThat(config.glowGradeStrength).isEqualTo(DEFAULT_GLOW_GRADE_STRENGTH)
+        assertThat(config.fadeStrength).isEqualTo(DEFAULT_FADE_STRENGTH)
+        assertThat(config.trailStrength).isEqualTo(DEFAULT_TRAIL_STRENGTH)
         assertThat(config.segmentCount).isEqualTo(DEFAULT_LED_SEGMENT_COUNT)
     }
 

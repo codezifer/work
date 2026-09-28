@@ -41,6 +41,27 @@ const val DEFAULT_TIP_GLOW_STRENGTH = 0.35f
 /** Default outer halo strength around lit segments (0 disables the effect). */
 const val DEFAULT_GLOW_STRENGTH = 0.8f
 
+/** Default white-hot core mix at LED centers (0 disables the effect). */
+const val DEFAULT_HOT_CORE_STRENGTH = 0.85f
+
+/** Default traveling dome-sheen intensity on lit LEDs (0 disables the effect). */
+const val DEFAULT_SPECULAR_STRENGTH = 0.25f
+
+/** Default light spill above the lit frontier and column wash (0 disables the effect). */
+const val DEFAULT_BLEED_STRENGTH = 0.8f
+
+/**
+ * Default level grading of the LED light kit: lower segments glow dimmer, upper
+ * segments at full strength (0 disables grading, all lit LEDs glow uniformly).
+ */
+const val DEFAULT_GLOW_GRADE_STRENGTH = 0.65f
+
+/** Default soft frontier fade-out inertia (0 keeps binary on/off segments). */
+const val DEFAULT_FADE_STRENGTH = 1.0f
+
+/** Default afterglow ghost intensity above the live frontier (0 disables the light trail). */
+const val DEFAULT_TRAIL_STRENGTH = 0.7f
+
 /** Hue rotation in degrees for the LED mid zone relative to the base color. */
 const val LED_MID_HUE_SHIFT_DEG = -60
 
@@ -48,10 +69,19 @@ const val LED_MID_HUE_SHIFT_DEG = -60
 const val LED_HIGH_HUE_SHIFT_DEG = -120
 
 /** Lightness boost for the LED mid zone relative to the base color. */
-const val LED_MID_LIGHTNESS_BOOST = 0.05f
+const val LED_MID_LIGHTNESS_BOOST = 0.12f
 
 /** Lightness boost for the LED high zone relative to the base color. */
-const val LED_HIGH_LIGHTNESS_BOOST = 0.1f
+const val LED_HIGH_LIGHTNESS_BOOST = 0.22f
+
+/** Minimum saturation enforced for the LED high zone (full force at the top). */
+const val LED_HIGH_MIN_SATURATION = 0.9f
+
+/** Lightness boost for the mid step of the achromatic fallback ladder. */
+const val ACHROMATIC_MID_LIGHTNESS_BOOST = 0.2f
+
+/** Lightness boost for the high step of the achromatic fallback ladder. */
+const val ACHROMATIC_HIGH_LIGHTNESS_BOOST = 0.4f
 
 /** Preallocated spectrum frame slots; 64 frames cover ~740 ms at ~86 analyses/s. */
 const val SPECTRUM_BUS_CAPACITY_FRAMES = 64
@@ -83,15 +113,6 @@ const val STALE_FRAME_GRACE_NANOS = 120_000_000L
 
 /** Bars and peaks below this value count as settled for render-loop auto-stop. */
 const val RENDERER_IDLE_VALUE_THRESHOLD = 0.01f
-
-/** Peak markers at or below this value stay hidden. */
-const val PEAK_VISIBILITY_THRESHOLD = 0.02f
-
-/**
- * Off-state LEDs at or below this intensity are skipped entirely in the Canvas
- * fallback (mirrors the `step(0.001, uOffIntensity)` gate in `BarsFragment`).
- */
-const val OFF_INTENSITY_VISIBILITY_THRESHOLD = 0.001f
 
 // ---------------------------------------------------------------------------
 // Audio analysis reference values
@@ -166,11 +187,5 @@ const val MAX_VIVID_LIGHTNESS = 0.65f
 // Platform and debug values
 // ---------------------------------------------------------------------------
 
-/** `reqGlEsVersion` value for OpenGL ES 3.0 capable devices. */
-const val GL_ES_3_0_VERSION_CODE = 0x00030000
-
 /** Synthetic debug frame interval (~86 Hz, matching the analysis hop rate). */
 const val SYNTH_FRAME_INTERVAL_MICROS = 11600L
-
-/** Age of the pre-filled preview bus frame, past the latency window. */
-const val PREVIEW_SYNTH_FRAME_AGE_NANOS = 200_000_000L

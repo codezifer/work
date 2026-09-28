@@ -1,12 +1,11 @@
 package de.carsten.android.muzzic.visualization.ui
 
-import android.app.ActivityManager
-import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.view.TextureView
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -17,12 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import de.carsten.android.muzzic.visualization.GL_ES_3_0_VERSION_CODE
 import de.carsten.android.muzzic.visualization.VisualizerConfig
 import de.carsten.android.muzzic.visualization.VisualizerTheme
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
@@ -35,9 +32,9 @@ import de.carsten.android.muzzic.visualization.render.RenderStyle
  * Real-time LED bar spectrum visualizer Composable.
  *
  * Hosts a `TextureView` (composited inside the app window, so transparency reveals
- * the app UI beneath and Compose clip/alpha apply) when GLES 3.0 is available,
- * or falls back seamlessly to [CanvasFallbackVisualizer] on legacy hardware
- * or EGL initialization failure.
+ * the app UI beneath and Compose clip/alpha apply) rendering the GLES spectrum
+ * engines. There is no Canvas fallback: without a working GLES 3.0 EGL context
+ * this composable renders an empty [Box] (invisible, never crashing).
  *
  * All EGL and GL work runs on a dedicated `VisualizerGL` thread (one per live
  * surface): `SurfaceTextureListener` callbacks and the [RenderDriver] frame loop
@@ -61,20 +58,6 @@ fun SpectrumVisualizer(
     style: RenderStyle = RenderStyle.LED,
     processor: SpectrumProcessor? = null,
 ) {
-    val context = LocalContext.current
-    val isGlEs3Supported = remember(context) { checkGlEs3Support(context) }
-
-    if (!isGlEs3Supported) {
-        CanvasFallbackVisualizer(
-            bus = bus,
-            isPlaying = isPlaying,
-            modifier = modifier,
-            config = config,
-            theme = theme,
-        )
-        return
-    }
-
     val renderer = remember {
         LedBarRenderer(bus = bus, config = config, theme = theme, style = style)
     }
@@ -86,15 +69,10 @@ fun SpectrumVisualizer(
         renderer.style = style
     }
 
-    var glFailed by remember { mutableStateOf(false) }
-    if (glFailed) {
-        CanvasFallbackVisualizer(
-            bus = bus,
-            isPlaying = isPlaying,
-            modifier = modifier,
-            config = config,
-            theme = theme,
-        )
+    var eglFailed by remember { mutableStateOf(false) }
+    if (eglFailed) {
+        // No Canvas fallback: without a GL context there is nothing to show.
+        Box(modifier = modifier)
         return
     }
 
@@ -135,7 +113,7 @@ fun SpectrumVisualizer(
                         glHost = host
                         host.handler.post {
                             if (!eglManager.init(surface, width, height)) {
-                                Handler(Looper.getMainLooper()).post { glFailed = true }
+                                Handler(Looper.getMainLooper()).post { eglFailed = true }
                                 return@post
                             }
                             host.width = width
@@ -226,10 +204,4 @@ private class GlHost(val thread: HandlerThread, val handler: Handler, val eglMan
     @Volatile var width: Int = 0
 
     @Volatile var height: Int = 0
-}
-
-private fun checkGlEs3Support(context: Context): Boolean {
-    val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return false
-    val info = am.deviceConfigurationInfo ?: return false
-    return info.reqGlEsVersion >= GL_ES_3_0_VERSION_CODE
 }

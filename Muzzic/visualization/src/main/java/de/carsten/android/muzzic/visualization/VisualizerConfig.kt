@@ -10,6 +10,12 @@ import kotlin.math.min
  * @property shimmerStrength Shimmer modulation on lit mirrored bars (0 disables the effect).
  * @property tipGlowStrength White highlight mix on the tip segment of mirrored bars (0 disables the effect).
  * @property glowStrength Outer halo around lit segments in both GLES engines (0 disables the effect).
+ * @property hotCoreStrength White-hot center mix on lit LED towers, plus saturated mid-ring (0 disables the effect).
+ * @property specularStrength Traveling dome sheen across lit LED faces (0 disables the effect).
+ * @property bleedStrength Light spill into dark segments above the lit frontier, plus column wash (0 disables the effect).
+ * @property glowGradeStrength Level grading of the light kit: lower segments glow dimmer, upper at full strength (0 disables grading).
+ * @property fadeStrength Soft frontier fade-out inertia for disappearing blocks (0 keeps binary on/off segments).
+ * @property trailStrength Afterglow ghost intensity above the live frontier — blocks glimmer out one after another (0 disables the light trail).
  * @property segmentCount Number of LED segments per bar (e.g., 20).
  * @property ledHalfSize Half size of an LED segment in normalized cell proportions (e.g. 0.40, 0.34).
  * @property cornerRadius Relative corner radius for rounded LEDs (e.g. 0.25).
@@ -24,6 +30,12 @@ data class VisualizerConfig(
     val shimmerStrength: Float = DEFAULT_SHIMMER_STRENGTH,
     val tipGlowStrength: Float = DEFAULT_TIP_GLOW_STRENGTH,
     val glowStrength: Float = DEFAULT_GLOW_STRENGTH,
+    val hotCoreStrength: Float = DEFAULT_HOT_CORE_STRENGTH,
+    val specularStrength: Float = DEFAULT_SPECULAR_STRENGTH,
+    val bleedStrength: Float = DEFAULT_BLEED_STRENGTH,
+    val glowGradeStrength: Float = DEFAULT_GLOW_GRADE_STRENGTH,
+    val fadeStrength: Float = DEFAULT_FADE_STRENGTH,
+    val trailStrength: Float = DEFAULT_TRAIL_STRENGTH,
     val segmentCount: Int = DEFAULT_LED_SEGMENT_COUNT,
     val ledHalfSize: Pair<Float, Float> = Pair(0.40f, 0.34f),
     val cornerRadius: Float = 0.25f,
@@ -71,5 +83,7 @@ data class AnalysisConfig(
  * @property fallPerSec Linear decay rate of spectrum bars per second (default: 1.6).
  * @property holdSec Hold duration for peak markers in seconds before dropping (default: 0.35 s).
  * @property peakFallPerSec Decay rate of peak markers per second after hold expires (default: 0.5).
+ * @property trailFallPerSec Decay rate of the trail memory per second (default: 0.55).
+ * Slower than [fallPerSec] so afterglow ghosts lag several blocks behind the live frontier.
  */
-data class SmootherConfig(val fallPerSec: Float = 1.6f, val holdSec: Float = 0.35f, val peakFallPerSec: Float = 0.5f)
+data class SmootherConfig(val fallPerSec: Float = 1.6f, val holdSec: Float = 0.35f, val peakFallPerSec: Float = 0.5f, val trailFallPerSec: Float = 0.55f)

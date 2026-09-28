@@ -1,4 +1,5 @@
-import de.carsten.android.muzzic.visualization.SmootherConfig
+package de.carsten.android.muzzic.visualization
+
 import de.carsten.android.muzzic.visualization.render.LedBarSmoother
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -68,5 +69,39 @@ class LedBarSmootherTest {
         val smoother = LedBarSmoother(maxBands = 2)
 
         assertThat(smoother.maxValue(2)).isZero()
+    }
+
+    @Test
+    fun `LedBarSmoother trail lags behind falling bars`() {
+        val smoother = LedBarSmoother(maxBands = 2)
+        val cfg = SmootherConfig(fallPerSec = 2.0f, holdSec = 0f, peakFallPerSec = 2.0f, trailFallPerSec = 0.5f)
+
+        smoother.update(floatArrayOf(1.0f, 0f), bandCount = 1, dtSec = 0.016f, cfg = cfg)
+        assertThat(smoother.trail[0]).isCloseTo(1.0f, within(1e-4f))
+
+        // Bar falls fast (2.0/s), trail falls slow (0.5/s): after 0.05 s the
+        // trail must lag above the bar, preserving the ghost invariant.
+        smoother.update(floatArrayOf(0.0f, 0f), bandCount = 1, dtSec = 0.05f, cfg = cfg)
+        assertThat(smoother.bands[0]).isCloseTo(0.9f, within(1e-4f))
+        assertThat(smoother.trail[0]).isCloseTo(0.975f, within(1e-4f))
+        assertThat(smoother.trail[0]).isGreaterThan(smoother.bands[0])
+        // Peak fell to the bar level (0.9), so maxValue must come from the trail.
+        assertThat(smoother.peaks[0]).isCloseTo(0.9f, within(1e-4f))
+        assertThat(smoother.maxValue(1)).isCloseTo(smoother.trail[0], within(1e-4f))
+    }
+
+    @Test
+    fun `LedBarSmoother trail resets and clears with inactive bands`() {
+        val smoother = LedBarSmoother(maxBands = 2)
+        val cfg = SmootherConfig()
+
+        smoother.update(floatArrayOf(1.0f, 0.8f), bandCount = 2, dtSec = 0.016f, cfg = cfg)
+        smoother.reset()
+        assertThat(smoother.trail[0]).isZero()
+        assertThat(smoother.trail[1]).isZero()
+
+        smoother.update(floatArrayOf(1.0f, 0.8f), bandCount = 2, dtSec = 0.016f, cfg = cfg)
+        smoother.update(floatArrayOf(1.0f, 0f), bandCount = 1, dtSec = 0.016f, cfg = cfg)
+        assertThat(smoother.trail[1]).isZero()
     }
 }

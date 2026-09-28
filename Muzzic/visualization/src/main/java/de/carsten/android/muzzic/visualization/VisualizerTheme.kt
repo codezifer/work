@@ -68,16 +68,17 @@ data class VisualizerTheme(
          *
          * Keeps the 80s HiFi zone character: the zones spread 120° across the
          * color wheel towards warm (low = base hue, mid −60°, high −120°) with
-         * rising lightness, so every base color gets a visible gradation. A
-         * green base reproduces the classic green → yellow → red ladder.
-         * Near-achromatic bases fall back to a pure lightness ladder.
+         * strongly rising lightness (mid +0.12, high +0.22) and full saturation
+         * at the top (high ≥ 0.9), so every base color gets a clearly visible
+         * gradation. A green base reproduces the classic green → yellow → red
+         * ladder. Near-achromatic bases fall back to a pure lightness ladder.
          */
         fun ledThemeFrom(base: Color): VisualizerTheme {
             val vivid = ensureVivid(base)
             val lowHsl = rgbToHsl(vivid.red, vivid.green, vivid.blue)
             val (mid, high) = if (lowHsl[1] < ACHROMATIC_SATURATION_THRESHOLD) {
-                hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_MID_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS)) to
-                    hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + LED_HIGH_LIGHTNESS_BOOST * 4f).coerceAtMost(MAX_LIGHTNESS))
+                hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + ACHROMATIC_MID_LIGHTNESS_BOOST).coerceAtMost(MAX_LIGHTNESS)) to
+                    hslToColor(lowHsl[0], lowHsl[1], (lowHsl[2] + ACHROMATIC_HIGH_LIGHTNESS_BOOST).coerceAtMost(MAX_LIGHTNESS))
             } else {
                 hslToColor(
                     (lowHsl[0] + LED_MID_HUE_SHIFT_DEG.toFloat() + HUE_WHEEL_DEG) % HUE_WHEEL_DEG,
@@ -86,7 +87,7 @@ data class VisualizerTheme(
                 ) to
                     hslToColor(
                         (lowHsl[0] + LED_HIGH_HUE_SHIFT_DEG.toFloat() + HUE_WHEEL_DEG) % HUE_WHEEL_DEG,
-                        lowHsl[1],
+                        maxOf(lowHsl[1], LED_HIGH_MIN_SATURATION),
                         (lowHsl[2] + LED_HIGH_LIGHTNESS_BOOST).coerceAtMost(MAX_LIGHTNESS),
                     )
             }

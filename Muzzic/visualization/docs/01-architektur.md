@@ -25,13 +25,11 @@ flowchart LR
         FR["FrameRenderer\n(Interface)"]
         LBR["LedBarRenderer"]
         SM["LedBarSmoother"]
-        CF["CanvasFallback"]
         SB --> SV --> RD --> FR
         LBR --|> FR
         MV --> VF --> VD
         VD -->|"Spectrum"| SV
         VD -->|"ProjectM"| GLS
-        SV -.->|"ohne GLES 3.0"| CF
     end
     subgraph C3["3 · ProjectM (nativ)"]
         direction TB
@@ -59,7 +57,7 @@ Bänder aus dem `SpectrumBus`; ProjectM bekommt Roh-PCM und macht alles selbst.
 | `service` | `VisualizerSink` — einziger Einstiegspunkt, verteilt PCM an beide Pfade | `audio`, `bus`, `projectm` |
 | `audio` | `SpectrumProcessor`, `Fft`, `BandMapper`, `AutoGain` — reine Signalverarbeitung, **kein Android**, JVM-testbar | nur `bus`, `Constants` |
 | `bus` | `SpectrumBus` — Thread-Brücke, **kein Android**, JVM-testbar | nur `Constants` |
-| `ui` | `SpectrumVisualizer`, `RenderDriver` (hängt nur vom `FrameRenderer`-Interface ab), `CanvasFallbackVisualizer` — Compose-Hülle + Frame-Steuerung | `bus`, `render`, `audio` (nur Typ `SpectrumProcessor`) |
+| `ui` | `SpectrumVisualizer`, `RenderDriver` (hängt nur vom `FrameRenderer`-Interface ab) — Compose-Hülle + Frame-Steuerung | `bus`, `render`, `audio` (nur Typ `SpectrumProcessor`) |
 | `component` | `MusicVisualization` (dünner Host), `VisualizerEngine`, `VisualizerParams`, `VisualizerColorSource` (Album-Art vs. Fix-Hues), `VisualizerDefinition` + `VisualizerFactory` (Engine-Auswahl, unit-testbar), `ProjectMGLSurfaceView` (GL-Hülle) | `ui`, `projectm` |
 | `render` | `FrameRenderer` (Lifecycle-Interface), `LedBarRenderer` (einzige Implementierung für BARS + LED), `LedBarSmoother`, `EglManager`, `GlUtil`, `shaders.*` — OpenGL-Zeichnung + Glättung | `bus` |
 | `projectm` | `ProjectMNativeBridge`, `PresetManager` — JNI-Fassade + Asset-Verwaltung | nichts (nur Android-SDK) |

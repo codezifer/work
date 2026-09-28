@@ -10,8 +10,8 @@ mit Display-Rate (60/120 Hz).
 - `capacity` Slots (Standard: 64 ≈ 740 ms Puffer), jeder Slot fasst bis zu
   `maxBands` (64) Float-Werte plus Zeitstempel und aktive Bandzahl.
 - **SPSC** (Single Producer, Single Consumer): genau ein Schreiber
-  (`SpectrumProcessor`), ein bis zwei Leser (`LedBarRenderer`,
-  `CanvasFallbackVisualizer`). Dadurch genügen Sequenzzähler statt Locks.
+  (`SpectrumProcessor`), ein Leser (`LedBarRenderer` auf dem Render-Thread).
+  Dadurch genügen Sequenzzähler statt Locks.
 - **Seqlock-Protokoll** pro Slot (`slot.seq: AtomicInteger`):
   - Schreiben: Sequenz auf ungerade setzen → Daten schreiben →
     per `lazySet` auf gerade erhöhen → `writeIndex` erhöhen.

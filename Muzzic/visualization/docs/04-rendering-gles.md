@@ -62,21 +62,24 @@ classDiagram
 
 ## 4.1 `SpectrumVisualizer` (`ui/SpectrumVisualizer.kt`)
 
-**Aufgabe:** Compose-Hülle, die einen `TextureView` hostet und bei fehlendem
-GLES 3.0 nahtlos auf den Canvas-Fallback umschaltet.
+**Aufgabe:** Compose-Hülle, die einen `TextureView` mit GLES-3.0-Spektrum-Engines
+hostet. Es gibt bewusst **keinen Canvas-Fallback**: ohne funktionierenden
+EGL-Kontext rendert das Composable eine leere `Box` (unsichtbar, nie
+abstürzend). Bei `minSdk 36` ist GLES 3.0 faktisch universell; ein separater
+Laufzeit-Check wäre toter Code — ein EGL-Fehlschlag (`init == false`) führt
+direkt in den leeren Zustand.
 
 - **Warum `TextureView` statt `GLSurfaceView`?** `TextureView` wird *im*
   App-Fenster composited: Transparenz zeigt die App-UI darunter, Compose-Clipping
   und -Alpha greifen. (`ProjectMGLSurfaceView` nutzt dagegen `GLSurfaceView`
   mit eigenem Fenster/Thread.)
-- Ablauf: `checkGlEs3Support()` (via `ActivityManager.deviceConfigurationInfo`)
-  → `LedBarRenderer` + `EglManager` per `remember` → `AndroidView(TextureView)`
+- Ablauf: `LedBarRenderer` + `EglManager` per `remember` → `AndroidView(TextureView)`
   mit `SurfaceTextureListener`, dessen Callbacks ihre Arbeit auf einen
   **eigenen `VisualizerGL`-HandlerThread** posten: `init` →
   `renderer.onSurfaceCreated/Changed` → `RenderDriver` dort anlegen (sein
   `Choreographer` bindet sich an den Looper des GL-Threads). EGL-Fehlschlag
-  (`init == false`) → `glFailed = true` (zurück auf Main gepostet) →
-  **Fallback-Composable** (siehe 4.6). `renderer.bus/config/theme/style`
+  (`init == false`) → `eglFailed = true` (zurück auf Main gepostet) → leere
+  `Box`. `renderer.bus/config/theme/style`
   werden per `LaunchedEffect` nachgezogen (kein Renderer-Neubau bei
   Bus-Wechsel); `config/theme/style`-Wechsel markieren nur ein Dirty-Flag,
   das der GL-Thread auswertet (siehe 4.4).
@@ -97,7 +100,8 @@ GLES 3.0 nahtlos auf den Canvas-Fallback umschaltet.
   `eglMakeCurrent`. Jeder Fehlschlag loggt eine Warnung und hinterlässt
   sauberen Release-Zustand (Rückgabe `false` → Fallback).
 - `swapBuffers()` stellt den Frame dar; `release()` zerstört Surface, Kontext
-  und Display-Verbindung (mehrfach aufrufbar).
+  und Display-Verbindung (mehrfach aufrufbar). Fehlschlag (`init == false`) →
+  leere `Box` (kein Canvas-Fallback).
 - `setBufferSize()` nach View-Resize (die EGL-Window-Surface übernimmt die neue
   Größe beim nächsten Swap).
 - **Thread-Regel:** alle Methoden auf demselben Thread — dem `VisualizerGL`-
@@ -163,17 +167,21 @@ Band-/Peak-Werte als **vec4-gepackte Arrays** — 16×vec4 = 64 Bänder, passend
 `config`-/`theme`-/`style`-Wechsel (Dirty-Flag, vom Host-Thread gesetzt, vom
 GL-Thread per volatile Read übernommen).
 
-**Halo (Neon-Look):** Beide Draw-Pfade addieren um lit Segmente einen äußeren
-Schein (`uGlow`, Standard `DEFAULT_GLOW_STRENGTH` = 0,8): exponentieller
-Falloff mit der SDF-Distanz (Radius `GLOW_FALLOFF_RADIUS_PX` = 8 px, geteilt
-via `ShaderSnippets`). Das Halo ist zonenfarben mit 1-px-Weißsaum an
-der Blockkante; lit Blöcke werden nur minimal pegelabhängig heiß (LED:
-max. 0,12-Mix, BARS: Amplituden-Weiß-Mix) — die Zonenfarben bleiben
-dominant. Das Halo erweitert die Coverage über den Block hinaus, damit der
-Schein auf transparenten Surfaces sichtbar bleibt; `uGlow = 0` reproduziert
-exakt das frühere Verhalten. Der Canvas-Fallback spiegelt das mit leicht
-weißlichem Halo (`HALO_WHITE_MIX`) und pegelabhängig aufgehellten lit
-Segmenten (`HOT_CORE_MIX`).
+**LED-Lichtkit (Neon-Look):** Der LED-Pfad ergänzt den äußeren Schein
+(`uGlow`, Standard `DEFAULT_GLOW_STRENGTH` = 0,8, exponentieller Falloff mit der
+SDF-Distanz, Radius `GLOW_FALLOFF_RADIUS_PX` = 8 px, plus weite Aura mit 3×
+Radius) um ein analytisches Lichtkit — alles Hue-agnostisch (Weiß-Mix oder
+Zonen-Multiplikation), daher für jedes Theme gleich: weiß-heißer Kern mit
+gesättigtem Mittelring (`uHotCore` = 0,85), wandernder Dome-Glanz
+(`uSpecular` = 0,25), Lichtaustritt in die Fugen über der Front plus
+Säulen-Wash (`uBleed` = 0,8, nur bei Signal), Pegelgradierung von ruhiger
+Basis zu heißer Spitze (`uGlowGrade` = 0,65), weiches Frontier-Ausfaden
+(`uFade` = 1,0), Trail-Gedächtnis als Afterglow-Ghosts (`uTrail`/`uTrailStrength`
+= 0,7 — Blöcke glimmen nacheinander aus), Ambient-Rim auf aus-LEDs.
+Das Halo erweitert die Coverage über den Block hinaus, damit der Schein auf
+transparenten Surfaces sichtbar bleibt; `uGlow = 0` reproduziert exakt das
+Verhalten vor dem Lichtkit. (BARS: Amplituden-Weiß-Mix max. 0,35 — die
+Zonenfarben bleiben dominant.)
 
 `onSurfaceCreated()` kompiliert **beide** Programme und cached alle
 Uniform-Locations; schlägt eines fehl, wird geloggt und der jeweils andere
@@ -194,10 +202,15 @@ Pro Band und Frame (`update`, `dt` geclampt):
    linearer Abfall `fallPerSec × dt` (Standard 1,6/s), nie unter Ziel.
 2. **Peak-Marker:** neuer Peak = Balken + Hold-Timer (`holdSec` = 0,35 s);
    nach Ablauf fällt der Peak mit `peakFallPerSec` (0,5/s) auf den Balken.
-3. Inaktive Bänder jenseits `bandCount` werden genullt.
+3. **Trail-Gedächtnis:** folgt dem Balken sofort nach oben, fällt aber nur mit
+   `trailFallPerSec` (0,55/s) — hinkt dadurch mehrere Blöcke hinter der live
+   Front her und speist die Afterglow-Ghosts (`uTrail`); Invariante
+   `trail ≥ bands`, in `LedBarSmootherTest` abgesichert.
+4. Inaktive Bänder jenseits `bandCount` werden genullt (Balken, Peaks, Trail, Hold).
 
-`maxValue(bandCount)` (Max über aktive Balken + Peaks) nutzen Render-Loops für
-die Idle-Erkennung — eine Stelle statt duplizierter Schleifen.
+`maxValue(bandCount)` (Max über aktive Balken + Peaks + Trail) nutzen Render-Loops für
+die Idle-Erkennung — inklusive Trail, damit Loops erst stoppen, wenn auch die
+Geister verblasst sind.
 
 ## 4.6 Shader (`render/shaders/*`)
 
@@ -205,34 +218,25 @@ die Idle-Erkennung — eine Stelle statt duplizierter Schleifen.
 |---|---|
 | `FullscreenVertex` | Vertex-Shader: erzeugt aus `gl_VertexID` ein Fullscreen-Dreieck (kein VBO nötig) |
 | `ShaderSnippets.ROUNDED_BOX_SDF` | Geteiltes GLSL-Snippet: Signed-Distance-Feld für abgerundete LED-Rechtecke im Pixelraum, ~1,5-px-Antialiasing via `smoothstep`. (GLES hat kein `#include` — Teilen passiert auf Kotlin-Ebene per String-Template.) |
-| `LedFragment` | LED-Türme: pro Pixel Band (`uBands`) + Peak (`uPeaks`) aus vec4-Arrays lesen (`band >> 2`, `band & 3`), Segment an/aus, Peak-Segment, drei Farbzonen (`uZoneStart` = 0,60/0,85), aus-LEDs mit `uOffIntensity` dimmen, Alpha = LED-Abdeckung (Transparenz bleibt erhalten) |
+| `LedFragment` | LED-Türme: pro Pixel Band (`uBands`) + Peak (`uPeaks`) aus vec4-Arrays lesen (`band >> 2`, `band & 3`), Segment an/aus, Peak-Segment, drei Farbzonen (`uZoneStart` = 0,60/0,85), aus-LEDs mit `uOffIntensity` dimmen, Alpha = LED-Abdeckung (Transparenz bleibt erhalten). Darauf das **LED-Lichtkit** (alles Hue-agnostisch via Weiß-Mix/Zonen-Multiplikation, daher für jedes Theme gleich): weiß-heißer Kern mit gesättigtem Mittelring (`uHotCore`, 0,85), wandernder Dome-Glanz (`uSpecular`, 0,25), Lichtaustritt über der Front plus Säulen-Wash (`uBleed`, 0,8, nur bei Signal), Pegelgradierung (`uGlowGrade`, 0,65), Frontier-Fade (`uFade`, 1,0), Afterglow-Ghosts (`uTrail`, 0,7), enges Halo plus weite Aura (`uGlow`, 0,8), Ambient-Rim auf aus-LEDs |
 | `BarsFragment` | Gespiegelte Balken: Spalte horizontal mittenspiegeln (Bass = Mitte), vertikal an der Bildmitte falten (wächst beidseitig), Farbverlauf Basis→Ziel (`barsThemeFrom`), amplitudenabhängiger Weiß-Glow (max. 0,35), zeitbasierter Shimmer nur auf lit LEDs, Tip-Highlight auf äußerstem lit Segment. **Achtung:** `half` ist in GLSL ES 3.00 reserviert und darf nie als Bezeichner verwendet werden (`ShaderReservedWordsTest` sichert das ab) |
 
 Tuning-Knöpfe: `VisualizerConfig.ledHalfSize` (LED-Größe als Zellanteil),
 `cornerRadius`, `segmentCount`, `shimmerStrength`/`tipGlowStrength`
 (0 = Effekt aus; Shimmer wirkt in beiden GLES-Engines auf lit LEDs),
-`glowStrength` (Außen-Halo, 0 = aus),
+`glowStrength` (Außen-Halo + Aura, 0 = aus),
+`hotCoreStrength`/`specularStrength`/`bleedStrength` (LED-Lichtkit, je 0 = aus;
+`uGlow = 0` stellt zusätzlich das Verhalten vor dem Lichtkit exakt wieder her),
 `VisualizerTheme` (Farben, Zonen, `offIntensity`).
 
-## 4.7 `CanvasFallbackVisualizer` (`ui/CanvasFallbackVisualizer.kt`)
+## 4.7 Previews ohne GL-Kontext
 
-**Aufgabe:** Pixelgleiche LED-Optik in reinem Compose-`Canvas` für Geräte ohne
-GLES 3.0 oder nach EGL-Fehlschlag (gleicher `LedBarSmoother`, gleiche Zonen-
-und Peak-Logik mit `PEAK_VISIBILITY_THRESHOLD`).
-
-- Eigene `withFrameNanos`-Schleife statt Choreographer; liest denselben Bus
-  mit derselben Latenz; füllt bei Pause/leerem Bus Nullen. Die Schleife
-  **stoppt automatisch**, sobald Balken/Peaks unter
-  `RENDERER_IDLE_VALUE_THRESHOLD` abgeklungen sind (gleicher Idle-Vertrag wie
-  `RenderDriver`); `isPlaying = true` startet sie neu. Ein `frameTick`-State
-  invalidiert den Canvas pro Frame (die Draw-Scope liest plain Arrays).
-- Zeichnet pro Band × Segment ein `drawRoundRect` (Eckenradius aus
-  `cornerRadius`, Größe aus `ledHalfSize`); an = Zonenfarbe, aus = gedimmt
-  (`offIntensity`) — **unsichtbare Aus-LEDs werden ganz übersprungen**, wenn
-  `offIntensity` unter `OFF_INTENSITY_VISIBILITY_THRESHOLD` liegt. Lit Segmente
-  bekommen zusätzlich ein Halo (expandiertes, schwach-alpha RoundedRect,
-  skaliert mit `glowStrength`).
-- Dient gleichzeitig als **Preview-Renderer** (`MusicVisualizationPreview`
-  befüllt einen Bus per Hand und zeigt ihn via Fallback — ohne GL-Kontext).
+`@Preview` hat keinen GL-Kontext, daher rendert `MusicVisualizationPreview`
+einen **statischen Mock** (`StaticBarsPreview` in `MusicVisualization.kt`):
+feste Pegel, gleiche Zellgeometrie und Zonenfarben, aber ohne Bus-I/O,
+Glättung oder Animation. Der frühere `CanvasFallbackVisualizer` wurde entfernt
+(siehe 4.1) — ein animierter Canvas-Nachbau des wachsenden Shader-Umfangs
+(Hot-Core, Bleed, Aura) wäre unverhältnismäßig teuer für einen reinen
+Notfallpfad.
 
 Weiter: [05 — ProjectM / Nativ](05-projectm-nativ.md).

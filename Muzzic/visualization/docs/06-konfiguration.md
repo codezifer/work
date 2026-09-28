@@ -35,11 +35,9 @@ flowchart TB
   den Farbkreis). Persistenz via `AppSettingsRepository` (`GenericSetting`),
   Auswahl im Settings-Dropdown (nur bei BARS/LED), Auflösung in
   `PlayerControls` (`baseColor(accent)` → `MusicVisualization`).
-- `MusicVisualizationPreview` zeigt beide Modi (hell/dunkel): befüllt einen
-  `SpectrumBus` per Hand mit 8 Beispielwerten, **rückdatiert** um
-  `PREVIEW_SYNTH_FRAME_AGE_NANOS` (damit der Frame im Latenzfenster liegt) und
-  rendert über den GL-freien Canvas-Fallback — Previews brauchen keinen
-  Emulator.
+- `MusicVisualizationPreview` zeigt beide Modi (hell/dunkel) als statischen Mock
+  (`StaticBarsPreview`: feste Pegel, gleiche Geometrie/Zonenfarben, ohne Bus,
+  Glättung oder Animation) — Previews haben keinen GL-Kontext.
 
 ## 6.2 `VisualizerConfig` / `AnalysisConfig` / `SmootherConfig` (`VisualizerConfig.kt`)
 
@@ -55,8 +53,20 @@ Reine Datenklassen (Defaults = Standard-Look):
   dB-Skala `floorDb` −54 → `topDb` −6, Tilt +3 dB/Oktave,
   Auto-Gain (`agTargetTopDb` −6, `agMaxGainDb` 18, `agReleaseDbPerSec` 2,0).
 - `SmootherConfig`: `fallPerSec` 1,6, `holdSec` 0,35, `peakFallPerSec` 0,5.
-- `glowStrength` (0,8): Außen-Halo um lit Segmente in beiden GLES-Engines
+- `glowStrength` (0,8): Außen-Halo plus weite Aura um lit Segmente in beiden GLES-Engines
   (Radius `GLOW_FALLOFF_RADIUS_PX` = 8 px, 0 = aus).
+- `hotCoreStrength` (0,85), `specularStrength` (0,25), `bleedStrength` (0,8):
+  LED-Lichtkit (weiß-heißer Kern, Dome-Glanz, Lichtaustritt) — je 0 = aus,
+  alle Hue-agnostisch formuliert und damit für jedes Theme gleich.
+- `glowGradeStrength` (0,65): Pegelgradierung des Lichtkits (unten ruhig, oben
+  voll, plus Pegelgewicht) — 0 = alle lit LEDs glühen uniform.
+- `fadeStrength` (1,0): weiches Ausfaden des Frontier-Segments statt hartem
+  An/Aus — 0 = binäre Segmente wie zuvor.
+- `trailStrength` (0,7): Afterglow-Geister über der live Front (Leuchtspur,
+  Blöcke glimmen nacheinander aus) — 0 = keine Spur.
+- `SmootherConfig.trailFallPerSec` (0,55): Fallgeschwindigkeit des
+  Trail-Gedächtnisses — langsamer als `fallPerSec`, damit die Spur mehrere
+  Blöcke lang ist.
 
 Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
 `tiltDbPerOctave`; leise Tracks flach → `agMaxGainDb`; Bild eilt Ton voraus →
@@ -80,19 +90,20 @@ Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
   entstehen; lebhafte Farben passieren unverändert.
 - `ledThemeFrom(base)`: leitet aus derselben Akzentfarbe (Album-Art) das
   LED-Zonen-Theme ab — Low = Basis, Mid −`LED_MID_HUE_SHIFT_DEG` (60°) +
-  `LED_MID_LIGHTNESS_BOOST`, High −`LED_HIGH_HUE_SHIFT_DEG` (120°) +
-  `LED_HIGH_LIGHTNESS_BOOST`, Hintergrund transparent. Grün als Basis ergibt
+  `LED_MID_LIGHTNESS_BOOST` (0,12), High −`LED_HIGH_HUE_SHIFT_DEG` (120°) +
+  Sättigung mind. `LED_HIGH_MIN_SATURATION` (0,9) +
+  `LED_HIGH_LIGHTNESS_BOOST` (0,22), Hintergrund transparent. Grün als Basis ergibt
   exakt die klassische Grün → Gelb → Rot-Leiter; Grautöne fallen auf eine
   reine Helligkeitsstaffel zurück (siehe `LedThemeTest`).
 
 ## 6.4 `Constants.kt`
 
 Zentrale Konstanten statt Magic Numbers: Band-Limits (8/32/64), Geometrie
-(64 Spalten, 16/20 Segmente), Zeit (`NANOS_PER_*`, dt-Clamps, 120-ms-Stale-Grace,
-Idle-Schwelle 0,01, Peak-Sichtbarkeit 0,02, Off-Skip-Schwelle 0,001),
+(64 Spalten, 16/20 Segmente), Effektstärken (Glow, Hot-Core, Specular, Bleed),
+Zeit (`NANOS_PER_*`, dt-Clamps, 120-ms-Stale-Grace, Idle-Schwelle 0,01),
 Audio-Referenzen (44100 Hz Fallback, 16-Bit-Peak 32768, Tilt-Referenz 1 kHz,
 dB-Faktor 20, Nyquist-Marge 0,45, Silence −80 dB), ProjectM-Fenster (1024) und
-`isActive`-Cache-Intervall (250 ms), Theme-Zonen, GLES-3.0-Versionscode,
+`isActive`-Cache-Intervall (250 ms), Theme-Zonen,
 Debug-Werte. Wer einen Schwellenwert sucht, schaut **hier zuerst**.
 
 ## 6.5 `SyntheticSpectrumSource` (`debug/SyntheticSpectrumSource.kt`)

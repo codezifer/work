@@ -67,4 +67,17 @@ class LedThemeTest {
         assertThat(theme.colMid.alpha).isCloseTo(base.alpha, within(1e-6f))
         assertThat(theme.colHigh.alpha).isCloseTo(base.alpha, within(1e-6f))
     }
+
+    @Test
+    fun `led zones spread visibly in lightness and saturation for dynamic colors`() {
+        val theme = VisualizerTheme.ledThemeFrom(Color.Blue)
+        val lowHsl = VisualizerTheme.rgbToHsl(theme.colLow.red, theme.colLow.green, theme.colLow.blue)
+        val midHsl = VisualizerTheme.rgbToHsl(theme.colMid.red, theme.colMid.green, theme.colMid.blue)
+        val highHsl = VisualizerTheme.rgbToHsl(theme.colHigh.red, theme.colHigh.green, theme.colHigh.blue)
+
+        assertThat(midHsl[2]).`as`("Mid zone should be clearly lighter than low").isGreaterThan(lowHsl[2] + 0.08f)
+        assertThat(highHsl[2] - lowHsl[2]).`as`("High zone should stand off from low").isGreaterThan(0.15f)
+        assertThat(highHsl[2]).`as`("Lightness ladder should rise monotonically").isGreaterThan(midHsl[2])
+        assertThat(highHsl[1]).`as`("High zone should run at full saturation").isGreaterThan(0.85f)
+    }
 }
