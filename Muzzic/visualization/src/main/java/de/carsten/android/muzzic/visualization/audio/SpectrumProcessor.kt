@@ -17,12 +17,18 @@ import kotlin.math.sqrt
 /**
  * An allocation-free audio analyzer that processes PCM audio buffers from Media3, performs FFT,
  * band-mapping, and auto-gain, and writes normalized band outputs to [SpectrumBus].
+ *
+ * The FFT size is fixed at construction (must be a power of two); [configure] only
+ * changes sample rate and channel count.
  */
 class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config: AnalysisConfig = AnalysisConfig(), val bus: SpectrumBus = SpectrumBus(maxBands = bandCount)) {
     val enabled = AtomicBoolean(true)
 
     private var sampleRate: Int = DEFAULT_SAMPLE_RATE_HZ
     private var channelCount: Int = 2
+
+    // Bit mask for power-of-two ring indexing (faster than modulo per sample).
+    private val ringMask = config.fftSize - 1
 
     private var pcmRingBuffer = FloatArray(config.fftSize)
     private var pcmWritePos = 0
@@ -46,6 +52,9 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
     private var lastAnalysisNanos: Long = System.nanoTime()
 
     init {
+        require(config.fftSize > 0 && (config.fftSize and (config.fftSize - 1)) == 0) {
+            "FFT size must be a positive power of 2, but was ${config.fftSize}"
+        }
         recomputeWindow()
     }
 
@@ -76,14 +85,19 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
     /**
      * Processes an incoming PCM ByteBuffer (16-bit PCM or Float PCM).
      *
+     * Operates view-only on [buffer]: neither its position nor its byte order is
+     * modified. A buffer already in [order] is used directly without duplicating.
+     *
      * @param buffer Direct or indirect ByteBuffer containing PCM audio.
      * @param isFloat Whether the PCM encoding is 32-bit Float (`true`) or 16-bit Int (`false`).
+     * @param order Byte order of 16-bit samples (float PCM is always little-endian).
      */
-    fun processAudio(buffer: ByteBuffer, isFloat: Boolean = false) {
+    fun processAudio(buffer: ByteBuffer, isFloat: Boolean = false, order: ByteOrder = ByteOrder.LITTLE_ENDIAN) {
         if (!enabled.get()) return
 
-        val duplicate = buffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
-        val remainingBytes = duplicate.remaining()
+        // Duplicate only to change byte order; views below never touch the caller's buffer.
+        val ordered = if (buffer.order() == order) buffer else buffer.duplicate().order(order)
+        val remainingBytes = ordered.remaining()
         if (remainingBytes <= 0) return
 
         val bytesPerSample = if (isFloat) 4 else 2
@@ -91,36 +105,31 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
         val frames = totalSamples / channelCount
         if (frames <= 0) return
 
+        // Bounds are guaranteed by the frames cap, so no per-sample remaining checks.
         if (isFloat) {
-            val floatBuf = duplicate.asFloatBuffer()
+            val floatBuf = ordered.asFloatBuffer()
             for (f in 0 until frames) {
                 var sum = 0f
                 for (c in 0 until channelCount) {
-                    if (floatBuf.hasRemaining()) {
-                        sum += floatBuf.get()
-                    }
+                    sum += floatBuf.get()
                 }
-                val mono = sum / channelCount
-                pushMonoSample(mono)
+                pushMonoSample(sum / channelCount)
             }
         } else {
-            val shortBuf = duplicate.asShortBuffer()
+            val shortBuf = ordered.asShortBuffer()
             for (f in 0 until frames) {
                 var sum = 0f
                 for (c in 0 until channelCount) {
-                    if (shortBuf.hasRemaining()) {
-                        sum += shortBuf.get().toFloat() / 32768f
-                    }
+                    sum += shortBuf.get().toFloat() / 32768f
                 }
-                val mono = sum / channelCount
-                pushMonoSample(mono)
+                pushMonoSample(sum / channelCount)
             }
         }
     }
 
     private fun pushMonoSample(sample: Float) {
         pcmRingBuffer[pcmWritePos] = sample
-        pcmWritePos = (pcmWritePos + 1) % config.fftSize
+        pcmWritePos = (pcmWritePos + 1) and ringMask
         samplesSinceHop++
 
         if (samplesSinceHop >= config.hopSize) {
@@ -134,12 +143,14 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
         val dt = ((now - lastAnalysisNanos) / NANOS_PER_SECOND).toFloat().coerceIn(MIN_FRAME_DT_SEC, MAX_ANALYSIS_DT_SEC)
         lastAnalysisNanos = now
 
-        // 1. Copy last fftSize samples in order and apply Hann window
-        val startPos = pcmWritePos // pcmWritePos points to the oldest sample after a full cycle
+        // 1. Copy last fftSize samples in order (two segments, no per-sample modulo)
+        // and apply Hann window. pcmWritePos points at the oldest sample.
+        val startPos = pcmWritePos
+        val firstLen = config.fftSize - startPos
+        System.arraycopy(pcmRingBuffer, startPos, fftReal, 0, firstLen)
+        System.arraycopy(pcmRingBuffer, 0, fftReal, firstLen, startPos)
         for (i in 0 until config.fftSize) {
-            val readIdx = (startPos + i) % config.fftSize
-            val sample = pcmRingBuffer[readIdx]
-            fftReal[i] = sample * hannWindow[i]
+            fftReal[i] = fftReal[i] * hannWindow[i]
             fftImag[i] = 0f
         }
 

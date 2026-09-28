@@ -87,6 +87,12 @@ const val RENDERER_IDLE_VALUE_THRESHOLD = 0.01f
 /** Peak markers at or below this value stay hidden. */
 const val PEAK_VISIBILITY_THRESHOLD = 0.02f
 
+/**
+ * Off-state LEDs at or below this intensity are skipped entirely in the Canvas
+ * fallback (mirrors the `step(0.001, uOffIntensity)` gate in `BarsFragment`).
+ */
+const val OFF_INTENSITY_VISIBILITY_THRESHOLD = 0.001f
+
 // ---------------------------------------------------------------------------
 // Audio analysis reference values
 // ---------------------------------------------------------------------------
@@ -108,6 +114,16 @@ const val INITIAL_FRAME_MAX_DB = -160f
 
 /** Below this frame level the input counts as digital silence (no auto-gain). */
 const val DIGITAL_SILENCE_THRESHOLD_DB = -80f
+
+/**
+ * Minimum interval between native `isActive` checks from the audio thread.
+ * `ProjectMNativeBridge.isActive` crosses JNI and takes the native state lock,
+ * so the audio thread caches the result instead of querying per buffer.
+ */
+const val PROJECTM_ACTIVE_CHECK_INTERVAL_NANOS = 250_000_000L
+
+/** PCM window (per channel) forwarded to projectM per audio buffer. */
+const val PROJECTM_WINDOW_SIZE = 1024
 
 /** Amplitude-to-dB factor in `db = 20 * log10(amp)`. */
 const val AMPLITUDE_TO_DB_FACTOR = 20f

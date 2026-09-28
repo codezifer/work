@@ -52,14 +52,39 @@ private const val TAG = "LedBarRenderer"
  * on a single thread with the context current.
  */
 class LedBarRenderer(
-    val bus: SpectrumBus,
-    var config: VisualizerConfig = VisualizerConfig(),
-    var theme: VisualizerTheme = VisualizerTheme.ClassicGreen,
-    var style: RenderStyle = RenderStyle.LED,
+    @Volatile var bus: SpectrumBus,
+    config: VisualizerConfig = VisualizerConfig(),
+    theme: VisualizerTheme = VisualizerTheme.ClassicGreen,
+    style: RenderStyle = RenderStyle.LED,
 ) : FrameRenderer {
 
     @Volatile override var isIdle: Boolean = false
         private set
+
+    var config: VisualizerConfig = config
+        set(value) {
+            field = value
+            staticUniformsDirty = true
+        }
+
+    var theme: VisualizerTheme = theme
+        set(value) {
+            field = value
+            staticUniformsDirty = true
+        }
+
+    var style: RenderStyle = style
+        set(value) {
+            field = value
+            staticUniformsDirty = true
+        }
+
+    /**
+     * Set by the host thread on every `config`/`theme`/`style` change; read by
+     * the GL thread. Volatile write releases the preceding field writes, so the
+     * GL thread observes a consistent snapshot after seeing `true`.
+     */
+    @Volatile private var staticUniformsDirty = true
 
     val smoother = LedBarSmoother(config.bandCount)
 
@@ -153,6 +178,8 @@ class LedBarRenderer(
             bGlowLoc = GLES30.glGetUniformLocation(barsProgram, "uGlow")
         }
         lastDrawNanos = System.nanoTime()
+        staticUniformsDirty = true
+        applyStaticUniformsIfNeeded()
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
@@ -185,11 +212,7 @@ class LedBarRenderer(
         smoother.update(targetValues, config.bandCount, dtSec, config.smoother)
 
         // 3. Evaluate idle state
-        var maxVal = 0f
-        for (i in 0 until config.bandCount) {
-            if (smoother.bands[i] > maxVal) maxVal = smoother.bands[i]
-            if (smoother.peaks[i] > maxVal) maxVal = smoother.peaks[i]
-        }
+        val maxVal = smoother.maxValue(config.bandCount)
         isIdle = (readBands <= 0 || isStale) && maxVal < RENDERER_IDLE_VALUE_THRESHOLD
 
         // 4. Pack band and peak arrays for vec4 uniforms
@@ -197,7 +220,10 @@ class LedBarRenderer(
         System.arraycopy(smoother.bands, 0, packedBands, 0, config.bandCount)
         System.arraycopy(smoother.peaks, 0, packedPeaks, 0, config.bandCount)
 
-        // 5. Render Scene (style branch, falls back to the working program)
+        // 5. Apply static uniforms (colors, geometry) only when config/theme/style changed
+        applyStaticUniformsIfNeeded()
+
+        // 6. Render Scene (style branch, falls back to the working program)
         if (style == RenderStyle.MIRRORED_BARS && barsProgram != 0) {
             drawMirroredBars()
         } else if (program != 0) {
@@ -205,9 +231,50 @@ class LedBarRenderer(
         }
     }
 
+    /**
+     * Uploads all frame-independent uniforms (band/segment counts, colors, zones,
+     * geometry, background, effect strengths) when [staticUniformsDirty] is set.
+     * Must be called on the GL thread with the context current.
+     */
+    private fun applyStaticUniformsIfNeeded() {
+        if (!staticUniformsDirty) return
+        staticUniformsDirty = false
+
+        if (program != 0) {
+            GLES30.glUseProgram(program)
+            GLES30.glUniform1i(uBandCountLoc, config.bandCount)
+            GLES30.glUniform1f(uSegmentsLoc, config.segmentCount.toFloat())
+            GLES30.glUniform3f(uColLowLoc, theme.colLow.red, theme.colLow.green, theme.colLow.blue)
+            GLES30.glUniform3f(uColMidLoc, theme.colMid.red, theme.colMid.green, theme.colMid.blue)
+            GLES30.glUniform3f(uColHighLoc, theme.colHigh.red, theme.colHigh.green, theme.colHigh.blue)
+            GLES30.glUniform2f(uZoneStartLoc, theme.zoneStart.first, theme.zoneStart.second)
+            GLES30.glUniform2f(uLedHalfSizeLoc, config.ledHalfSize.first, config.ledHalfSize.second)
+            GLES30.glUniform1f(uCornerRadiusLoc, config.cornerRadius)
+            GLES30.glUniform1f(uOffIntensityLoc, theme.offIntensity)
+            GLES30.glUniform3f(uBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
+            GLES30.glUniform1f(uGlowLoc, config.glowStrength)
+            GLES30.glUniform1f(uShimmerLoc, config.shimmerStrength)
+        }
+        if (barsProgram != 0) {
+            GLES30.glUseProgram(barsProgram)
+            GLES30.glUniform1i(bColumnsLoc, config.columnCount)
+            GLES30.glUniform1i(bBandCountLoc, config.bandCount)
+            GLES30.glUniform1f(bSegmentsLoc, config.segmentCount.toFloat())
+            GLES30.glUniform3f(bColBaseLoc, theme.colLow.red, theme.colLow.green, theme.colLow.blue)
+            GLES30.glUniform3f(bColTargetLoc, theme.colMid.red, theme.colMid.green, theme.colMid.blue)
+            GLES30.glUniform1f(bShimmerLoc, config.shimmerStrength)
+            GLES30.glUniform1f(bTipGlowLoc, config.tipGlowStrength)
+            GLES30.glUniform1f(bAlphaLoc, theme.colLow.alpha)
+            GLES30.glUniform2f(bLedHalfSizeLoc, config.ledHalfSize.first, config.ledHalfSize.second)
+            GLES30.glUniform1f(bCornerRadiusLoc, config.cornerRadius)
+            GLES30.glUniform1f(bOffIntensityLoc, theme.offIntensity)
+            GLES30.glUniform3f(bBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
+            GLES30.glUniform1f(bGlowLoc, config.glowStrength)
+        }
+    }
+
     private fun drawLed(vec4Count: Int) {
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
-        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
 
         GLES30.glClearColor(theme.background.red, theme.background.green, theme.background.blue, theme.background.alpha)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
@@ -218,24 +285,10 @@ class LedBarRenderer(
 
         GLES30.glUseProgram(program)
 
+        // Per-frame uniforms only; everything else is cached by applyStaticUniformsIfNeeded().
         GLES30.glUniform2f(uResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
-        GLES30.glUniform1i(uBandCountLoc, config.bandCount)
-        GLES30.glUniform1f(uSegmentsLoc, config.segmentCount.toFloat())
-
         GLES30.glUniform4fv(uBandsLoc, vec4Count, packedBands, 0)
         GLES30.glUniform4fv(uPeaksLoc, vec4Count, packedPeaks, 0)
-
-        GLES30.glUniform3f(uColLowLoc, theme.colLow.red, theme.colLow.green, theme.colLow.blue)
-        GLES30.glUniform3f(uColMidLoc, theme.colMid.red, theme.colMid.green, theme.colMid.blue)
-        GLES30.glUniform3f(uColHighLoc, theme.colHigh.red, theme.colHigh.green, theme.colHigh.blue)
-        GLES30.glUniform2f(uZoneStartLoc, theme.zoneStart.first, theme.zoneStart.second)
-
-        GLES30.glUniform2f(uLedHalfSizeLoc, config.ledHalfSize.first, config.ledHalfSize.second)
-        GLES30.glUniform1f(uCornerRadiusLoc, config.cornerRadius)
-        GLES30.glUniform1f(uOffIntensityLoc, theme.offIntensity)
-        GLES30.glUniform3f(uBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
-        GLES30.glUniform1f(uGlowLoc, config.glowStrength)
-        GLES30.glUniform1f(uShimmerLoc, config.shimmerStrength)
         GLES30.glUniform1f(uTimeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
@@ -247,7 +300,6 @@ class LedBarRenderer(
         val vec4Count = (config.bandCount + 3) / 4
 
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
-        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
 
         GLES30.glClearColor(0f, 0f, 0f, 0f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
@@ -258,25 +310,10 @@ class LedBarRenderer(
 
         GLES30.glUseProgram(barsProgram)
 
+        // Per-frame uniforms only; everything else is cached by applyStaticUniformsIfNeeded().
         GLES30.glUniform2f(bResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
-        GLES30.glUniform1i(bColumnsLoc, config.columnCount)
-        GLES30.glUniform1i(bBandCountLoc, config.bandCount)
-        GLES30.glUniform1f(bSegmentsLoc, config.segmentCount.toFloat())
-
         GLES30.glUniform4fv(bBandsLoc, vec4Count, packedBands, 0)
-
-        GLES30.glUniform3f(bColBaseLoc, theme.colLow.red, theme.colLow.green, theme.colLow.blue)
-        GLES30.glUniform3f(bColTargetLoc, theme.colMid.red, theme.colMid.green, theme.colMid.blue)
-        GLES30.glUniform1f(bShimmerLoc, config.shimmerStrength)
-        GLES30.glUniform1f(bTipGlowLoc, config.tipGlowStrength)
         GLES30.glUniform1f(bTimeLoc, renderTimeSec)
-        GLES30.glUniform1f(bAlphaLoc, theme.colLow.alpha)
-
-        GLES30.glUniform2f(bLedHalfSizeLoc, config.ledHalfSize.first, config.ledHalfSize.second)
-        GLES30.glUniform1f(bCornerRadiusLoc, config.cornerRadius)
-        GLES30.glUniform1f(bOffIntensityLoc, theme.offIntensity)
-        GLES30.glUniform3f(bBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
-        GLES30.glUniform1f(bGlowLoc, config.glowStrength)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
 

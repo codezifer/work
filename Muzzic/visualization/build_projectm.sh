@@ -42,59 +42,14 @@ echo "=== Patching GladLoader for OpenGL ES 3.0 / 3.1 Android compatibility ==="
 sed -i 's/WithMinimumVersion(3, 2)/WithMinimumVersion(3, 0)/g' "${SRC_DIR}/src/libprojectM/Renderer/Platform/GladLoader.cpp" || true
 sed -i 's/WithMinimumShaderLanguageVersion(3, 20)/WithMinimumShaderLanguageVersion(3, 00)/g' "${SRC_DIR}/src/libprojectM/Renderer/Platform/GladLoader.cpp" || true
 
-echo "=== Patching VertexArray.hpp to eliminate redundant glBindVertexArray calls ==="
-VAO_HEADER="${SRC_DIR}/src/libprojectM/Renderer/VertexArray.hpp"
-if [ -f "${VAO_HEADER}" ]; then
-  cat << 'EOF' > "${VAO_HEADER}"
-#pragma once
-
-#include "Renderer/OpenGL.h"
-
-namespace libprojectM {
-namespace Renderer {
-
-class VertexArray
-{
-public:
-    VertexArray()
-    {
-        glGenVertexArrays(1, &m_vaoID);
-    }
-
-    virtual ~VertexArray()
-    {
-        if (s_currentBoundVao == m_vaoID) {
-            s_currentBoundVao = 0;
-        }
-        glDeleteVertexArrays(1, &m_vaoID);
-        m_vaoID = 0;
-    }
-
-    void Bind() const
-    {
-        if (s_currentBoundVao != m_vaoID) {
-            glBindVertexArray(m_vaoID);
-            s_currentBoundVao = m_vaoID;
-        }
-    }
-
-    static void Unbind()
-    {
-        if (s_currentBoundVao != 0) {
-            glBindVertexArray(0);
-            s_currentBoundVao = 0;
-        }
-    }
-
-private:
-    GLuint m_vaoID{0};
-    inline static GLuint s_currentBoundVao{0};
-};
-
-} // namespace Renderer
-} // namespace libprojectM
-EOF
-fi
+# NOTE: VertexArray.hpp is intentionally left at upstream. A former local patch
+# cached the bound VAO in a process-wide static to skip "redundant"
+# glBindVertexArray calls. That cache desyncs whenever any code path binds a
+# VAO directly (transition passes, context/surface recreation with reused ids),
+# and state-tracking GL layers (emulator GFXSTREAM/VirtGPU) then operate on the
+# wrong VAO: "not found in VAO state" / "Cannot delete VAO 0" / GL 0x501,
+# ending in a SIGSEGV inside glDrawElements on preset switch. Unconditional
+# binds are cheap; correctness wins.
 
 ABIS=("arm64-v8a" "x86_64" "armeabi-v7a" "x86")
 

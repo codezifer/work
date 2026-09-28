@@ -69,6 +69,10 @@ object ProjectMNativeBridge {
     /**
      * Feeds interleaved PCM float samples (range -1 to 1) to projectM.
      *
+     * The samples are queued under a short native lock and drained by the render
+     * thread; the audio thread never blocks on a render frame. Overflow drops the
+     * oldest queued samples.
+     *
      * @param pcmData Interleaved samples in LRLR order for stereo input.
      * @param channels Channel count of [pcmData]: 1 for mono, 2 for stereo.
      */
@@ -99,6 +103,32 @@ object ProjectMNativeBridge {
         }
     }
 
+    /**
+     * Destroys any existing native instance and creates a fresh one for the
+     * current GL context.
+     *
+     * Must be called on the GL thread with a current EGL context, typically
+     * from `GLSurfaceView.Renderer.onSurfaceCreated`. A surviving instance
+     * always belongs to a dead context (its GL handles are invalid there), so
+     * reusing it renders with stale handles and crashes inside libprojectM —
+     * hence destroy-then-create on every surface creation.
+     *
+     * @param presetDirPath Absolute path of the directory holding `.milk` preset files.
+     */
+    fun recreate(presetDirPath: String) {
+        if (isNativeLibraryLoaded) {
+            nativeRelease()
+            nativeInit(presetDirPath)
+        }
+    }
+
+    /** Drops queued PCM samples (e.g. stale audio on pause) without touching the instance. */
+    fun clearPcm() {
+        if (isNativeLibraryLoaded) {
+            nativeClearPcm()
+        }
+    }
+
     /** Destroys the native projectM instance and frees its resources. */
     fun release() {
         if (isNativeLibraryLoaded) {
@@ -106,7 +136,11 @@ object ProjectMNativeBridge {
         }
     }
 
-    /** Indicates whether the native projectM instance is active and ready to consume PCM audio. */
+    /**
+     * Indicates whether the native projectM instance is active and ready to consume PCM audio.
+     *
+     * Lock-free on the native side (atomic flag), so the audio thread may query it per buffer.
+     */
     val isActive: Boolean
         get() = isNativeLibraryLoaded && nativeIsActive()
 
@@ -118,5 +152,6 @@ object ProjectMNativeBridge {
     private external fun nativePreviousPreset()
     private external fun nativeSelectPreset(presetName: String)
     private external fun nativeIsActive(): Boolean
+    private external fun nativeClearPcm()
     private external fun nativeRelease()
 }

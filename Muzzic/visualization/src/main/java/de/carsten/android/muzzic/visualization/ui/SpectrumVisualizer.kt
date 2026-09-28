@@ -3,6 +3,9 @@ package de.carsten.android.muzzic.visualization.ui
 import android.app.ActivityManager
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
 import android.view.TextureView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -36,6 +39,10 @@ import de.carsten.android.muzzic.visualization.render.RenderStyle
  * or falls back seamlessly to [CanvasFallbackVisualizer] on legacy hardware
  * or EGL initialization failure.
  *
+ * All EGL and GL work runs on a dedicated `VisualizerGL` thread (one per live
+ * surface): `SurfaceTextureListener` callbacks and the [RenderDriver] frame loop
+ * only post there, so heavy fullscreen shader work never blocks the main thread.
+ *
  * @param bus Audio spectrum ring buffer.
  * @param isPlaying Whether audio playback is currently active.
  * @param modifier Composable layout modifier.
@@ -68,11 +75,12 @@ fun SpectrumVisualizer(
         return
     }
 
-    val renderer = remember(bus) {
+    val renderer = remember {
         LedBarRenderer(bus = bus, config = config, theme = theme, style = style)
     }
 
-    LaunchedEffect(config, theme, style) {
+    LaunchedEffect(bus, config, theme, style) {
+        renderer.bus = bus
         renderer.config = config
         renderer.theme = theme
         renderer.style = style
@@ -91,10 +99,29 @@ fun SpectrumVisualizer(
     }
 
     val eglManager = remember { EglManager() }
-    var renderDriver by remember { mutableStateOf<RenderDriver?>(null) }
+    var glHost by remember { mutableStateOf<GlHost?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    // Surface callbacks fire asynchronously; always read the latest value.
+    // Surface callbacks fire asynchronously; always read the latest values.
     val currentIsPlaying by rememberUpdatedState(isPlaying)
+    val currentConfig by rememberUpdatedState(config)
+    val currentProcessor by rememberUpdatedState(processor)
+    val currentHost by rememberUpdatedState(glHost)
+
+    /**
+     * Stops the frame loop, releases GL resources on the GL thread, and shuts
+     * the render thread down. Safe to call repeatedly and from any thread.
+     */
+    fun shutdownGlHost() {
+        val host = glHost ?: return
+        glHost = null
+        host.handler.post {
+            host.driver?.stop()
+            host.driver = null
+            renderer.release()
+            eglManager.release()
+        }
+        host.thread.quitSafely()
+    }
 
     AndroidView(
         factory = { ctx ->
@@ -103,35 +130,47 @@ fun SpectrumVisualizer(
                 isOpaque = false
                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                        if (!eglManager.init(surface, width, height)) {
-                            glFailed = true
-                            return
-                        }
-                        renderer.onSurfaceCreated()
-                        renderer.onSurfaceChanged(width, height)
-                        val driver = RenderDriver(
-                            requestRender = {
-                                if (eglManager.isReady) {
+                        val thread = HandlerThread("VisualizerGL").apply { start() }
+                        val host = GlHost(thread, Handler(thread.looper), eglManager)
+                        glHost = host
+                        host.handler.post {
+                            if (!eglManager.init(surface, width, height)) {
+                                Handler(Looper.getMainLooper()).post { glFailed = true }
+                                return@post
+                            }
+                            host.width = width
+                            host.height = height
+                            renderer.onSurfaceCreated()
+                            renderer.onSurfaceChanged(width, height)
+                            val driver = RenderDriver(
+                                requestRender = {
                                     renderer.onDrawFrame()
                                     eglManager.swapBuffers()
-                                }
-                            },
-                            renderer = renderer,
-                            processor = processor,
-                        )
-                        renderDriver = driver
-                        driver.isPlaying = currentIsPlaying
+                                },
+                                renderer = renderer,
+                                processor = currentProcessor,
+                                maxFps = currentConfig.maxFps,
+                            )
+                            host.driver = driver
+                            // Start the loop unconditionally: with isPlaying=false it
+                            // renders until bars settle, then auto-stops via isIdle.
+                            driver.isPlaying = currentIsPlaying
+                            driver.start()
+                        }
                     }
 
                     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-                        renderer.onSurfaceChanged(width, height)
+                        val host = glHost ?: return
+                        host.width = width
+                        host.height = height
+                        host.handler.post {
+                            eglManager.setBufferSize(width, height)
+                            renderer.onSurfaceChanged(width, height)
+                        }
                     }
 
                     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-                        renderDriver?.stop()
-                        renderDriver = null
-                        renderer.release()
-                        eglManager.release()
+                        shutdownGlHost()
                         return true
                     }
 
@@ -140,13 +179,16 @@ fun SpectrumVisualizer(
             }
         },
         update = {
-            renderDriver?.isPlaying = isPlaying
+            val host = glHost ?: return@AndroidView
+            host.handler.post {
+                host.driver?.let { driver ->
+                    driver.isPlaying = isPlaying
+                    driver.maxFps = config.maxFps
+                }
+            }
         },
         onRelease = {
-            renderDriver?.stop()
-            renderDriver = null
-            renderer.release()
-            eglManager.release()
+            shutdownGlHost()
         },
         modifier = modifier.fillMaxSize(),
     )
@@ -154,12 +196,16 @@ fun SpectrumVisualizer(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
-                processor?.enabled?.set(false)
-                renderDriver?.stop()
+                currentProcessor?.enabled?.set(false)
+                currentHost?.let { host ->
+                    host.handler.post { host.driver?.stop() }
+                }
             } else if (event == Lifecycle.Event.ON_RESUME) {
-                processor?.enabled?.set(true)
-                if (isPlaying) {
-                    renderDriver?.start()
+                currentProcessor?.enabled?.set(true)
+                if (currentIsPlaying) {
+                    currentHost?.let { host ->
+                        host.handler.post { host.driver?.start() }
+                    }
                 }
             }
         }
@@ -168,6 +214,18 @@ fun SpectrumVisualizer(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+}
+
+/**
+ * Render-thread host for one live GL surface: the thread, its handler, and the
+ * frame driver. `width`/`height` track the last known surface size.
+ */
+private class GlHost(val thread: HandlerThread, val handler: Handler, val eglManager: EglManager) {
+    @Volatile var driver: RenderDriver? = null
+
+    @Volatile var width: Int = 0
+
+    @Volatile var height: Int = 0
 }
 
 private fun checkGlEs3Support(context: Context): Boolean {

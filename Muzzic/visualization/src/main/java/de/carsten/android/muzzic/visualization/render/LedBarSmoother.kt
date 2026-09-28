@@ -29,8 +29,7 @@ class LedBarSmoother(val maxBands: Int = MAX_SPECTRUM_BANDS) {
     }
 
     /**
-     * Updates bar and peak values based on elapsed time [dtSec] and target spectrum values.
-     *
+     * Updates bar and peak values based on elapsed time [dtSec] and target spectrum values.     *
      * @param target Array of target normalized band values (0.0..1.0).
      * @param bandCount Active number of bands in [target].
      * @param dtSec Elapsed time in seconds since last frame.
@@ -76,5 +75,22 @@ class LedBarSmoother(val maxBands: Int = MAX_SPECTRUM_BANDS) {
             peaks[b] = 0f
             hold[b] = 0f
         }
+    }
+
+    /**
+     * Returns the maximum over active bar and peak values.
+     *
+     * Used by render loops to detect the settled (idle) state.
+     *
+     * @param bandCount Active number of bands.
+     */
+    fun maxValue(bandCount: Int): Float {
+        var maxVal = 0f
+        val activeBands = min(maxBands, bandCount)
+        for (b in 0 until activeBands) {
+            if (bands[b] > maxVal) maxVal = bands[b]
+            if (peaks[b] > maxVal) maxVal = peaks[b]
+        }
+        return maxVal
     }
 }

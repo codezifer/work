@@ -52,4 +52,21 @@ class LedBarSmootherTest {
         assertThat(smoother.bands[0]).`as`("Bar should have dropped").isLessThan(1.0f)
         assertThat(smoother.peaks[0]).`as`("Peak should stay at 1.0 during hold").isCloseTo(1.0f, within(1e-4f))
     }
+
+    @Test
+    fun `LedBarSmoother maxValue covers bars and peaks of active bands`() {
+        val smoother = LedBarSmoother(maxBands = 4)
+        val cfg = SmootherConfig()
+        smoother.update(floatArrayOf(0.3f, 0.9f, 0f, 0f), bandCount = 2, dtSec = 0.016f, cfg = cfg)
+
+        assertThat(smoother.maxValue(2)).isCloseTo(0.9f, within(1e-4f))
+        assertThat(smoother.maxValue(1)).isCloseTo(0.3f, within(1e-4f))
+    }
+
+    @Test
+    fun `LedBarSmoother maxValue is zero when settled`() {
+        val smoother = LedBarSmoother(maxBands = 2)
+
+        assertThat(smoother.maxValue(2)).isZero()
+    }
 }

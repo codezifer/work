@@ -90,10 +90,12 @@ fun MusicVisualization(
                 factory = { context ->
                     ProjectMGLSurfaceView(context).apply {
                         this.presetName = preset
+                        this.isPlaying = isPlaying
                     }
                 },
                 update = { view ->
                     view.presetName = preset
+                    view.isPlaying = isPlaying
                 },
                 modifier = modifier,
             )

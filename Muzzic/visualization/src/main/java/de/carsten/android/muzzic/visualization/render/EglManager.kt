@@ -12,14 +12,17 @@ private const val TAG = "EglManager"
  *
  * Unlike `GLSurfaceView`, a `TextureView` composites inside the app window, so
  * transparency reveals the app UI beneath and Compose clip/alpha apply. All
- * methods must be called on the same thread (the main thread in our setup:
- * `SurfaceTextureListener` callbacks and `Choreographer` frames agree there).
+ * methods must be called on the same thread (the dedicated render thread in our
+ * setup: `SurfaceTextureListener` callbacks post their work there and the frame
+ * driver runs there as well). Cross-thread use is logged and ignored where safe.
  */
 class EglManager {
 
     private var display = EGL14.EGL_NO_DISPLAY
     private var context = EGL14.EGL_NO_CONTEXT
     private var surface = EGL14.EGL_NO_SURFACE
+    private var surfaceTexture: SurfaceTexture? = null
+    private var ownerThread: Thread? = null
 
     /** Whether a current EGL context with a live surface exists. */
     val isReady: Boolean
@@ -85,7 +88,20 @@ class EglManager {
             release()
             return false
         }
+        this.surfaceTexture = surfaceTexture
+        ownerThread = Thread.currentThread()
         return true
+    }
+
+    /**
+     * Updates the backing buffer size after the view resized.
+     *
+     * Must be called on the same thread as [init]; the EGL window surface picks
+     * up the new size on the next [swapBuffers].
+     */
+    fun setBufferSize(width: Int, height: Int) {
+        if (!checkThread("setBufferSize")) return
+        surfaceTexture?.setDefaultBufferSize(width.coerceAtLeast(1), height.coerceAtLeast(1))
     }
 
     /**
@@ -93,13 +109,16 @@ class EglManager {
      */
     fun swapBuffers(): Boolean {
         if (!isReady) return false
+        if (!checkThread("swapBuffers")) return false
         return EGL14.eglSwapBuffers(display, surface)
     }
 
     /**
-     * Destroys surface, context, and display connection. Safe to call repeatedly.
+     * Destroys surface, context, and display connection. Safe to call repeatedly
+     * and from any thread (only the owner thread destroys live resources).
      */
     fun release() {
+        if (!checkThread("release")) return
         if (display !== EGL14.EGL_NO_DISPLAY) {
             EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
         }
@@ -115,5 +134,16 @@ class EglManager {
             EGL14.eglTerminate(display)
             display = EGL14.EGL_NO_DISPLAY
         }
+        surfaceTexture = null
+        ownerThread = null
+    }
+
+    private fun checkThread(op: String): Boolean {
+        val owner = ownerThread
+        if (owner != null && Thread.currentThread() !== owner) {
+            Log.w(TAG, "$op called on ${Thread.currentThread().name} but EGL owner is ${owner.name}; ignoring")
+            return false
+        }
+        return true
     }
 }

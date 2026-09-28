@@ -24,7 +24,7 @@ flowchart TB
   ihr eigenes Alpha, das Host-Layout scheint durch.
 - `PROJECT_M` → `ProjectMParams(presetName)` → `ProjectM`-Definition; die
   `GLSurfaceView` wird per `AndroidView` eingebettet, `update` reicht
-  Preset-Wechsel nach.
+  Preset-Wechsel **und `isPlaying`** (pausiert den GL-Thread) nach.
 - Öffentliche Signatur unverändert (`engine`, `presetName`, `spectrumBus`,
   `spectrumProcessor`, `color`, `isPlaying`, `shimmerEnabled`,
   `tipGlowEnabled`), damit kein App-Code angepasst werden musste. Neue Engine
@@ -48,7 +48,8 @@ Reine Datenklassen (Defaults = Standard-Look):
 - `VisualizerConfig`: `bandCount` (32), `columnCount` (64, nur BARS),
   `segmentCount` (16 BARS / 20 LED), `ledHalfSize` (0,40 × 0,34 als
   Zellanteil), `cornerRadius` (0,25), `visualLatencyMs` (150),
-  `maxFps` (null = Display-Rate), dazu `analysis` + `smoother`.
+  `maxFps` (null = Display-Rate; z. B. 30 halbiert die GPU-Last des
+  `RenderDriver`, visuell ausreichend), dazu `analysis` + `smoother`.
 - `AnalysisConfig`: `fftSize` 2048, `hopSize` 512, `fMinHz` 40,
   `fMaxHz` 16000 (effektiv `min(fMax, 0,45 × Sample-Rate)`),
   dB-Skala `floorDb` −54 → `topDb` −6, Tilt +3 dB/Oktave,
@@ -88,10 +89,11 @@ Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
 
 Zentrale Konstanten statt Magic Numbers: Band-Limits (8/32/64), Geometrie
 (64 Spalten, 16/20 Segmente), Zeit (`NANOS_PER_*`, dt-Clamps, 120-ms-Stale-Grace,
-Idle-Schwelle 0,01, Peak-Sichtbarkeit 0,02), Audio-Referenzen (44100 Hz
-Fallback, 16-Bit-Peak 32768, Tilt-Referenz 1 kHz, dB-Faktor 20, Nyquist-Marge
-0,45, Silence −80 dB), Theme-Zonen, GLES-3.0-Versionscode, Debug-Werte.
-Wer einen Schwellenwert sucht, schaut **hier zuerst**.
+Idle-Schwelle 0,01, Peak-Sichtbarkeit 0,02, Off-Skip-Schwelle 0,001),
+Audio-Referenzen (44100 Hz Fallback, 16-Bit-Peak 32768, Tilt-Referenz 1 kHz,
+dB-Faktor 20, Nyquist-Marge 0,45, Silence −80 dB), ProjectM-Fenster (1024) und
+`isActive`-Cache-Intervall (250 ms), Theme-Zonen, GLES-3.0-Versionscode,
+Debug-Werte. Wer einen Schwellenwert sucht, schaut **hier zuerst**.
 
 ## 6.5 `SyntheticSpectrumSource` (`debug/SyntheticSpectrumSource.kt`)
 

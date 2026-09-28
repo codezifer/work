@@ -56,11 +56,18 @@ er verteilt die Daten an **beide** Visualisierungspfade.
   1. Unterstützte Encodings (`PCM_FLOAT`, `PCM_16BIT`, `PCM_16BIT_BIG_ENDIAN`)
      → `spectrumProcessor.processAudio(...)`. Andere Encodings (z. B.
      durchgereichtes/offgeloadetes Audio) lassen das Display bewusst leer.
-  2. `feedProjectM(...)`: kopiert max. `1024 × Kanäle` Samples als Float
-     (−1..1) an `ProjectMNativeBridge.addPcm` — aber nur, wenn nativ aktiv
-     (`isActive`), und **niemals werfend** (try/catch: Visualisierung darf
-     Playback nie kaputtmachen). Der Eingabe-`ByteBuffer` wird nur
-     `duplicate()`-gelesen, nie konsumiert.
+     Der Eingabe-`ByteBuffer` wird **einmal** `duplicate()`-gelesen und die View
+     an beide Verbraucher weitergereicht; Big-Endian wird mit korrekter
+     Byte-Order analysiert (Float-PCM ist immer Little-Endian).
+  2. `feedProjectM(...)`: füllt einen **wiederverwendeten** `FloatArray`
+     (`PROJECTM_WINDOW_SIZE × Kanäle`, nur bei Kanalwechsel neu angelegt) mit
+     max. 1024 Samples pro Kanal als Float (−1..1, Rest mit 0 aufgefüllt) und
+     ruft `ProjectMNativeBridge.addPcm` — aber nur, wenn nativ aktiv, und
+     **niemals werfend** (try/catch: Visualisierung darf Playback nie
+     kaputtmachen). Big-Endian wird hier nicht gefüttert. Der native
+     `isActive`-Zustand wird **max. alle 250 ms** (`PROJECTM_ACTIVE_CHECK_INTERVAL_NANOS`)
+     über JNI abgefragt und dazwischen gecacht, damit der Audio-Thread nicht pro
+     Buffer über JNI + nativen Lock geht.
 
 ## 2.2 `SpectrumProcessor` (`audio/SpectrumProcessor.kt`)
 
@@ -83,12 +90,17 @@ Ablauf pro Analyse (`analyze()`):
 Details:
 
 - **Downmix:** Mehrkanal-Eingang wird pro Frame gemittelt (Mono). 16-Bit wird
-  durch 32768 geteilt, Float direkt übernommen. `ByteBuffer` wird als
-  `LITTLE_ENDIAN`-Duplikat gelesen.
-- **Ringpuffer:** `pcmRingBuffer` der Größe `fftSize` mit Schreibposition;
-  `analyze()` liest „ab Schreibposition" = ältestes Sample zuerst.
+  durch 32768 geteilt, Float direkt übernommen. Der Puffer wird view-only
+  gelesen (Position/Byte-Order des Aufrufers bleiben unberührt); ein bereits
+  passend geordneter Puffer wird ohne erneutes `duplicate()` verwendet.
+  Die 16-Bit-Byte-Order ist per Parameter wählbar (Standard Little-Endian).
+- **Ringpuffer:** `pcmRingBuffer` der Größe `fftSize` mit Schreibposition als
+  **Bitmaske** (`ringMask`, `fftSize` ist per `require` Zweierpotenz);
+  `analyze()` kopiert die Historie per zweier `System.arraycopy` (kein Modulo
+  pro Sample/Bin) und wendet dann das Hann-Fenster an.
 - **Rekonfiguration:** `configure()` baut `BandMapper`/`AutoGain` bei
-  Sample-Rate-Wechsel neu (Bänder hängen von der Sample-Rate ab).
+  Sample-Rate-Wechsel neu (Bänder hängen von der Sample-Rate ab). Die
+  `fftSize` ist fix zur Konstruktionszeit (alle Puffer/Tabellen hängen davon ab).
 - **Allokationsfreiheit:** alle Zwischenpuffer (`fftReal`, `fftImag`,
   `fftAmp`, `bandAmpBuffer`, `normalizedBuffer`) sind Felder fester Größe.
 

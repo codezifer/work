@@ -71,13 +71,22 @@ GLES 3.0 nahtlos auf den Canvas-Fallback umschaltet.
   mit eigenem Fenster/Thread.)
 - Ablauf: `checkGlEs3Support()` (via `ActivityManager.deviceConfigurationInfo`)
   → `LedBarRenderer` + `EglManager` per `remember` → `AndroidView(TextureView)`
-  mit `SurfaceTextureListener`: `init` → `renderer.onSurfaceCreated/Changed` →
-  `RenderDriver` anlegen. EGL-Fehlschlag (`init == false`) → `glFailed = true`
-  → **Fallback-Composable** (siehe 4.6).
-- `update`-Block spiegelt `isPlaying` in den Driver; `onRelease` und
-  `onSurfaceTextureDestroyed` stoppen Driver und geben GL-Ressourcen frei.
+  mit `SurfaceTextureListener`, dessen Callbacks ihre Arbeit auf einen
+  **eigenen `VisualizerGL`-HandlerThread** posten: `init` →
+  `renderer.onSurfaceCreated/Changed` → `RenderDriver` dort anlegen (sein
+  `Choreographer` bindet sich an den Looper des GL-Threads). EGL-Fehlschlag
+  (`init == false`) → `glFailed = true` (zurück auf Main gepostet) →
+  **Fallback-Composable** (siehe 4.6). `renderer.bus/config/theme/style`
+  werden per `LaunchedEffect` nachgezogen (kein Renderer-Neubau bei
+  Bus-Wechsel); `config/theme/style`-Wechsel markieren nur ein Dirty-Flag,
+  das der GL-Thread auswertet (siehe 4.4).
+- `update`-Block postet `isPlaying`/`maxFps` an den GL-Thread; `onRelease` und
+  `onSurfaceTextureDestroyed` stoppen den Driver, geben GL-Ressourcen **auf dem
+  GL-Thread** frei und beenden ihn per `quitSafely` (idempotent, wiederholt
+  aufrufbar — z. B. Rotation erzeugt einen neuen Thread).
 - **Lifecycle:** `ON_PAUSE` → Analyse aus (`processor.enabled = false`) +
-  Frames stoppen; `ON_RESUME` → bei `isPlaying` wieder starten.
+  Frames stoppen (auf GL-Thread gepostet); `ON_RESUME` → bei `isPlaying`
+  wieder starten.
 
 ## 4.2 `EglManager` (`render/EglManager.kt`)
 
@@ -89,15 +98,21 @@ GLES 3.0 nahtlos auf den Canvas-Fallback umschaltet.
   sauberen Release-Zustand (Rückgabe `false` → Fallback).
 - `swapBuffers()` stellt den Frame dar; `release()` zerstört Surface, Kontext
   und Display-Verbindung (mehrfach aufrufbar).
-- **Thread-Regel:** alle Methoden auf demselben Thread (praktisch Main:
-  Surface-Callbacks und Choreographer laufen dort).
+- `setBufferSize()` nach View-Resize (die EGL-Window-Surface übernimmt die neue
+  Größe beim nächsten Swap).
+- **Thread-Regel:** alle Methoden auf demselben Thread — dem `VisualizerGL`-
+  Render-Thread. Besitz wird bei `init` festgehalten; Fremd-Thread-Aufrufe
+  werden geloggt und ignoriert (statt stillen GL-Fehlern).
 
 ## 4.3 `RenderDriver` (`ui/RenderDriver.kt`)
 
 **Aufgabe:** Frame-Schrittmacher per `Choreographer` (Display-Vsync) mit
-**Auto-Stop bei Stille**. Hängt nur vom `FrameRenderer`-Interface ab
+**Auto-Stop bei Stille** und optionaler **FPS-Drossel** (`maxFps`, z. B. 30 —
+halbiert GPU-Last, visuell ausreichend). Hängt nur vom `FrameRenderer`-Interface ab
 (`requestRender` + `isIdle`), nicht vom konkreten `LedBarRenderer` — dadurch
-für künftige Renderer wiederverwendbar.
+für künftige Renderer wiederverwendbar. Muss auf dem Thread erzeugt werden,
+dessen Frames er treibt (Choreographer bindet an den Erzeuger-Looper);
+`start()`/`stop()` sind synchronisiert und von überall aufrufbar.
 
 ```mermaid
 stateDiagram-v2
@@ -111,7 +126,10 @@ stateDiagram-v2
 - `doFrame`: rendert, solange gespielt wird **oder** Balken/Peaks noch nicht
   auf null abgeklungen sind (`!renderer.isIdle`) — so „fährt" die Anzeige beim
   Pausieren weich herunter statt einzufrieren. Danach: Loop beenden **und**
-  `processor.enabled = false` (Analyse aus → kein Akku-Verbrauch).
+  `processor.enabled = false` (Analyse aus → kein Akku-Verbrauch). Mit `maxFps`
+  werden zu frühe Frames per `postFrameCallbackDelayed` vertagt statt verworfen
+  (reine Entscheidungslogik in `shouldRenderAt`/`remainingDelayMillis`,
+  JVM-testbar in `RenderDriverThrottleTest`).
 - `isPlaying = true` startet automatisch neu und reaktiviert die Analyse.
 
 ## 4.4 `LedBarRenderer` (`render/LedBarRenderer.kt`)
@@ -134,12 +152,16 @@ Stile (`RenderStyle.LED` und `MIRRORED_BARS`) in einer Klasse.
    - `MIRRORED_BARS` (+ gültiges `barsProgram`) → `drawMirroredBars()`
    - sonst → `drawLed()` (fällt auch bei defektem Bars-Programm darauf zurück)
 
-Beide Draw-Pfade: Framebuffer 0 binden, Viewport setzen, Clear, **Blending an**
+Beide Draw-Pfade: Framebuffer 0 binden, Clear, **Blending an**
 (`SRC_ALPHA, ONE_MINUS_SRC_ALPHA` — nicht-premultiplied, passend zur
-transparenten Surface), Uniforms laden (Auflösung, Bandwerte als
-**vec4-gepackte Arrays** — 16×vec4 = 64 Bänder, passend zu `MAX_SPECTRUM_BANDS`
-—, Farben, Geometrie), `glDrawArrays(TRIANGLES, 0, 3)` (Fullscreen-Dreieck),
-Blending aus.
+transparenten Surface), **pro Frame nur dynamische Uniforms** (Auflösung,
+Band-/Peak-Werte als **vec4-gepackte Arrays** — 16×vec4 = 64 Bänder, passend zu
+`MAX_SPECTRUM_BANDS` —, Render-Uhr), `glDrawArrays(TRIANGLES, 0, 3)`
+(Fullscreen-Dreieck), Blending aus. Alle rahmenunabhängigen Uniforms
+(Band-/Segment-Zahlen, Farben, Zonen, Geometrie, Effektstärken) setzt
+`applyStaticUniformsIfNeeded()` **einmalig** nach Programm-Erstellung bzw. bei
+`config`-/`theme`-/`style`-Wechsel (Dirty-Flag, vom Host-Thread gesetzt, vom
+GL-Thread per volatile Read übernommen).
 
 **Halo (Neon-Look):** Beide Draw-Pfade addieren um lit Segmente einen äußeren
 Schein (`uGlow`, Standard `DEFAULT_GLOW_STRENGTH` = 0,8): exponentieller
@@ -174,6 +196,9 @@ Pro Band und Frame (`update`, `dt` geclampt):
    nach Ablauf fällt der Peak mit `peakFallPerSec` (0,5/s) auf den Balken.
 3. Inaktive Bänder jenseits `bandCount` werden genullt.
 
+`maxValue(bandCount)` (Max über aktive Balken + Peaks) nutzen Render-Loops für
+die Idle-Erkennung — eine Stelle statt duplizierter Schleifen.
+
 ## 4.6 Shader (`render/shaders/*`)
 
 | Objekt | Rolle |
@@ -196,11 +221,17 @@ GLES 3.0 oder nach EGL-Fehlschlag (gleicher `LedBarSmoother`, gleiche Zonen-
 und Peak-Logik mit `PEAK_VISIBILITY_THRESHOLD`).
 
 - Eigene `withFrameNanos`-Schleife statt Choreographer; liest denselben Bus
-  mit derselben Latenz; füllt bei Pause/leerem Bus Nullen.
+  mit derselben Latenz; füllt bei Pause/leerem Bus Nullen. Die Schleife
+  **stoppt automatisch**, sobald Balken/Peaks unter
+  `RENDERER_IDLE_VALUE_THRESHOLD` abgeklungen sind (gleicher Idle-Vertrag wie
+  `RenderDriver`); `isPlaying = true` startet sie neu. Ein `frameTick`-State
+  invalidiert den Canvas pro Frame (die Draw-Scope liest plain Arrays).
 - Zeichnet pro Band × Segment ein `drawRoundRect` (Eckenradius aus
   `cornerRadius`, Größe aus `ledHalfSize`); an = Zonenfarbe, aus = gedimmt
-  (`offIntensity`). Lit Segmente bekommen zusätzlich ein Halo
-  (expandiertes, schwach-alpha RoundedRect, skaliert mit `glowStrength`).
+  (`offIntensity`) — **unsichtbare Aus-LEDs werden ganz übersprungen**, wenn
+  `offIntensity` unter `OFF_INTENSITY_VISIBILITY_THRESHOLD` liegt. Lit Segmente
+  bekommen zusätzlich ein Halo (expandiertes, schwach-alpha RoundedRect,
+  skaliert mit `glowStrength`).
 - Dient gleichzeitig als **Preview-Renderer** (`MusicVisualizationPreview`
   befüllt einen Bus per Hand und zeigt ihn via Fallback — ohne GL-Kontext).
 
