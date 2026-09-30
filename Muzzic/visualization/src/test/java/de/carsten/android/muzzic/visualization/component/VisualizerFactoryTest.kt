@@ -43,7 +43,7 @@ class VisualizerFactoryTest {
         val base = Color.Red
         val definition = VisualizerFactory.resolve(
             VisualizerEngine.LED_SPECTRUM,
-            VisualizerParams.LedSpectrumParams,
+            VisualizerParams.LedSpectrumParams(),
             base,
         ) as VisualizerDefinition.Spectrum
 
@@ -61,12 +61,29 @@ class VisualizerFactoryTest {
         ) as VisualizerDefinition.Spectrum
         val led = VisualizerFactory.resolve(
             VisualizerEngine.LED_SPECTRUM,
-            VisualizerParams.LedSpectrumParams,
+            VisualizerParams.LedSpectrumParams(),
             Color.Red,
         ) as VisualizerDefinition.Spectrum
 
         assertThat(bars.config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
         assertThat(led.config.glowStrength).isEqualTo(DEFAULT_GLOW_STRENGTH)
+    }
+
+    @Test
+    fun `hue rotation speed passes through to both spectrum engines`() {
+        val bars = VisualizerFactory.resolve(
+            VisualizerEngine.BARS,
+            VisualizerParams.BarsParams(shimmerEnabled = true, tipGlowEnabled = true, hueRotationSpeed = 0.05f),
+            Color.Red,
+        ) as VisualizerDefinition.Spectrum
+        val led = VisualizerFactory.resolve(
+            VisualizerEngine.LED_SPECTRUM,
+            VisualizerParams.LedSpectrumParams(hueRotationSpeed = 0.05f),
+            Color.Red,
+        ) as VisualizerDefinition.Spectrum
+
+        assertThat(bars.config.hueRotationSpeed).isEqualTo(0.05f)
+        assertThat(led.config.hueRotationSpeed).isEqualTo(0.05f)
     }
 
     @Test

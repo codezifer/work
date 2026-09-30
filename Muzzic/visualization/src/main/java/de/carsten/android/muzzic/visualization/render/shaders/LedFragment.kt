@@ -10,9 +10,14 @@ package de.carsten.android.muzzic.visualization.render.shaders
  * afterglow ghosts (`uTrail` / `uTrailStrength`), and a
  * two-layer halo plus wide aura (`uGlow`).
  *
+ * Free hue rotation (`uHueShift`, in full turns, `0` disables) spins the zone
+ * colors around the color wheel independently of the theme base color; applied
+ * to `zone` before the light kit so core, halo, bleed and rim rotate together.
+ *
  * All lighting terms are white-mixes or zone-multiplies, hence hue-agnostic: the
  * same strengths look identical for every theme. Each effect strength is 0 to
- * disable; `uGlow = 0` reproduces the pre-glow behavior exactly.
+ * disable; `uGlow = 0` switches off halo and aura exactly (off-state rim and
+ * frost stay visible by design, independent of glow).
  */
 object LedFragment {
 
@@ -42,10 +47,12 @@ uniform float uBleed;           // Spill above the frontier + column wash, 0 dis
 uniform float uGlowGrade;       // Level grading: lower segments dimmer, 0 disables
 uniform float uFade;            // Soft frontier segment fading out, 0 disables
 uniform float uTrailStrength;   // Afterglow ghost intensity, 0 disables
+uniform float uHueShift;        // Free hue rotation in full turns, 0 disables
 uniform float uTime;            // Elapsed render time in seconds
 
 out vec4 fragColor;
 
+${ShaderSnippets.HUE_ROTATION}
 void main() {
     vec2 uv = gl_FragCoord.xy / uRes;
     float bx = uv.x * float(uBandCount);
@@ -75,6 +82,9 @@ ${ShaderSnippets.ROUNDED_BOX_SDF}
     float on     = max(lit, isPeak);
 
     vec3 zone = t < uZoneStart.x ? uColLow : (t < uZoneStart.y ? uColMid : uColHigh);
+
+    // Free hue rotation around the color wheel; 0 keeps the theme colors exactly.
+    zone = shiftHue(zone, uHueShift);
 
     // Shimmer only affects lit LEDs so the background stays calm.
     float shimmer = 1.0 + uShimmer * sin(uTime * 3.0 + float(band) * 0.7 + seg * 0.35);
@@ -118,8 +128,9 @@ ${ShaderSnippets.ROUNDED_BOX_SDF}
     vec3 wash = zone * value * colMask * colMask * uBleed * 0.35 * hasSignal * glowScale;
 
     // Off-state rim: unlit LED plastic catching ambient light at its edge.
+    // Frost look: 0.22 makes unlit segments readable as matte acrylic glass.
     float rim = smoothstep(0.0, 1.5, sd) * (1.0 - smoothstep(1.5, 3.5, sd)) * (1.0 - on);
-    vec3 rimCol = zone * rim * 0.10;
+    vec3 rimCol = zone * rim * 0.22;
 
     // Light trail: the lagging trail frontier paints fading ghosts above the
     // live frontier, so blocks glimmer out one after another. Masked to pixels

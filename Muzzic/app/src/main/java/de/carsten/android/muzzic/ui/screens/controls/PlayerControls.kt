@@ -71,6 +71,7 @@ fun PlayerControls(
     projectMPreset: String? = null,
     barsShimmerEnabled: Boolean = true,
     barsTipGlowEnabled: Boolean = true,
+    hueRotationSpeed: Float = 0f,
     visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
@@ -108,6 +109,9 @@ fun PlayerControls(
             color = visualizerBaseColor.copy(alpha = 0.4f),
             shimmerEnabled = barsShimmerEnabled,
             tipGlowEnabled = barsTipGlowEnabled,
+            // Hue rotation only runs for the ROTATING color source; any other
+            // source keeps its static theme colors regardless of the slider.
+            hueRotationSpeed = if (visualizerColorSource == VisualizerColorSource.ROTATING) hueRotationSpeed else 0f,
             modifier = Modifier.matchParentSize(),
         )
 

@@ -15,26 +15,29 @@ flowchart TB
     SB1 -->|"bus == null?"| EMPTY["leere Box"]
 ```
 
-- `BARS` → `BarsParams(shimmer, tipGlow)` → `Spectrum`-Definition mit
+- `BARS` → `BarsParams(shimmer, tipGlow, hueRotationSpeed)` → `Spectrum`-Definition mit
   `MIRRORED_BARS`-Stil, Theme aus Akzentfarbe (`barsThemeFrom`), 16 Segmenten.
   Ohne Bus: leere `Box` (kein Crash, kein Platzhalter-Flackern).
-- `LED_SPECTRUM` → `LedSpectrumParams` → `Spectrum`-Definition mit `LED`-Stil
+- `LED_SPECTRUM` → `LedSpectrumParams(hueRotationSpeed)` → `Spectrum`-Definition mit `LED`-Stil
   und Theme aus der Akzentfarbe (`ledThemeFrom`: Low = Basis, Mid +20° Hue,
   High +40° Hue, **transparenter** Hintergrund) — die LED-Formen tragen
   ihr eigenes Alpha, das Host-Layout scheint durch.
 - `PROJECT_M` → `ProjectMParams(presetName)` → `ProjectM`-Definition; die
   `GLSurfaceView` wird per `AndroidView` eingebettet, `update` reicht
   Preset-Wechsel **und `isPlaying`** (pausiert den GL-Thread) nach.
-- Öffentliche Signatur unverändert (`engine`, `presetName`, `spectrumBus`,
+- Öffentliche Signatur (`engine`, `presetName`, `spectrumBus`,
   `spectrumProcessor`, `color`, `isPlaying`, `shimmerEnabled`,
-  `tipGlowEnabled`), damit kein App-Code angepasst werden musste. Neue Engine
-  = neuer `VisualizerEngine`-Eintrag + Params + Factory-Zweig
+  `tipGlowEnabled`, `hueRotationSpeed` — `0` = keine Farbrotation, No-op für ProjectM).
+  Neue Engine = neuer `VisualizerEngine`-Eintrag + Params + Factory-Zweig
   (`VisualizerFactoryTest` sichert die Auflösung auf der JVM ab).
 - **Farbquelle:** Die Basisfarbe `color` stammt aus der App-Einstellung
-  `VisualizerColorSource` (`ALBUM_ART` = Album-Art-Akzent, sonst Fix-Hue über
-  den Farbkreis). Persistenz via `AppSettingsRepository` (`GenericSetting`),
-  Auswahl im Settings-Dropdown (nur bei BARS/LED), Auflösung in
-  `PlayerControls` (`baseColor(accent)` → `MusicVisualization`).
+  `VisualizerColorSource` (`ALBUM_ART` = Album-Art-Akzent, `ROTATING` =
+  Album-Art-Akzent als Rotationsbasis für die freie Farbrotation, sonst
+  Fix-Hue über den Farbkreis). Persistenz via `AppSettingsRepository`
+  (`GenericSetting`), Auswahl im Settings-Dropdown (nur bei BARS/LED),
+  Auflösung in `PlayerControls` (`baseColor(accent)` → `MusicVisualization`).
+  Die `hueRotationSpeed` greift nur bei `ROTATING` (sonst `0`, statische Farben);
+  der Slider ist nur dann eingeblendet.
 - `MusicVisualizationPreview` zeigt beide Modi (hell/dunkel) als statischen Mock
   (`StaticBarsPreview`: feste Pegel, gleiche Geometrie/Zonenfarben, ohne Bus,
   Glättung oder Animation) — Previews haben keinen GL-Kontext.
@@ -64,6 +67,10 @@ Reine Datenklassen (Defaults = Standard-Look):
   An/Aus — 0 = binäre Segmente wie zuvor.
 - `trailStrength` (0,7): Afterglow-Geister über der live Front (Leuchtspur,
   Blöcke glimmen nacheinander aus) — 0 = keine Spur.
+- `hueRotationSpeed` (0 = aus, Max `MAX_HUE_ROTATION_SPEED` = 0,1
+  Umdrehungen/Sek.): freie Farbrotation um den Farbkreis in beiden
+  GLES-Engines (`uHueShift`-Per-Frame-Uniform über die Render-Uhr) — 0 =
+  Theme-Farben exakt wie zuvor.
 - `SmootherConfig.trailFallPerSec` (0,55): Fallgeschwindigkeit des
   Trail-Gedächtnisses — langsamer als `fallPerSec`, damit die Spur mehrere
   Blöcke lang ist.
@@ -77,7 +84,8 @@ Tuning-Leitfaden: trägere Balken → `hopSize`/`fallPerSec`; Höhen dunkel →
 **Aufgabe:** Farben + Zonen, getrennt von Geometrie (Config).
 
 - Felder: `colLow`/`colMid`/`colHigh`, `zoneStart` (Gelb ab 0,60, Rot ab 0,85),
-  `background`, `offIntensity` (Dimmung aus-LEDs, 0,06; BARS nutzt 0 = unsichtbar).
+  `background`, `offIntensity` (Dimmung aus-LEDs; `barsThemeFrom`/`ledThemeFrom`
+  je 0,14 Frost-Look, Presets 0,06).
 - Presets: `ClassicGreen`, `Amber`, `IceBlue`.
 - `barsThemeFrom(base)`: leitet aus einer Material-Akzentfarbe einen Verlauf
   ab — Basisfarbe in der Mitte, um `VISUALIZER_HUE_COLOR_DEGREE` (40°)

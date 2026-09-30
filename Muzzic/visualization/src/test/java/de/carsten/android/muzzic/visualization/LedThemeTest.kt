@@ -20,6 +20,9 @@ class LedThemeTest {
 
         assertThat(theme.colLow).isEqualTo(base)
         assertThat(theme.background).isEqualTo(Color.Transparent)
+        // Frost look (muzzic-glow-visualizer-konzept v4 §8.1): unlit segments stay
+        // visible as matte acrylic glass.
+        assertThat(theme.offIntensity).isCloseTo(0.14f, within(1e-6f))
     }
 
     @Test

@@ -82,8 +82,11 @@
     <string name="projectm_preset">Milkdrop preset</string>
     <string name="visualizer_bars_shimmer">Shimmer on lit bars</string>
     <string name="visualizer_bars_tip_glow">Tip glow on bar ends</string>
+    <string name="visualizer_hue_rotation">Hue rotation (color wheel)</string>
+    <string name="visualizer_hue_rotation_value">%1$.0f°/s (0 = off)</string>
     <string name="visualizer_color_source">Visualizer colors</string>
     <string name="visualizer_color_album_art">Album art (dynamic)</string>
+    <string name="visualizer_color_rotating">Rotating (color wheel)</string>
     <string name="visualizer_color_red">Red</string>
     <string name="visualizer_color_orange">Orange</string>
     <string name="visualizer_color_yellow">Yellow</string>

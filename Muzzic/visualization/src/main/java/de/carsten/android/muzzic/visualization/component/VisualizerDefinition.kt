@@ -54,6 +54,7 @@ object VisualizerFactory {
                     segmentCount = BARS_SEGMENT_COUNT,
                     shimmerStrength = if (params.shimmerEnabled) DEFAULT_SHIMMER_STRENGTH else 0f,
                     tipGlowStrength = if (params.tipGlowEnabled) DEFAULT_TIP_GLOW_STRENGTH else 0f,
+                    hueRotationSpeed = params.hueRotationSpeed,
                 ),
                 theme = VisualizerTheme.barsThemeFrom(color),
                 style = RenderStyle.MIRRORED_BARS,
@@ -63,7 +64,7 @@ object VisualizerFactory {
         VisualizerEngine.LED_SPECTRUM -> {
             require(params is VisualizerParams.LedSpectrumParams) { "LED_SPECTRUM requires LedSpectrumParams" }
             VisualizerDefinition.Spectrum(
-                config = VisualizerConfig(),
+                config = VisualizerConfig().copy(hueRotationSpeed = params.hueRotationSpeed),
                 theme = VisualizerTheme.ledThemeFrom(color),
                 style = RenderStyle.LED,
             )

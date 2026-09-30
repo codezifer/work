@@ -39,6 +39,7 @@ class SettingsViewModelTest {
     private val presetFlow = MutableStateFlow<String?>(null)
     private val shimmerFlow = MutableStateFlow(true)
     private val tipGlowFlow = MutableStateFlow(true)
+    private val hueRotationSpeedFlow = MutableStateFlow(0f)
     private val colorSourceFlow = MutableStateFlow(VisualizerColorSource.ALBUM_ART)
 
     private lateinit var viewModel: SettingsViewModel
@@ -52,6 +53,7 @@ class SettingsViewModelTest {
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
         every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
+        every { appSettingsRepository.observeHueRotationSpeed() } returns hueRotationSpeedFlow
         every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
         Dispatchers.setMain(testDispatcher)
         viewModel = SettingsViewModel(appSettingsRepository, musicRepository, application)
@@ -140,6 +142,23 @@ class SettingsViewModelTest {
 
         coVerify { appSettingsRepository.saveBarsShimmerEnabled(false) }
         coVerify { appSettingsRepository.saveBarsTipGlowEnabled(false) }
+    }
+
+    @Test
+    fun `hue rotation speed propagates to uiState and updates repository`() = runTest {
+        coEvery { appSettingsRepository.saveHueRotationSpeed(0.05f) } returns Unit
+
+        viewModel.uiState.test {
+            assertThat(awaitItem().hueRotationSpeed).isEqualTo(0f)
+
+            hueRotationSpeedFlow.value = 0.05f
+            assertThat(awaitItem().hueRotationSpeed).isEqualTo(0.05f)
+        }
+
+        viewModel.updateHueRotationSpeed(0.05f)
+        testScheduler.advanceUntilIdle()
+
+        coVerify { appSettingsRepository.saveHueRotationSpeed(0.05f) }
     }
 
     @Test

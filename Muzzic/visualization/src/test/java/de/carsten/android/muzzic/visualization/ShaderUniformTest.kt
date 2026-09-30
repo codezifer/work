@@ -53,7 +53,40 @@ class ShaderUniformTest {
             "uGlowGrade",
             "uFade",
             "uTrailStrength",
+            "uHueShift",
             "uTime",
+        )
+
+        /**
+         * Every uniform `LedBarRenderer` queries via `glGetUniformLocation` on
+         * the BARS program. Mirrors the renderer; extend both together.
+         */
+        private val barsUniforms = listOf(
+            "uRes",
+            "uColumns",
+            "uBandCount",
+            "uSegments",
+            "uBands",
+            "uPeaks",
+            "uTrail",
+            "uColBase",
+            "uColTarget",
+            "uShimmer",
+            "uTipGlow",
+            "uTime",
+            "uAlpha",
+            "uLedHalfSize",
+            "uCornerRadius",
+            "uOffIntensity",
+            "uBackground",
+            "uGlow",
+            "uHotCore",
+            "uSpecular",
+            "uBleed",
+            "uGlowGrade",
+            "uFade",
+            "uTrailStrength",
+            "uHueShift",
         )
     }
 
@@ -78,6 +111,16 @@ class ShaderUniformTest {
         for (uniform in ledUniforms) {
             assertThat(declared)
                 .`as`("LedFragment misses uniform $uniform queried by LedBarRenderer")
+                .contains(uniform)
+        }
+    }
+
+    @Test
+    fun `bars program declares every uniform the renderer queries`() {
+        val declared = declaredUniforms(BarsFragment.SOURCE).toSet()
+        for (uniform in barsUniforms) {
+            assertThat(declared)
+                .`as`("BarsFragment misses uniform $uniform queried by LedBarRenderer")
                 .contains(uniform)
         }
     }

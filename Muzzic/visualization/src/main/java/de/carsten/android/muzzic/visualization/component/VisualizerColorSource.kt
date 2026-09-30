@@ -16,6 +16,14 @@ enum class VisualizerColorSource(val hueDeg: Float?) {
     /** Follows the current album-art accent color. */
     ALBUM_ART(null),
 
+    /**
+     * Free hue rotation around the color wheel.
+     *
+     * The base color is the album-art accent; the actual rotation runs in the
+     * GLES shaders driven by `hueRotationSpeed` (0 = static base color).
+     */
+    ROTATING(null),
+
     /** Fixed red. */
     RED(0f),
 
@@ -44,8 +52,8 @@ enum class VisualizerColorSource(val hueDeg: Float?) {
     /**
      * Resolves the base color for themes derived from this source.
      *
-     * @param albumArt Current album-art accent color, used for [ALBUM_ART].
-     * @return album-art color for [ALBUM_ART], otherwise the fixed hue.
+     * @param albumArt Current album-art accent color, used for [ALBUM_ART] and [ROTATING].
+     * @return album-art color for [ALBUM_ART] and [ROTATING], otherwise the fixed hue.
      */
     fun baseColor(albumArt: Color): Color {
         val hue = hueDeg ?: return albumArt

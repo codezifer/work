@@ -48,6 +48,7 @@ data class VisualizerTheme(
          * The base color is used at the vertical center, fading towards a
          * hue-shifted target at the outer edges (same gradient as the legacy
          * Canvas bars). Background stays transparent so the host layout shows through.
+         * Unlit segments stay visible as matte acrylic glass (frost look).
          */
         fun barsThemeFrom(base: Color): VisualizerTheme {
             val vivid = ensureVivid(base)
@@ -59,7 +60,7 @@ data class VisualizerTheme(
                 colMid = target,
                 colHigh = target,
                 background = Color.Transparent,
-                offIntensity = 0f,
+                offIntensity = 0.14f,
             )
         }
 
@@ -72,6 +73,7 @@ data class VisualizerTheme(
          * at the top (high ≥ 0.9), so every base color gets a clearly visible
          * gradation. A green base reproduces the classic green → yellow → red
          * ladder. Near-achromatic bases fall back to a pure lightness ladder.
+         * Unlit segments stay visible as matte acrylic glass (frost look).
          */
         fun ledThemeFrom(base: Color): VisualizerTheme {
             val vivid = ensureVivid(base)
@@ -96,6 +98,7 @@ data class VisualizerTheme(
                 colMid = mid.copy(alpha = vivid.alpha),
                 colHigh = high.copy(alpha = vivid.alpha),
                 background = Color.Transparent,
+                offIntensity = 0.14f,
             )
         }
 

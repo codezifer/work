@@ -120,14 +120,19 @@ open class PlayerViewModel(
                 appSettingsRepository.observeProjectMPreset(),
                 appSettingsRepository.observeBarsShimmerEnabled(),
                 appSettingsRepository.observeBarsTipGlowEnabled(),
-                appSettingsRepository.observeVisualizerColorSource(),
-            ) { engine, preset, shimmerEnabled, tipGlowEnabled, colorSource ->
+                // Nested (arity limit of typed combine): hue speed + color source as one slot.
+                combine(
+                    appSettingsRepository.observeHueRotationSpeed(),
+                    appSettingsRepository.observeVisualizerColorSource(),
+                ) { hueRotationSpeed, colorSource -> hueRotationSpeed to colorSource },
+            ) { engine, preset, shimmerEnabled, tipGlowEnabled, (hueRotationSpeed, colorSource) ->
                 _uiState.update {
                     it.copy(
                         visualizerEngine = engine,
                         projectMPreset = preset,
                         barsShimmerEnabled = shimmerEnabled,
                         barsTipGlowEnabled = tipGlowEnabled,
+                        hueRotationSpeed = hueRotationSpeed,
                         visualizerColorSource = colorSource,
                     )
                 }

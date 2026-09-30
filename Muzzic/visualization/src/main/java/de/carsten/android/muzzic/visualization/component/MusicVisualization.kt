@@ -45,6 +45,8 @@ import kotlin.math.min
  * @param isPlaying Whether the visualization is currently active.
  * @param shimmerEnabled Whether lit BARS segments shimmer (no-op for other engines).
  * @param tipGlowEnabled Whether BARS tip segments get a white highlight (no-op for other engines).
+ * @param hueRotationSpeed Free hue rotation in full turns per second for BARS and LED (0 disables, no-op for ProjectM).
+ * Only effective with [VisualizerColorSource.ROTATING]; any other color source keeps static theme colors.
  */
 @Composable
 fun MusicVisualization(
@@ -57,11 +59,12 @@ fun MusicVisualization(
     isPlaying: Boolean = true,
     shimmerEnabled: Boolean = true,
     tipGlowEnabled: Boolean = true,
+    hueRotationSpeed: Float = 0f,
 ) {
-    val params = remember(engine, presetName, shimmerEnabled, tipGlowEnabled) {
+    val params = remember(engine, presetName, shimmerEnabled, tipGlowEnabled, hueRotationSpeed) {
         when (engine) {
-            VisualizerEngine.BARS -> VisualizerParams.BarsParams(shimmerEnabled, tipGlowEnabled)
-            VisualizerEngine.LED_SPECTRUM -> VisualizerParams.LedSpectrumParams
+            VisualizerEngine.BARS -> VisualizerParams.BarsParams(shimmerEnabled, tipGlowEnabled, hueRotationSpeed)
+            VisualizerEngine.LED_SPECTRUM -> VisualizerParams.LedSpectrumParams(hueRotationSpeed)
             VisualizerEngine.PROJECT_M -> VisualizerParams.ProjectMParams(presetName)
         }
     }

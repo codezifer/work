@@ -40,6 +40,7 @@ class PlayerViewModelTest {
     private val presetFlow = MutableStateFlow<String?>(null)
     private val shimmerFlow = MutableStateFlow(true)
     private val tipGlowFlow = MutableStateFlow(true)
+    private val hueRotationSpeedFlow = MutableStateFlow(0f)
     private val colorSourceFlow = MutableStateFlow(VisualizerColorSource.ALBUM_ART)
 
     private lateinit var viewModel: TestPlayerViewModel
@@ -72,6 +73,7 @@ class PlayerViewModelTest {
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
         every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
+        every { appSettingsRepository.observeHueRotationSpeed() } returns hueRotationSpeedFlow
         every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
         viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application)
     }
@@ -120,6 +122,16 @@ class PlayerViewModelTest {
 
             colorSourceFlow.value = VisualizerColorSource.MAGENTA
             assertThat(awaitItem().visualizerColorSource).isEqualTo(VisualizerColorSource.MAGENTA)
+        }
+    }
+
+    @Test
+    fun `hue rotation speed propagates to uiState`() = runTest {
+        viewModel.uiState.test {
+            assertThat(awaitItem().hueRotationSpeed).isEqualTo(0f)
+
+            hueRotationSpeedFlow.value = 0.05f
+            assertThat(awaitItem().hueRotationSpeed).isEqualTo(0.05f)
         }
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,6 +59,7 @@ import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
+import de.carsten.android.muzzic.visualization.MAX_HUE_ROTATION_SPEED
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import org.koin.androidx.compose.koinViewModel
@@ -75,6 +77,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBac
         availablePresets = uiState.availablePresets,
         barsShimmerEnabled = uiState.barsShimmerEnabled,
         barsTipGlowEnabled = uiState.barsTipGlowEnabled,
+        hueRotationSpeed = uiState.hueRotationSpeed,
         visualizerColorSource = uiState.visualizerColorSource,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
@@ -92,6 +95,7 @@ private fun SettingsScreenContent(
     availablePresets: List<String> = emptyList(),
     barsShimmerEnabled: Boolean = true,
     barsTipGlowEnabled: Boolean = true,
+    hueRotationSpeed: Float = 0f,
     visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     settingsViewModel: SettingsViewModel? = null,
     onBackClick: () -> Unit = {},
@@ -196,6 +200,7 @@ private fun SettingsScreenContent(
                 availablePresets = availablePresets,
                 barsShimmerEnabled = barsShimmerEnabled,
                 barsTipGlowEnabled = barsTipGlowEnabled,
+                hueRotationSpeed = hueRotationSpeed,
                 currentColorSource = visualizerColorSource,
                 onEngineSelected = { engine ->
                     settingsViewModel?.updateVisualizerEngine(engine)
@@ -208,6 +213,9 @@ private fun SettingsScreenContent(
                 },
                 onBarsTipGlowToggled = { enabled ->
                     settingsViewModel?.updateBarsTipGlowEnabled(enabled)
+                },
+                onHueRotationSpeedChanged = { speed ->
+                    settingsViewModel?.updateHueRotationSpeed(speed)
                 },
                 onColorSourceSelected = { source ->
                     settingsViewModel?.updateVisualizerColorSource(source)
@@ -254,6 +262,8 @@ private fun VisualizerSetting(
     barsTipGlowEnabled: Boolean = true,
     onBarsShimmerToggled: (Boolean) -> Unit = {},
     onBarsTipGlowToggled: (Boolean) -> Unit = {},
+    hueRotationSpeed: Float = 0f,
+    onHueRotationSpeedChanged: (Float) -> Unit = {},
     currentColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
     onColorSourceSelected: (VisualizerColorSource) -> Unit = {},
 ) {
@@ -363,6 +373,29 @@ private fun VisualizerSetting(
             }
         }
 
+        if ((currentEngine == VisualizerEngine.BARS || currentEngine == VisualizerEngine.LED_SPECTRUM) &&
+            currentColorSource == VisualizerColorSource.ROTATING
+        ) {
+            Spacer(modifier = Modifier.height(SPACING_TINY))
+            val hueRotationLabel = stringResource(R.string.visualizer_hue_rotation)
+            Text(
+                text = hueRotationLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Slider(
+                value = hueRotationSpeed.coerceIn(0f, MAX_HUE_ROTATION_SPEED),
+                onValueChange = onHueRotationSpeedChanged,
+                valueRange = 0f..MAX_HUE_ROTATION_SPEED,
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = hueRotationLabel },
+            )
+            Text(
+                text = stringResource(R.string.visualizer_hue_rotation_value, hueRotationSpeed * 360f),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+
         if (currentEngine == VisualizerEngine.PROJECT_M && availablePresets.isNotEmpty()) {
             Spacer(modifier = Modifier.height(SPACING_TINY))
             Text(
@@ -406,6 +439,7 @@ private fun VisualizerSetting(
 @Composable
 private fun colorSourceLabel(source: VisualizerColorSource): String = when (source) {
     VisualizerColorSource.ALBUM_ART -> stringResource(R.string.visualizer_color_album_art)
+    VisualizerColorSource.ROTATING -> stringResource(R.string.visualizer_color_rotating)
     VisualizerColorSource.RED -> stringResource(R.string.visualizer_color_red)
     VisualizerColorSource.ORANGE -> stringResource(R.string.visualizer_color_orange)
     VisualizerColorSource.YELLOW -> stringResource(R.string.visualizer_color_yellow)

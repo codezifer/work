@@ -19,6 +19,7 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
         const val KEY_PROJECTM_PRESET = "projectm_preset"
         const val KEY_BARS_SHIMMER_ENABLED = "bars_shimmer_enabled"
         const val KEY_BARS_TIP_GLOW_ENABLED = "bars_tip_glow_enabled"
+        const val KEY_HUE_ROTATION_SPEED = "hue_rotation_speed"
         const val KEY_VISUALIZER_COLOR_SOURCE = "visualizer_color_source"
     }
 
@@ -123,6 +124,20 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
      */
     suspend fun saveBarsTipGlowEnabled(enabled: Boolean) {
         genericSettingDao.insertOrUpdate(GenericSetting(KEY_BARS_TIP_GLOW_ENABLED, enabled.toString()))
+    }
+
+    /**
+     * Observes the free hue-rotation speed in full turns per second (defaults to 0 = off).
+     */
+    fun observeHueRotationSpeed(): Flow<Float> = genericSettingDao.observeSetting(KEY_HUE_ROTATION_SPEED).map { setting ->
+        setting?.value?.toFloatOrNull() ?: 0f
+    }
+
+    /**
+     * Saves the free hue-rotation speed in full turns per second.
+     */
+    suspend fun saveHueRotationSpeed(speed: Float) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_HUE_ROTATION_SPEED, speed.toString()))
     }
 
     /**

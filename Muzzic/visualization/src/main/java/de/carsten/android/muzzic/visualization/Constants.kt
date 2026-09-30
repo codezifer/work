@@ -62,6 +62,12 @@ const val DEFAULT_FADE_STRENGTH = 1.0f
 /** Default afterglow ghost intensity above the live frontier (0 disables the light trail). */
 const val DEFAULT_TRAIL_STRENGTH = 0.7f
 
+/** Default hue-rotation speed in full turns per second (0 disables rotation). */
+const val DEFAULT_HUE_ROTATION_SPEED = 0f
+
+/** Maximum hue-rotation speed offered by the settings slider (1 turn per 10 s). */
+const val MAX_HUE_ROTATION_SPEED = 0.1f
+
 /** Hue rotation in degrees for the LED mid zone relative to the base color. */
 const val LED_MID_HUE_SHIFT_DEG = -60
 

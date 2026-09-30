@@ -18,12 +18,19 @@ class VisualizerColorSourceTest {
     fun `fixed sources span the color wheel with full alpha`() {
         val albumArt = Color.Red.copy(alpha = 0.4f)
         val bases = VisualizerColorSource.entries
-            .filter { it != VisualizerColorSource.ALBUM_ART }
+            .filter { it != VisualizerColorSource.ALBUM_ART && it != VisualizerColorSource.ROTATING }
             .map { it.baseColor(albumArt) }
 
         assertThat(bases).hasSize(8)
         assertThat(bases.toSet()).hasSize(8)
         bases.forEach { assertThat(it.alpha).isCloseTo(1f, within(1e-6f)) }
+    }
+
+    @Test
+    fun `rotating passes the accent color through as rotation base`() {
+        val albumArt = Color.Red.copy(alpha = 0.4f)
+
+        assertThat(VisualizerColorSource.ROTATING.baseColor(albumArt)).isEqualTo(albumArt)
     }
 
     @Test

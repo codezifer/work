@@ -12,16 +12,16 @@ sealed interface VisualizerParams {
      *
      * @property shimmerEnabled Whether lit BARS segments shimmer.
      * @property tipGlowEnabled Whether BARS tip segments get a white highlight.
+     * @property hueRotationSpeed Free hue rotation in full turns per second (0 disables).
      */
-    data class BarsParams(val shimmerEnabled: Boolean = true, val tipGlowEnabled: Boolean = true) : VisualizerParams
+    data class BarsParams(val shimmerEnabled: Boolean = true, val tipGlowEnabled: Boolean = true, val hueRotationSpeed: Float = 0f) : VisualizerParams
 
     /**
      * Parameters for [VisualizerEngine.LED_SPECTRUM].
      *
-     * The LED engine currently takes no parameters; the type exists so the
-     * `when` over [VisualizerParams] stays exhaustive when engines evolve.
+     * @property hueRotationSpeed Free hue rotation in full turns per second (0 disables).
      */
-    data object LedSpectrumParams : VisualizerParams
+    data class LedSpectrumParams(val hueRotationSpeed: Float = 0f) : VisualizerParams
 
     /**
      * Parameters for [VisualizerEngine.PROJECT_M].

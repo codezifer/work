@@ -9,55 +9,55 @@ LED-Optik entsteht pro Pixel im Fragment-Shader. Kein Mesh, kein VBO, zwei
 classDiagram
     direction LR
     class SpectrumVisualizer {
-        +bus : SpectrumBus
-        +isPlaying : Boolean
-        +config : VisualizerConfig
-        +theme : VisualizerTheme
-        +style : RenderStyle
+        +bus: SpectrumBus
+        +isPlaying: Boolean
+        +config: VisualizerConfig
+        +theme: VisualizerTheme
+        +style: RenderStyle
     }
     class EglManager {
-        +isReady : Boolean
-        +init(surfaceTexture, w, h) : Boolean
-        +swapBuffers() : Boolean
+        +isReady: Boolean
+        +init(surfaceTexture, w, h): Boolean
+        +swapBuffers(): Boolean
         +release()
     }
     class RenderDriver {
-        +isPlaying : Boolean
+        +isPlaying: Boolean
         +start()
         +stop()
     }
     class FrameRenderer {
-        +isIdle : Boolean
+        +isIdle: Boolean
         +onSurfaceCreated()
         +onSurfaceChanged(w, h)
         +onDrawFrame()
         +release()
     }
     class LedBarRenderer {
-        +smoother : LedBarSmoother
+        +smoother: LedBarSmoother
         +onSurfaceCreated()
         +onSurfaceChanged(w, h)
         +onDrawFrame()
         +release()
     }
     class LedBarSmoother {
-        +bands : FloatArray
-        +peaks : FloatArray
+        +bands: FloatArray
+        +peaks: FloatArray
         +update(target, bandCount, dt, cfg)
         +reset()
     }
     class GlUtil {
-        +loadShader(type, code) : Int
-        +createProgram(v, f) : Int
-        +checkGlError(op) : Boolean
+        +loadShader(type, code): Int
+        +createProgram(v, f): Int
+        +checkGlError(op): Boolean
     }
     SpectrumVisualizer *-- EglManager
     SpectrumVisualizer *-- RenderDriver
-    RenderDriver --> FrameRenderer : requestRender + isIdle
-    LedBarRenderer --|> FrameRenderer : implementiert
+    RenderDriver --> FrameRenderer: requestRender + isIdle
+    LedBarRenderer --|> FrameRenderer: implementiert
     LedBarRenderer *-- LedBarSmoother
-    LedBarRenderer ..> GlUtil : Programme bauen
-    LedBarRenderer ..> SpectrumBus : readAtOrBefore
+    LedBarRenderer ..> GlUtil: Programme bauen
+    LedBarRenderer ..> SpectrumBus: readAtOrBefore
 ```
 
 ## 4.1 `SpectrumVisualizer` (`ui/SpectrumVisualizer.kt`)
@@ -121,10 +121,10 @@ dessen Frames er treibt (Choreographer bindet an den Erzeuger-Looper);
 ```mermaid
 stateDiagram-v2
     [*] --> Gestoppt
-    Gestoppt --> Läuft : start() / isPlaying = true
-    Läuft --> Läuft : doFrame: rendern + nächstes Vsync<br/>(solange isPlaying oder Balken nicht idle)
-    Läuft --> Gestoppt : doFrame: pausiert UND Balken idle<br/>(→ Analyse deaktivieren, CPU/GPU ≈ 0 %)
-    Läuft --> Gestoppt : stop() / ON_PAUSE / Surface weg
+    Gestoppt --> Läuft: start() / isPlaying = true
+    Läuft --> Läuft: doFrame: rendern + nächstes Vsync<br/>(solange isPlaying oder Balken nicht idle)
+    Läuft --> Gestoppt: doFrame: pausiert UND Balken idle<br/>(→ Analyse deaktivieren, CPU/GPU ≈ 0 %)
+    Läuft --> Gestoppt: stop() / ON_PAUSE / Surface weg
 ```
 
 - `doFrame`: rendert, solange gespielt wird **oder** Balken/Peaks noch nicht
@@ -153,8 +153,8 @@ Stile (`RenderStyle.LED` und `MIRRORED_BARS`) in einer Klasse.
 4. **Idle prüfen:** max(Bänder, Peaks) < `RENDERER_IDLE_VALUE_THRESHOLD`
    (0,01) **und** keine frischen Daten → `isIdle = true` (Driver stoppt dann).
 5. **Zeichnen (Stil-Weiche):**
-   - `MIRRORED_BARS` (+ gültiges `barsProgram`) → `drawMirroredBars()`
-   - sonst → `drawLed()` (fällt auch bei defektem Bars-Programm darauf zurück)
+    - `MIRRORED_BARS` (+ gültiges `barsProgram`) → `drawMirroredBars()`
+    - sonst → `drawLed()` (fällt auch bei defektem Bars-Programm darauf zurück)
 
 Beide Draw-Pfade: Framebuffer 0 binden, Clear, **Blending an**
 (`SRC_ALPHA, ONE_MINUS_SRC_ALPHA` — nicht-premultiplied, passend zur
@@ -177,11 +177,20 @@ gesättigtem Mittelring (`uHotCore` = 0,85), wandernder Dome-Glanz
 Säulen-Wash (`uBleed` = 0,8, nur bei Signal), Pegelgradierung von ruhiger
 Basis zu heißer Spitze (`uGlowGrade` = 0,65), weiches Frontier-Ausfaden
 (`uFade` = 1,0), Trail-Gedächtnis als Afterglow-Ghosts (`uTrail`/`uTrailStrength`
-= 0,7 — Blöcke glimmen nacheinander aus), Ambient-Rim auf aus-LEDs.
+= 0,7 — Blöcke glimmen nacheinander aus), Ambient-Rim auf aus-LEDs (0,22,
+Frost-Look).
 Das Halo erweitert die Coverage über den Block hinaus, damit der Schein auf
-transparenten Surfaces sichtbar bleibt; `uGlow = 0` reproduziert exakt das
-Verhalten vor dem Lichtkit. (BARS: Amplituden-Weiß-Mix max. 0,35 — die
-Zonenfarben bleiben dominant.)
+transparenten Surfaces sichtbar bleibt; `uGlow = 0` schaltet Halo und Aura
+exakt ab (Off-State-Rim/Frost bleiben per Design sichtbar). (BARS:
+Amplituden-Weiß-Mix max. 0,35 — die Zonenfarben bleiben dominant.)
+
+**BARS-Lichtkit:** Der BARS-Pfad (`drawMirroredBars()`) nutzt dasselbe Kit,
+adaptiert an die gefaltete Geometrie (`sy`/`seg`/`t` um die Bildmitte,
+`front = value * halfSegs`, `cellPx` invariant auf vollem `uSegments`):
+Peak-Hold-Spitze aus `uPeaks`, `uFade`-Frontier, `uHotCore`/`uSpecular`/
+`uBleed`/`uGlowGrade`/`uTrailStrength` wie LED, Halo + Aura zweistufig,
+`cover`-Modell mit erhaltener `uAlpha * vis`-Semantik
+(`fragColor.a = cover * uAlpha * vis`).
 
 `onSurfaceCreated()` kompiliert **beide** Programme und cached alle
 Uniform-Locations; schlägt eines fehl, wird geloggt und der jeweils andere
@@ -214,20 +223,23 @@ Geister verblasst sind.
 
 ## 4.6 Shader (`render/shaders/*`)
 
-| Objekt | Rolle |
-|---|---|
-| `FullscreenVertex` | Vertex-Shader: erzeugt aus `gl_VertexID` ein Fullscreen-Dreieck (kein VBO nötig) |
-| `ShaderSnippets.ROUNDED_BOX_SDF` | Geteiltes GLSL-Snippet: Signed-Distance-Feld für abgerundete LED-Rechtecke im Pixelraum, ~1,5-px-Antialiasing via `smoothstep`. (GLES hat kein `#include` — Teilen passiert auf Kotlin-Ebene per String-Template.) |
-| `LedFragment` | LED-Türme: pro Pixel Band (`uBands`) + Peak (`uPeaks`) aus vec4-Arrays lesen (`band >> 2`, `band & 3`), Segment an/aus, Peak-Segment, drei Farbzonen (`uZoneStart` = 0,60/0,85), aus-LEDs mit `uOffIntensity` dimmen, Alpha = LED-Abdeckung (Transparenz bleibt erhalten). Darauf das **LED-Lichtkit** (alles Hue-agnostisch via Weiß-Mix/Zonen-Multiplikation, daher für jedes Theme gleich): weiß-heißer Kern mit gesättigtem Mittelring (`uHotCore`, 0,85), wandernder Dome-Glanz (`uSpecular`, 0,25), Lichtaustritt über der Front plus Säulen-Wash (`uBleed`, 0,8, nur bei Signal), Pegelgradierung (`uGlowGrade`, 0,65), Frontier-Fade (`uFade`, 1,0), Afterglow-Ghosts (`uTrail`, 0,7), enges Halo plus weite Aura (`uGlow`, 0,8), Ambient-Rim auf aus-LEDs |
-| `BarsFragment` | Gespiegelte Balken: Spalte horizontal mittenspiegeln (Bass = Mitte), vertikal an der Bildmitte falten (wächst beidseitig), Farbverlauf Basis→Ziel (`barsThemeFrom`), amplitudenabhängiger Weiß-Glow (max. 0,35), zeitbasierter Shimmer nur auf lit LEDs, Tip-Highlight auf äußerstem lit Segment. **Achtung:** `half` ist in GLSL ES 3.00 reserviert und darf nie als Bezeichner verwendet werden (`ShaderReservedWordsTest` sichert das ab) |
+| Objekt                           | Rolle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `FullscreenVertex`               | Vertex-Shader: erzeugt aus `gl_VertexID` ein Fullscreen-Dreieck (kein VBO nötig)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `ShaderSnippets.ROUNDED_BOX_SDF` | Geteiltes GLSL-Snippet: Signed-Distance-Feld für abgerundete LED-Rechtecke im Pixelraum, ~1,5-px-Antialiasing via `smoothstep`. (GLES hat kein `#include` — Teilen passiert auf Kotlin-Ebene per String-Template.)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `ShaderSnippets.HUE_ROTATION`    | Geteilte Hue-Rotations-Helper (`hueRgbToHsv`, `hueHsvToRgb`, `shiftHue` mit Shift in vollen Umdrehungen, `0` = Identität). Auf `zone` vor dem Lichtkit angewendet, damit das ganze Kit konsistent rotiert.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `LedFragment`                    | LED-Türme: pro Pixel Band (`uBands`) + Peak (`uPeaks`) aus vec4-Arrays lesen (`band >> 2`, `band & 3`), Segment an/aus, Peak-Segment, drei Farbzonen (`uZoneStart` = 0,60/0,85), aus-LEDs mit `uOffIntensity` dimmen, Alpha = LED-Abdeckung (Transparenz bleibt erhalten). Darauf das **LED-Lichtkit** (alles Hue-agnostisch via Weiß-Mix/Zonen-Multiplikation, daher für jedes Theme gleich): weiß-heißer Kern mit gesättigtem Mittelring (`uHotCore`, 0,85), wandernder Dome-Glanz (`uSpecular`, 0,25), Lichtaustritt über der Front plus Säulen-Wash (`uBleed`, 0,8, nur bei Signal), Pegelgradierung (`uGlowGrade`, 0,65), Frontier-Fade (`uFade`, 1,0), Afterglow-Ghosts (`uTrail`, 0,7), enges Halo plus weite Aura (`uGlow`, 0,8), Ambient-Rim auf aus-LEDs |
+| `BarsFragment`                   | Gespiegelte Balken: Spalte horizontal mittenspiegeln (Bass = Mitte), vertikal an der Bildmitte falten (wächst beidseitig), Farbverlauf Basis→Ziel (`barsThemeFrom`), amplitudenabhängiger Weiß-Glow (max. 0,35), zeitbasierter Shimmer nur auf lit LEDs, echte Peak-Hold-Spitze aus `uPeaks`, Tip-Highlight auf äußerstem lit Segment, volles Lichtkit wie LED (HotCore, Specular, Bleed, GlowGrade, Fade, Trail-Ghosts, Halo + Aura, Off-Rim 0,22). Alpha: `cover * uAlpha * vis` (`uAlpha` aus `theme.colLow.alpha`). **Achtung:** `half` ist in GLSL ES 3.00 reserviert und darf nie als Bezeichner verwendet werden (`ShaderReservedWordsTest` sichert das ab)                                                                                                 |
 
 Tuning-Knöpfe: `VisualizerConfig.ledHalfSize` (LED-Größe als Zellanteil),
 `cornerRadius`, `segmentCount`, `shimmerStrength`/`tipGlowStrength`
 (0 = Effekt aus; Shimmer wirkt in beiden GLES-Engines auf lit LEDs),
 `glowStrength` (Außen-Halo + Aura, 0 = aus),
-`hotCoreStrength`/`specularStrength`/`bleedStrength` (LED-Lichtkit, je 0 = aus;
-`uGlow = 0` stellt zusätzlich das Verhalten vor dem Lichtkit exakt wieder her),
-`VisualizerTheme` (Farben, Zonen, `offIntensity`).
+`hotCoreStrength`/`specularStrength`/`bleedStrength`/`glowGradeStrength`/`fadeStrength`/`trailStrength` (Lichtkit in **beiden** Engines, je 0 = aus;
+`uGlow = 0` schaltet nur Halo/Aura ab),
+`VisualizerTheme` (Farben, Zonen, `offIntensity` — `barsThemeFrom`/`ledThemeFrom` je 0,14 Frost-Look).
+Freie Farbrotation: `hueRotationSpeed` (Umdrehungen/Sek., `0` = aus, Max `MAX_HUE_ROTATION_SPEED` = 0,1) läuft als `uHueShift`-Per-Frame-Uniform über die Render-Uhr und rotiert
+`zone` beider Engines um den Farbkreis.
 
 ## 4.7 Previews ohne GL-Kontext
 

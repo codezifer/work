@@ -16,6 +16,7 @@ import kotlin.math.min
  * @property glowGradeStrength Level grading of the light kit: lower segments glow dimmer, upper at full strength (0 disables grading).
  * @property fadeStrength Soft frontier fade-out inertia for disappearing blocks (0 keeps binary on/off segments).
  * @property trailStrength Afterglow ghost intensity above the live frontier — blocks glimmer out one after another (0 disables the light trail).
+ * @property hueRotationSpeed Free hue rotation in full turns per second (0 disables rotation).
  * @property segmentCount Number of LED segments per bar (e.g., 20).
  * @property ledHalfSize Half size of an LED segment in normalized cell proportions (e.g. 0.40, 0.34).
  * @property cornerRadius Relative corner radius for rounded LEDs (e.g. 0.25).
@@ -36,6 +37,7 @@ data class VisualizerConfig(
     val glowGradeStrength: Float = DEFAULT_GLOW_GRADE_STRENGTH,
     val fadeStrength: Float = DEFAULT_FADE_STRENGTH,
     val trailStrength: Float = DEFAULT_TRAIL_STRENGTH,
+    val hueRotationSpeed: Float = DEFAULT_HUE_ROTATION_SPEED,
     val segmentCount: Int = DEFAULT_LED_SEGMENT_COUNT,
     val ledHalfSize: Pair<Float, Float> = Pair(0.40f, 0.34f),
     val cornerRadius: Float = 0.25f,

@@ -11,5 +11,6 @@ data class SettingsUiState(
     val availablePresets: List<String> = emptyList(),
     val barsShimmerEnabled: Boolean = true,
     val barsTipGlowEnabled: Boolean = true,
+    val hueRotationSpeed: Float = 0f,
     val visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
 )

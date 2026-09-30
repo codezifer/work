@@ -23,6 +23,7 @@ class ConfigDefaultsTest {
         assertThat(config.glowGradeStrength).isEqualTo(DEFAULT_GLOW_GRADE_STRENGTH)
         assertThat(config.fadeStrength).isEqualTo(DEFAULT_FADE_STRENGTH)
         assertThat(config.trailStrength).isEqualTo(DEFAULT_TRAIL_STRENGTH)
+        assertThat(config.hueRotationSpeed).isEqualTo(DEFAULT_HUE_ROTATION_SPEED)
         assertThat(config.segmentCount).isEqualTo(DEFAULT_LED_SEGMENT_COUNT)
     }
 

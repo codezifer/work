@@ -113,6 +113,7 @@ class LedBarRenderer(
     private var uGlowGradeLoc = -1
     private var uFadeLoc = -1
     private var uTimeLoc = -1
+    private var uHueShiftLoc = -1
 
     // Mirrored-BARS program uniform locations.
     private var bResLoc = -1
@@ -120,6 +121,8 @@ class LedBarRenderer(
     private var bBandCountLoc = -1
     private var bSegmentsLoc = -1
     private var bBandsLoc = -1
+    private var bPeaksLoc = -1
+    private var bTrailLoc = -1
     private var bColBaseLoc = -1
     private var bColTargetLoc = -1
     private var bShimmerLoc = -1
@@ -131,6 +134,13 @@ class LedBarRenderer(
     private var bOffIntensityLoc = -1
     private var bBackgroundLoc = -1
     private var bGlowLoc = -1
+    private var bHotCoreLoc = -1
+    private var bSpecularLoc = -1
+    private var bBleedLoc = -1
+    private var bGlowGradeLoc = -1
+    private var bFadeLoc = -1
+    private var bTrailStrengthLoc = -1
+    private var bHueShiftLoc = -1
 
     private val targetValues = FloatArray(MAX_SPECTRUM_BANDS)
     private val packedBands = FloatArray(MAX_SPECTRUM_BANDS)
@@ -170,6 +180,7 @@ class LedBarRenderer(
             uBleedLoc = GLES30.glGetUniformLocation(program, "uBleed")
             uGlowGradeLoc = GLES30.glGetUniformLocation(program, "uGlowGrade")
             uFadeLoc = GLES30.glGetUniformLocation(program, "uFade")
+            uHueShiftLoc = GLES30.glGetUniformLocation(program, "uHueShift")
             uTimeLoc = GLES30.glGetUniformLocation(program, "uTime")
         }
         if (barsProgram == 0) {
@@ -180,6 +191,8 @@ class LedBarRenderer(
             bBandCountLoc = GLES30.glGetUniformLocation(barsProgram, "uBandCount")
             bSegmentsLoc = GLES30.glGetUniformLocation(barsProgram, "uSegments")
             bBandsLoc = GLES30.glGetUniformLocation(barsProgram, "uBands")
+            bPeaksLoc = GLES30.glGetUniformLocation(barsProgram, "uPeaks")
+            bTrailLoc = GLES30.glGetUniformLocation(barsProgram, "uTrail")
             bColBaseLoc = GLES30.glGetUniformLocation(barsProgram, "uColBase")
             bColTargetLoc = GLES30.glGetUniformLocation(barsProgram, "uColTarget")
             bShimmerLoc = GLES30.glGetUniformLocation(barsProgram, "uShimmer")
@@ -191,6 +204,13 @@ class LedBarRenderer(
             bOffIntensityLoc = GLES30.glGetUniformLocation(barsProgram, "uOffIntensity")
             bBackgroundLoc = GLES30.glGetUniformLocation(barsProgram, "uBackground")
             bGlowLoc = GLES30.glGetUniformLocation(barsProgram, "uGlow")
+            bHotCoreLoc = GLES30.glGetUniformLocation(barsProgram, "uHotCore")
+            bSpecularLoc = GLES30.glGetUniformLocation(barsProgram, "uSpecular")
+            bBleedLoc = GLES30.glGetUniformLocation(barsProgram, "uBleed")
+            bGlowGradeLoc = GLES30.glGetUniformLocation(barsProgram, "uGlowGrade")
+            bFadeLoc = GLES30.glGetUniformLocation(barsProgram, "uFade")
+            bTrailStrengthLoc = GLES30.glGetUniformLocation(barsProgram, "uTrailStrength")
+            bHueShiftLoc = GLES30.glGetUniformLocation(barsProgram, "uHueShift")
         }
         lastDrawNanos = System.nanoTime()
         staticUniformsDirty = true
@@ -292,6 +312,12 @@ class LedBarRenderer(
             GLES30.glUniform1f(bOffIntensityLoc, theme.offIntensity)
             GLES30.glUniform3f(bBackgroundLoc, theme.background.red, theme.background.green, theme.background.blue)
             GLES30.glUniform1f(bGlowLoc, config.glowStrength)
+            GLES30.glUniform1f(bHotCoreLoc, config.hotCoreStrength)
+            GLES30.glUniform1f(bSpecularLoc, config.specularStrength)
+            GLES30.glUniform1f(bBleedLoc, config.bleedStrength)
+            GLES30.glUniform1f(bGlowGradeLoc, config.glowGradeStrength)
+            GLES30.glUniform1f(bFadeLoc, config.fadeStrength)
+            GLES30.glUniform1f(bTrailStrengthLoc, config.trailStrength)
         }
     }
 
@@ -312,6 +338,7 @@ class LedBarRenderer(
         GLES30.glUniform4fv(uBandsLoc, vec4Count, packedBands, 0)
         GLES30.glUniform4fv(uPeaksLoc, vec4Count, packedPeaks, 0)
         GLES30.glUniform4fv(uTrailLoc, vec4Count, packedTrail, 0)
+        GLES30.glUniform1f(uHueShiftLoc, (renderTimeSec * config.hueRotationSpeed) % 1f)
         GLES30.glUniform1f(uTimeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
@@ -336,6 +363,9 @@ class LedBarRenderer(
         // Per-frame uniforms only; everything else is cached by applyStaticUniformsIfNeeded().
         GLES30.glUniform2f(bResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
         GLES30.glUniform4fv(bBandsLoc, vec4Count, packedBands, 0)
+        GLES30.glUniform4fv(bPeaksLoc, vec4Count, packedPeaks, 0)
+        GLES30.glUniform4fv(bTrailLoc, vec4Count, packedTrail, 0)
+        GLES30.glUniform1f(bHueShiftLoc, (renderTimeSec * config.hueRotationSpeed) % 1f)
         GLES30.glUniform1f(bTimeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)

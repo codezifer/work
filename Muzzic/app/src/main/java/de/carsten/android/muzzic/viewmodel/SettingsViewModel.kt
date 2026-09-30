@@ -23,6 +23,7 @@ private data class VisualizerOptions(
     val preset: String?,
     val shimmerEnabled: Boolean,
     val tipGlowEnabled: Boolean,
+    val hueRotationSpeed: Float,
     val colorSource: VisualizerColorSource,
 )
 
@@ -42,9 +43,13 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             appSettingsRepository.observeProjectMPreset(),
             appSettingsRepository.observeBarsShimmerEnabled(),
             appSettingsRepository.observeBarsTipGlowEnabled(),
-            appSettingsRepository.observeVisualizerColorSource(),
-        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, colorSource ->
-            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, colorSource)
+            // Nested (arity limit of typed combine): hue speed + color source as one slot.
+            combine(
+                appSettingsRepository.observeHueRotationSpeed(),
+                appSettingsRepository.observeVisualizerColorSource(),
+            ) { hueRotationSpeed, colorSource -> hueRotationSpeed to colorSource },
+        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, (hueRotationSpeed, colorSource) ->
+            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, hueRotationSpeed, colorSource)
         },
     ) { musicDir, playlistDir, visualizer ->
         val availablePresets = PresetManager.getAvailablePresets(getApplication())
@@ -56,6 +61,7 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             availablePresets = availablePresets,
             barsShimmerEnabled = visualizer.shimmerEnabled,
             barsTipGlowEnabled = visualizer.tipGlowEnabled,
+            hueRotationSpeed = visualizer.hueRotationSpeed,
             visualizerColorSource = visualizer.colorSource,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
@@ -93,6 +99,15 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
     fun updateBarsTipGlowEnabled(enabled: Boolean) {
         viewModelScope.launch {
             appSettingsRepository.saveBarsTipGlowEnabled(enabled)
+        }
+    }
+
+    /**
+     * Updates the free hue-rotation speed in full turns per second.
+     */
+    fun updateHueRotationSpeed(speed: Float) {
+        viewModelScope.launch {
+            appSettingsRepository.saveHueRotationSpeed(speed)
         }
     }
 

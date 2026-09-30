@@ -81,8 +81,11 @@
     <string name="projectm_preset">Milkdrop-Preset</string>
     <string name="visualizer_bars_shimmer">Glitzern auf aktiven Balken</string>
     <string name="visualizer_bars_tip_glow">Glanz an den Balkenenden</string>
+    <string name="visualizer_hue_rotation">Farbrotation (Farbkreis)</string>
+    <string name="visualizer_hue_rotation_value">%1$.0f°/s (0 = aus)</string>
     <string name="visualizer_color_source">Visualizer-Farben</string>
     <string name="visualizer_color_album_art">Album-Art (dynamisch)</string>
+    <string name="visualizer_color_rotating">Rotierend (Farbkreis)</string>
     <string name="visualizer_color_red">Rot</string>
     <string name="visualizer_color_orange">Orange</string>
     <string name="visualizer_color_yellow">Gelb</string>

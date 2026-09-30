@@ -20,7 +20,9 @@ class BarsThemeTest {
 
         assertThat(theme.colLow).isEqualTo(base)
         assertThat(theme.background).isEqualTo(Color.Transparent)
-        assertThat(theme.offIntensity).isCloseTo(0f, within(1e-6f))
+        // Frost look (muzzic-glow-visualizer-konzept v4 §8.1): unlit segments stay
+        // visible as matte acrylic glass instead of fully transparent.
+        assertThat(theme.offIntensity).isCloseTo(0.14f, within(1e-6f))
     }
 
     @Test

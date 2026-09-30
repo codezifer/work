@@ -18,5 +18,6 @@ data class PlayerUiState(
     val projectMPreset: String? = null,
     val barsShimmerEnabled: Boolean = true,
     val barsTipGlowEnabled: Boolean = true,
+    val hueRotationSpeed: Float = 0f,
     val visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
 )
