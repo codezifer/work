@@ -25,7 +25,8 @@ interface ArtistDao {
                 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
                 GROUP BY s2.album
                 ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
-            )) as allAlbumArts
+            )) as allAlbumArts,
+            MAX(s.createdAt) as addedAt
         FROM songs_enriched s
         WHERE s.artist LIKE '%' || :query || '%'
         GROUP BY s.artist
@@ -47,7 +48,8 @@ interface ArtistDao {
                 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
                 GROUP BY s2.album
                 ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
-            )) as allAlbumArts
+            )) as allAlbumArts,
+            MAX(s.createdAt) as addedAt
         FROM songs_enriched s
         GROUP BY s.artist
         ORDER BY s.sort_artist COLLATE NOCASE
@@ -100,7 +102,8 @@ interface ArtistDao {
                 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
                 GROUP BY s2.album
                 ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
-            )) as allAlbumArts
+            )) as allAlbumArts,
+            MAX(s.createdAt) as addedAt
         FROM songs_enriched s
         WHERE s.genre = :genre
         GROUP BY s.artist
@@ -132,7 +135,8 @@ interface ArtistDao {
                 WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
                 GROUP BY s2.album
                 ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
-            )) as allAlbumArts
+            )) as allAlbumArts,
+            MAX(s.createdAt) as addedAt
         FROM songs_enriched s
         WHERE s.genre IN (:genres)
         GROUP BY s.artist
