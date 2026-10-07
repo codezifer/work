@@ -25,8 +25,8 @@ data class PaletteColors(val backgroundColor: Color, val contentColor: Color)
 /**
  * Extracts a representative color pair from the [Palette].
  *
- * Prioritizes vibrant swatches over dominant ones to better capture the visual character
- * of album art. Handles the conversion from Android color ints to Compose [Color] objects.
+ * Uses the dominant swatch and falls back to [Palette.getDominantColor].
+ * Handles the conversion from Android color ints to Compose [Color] objects.
  *
  * @param defaultBackground The color to return if no suitable swatch is found.
  * @param defaultContent The content color to return if no suitable swatch is found.
@@ -34,18 +34,12 @@ data class PaletteColors(val backgroundColor: Color, val contentColor: Color)
  */
 fun Palette?.extractColors(defaultBackground: Color, defaultContent: Color): PaletteColors {
     if (this == null) return PaletteColors(defaultBackground, defaultContent)
+    val backgroundSwatch = dominantSwatch
 
-    // Strictly prioritize vibrant colors to better capture the visual character of album art.
-    val swatch = vibrantSwatch
-        ?: lightVibrantSwatch
-        ?: darkVibrantSwatch
-        ?: dominantSwatch
-        ?: mutedSwatch
-
-    return if (swatch != null) {
+    return if (backgroundSwatch != null) {
         PaletteColors(
-            backgroundColor = Color(swatch.rgb),
-            contentColor = Color(swatch.bodyTextColor),
+            backgroundColor = Color(backgroundSwatch.rgb),
+            contentColor = Color(backgroundSwatch.bodyTextColor),
         )
     } else {
         // Fallback using getDominantColor with proper ARGB conversion

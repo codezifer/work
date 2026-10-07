@@ -172,6 +172,22 @@ val SUBTITLE_ICON_TEXT_SPACING = 1.dp
 const val COLLAGE_TILE_PX = 128
 
 /**
+ * Maximum number of covers shown in a 3x3 collage and prefetched per item.
+ */
+const val COLLAGE_COVER_MAX_COUNT = 9
+
+/**
+ * Number of items ahead of the visible area to prefetch cover images for.
+ */
+const val PREFETCH_AHEAD_COUNT = 8
+
+/**
+ * Number of items behind the first visible item to include in the prefetch range,
+ * covering fast reverse scrolling without re-fetching.
+ */
+const val PREFETCH_LOOKBEHIND_COUNT = 2
+
+/**
  * Fixed edge length for full-width card covers (aspect 1.1-1.4).
  */
 const val CARD_COVER_PX = 512

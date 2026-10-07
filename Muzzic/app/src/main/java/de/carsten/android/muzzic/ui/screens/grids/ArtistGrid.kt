@@ -11,14 +11,20 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import de.carsten.android.muzzic.model.toAlbumArtUri
+import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
+import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
 import de.carsten.android.muzzic.ui.component.FastScrollBox
+import de.carsten.android.muzzic.ui.component.LazyGridPrefetchEffect
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.artistName
 
 @Composable
@@ -32,6 +38,20 @@ fun ArtistGrid(
     colorSource: ColorSource = composableColorSource(),
 ) {
     val gridState: LazyGridState = rememberLazyGridState()
+
+    LazyGridPrefetchEffect(
+        gridState = gridState,
+        items = artists,
+    ) { artist ->
+        buildList {
+            artist.albumArts.take(COLLAGE_COVER_MAX_COUNT).forEach { path ->
+                add(CoverPreloadSpec(data = path, cacheKey = path, sizePx = COLLAGE_TILE_PX))
+            }
+            artist.lastAlbumArt?.let { art ->
+                add(CoverPreloadSpec(data = art.toAlbumArtUri(), cacheKey = null, allowHardware = false))
+            }
+        }
+    }
 
     FastScrollBox(
         items = artists,
@@ -70,16 +90,18 @@ fun ArtistGrid(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = PREVIEW_DARK_MODE)
+@Preview(showBackground = true, name = "Light Mode")
+@Preview(uiMode = PREVIEW_DARK_MODE, showBackground = true, name = "Dark Mode")
 fun ArtistGridPreview() {
-    ArtistGrid(
-        artists =
-        listOf(
-            ArtistDto("Cradle Of Filth", 2, 13),
-            ArtistDto("Dimmu Borgir", 1, 10),
-            ArtistDto("Interpol", 1, 7),
-            ArtistDto("Jimmy Eat World", 1, 10),
-        ),
-    )
+    AppTheme {
+        ArtistGrid(
+            artists =
+            listOf(
+                ArtistDto("Cradle Of Filth", 2, 13),
+                ArtistDto("Dimmu Borgir", 1, 10),
+                ArtistDto("Interpol", 1, 7),
+                ArtistDto("Jimmy Eat World", 1, 10),
+            ),
+        )
+    }
 }

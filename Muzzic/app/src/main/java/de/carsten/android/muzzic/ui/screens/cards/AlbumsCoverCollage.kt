@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
 import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
@@ -36,13 +37,13 @@ import de.carsten.android.muzzic.ui.theme.CustomColors
 /**
  * A collage of album covers displayed in a grid.
  *
- * @param covers The list of [CoverSource]s to display in the collage. Up to 9 covers will be shown.
+ * @param covers The list of [CoverSource]s to display in the collage. Up to [COLLAGE_COVER_MAX_COUNT] covers will be shown.
  * @param modifier The modifier to be applied to the layout.
  * @param useCard Whether to wrap the collage in a [Card]. Defaults to true.
  */
 @Composable
 fun AlbumCoverCollage(covers: List<CoverSource>, modifier: Modifier = Modifier, useCard: Boolean = true) {
-    val displayedCovers = remember(covers) { covers.take(9) }
+    val displayedCovers = remember(covers) { covers.take(COLLAGE_COVER_MAX_COUNT) }
 
     // Logic to determine grid dimensions for a square look
     val (rows, columns) =

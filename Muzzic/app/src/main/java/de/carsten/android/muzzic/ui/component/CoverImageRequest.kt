@@ -17,12 +17,13 @@ import coil3.request.crossfade
  * @param data the image data (cover path string, Uri, stream, drawable res, or null).
  * @param cacheKey stable cache key, e.g. the full cover path string; null skips explicit keys.
  * @param sizePx requested square edge length in pixels.
+ * @param crossfade whether to enable crossfade animation when loading.
  * @return the remembered [ImageRequest].
  */
 @Composable
-fun rememberCoverImageRequest(data: Any?, cacheKey: String?, sizePx: Int): ImageRequest {
+fun rememberCoverImageRequest(data: Any?, cacheKey: String?, sizePx: Int, crossfade: Boolean = true): ImageRequest {
     val context = LocalContext.current
-    return remember(data, cacheKey, sizePx) {
+    return remember(data, cacheKey, sizePx, crossfade) {
         ImageRequest
             .Builder(context)
             .data(data)
@@ -30,7 +31,7 @@ fun rememberCoverImageRequest(data: Any?, cacheKey: String?, sizePx: Int): Image
             .diskCacheKey(cacheKey)
             .placeholderMemoryCacheKey(cacheKey)
             .size(sizePx)
-            .crossfade(true)
+            .crossfade(crossfade)
             .build()
     }
 }

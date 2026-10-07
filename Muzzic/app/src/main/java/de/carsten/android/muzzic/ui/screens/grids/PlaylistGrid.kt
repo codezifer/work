@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -25,10 +26,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.model.toAlbumArtUri
+import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
+import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
+import de.carsten.android.muzzic.ui.component.LazyGridPrefetchEffect
+import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -93,7 +100,26 @@ fun PlaylistGrid(playlists: List<PlaylistDto>, modifier: Modifier = Modifier, in
 
 @Composable
 private fun InternalPlaylistGrid(playlists: List<PlaylistDto>, onPlaylistClick: (PlaylistDto) -> Unit) {
+    val gridState = rememberLazyGridState()
+
+    LazyGridPrefetchEffect(
+        gridState = gridState,
+        items = playlists,
+    ) { playlist ->
+        buildList {
+            playlist.collageCovers.take(COLLAGE_COVER_MAX_COUNT).forEach { cover ->
+                if (cover is CoverSource.FromPath) {
+                    add(CoverPreloadSpec(data = cover.path, cacheKey = cover.path, sizePx = COLLAGE_TILE_PX))
+                }
+            }
+            playlist.lastAlbumArt?.let { art ->
+                add(CoverPreloadSpec(data = art.toAlbumArtUri(), cacheKey = null, allowHardware = false))
+            }
+        }
+    }
+
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
