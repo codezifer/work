@@ -9,4 +9,5 @@ data class AlbumAggregation(
     val albumDuration: Long,
     val albumYear: Int,
     override val lastAlbumArt: String? = null,
+    val addedAt: Long? = null,
 ) : AlbumArt

@@ -29,6 +29,19 @@ class FakeArtistDao(private val songs: List<Song>) : ArtistDao {
         return flowOf(aggregations(songs.filter { it.genre in genres }))
     }
 
+    override suspend fun getRecentArtists(limit: Int): List<ArtistAggregation> = songs
+        .groupBy { it.artist }
+        .entries
+        .sortedByDescending { (_, grouped) -> grouped.mapNotNull { it.createdAt }.maxOrNull() }
+        .take(limit)
+        .map { (artist, grouped) ->
+            ArtistAggregation(
+                artistName = artist,
+                albumCount = grouped.map { it.album }.distinct().size,
+                songCount = grouped.size,
+            )
+        }
+
     private fun aggregations(songs: List<Song>): List<ArtistAggregation> = songs
         .groupBy { it.artist }
         .map { (artist, grouped) ->

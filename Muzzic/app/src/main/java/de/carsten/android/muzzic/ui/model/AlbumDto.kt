@@ -8,10 +8,18 @@ import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.model.AlbumArt
 import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.persistence.entity.aggregation.AlbumAggregation
+import java.time.Instant
 
 @Immutable
-data class AlbumDto(val albumName: String, val albumYear: Int, val artistName: String, val songCount: Int, val albumDuration: Long, override val lastAlbumArt: String? = null) :
-    AlbumArt,
+data class AlbumDto(
+    val albumName: String,
+    val albumYear: Int,
+    val artistName: String,
+    val songCount: Int,
+    val albumDuration: Long,
+    override val lastAlbumArt: String? = null,
+    val addedAt: Instant? = null,
+) : AlbumArt,
     UiDto,
     Comparable<AlbumDto> {
 
@@ -68,6 +76,7 @@ fun AlbumAggregation.toDto() = AlbumDto(
     songCount = this.songCount,
     albumDuration = this.albumDuration,
     lastAlbumArt = this.lastAlbumArt,
+    addedAt = this.addedAt?.let { Instant.ofEpochMilli(it) },
 )
 
 fun List<AlbumAggregation>.toDto() = map { it.toDto() }

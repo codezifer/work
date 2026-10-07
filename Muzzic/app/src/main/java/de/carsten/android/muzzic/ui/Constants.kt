@@ -53,6 +53,11 @@ val GRID_SPACING = 6.dp
 val GRID_HORIZONTAL_PADDING = 12.dp
 
 /**
+ * Fixed card width for horizontally scrolling recent-item rows.
+ */
+val RECENT_CARD_WIDTH = 160.dp
+
+/**
  * Indicator Slider Specific Dimensions
  */
 val INDICATOR_SLIDER_OFFSET_Y = (-40).dp

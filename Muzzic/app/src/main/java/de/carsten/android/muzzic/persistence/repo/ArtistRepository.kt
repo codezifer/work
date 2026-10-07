@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.persistence.repo
 
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
 import de.carsten.android.muzzic.persistence.dao.GenreDao
 import de.carsten.android.muzzic.ui.model.ArtistDto
@@ -13,6 +14,14 @@ import kotlinx.coroutines.flow.map
 
 class ArtistRepository(val artistDao: ArtistDao, val genreDao: GenreDao) {
     fun getArtistInformation(): Flow<List<ArtistDto>> = artistDao.getArtistAggregations().map { it.toDto() }
+
+    /**
+     * Returns the most recently added artists.
+     *
+     * @param limit maximum number of artists, defaults to [AppConfig.Ui.NUM_OF_RECENT_ITEMS].
+     * @return A [List] of [ArtistDto] ordered by addition recency descending.
+     */
+    suspend fun getRecentArtists(limit: Int = AppConfig.Ui.NUM_OF_RECENT_ITEMS): List<ArtistDto> = artistDao.getRecentArtists(limit).toDto()
 
     /**
      * Retrieves all songs associated with a specific artist.

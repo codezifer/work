@@ -51,6 +51,8 @@
     <string name="library_summary">Bibliotheksübersicht</string>
     <string name="genre_playtime">Spielzeit nach Genre</string>
     <string name="playlist_playtime">Spielzeit nach Playlist</string>
+    <string name="recently_added_artists">Zuletzt hinzugefügte Interpreten</string>
+    <string name="recently_added_albums">Zuletzt hinzugefügte Alben</string>
     <string name="duration_minutes">%d Min.</string>
 
     <!-- Permissions -->

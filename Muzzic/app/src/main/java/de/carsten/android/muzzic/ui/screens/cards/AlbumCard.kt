@@ -40,9 +40,9 @@ import de.carsten.android.muzzic.ui.utils.extractColors
 @Composable
 fun AlbumCard(
     album: AlbumDto,
-    onClick: () -> Unit = {},
-    onPlayClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
+    onClick: (() -> Unit)? = null,
+    onPlayClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     isSelected: Boolean = false,
     borderColor: Color = MaterialTheme.colorScheme.primary,
 ) {

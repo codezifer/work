@@ -56,6 +56,33 @@ interface AlbumDao {
     )
     fun getAlbumAggregation(): Flow<List<AlbumAggregation>>
 
+    /**
+     * Returns the most recently added albums.
+     *
+     * Same result shape as [getAlbumAggregation], ordered by newest song
+     * addition instead of artist, year and name.
+     *
+     * @param limit maximum number of albums to return.
+     * @return album aggregations ordered by addition recency descending.
+     */
+    @Query(
+        """
+        SELECT
+            s.album AS albumName,
+            MAX(s.albumYear) AS albumYear,
+            s.artist AS artistName,
+            COUNT(*) AS songCount,
+            SUM(s.duration) AS albumDuration,
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.album = s.album AND s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            MAX(s.createdAt) as addedAt
+        FROM songs s
+        GROUP BY s.album, s.artist
+        ORDER BY MAX(s.createdAt) DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun getRecentAlbums(limit: Int): List<AlbumAggregation>
+
     @Query(
         """
         SELECT

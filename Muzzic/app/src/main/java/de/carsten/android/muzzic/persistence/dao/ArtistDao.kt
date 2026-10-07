@@ -55,6 +55,38 @@ interface ArtistDao {
     )
     fun getArtistAggregations(): Flow<List<ArtistAggregation>>
 
+    /**
+     * Returns the most recently added artists.
+     *
+     * Same result shape as [getArtistAggregations], ordered by newest song
+     * addition instead of the article-aware name collation.
+     *
+     * @param limit maximum number of artists to return.
+     * @return artist aggregations ordered by addition recency descending.
+     */
+    @Query(
+        """
+        SELECT
+            s.artist AS artistName,
+            COUNT(DISTINCT s.album) AS albumCount,
+            COUNT(s.id) AS songCount,
+            (SELECT s2.albumArt FROM songs s2 WHERE s2.artist = s.artist ORDER BY s2.createdAt DESC LIMIT 1) as lastAlbumArt,
+            (SELECT GROUP_CONCAT(albumArt) FROM (
+                SELECT MIN(s2.albumArt) as albumArt
+                FROM songs_enriched s2
+                WHERE s2.artist = s.artist AND s2.albumArt IS NOT NULL
+                GROUP BY s2.album
+                ORDER BY MAX(s2.createdAt) DESC LIMIT ${AppConfig.Persistence.ALBUM_ART_LIMIT}
+            )) as allAlbumArts,
+            MAX(s.createdAt) as addedAt
+        FROM songs_enriched s
+        GROUP BY s.artist
+        ORDER BY MAX(s.createdAt) DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun getRecentArtists(limit: Int): List<ArtistAggregation>
+
     @Query(
         """
         SELECT

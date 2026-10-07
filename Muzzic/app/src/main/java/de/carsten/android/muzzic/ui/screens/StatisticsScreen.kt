@@ -31,14 +31,19 @@ import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.model.AlbumDto
+import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
+import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
+import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
 import de.carsten.android.muzzic.ui.screens.cards.GenreDurationCard
 import de.carsten.android.muzzic.ui.screens.cards.GenreStatsCard
 import de.carsten.android.muzzic.ui.screens.cards.LibrarySummaryCard
 import de.carsten.android.muzzic.ui.screens.cards.MonthlyStatsCard
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistDurationCard
+import de.carsten.android.muzzic.ui.screens.cards.RecentItemsCard
 import de.carsten.android.muzzic.ui.screens.cards.SongStatsCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.StatisticsViewModel
@@ -46,9 +51,11 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, viewModel: StatisticsViewModel = koinViewModel()) {
-    // Refresh statistics from the database every time the user navigates to this screen
-    LaunchedEffect(Unit) {
-        viewModel.loadStats()
+    // Each tab loads its statistics group on demand: the visible tab is refreshed
+    // on every navigation and tab switch, hidden tabs load when first selected.
+    var selectedTab by rememberSaveable { mutableIntStateOf(StatisticsViewModel.TAB_OVERALL) }
+    LaunchedEffect(selectedTab) {
+        viewModel.loadTab(selectedTab)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,6 +72,10 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
         librarySummary = uiState.librarySummary,
         genreDurations = uiState.genreDurations,
         playlistDurations = uiState.playlistDurations,
+        recentArtists = uiState.recentArtists,
+        recentAlbums = uiState.recentAlbums,
+        selectedTab = selectedTab,
+        onTabSelected = { selectedTab = it },
     )
 }
 
@@ -81,9 +92,11 @@ private fun StatisticsScreenContent(
     librarySummary: LibrarySummary? = null,
     genreDurations: List<GenreDto> = emptyList(),
     playlistDurations: List<PlaylistDto> = emptyList(),
-    initialTabIndex: Int = 0,
+    recentArtists: List<ArtistDto> = emptyList(),
+    recentAlbums: List<AlbumDto> = emptyList(),
+    selectedTab: Int = StatisticsViewModel.TAB_OVERALL,
+    onTabSelected: (Int) -> Unit = {},
 ) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(initialTabIndex) }
     val tabs = listOf(
         stringResource(R.string.stats_tab_overall),
         stringResource(R.string.stats_tab_month),
@@ -108,7 +121,7 @@ private fun StatisticsScreenContent(
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
-                    onClick = { selectedTab = index },
+                    onClick = { if (selectedTab != index) onTabSelected(index) },
                     text = { Text(text = title) },
                 )
             }
@@ -175,6 +188,36 @@ private fun StatisticsScreenContent(
                     if (playlistDurations.isNotEmpty()) {
                         item {
                             PlaylistDurationCard(playlistDurations)
+                        }
+                    }
+
+                    // Recently added artists
+                    if (recentArtists.isNotEmpty()) {
+                        item {
+                            RecentItemsCard(
+                                title = stringResource(R.string.recently_added_artists),
+                                items = recentArtists,
+                                key = { it.lazyKey() },
+                                contentType = { it.lazyContentType() },
+                                addedAt = { it.addedAt },
+                            ) { artist ->
+                                ArtistCard(artist = artist)
+                            }
+                        }
+                    }
+
+                    // Recently added albums
+                    if (recentAlbums.isNotEmpty()) {
+                        item {
+                            RecentItemsCard(
+                                title = stringResource(R.string.recently_added_albums),
+                                items = recentAlbums,
+                                key = { it.lazyKey() },
+                                contentType = { it.lazyContentType() },
+                                addedAt = { it.addedAt },
+                            ) { album ->
+                                AlbumCard(album = album)
+                            }
                         }
                     }
                 }
@@ -272,7 +315,7 @@ fun StatisticsScreenMonthPreview() {
                     totalCount = 6,
                 ),
             ),
-            initialTabIndex = 1,
+            selectedTab = StatisticsViewModel.TAB_MONTH,
         )
     }
 }
@@ -304,7 +347,20 @@ fun StatisticsScreenLibraryPreview() {
                 PlaylistDto("2", "Study Focus", false, null, 15, 4, 35, 5400000),
                 PlaylistDto("3", "Morning Ritual", false, null, 10, 3, 25, 3600000),
             ),
-            initialTabIndex = 2,
+            recentArtists = listOf(
+                ArtistDto("Cradle Of Filth", 2, 13),
+                ArtistDto("Dimmu Borgir", 1, 10),
+            ),
+            recentAlbums = listOf(
+                AlbumDto(
+                    artistName = "Jimmy Eat World",
+                    albumName = "Bleed American",
+                    albumYear = 2001,
+                    songCount = 12,
+                    albumDuration = 45 * 60 * 1000L,
+                ),
+            ),
+            selectedTab = StatisticsViewModel.TAB_LIBRARY,
         )
     }
 }

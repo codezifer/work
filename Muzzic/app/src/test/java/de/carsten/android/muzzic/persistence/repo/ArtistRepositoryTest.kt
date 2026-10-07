@@ -43,4 +43,18 @@ class ArtistRepositoryTest {
         assertThat(repository.getArtistsByGenre("Polka").first()).isEmpty()
         assertThat(artistDao.genresCalls).isEmpty()
     }
+
+    @Test
+    fun `getRecentArtists orders by addition recency and applies limit`() = runTest {
+        val timed = { artist: String, epochMilli: Long ->
+            Song(title = "T", artist = artist, album = "M").apply { createdAt = java.time.Instant.ofEpochMilli(epochMilli) }
+        }
+        val timedRepository = ArtistRepository(
+            FakeArtistDao(listOf(timed("Old", 1000L), timed("New", 3000L), timed("Mid", 2000L))),
+            FakeGenreDao(emptyList()),
+        )
+
+        assertThat(timedRepository.getRecentArtists(limit = 2).map { it.artistName })
+            .containsExactly("New", "Mid")
+    }
 }

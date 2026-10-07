@@ -86,13 +86,25 @@ class MusicRepository(
      * Spelling variants are merged before the limit is applied, so variants below
      * the cutoff still count towards their canonical genre.
      *
+     * @param genreCounts preloaded raw counts per stored variant, to share one
+     * query across multiple mappings.
      * @return top genres ordered by play count descending.
      */
-    suspend fun getGenreStats(): List<GenrePlayCount> {
+    suspend fun getGenreStats(genreCounts: List<GenrePlayCount>): List<GenrePlayCount> {
         val oneYearAgo = System.currentTimeMillis() - ONE_YEAR_MS
         val rawStats = songDao.getGenreStats(oneYearAgo, UNKNOWN)
-        return genreRepository.getCanonicalGenreStats(rawStats).take(AppConfig.Ui.NUM_OF_TOP_GENRES)
+        return genreRepository.getCanonicalGenreStats(rawStats, genreCounts).take(AppConfig.Ui.NUM_OF_TOP_GENRES)
     }
+
+    /**
+     * Returns top genres by play count with canonical genre names.
+     *
+     * Loads the variant counts itself; prefer the overload with preloaded
+     * [genreCounts] when mapping multiple statistic lists at once.
+     *
+     * @return top genres ordered by play count descending.
+     */
+    suspend fun getGenreStats(): List<GenrePlayCount> = getGenreStats(genreRepository.getGenreCounts())
 
     suspend fun getTopSongs(): List<SongPlayCount> = songDao.getTopSongs(AppConfig.Ui.NUM_OF_TOP_SONGS)
 
@@ -105,9 +117,22 @@ class MusicRepository(
     /**
      * Returns this month's genres by play count with canonical genre names.
      *
+     * @param genreCounts preloaded raw counts per stored variant, to share one
+     * query across multiple mappings.
      * @return genres ordered by play count descending.
      */
-    suspend fun getMonthGenreStats(): List<GenrePlayCount> = genreRepository.getCanonicalGenreStats(playHistoryDao.getGenreStats(startOfCurrentMonth()))
+    suspend fun getMonthGenreStats(genreCounts: List<GenrePlayCount>): List<GenrePlayCount> =
+        genreRepository.getCanonicalGenreStats(playHistoryDao.getGenreStats(startOfCurrentMonth()), genreCounts)
+
+    /**
+     * Returns this month's genres by play count with canonical genre names.
+     *
+     * Loads the variant counts itself; prefer the overload with preloaded
+     * [genreCounts] when mapping multiple statistic lists at once.
+     *
+     * @return genres ordered by play count descending.
+     */
+    suspend fun getMonthGenreStats(): List<GenrePlayCount> = getMonthGenreStats(genreRepository.getGenreCounts())
 
     suspend fun getTopMonthSongs(): List<SongPlayCount> = playHistoryDao.getTopSongs(startOfCurrentMonth(), AppConfig.Ui.NUM_OF_TOP_SONGS)
 

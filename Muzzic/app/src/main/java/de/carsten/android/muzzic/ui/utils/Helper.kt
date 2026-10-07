@@ -5,6 +5,7 @@ import de.carsten.android.muzzic.MAX_STARS
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
  * Formats duration (milliseconds) as string format mm:ss"
@@ -38,6 +39,17 @@ fun formatTime(timeMs: Long): String {
  * @return the formatted Datetime as String in format dd.MM.yyyy HH:mm:ss.SSS
  */
 fun formatTime(timeMs: String): String = formatTime(timeMs.toLong())
+
+/**
+ * Formats a date as a localized short date string (without time).
+ *
+ * @param instant the date to format.
+ * @return the formatted date, e.g. "12.03.2026" for German locale.
+ */
+fun formatDate(instant: Instant): String {
+    val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
+    return formatter.format(instant)
+}
 
 /**
  * Gets artist name without "The", "An" or "A"

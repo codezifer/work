@@ -52,6 +52,8 @@
     <string name="library_summary">Library summary</string>
     <string name="genre_playtime">Playtime by genre</string>
     <string name="playlist_playtime">Playtime by playlist</string>
+    <string name="recently_added_artists">Recently added artists</string>
+    <string name="recently_added_albums">Recently added albums</string>
     <string name="duration_minutes">%d min.</string>
 
     <!-- Permissions -->

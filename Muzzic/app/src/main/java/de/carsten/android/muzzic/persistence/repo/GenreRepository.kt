@@ -37,22 +37,42 @@ class GenreRepository(val genreDao: GenreDao) {
     }
 
     /**
+     * Returns raw song counts per stored genre variant.
+     *
+     * @return one entry per distinct stored genre string with its song count.
+     */
+    suspend fun getGenreCounts(): List<GenrePlayCount> = genreDao.getGenreCounts()
+
+    /**
      * Maps genre statistics keyed by normalized genre to canonical display names.
      *
      * Unknown keys without stored variants (e.g. the blank-genre label) fall back to
      * themselves. Counts of merged variants are already summed per key by the query.
      *
      * @param rawStats statistics with normalized genre keys (see `getGenreStats` queries).
+     * @param genreCounts preloaded raw counts per stored variant, to share one query
+     * across multiple mappings.
      * @return statistics with canonical genre names, ordered by count descending.
      */
-    suspend fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>): List<GenrePlayCount> {
-        val weights = GenreUtils.groupByNormalizedKey(genreDao.getGenreCounts().associate { it.genre to it.count })
+    suspend fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>, genreCounts: List<GenrePlayCount>): List<GenrePlayCount> {
+        val weights = GenreUtils.groupByNormalizedKey(genreCounts.associate { it.genre to it.count })
         return rawStats
             .map { stat ->
                 val variants = weights[GenreUtils.normalizeKey(stat.genre)]
                 GenrePlayCount(variants?.let { GenreUtils.getCanonicalName(it) } ?: stat.genre, stat.count)
             }.sorted()
     }
+
+    /**
+     * Maps genre statistics keyed by normalized genre to canonical display names.
+     *
+     * Loads the variant counts itself; prefer the overload with preloaded
+     * [genreCounts] when mapping multiple statistic lists at once.
+     *
+     * @param rawStats statistics with normalized genre keys (see `getGenreStats` queries).
+     * @return statistics with canonical genre names, ordered by count descending.
+     */
+    suspend fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>): List<GenrePlayCount> = getCanonicalGenreStats(rawStats, getGenreCounts())
 
     /**
      * Emits one [GenreDto] per canonical genre.

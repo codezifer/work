@@ -4,6 +4,8 @@ import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.SongPlayCount
+import de.carsten.android.muzzic.ui.model.AlbumDto
+import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 
@@ -17,4 +19,6 @@ data class StatisticsUiState(
     val librarySummary: LibrarySummary? = null,
     val genreDurations: List<GenreDto> = emptyList(),
     val playlistDurations: List<PlaylistDto> = emptyList(),
+    val recentArtists: List<ArtistDto> = emptyList(),
+    val recentAlbums: List<AlbumDto> = emptyList(),
 )
