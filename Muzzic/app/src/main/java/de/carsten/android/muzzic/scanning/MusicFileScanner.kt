@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.scanning
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
@@ -22,8 +23,6 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.utils.GenreUtils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
@@ -57,13 +56,14 @@ class MusicFileScanner(
             logger.info("Start to scan for music files...")
             onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
 
-            val configuredDir = appSettingsRepository.getMusicDirectory()?.toUri()
-            val currentSongs = songDao.getAllSongs().first()
-            val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
-            val currentFilePaths = currentSongs.mapNotNull { it.filePath }.toSet()
+            val configuredDir: Uri? = appSettingsRepository.getMusicDirectory()?.toUri()
+            val currentFilePaths: List<String> = withContext(Dispatchers.IO) {
+                songDao.getAllSongFilePaths().first()
+            }
+            val supportedFiles: Set<String> = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
 
-            val countedFiles = FileUtil.countFiles(context, configuredDir, supportedFiles)
-            val existingFilePaths = mutableSetOf<String>()
+            val countedFiles: Int = FileUtil.countFiles(context, configuredDir, supportedFiles)
+            val existingFilePaths: MutableSet<String> = mutableSetOf()
             var processedFiles = 0
             var scannedFilesCount = 0
 
@@ -71,41 +71,40 @@ class MusicFileScanner(
             // parse new files chunk-wise while the directory walk continues, so the
             // library is populated incrementally instead of all at once. Single pass avoids duplicate folder traversal.
             scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
-                ensureActive()
+                this@coroutineScope.ensureActive()
                 scannedFilesCount += scannedFiles.size
                 scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
-                val newFiles = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
+                val newFiles: Set<ScannedFile> = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
                 if (newFiles.isNotEmpty()) {
                     processChunk(newFiles)
                     processedFiles += newFiles.size
                 }
-                val progress = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-                val progressMessage = context.getString(R.string.scan_status_metadata, progress)
+                val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+                val progressMessage: String = context.getString(R.string.scan_status_metadata, progress)
                 onProgress?.invoke(progressMessage, progress)
             }
 
             if (processedFiles > 0) {
+                logger.debug("... processedFiles = $processedFiles ...")
                 updateAutomaticPlaylists()
             }
 
-            val progress = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-            val finalProgressMessage = context.getString(R.string.scan_status_metadata, progress)
+            val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+            val finalProgressMessage: String = context.getString(R.string.scan_status_metadata, progress)
             onProgress?.invoke(finalProgressMessage, progress)
             ensureActive()
 
             // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-            val missingSongs = currentSongs.filter { song ->
-                val path = song.filePath
-                path != null &&
-                    !path.startsWith("content://mock") &&
-                    !path.startsWith("http://") &&
-                    !path.startsWith("https://") &&
-                    path !in existingFilePaths
+            val missingSongs: List<String> = currentFilePaths.filter { songFilePath ->
+                !songFilePath.startsWith("content://mock") &&
+                    !songFilePath.startsWith("http://") &&
+                    !songFilePath.startsWith("https://") &&
+                    songFilePath !in existingFilePaths
             }
 
             if (missingSongs.isNotEmpty()) {
                 withContext(Dispatchers.IO) {
-                    songDao.deleteSongs(missingSongs)
+                    songDao.deleteSongByPaths(missingSongs)
                 }
             }
         } finally {
@@ -113,16 +112,11 @@ class MusicFileScanner(
         }
     }
 
-    private suspend fun processChunk(chunk: Set<ScannedFile>) = coroutineScope {
+    private suspend fun processChunk(chunk: Set<ScannedFile>) = withContext(Dispatchers.IO) {
         val songs: List<Song> = chunk.map { file ->
-            async(Dispatchers.IO) {
-                extractSongMetadata(file)
-            }
-        }.awaitAll()
-
-        withContext(Dispatchers.IO) {
-            songDao.insertSongs(songs)
+            extractSongMetadata(file).copy(documentId = file.documentId)
         }
+        songDao.upsertSongs(songs)
     }
 
     /**

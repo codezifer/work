@@ -6,6 +6,8 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
@@ -17,6 +19,12 @@ import kotlinx.coroutines.flow.Flow
 interface SongDao {
     @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
     fun getAllSongs(): Flow<List<Song>>
+
+    @Query("SELECT DISTINCT s.filePath FROM songs s ORDER BY s.filePath")
+    fun getAllSongFilePaths(): Flow<List<String>>
+
+    @Query("SELECT DISTINCT s.documentId FROM songs s ORDER BY s.createdAt DESC")
+    fun getAllDocumentIds(): Flow<List<String>>
 
     @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
     fun getAllSongsPagingSource(): PagingSource<Int, Song>
@@ -85,17 +93,42 @@ interface SongDao {
     )
     suspend fun getTopSongs(limit: Int): List<SongPlayCount>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSong(song: Song)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertSong(song: Song): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSongs(songs: List<Song>)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertSongs(songs: List<Song>): List<Long>
+
+    @Update
+    suspend fun updateSongs(songs: List<Song>)
+
+    @Transaction
+    suspend fun upsertSongs(songs: List<Song>) {
+        val insertResults = insertSongs(songs)
+        val updatedSongs = mutableListOf<Song>()
+
+        for (idx in insertResults.indices) {
+            if (insertResults[idx] == -1L) {
+                updatedSongs.add(
+                    songs[idx].apply {
+                        updatedAt = java.time.Instant.now()
+                    },
+                )
+            }
+        }
+        if (updatedSongs.isNotEmpty()) {
+            updateSongs(updatedSongs)
+        }
+    }
 
     @Delete
     suspend fun deleteSongs(songs: List<Song>)
 
     @Query("DELETE FROM songs WHERE filePath = :filePath")
     suspend fun deleteSongByPath(filePath: String)
+
+    @Query("DELETE FROM songs where filePath in (:filePaths)")
+    suspend fun deleteSongByPaths(filePaths: List<String>)
 
     @Query("DELETE FROM songs")
     suspend fun deleteAllSongs()

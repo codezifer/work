@@ -56,6 +56,8 @@ data class Song(
     val playCount: Int = 0,
     @ColumnInfo(defaultValue = "0")
     val lastPlayed: Instant = Instant.ofEpochMilli(0L),
+    @ColumnInfo(defaultValue = UNKNOWN, index = true, collate = ColumnInfo.NOCASE)
+    val documentId: String = UNKNOWN,
 ) : AbstractEntity(),
     Comparable<Song> {
     init {

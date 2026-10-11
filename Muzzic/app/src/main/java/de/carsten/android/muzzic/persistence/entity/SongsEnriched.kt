@@ -20,7 +20,12 @@ import androidx.room.Embedded
     value = """
     SELECT s.*,
         LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalized_genre,
-        CASE WHEN s.artist LIKE 'The %' THEN substr(s.artist, 5) WHEN s.artist LIKE 'An %' THEN substr(s.artist, 4) WHEN s.artist LIKE 'A %' THEN substr(s.artist, 3) ELSE s.artist END AS sort_artist
+        CASE
+            WHEN lower(s.artist) LIKE 'the %' THEN substr(s.artist, 5)
+            WHEN lower(s.artist) LIKE 'an %' THEN substr(s.artist, 4)
+            WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)
+            ELSE s.artist
+        END AS sort_artist
     FROM songs s
     """,
 )

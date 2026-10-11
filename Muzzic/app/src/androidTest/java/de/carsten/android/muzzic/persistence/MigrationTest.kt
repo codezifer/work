@@ -155,4 +155,59 @@ class MigrationTest {
         assertThat(enrichedCursor.getString(enrichedCursor.getColumnIndex("sort_artist"))).isEqualTo("Beatles")
         enrichedCursor.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate5To6() {
+        val testDbName = "migration-test-5to6"
+        var db = helper.createDatabase(testDbName, 5)
+
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'the beatles', 'Album', 'Death-Core', 3, 1000)",
+        )
+
+        db.close()
+
+        db = helper.runMigrationsAndValidate(testDbName, 6, true, *Migrations.supply())
+
+        val enrichedCursor = db.query("SELECT sort_artist FROM songs_enriched WHERE id = 's1'")
+        assertThat(enrichedCursor.count).isEqualTo(1)
+        enrichedCursor.moveToFirst()
+        assertThat(enrichedCursor.getString(enrichedCursor.getColumnIndex("sort_artist"))).isEqualTo("beatles")
+        enrichedCursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate6To7() {
+        val testDbName = "migration-test-6to7"
+        var db = helper.createDatabase(testDbName, 6)
+
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'Artist', 'Album', 'Genre', 3, 1000)",
+        )
+
+        db.close()
+
+        db = helper.runMigrationsAndValidate(testDbName, 7, true, *Migrations.supply())
+
+        val songCursor = db.query("SELECT documentId FROM songs WHERE id = 's1'")
+        assertThat(songCursor.count).isEqualTo(1)
+        songCursor.moveToFirst()
+        assertThat(songCursor.getString(songCursor.getColumnIndex("documentId"))).isEqualTo("Unknown")
+        songCursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrateAllFrom1To7() {
+        val testDbName = "migration-test-all"
+        var db = helper.createDatabase(testDbName, 1)
+        db.close()
+
+        db = helper.runMigrationsAndValidate(testDbName, Migrations.VERSION, true, *Migrations.supply())
+        db.close()
+    }
 }
