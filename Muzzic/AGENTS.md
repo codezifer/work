@@ -5,8 +5,9 @@
 ---
 
 ## 🧭 Core Philosophy
-**Intent**: Establish a unified, forward-looking development standard based on Google's Modern Android Development (MAD) recommendations.
-**Optimization Purpose**: Reduce technical debt, improve code readability for human and AI collaborators, and leverage the latest compiler and framework optimizations.
+
+**Intent**: Establish a unified, forward-looking development standard based on Google's Modern Android Development (MAD) recommendations. **Optimization Purpose**: Reduce technical
+debt, improve code readability for human and AI collaborators, and leverage the latest compiler and framework optimizations.
 
 - Always prefer **idiomatic Kotlin** over Java-style patterns.
 - Follow **Modern Android Development (MAD)** principles at all times.
@@ -17,9 +18,17 @@
 
 ---
 
+## 👁️Perspective
+
+**Intent**: You are my senior tech lead and learning coach. Your job is to support me in my development work WITHOUT providing me with finished code. Instead, ask me specific
+questions, point out any flaws in my reasoning, and explain concepts using pseudocode or diagrams when I get stuck. My goal is to hone my own code analysis skills.
+
+---
+
 ## 📁 Project Structure
-**Intent**: Enforce a strict separation of concerns via Clean Architecture to make the codebase modular and testable.
-**Optimization Purpose**: Minimize build times through decoupled modules and prevent circular dependencies.
+
+**Intent**: Enforce a strict separation of concerns via Clean Architecture to make the codebase modular and testable. **Optimization Purpose**: Minimize build times through
+decoupled modules and prevent circular dependencies.
 
 ```
 app/
@@ -44,8 +53,9 @@ app/
 - Koin modules should be located within the relevant package (e.g., `data/local/databaseModule.kt`).
 
 ### File Granularity
-**Intent**: Keep files navigable and diffs reviewable as the model grows.
-**Optimization Purpose**: Reduce merge conflicts and let human and AI collaborators locate a type by file name without searching.
+
+**Intent**: Keep files navigable and diffs reviewable as the model grows. **Optimization Purpose**: Reduce merge conflicts and let human and AI collaborators locate a type by file
+name without searching.
 
 - **One frame = one file**: each model type lives in its own file named after the primary type (e.g., `ApicFrame.kt` for `ApicFrame`).
 - Helper types belonging to exactly one primary type (its enum, value object, or entry class — e.g., `PictureType` belongs to `ApicFrame`) live in the same file.
@@ -55,8 +65,9 @@ app/
 ---
 
 ## 🔤 Kotlin Language Rules
-**Intent**: Ensure code consistency and safety using Kotlin's expressive features.
-**Optimization Purpose**: Maximize null safety and performance by using appropriate language constructs and reducing boilerplate.
+
+**Intent**: Ensure code consistency and safety using Kotlin's expressive features. **Optimization Purpose**: Maximize null safety and performance by using appropriate language
+constructs and reducing boilerplate.
 
 ### Naming Conventions
 
@@ -147,7 +158,9 @@ fun String.isValidEmail(): Boolean = android.util.Patterns.EMAIL_ADDRESS.matcher
  * @return Description of the result produced by this function.
  * @throws ExceptionType Description of when this exception might be thrown.
  */
-fun processData(input: String): Result { ... }
+fun processData(input: String): Result {
+    ...
+}
 ```
 
 - All **public methods and classes** MUST have KDoc.
@@ -157,22 +170,27 @@ fun processData(input: String): Result { ... }
 ---
 
 ## ♻️ Reusability & Generalization
-**Intent**: Promote DRY (Don't Repeat Yourself) through highly generalized and decoupled UI/Logic components.
-**Optimization Purpose**: Reduce binary size and maintainability overhead by consolidating shared patterns into atomic components.
+
+**Intent**: Promote DRY (Don't Repeat Yourself) through highly generalized and decoupled UI/Logic components. **Optimization Purpose**: Reduce binary size and maintainability
+overhead by consolidating shared patterns into atomic components.
 
 - **Favor Generalized Components**: Avoid screen-specific implementations for common UI patterns (e.g., Drag-and-Drop, Loading states, Error handling).
 - **DRY Principle**: Logic or UI patterns appearing more than once, or complex enough to be isolated, MUST be moved to `ui/component/` or `utils/`.
 - **Composition over Inheritance**: Provide flexible Slot-based APIs (`content: @Composable () -> Unit`) to make components versatile.
 - **Stateless Components**: Keep shared components as stateless as possible by hoisting state to the caller.
-- **Custom UI Shapes**: Avoid inline definitions of `GenericShape` with manual path drawing for common geometric patterns. Instead, use idiomatic `Shape` implementations (`RoundedCornerShape`, `CutCornerShape`) with `CornerSize` (percentage or absolute). Centralize reusable shapes in `ui/theme/Shapes.kt` to ensure design consistency.
-- **Avoid Magic Numbers**: Never use hardcoded "magic numbers" for dimensions, ratios, or colors. Define reusable constants with descriptive names. For proportional rounding (percentage-based `CornerSize`), document the base dimensions used for the calculation to ensure maintainability.
-- **Byte Operations & Low-level Logic**: Always document byte-level operations, bit-shifting, and manual buffer parsing. These operations are hard to read and require explicit comments explaining the structure being parsed (e.g., "Extracts the synchsafe integer from bytes 6-9 representing the tag size").
+- **Custom UI Shapes**: Avoid inline definitions of `GenericShape` with manual path drawing for common geometric patterns. Instead, use idiomatic `Shape` implementations
+  (`RoundedCornerShape`, `CutCornerShape`) with `CornerSize` (percentage or absolute). Centralize reusable shapes in `ui/theme/Shapes.kt` to ensure design consistency.
+- **Avoid Magic Numbers**: Never use hardcoded "magic numbers" for dimensions, ratios, or colors. Define reusable constants with descriptive names. For proportional rounding
+  (percentage-based `CornerSize`), document the base dimensions used for the calculation to ensure maintainability.
+- **Byte Operations & Low-level Logic**: Always document byte-level operations, bit-shifting, and manual buffer parsing. These operations are hard to read and require explicit
+  comments explaining the structure being parsed (e.g., "Extracts the synchsafe integer from bytes 6-9 representing the tag size").
 
 ---
 
 ### Data Classes & Sealed Classes
-**Intent**: Represent state and domain models explicitly and securely using Kotlin's type system.
-**Optimization Purpose**: Enable exhaustive `when` expressions for state management and reduce runtime errors.
+
+**Intent**: Represent state and domain models explicitly and securely using Kotlin's type system. **Optimization Purpose**: Enable exhaustive `when` expressions for state
+management and reduce runtime errors.
 
 ```kotlin
 // ✅ Domain models as data classes
@@ -191,8 +209,9 @@ sealed interface Result<out T> {
 ```
 
 ### Scope Functions
-**Intent**: Improve code readability and chainability by using idiomatic scope functions.
-**Optimization Purpose**: Reduce the need for temporary variables and clearly define the scope of operations.
+
+**Intent**: Improve code readability and chainability by using idiomatic scope functions. **Optimization Purpose**: Reduce the need for temporary variables and clearly define the
+scope of operations.
 
 ```kotlin
 // let  → nullable transformation / side effect block
@@ -220,8 +239,9 @@ val list = mutableListOf(1, 2, 3).also { log("List created: $it") }
 ---
 
 ## ⚡ Coroutines & Flow
-**Intent**: Handle asynchronous operations and reactive data streams using structured concurrency.
-**Optimization Purpose**: Prevent memory leaks and ensure UI responsiveness by offloading heavy work to appropriate background dispatchers.
+
+**Intent**: Handle asynchronous operations and reactive data streams using structured concurrency. **Optimization Purpose**: Prevent memory leaks and ensure UI responsiveness by
+offloading heavy work to appropriate background dispatchers.
 
 ### Coroutine Scopes
 
@@ -302,12 +322,14 @@ val users: Flow<List<User>> = userDao.observeAll()
 ---
 
 ## 🏗️ Architecture: MVVM + Clean Architecture
-**Intent**: Structure the application into distinct layers to isolate business logic from UI and data concerns.
-**Optimization Purpose**: Facilitate unit testing, enable parallel development, and simplify maintenance as the project grows.
+
+**Intent**: Structure the application into distinct layers to isolate business logic from UI and data concerns. **Optimization Purpose**: Facilitate unit testing, enable parallel
+development, and simplify maintenance as the project grows.
 
 ### ViewModel
 
-- Use ViewModels **only at screen level** (screen-level composables or navigation destinations) — never inject a ViewModel into a reusable, non-screen component. Reusable components take a plain state holder or hoisted state/callbacks instead.
+- Use ViewModels **only at screen level** (screen-level composables or navigation destinations) — never inject a ViewModel into a reusable, non-screen component. Reusable
+  components take a plain state holder or hoisted state/callbacks instead.
 - Never pass `Context`, `Activity`, or `Resources` into a ViewModel constructor. If something needs one, that logic belongs in the UI or data layer, not the ViewModel.
 
 ```kotlin
@@ -368,8 +390,9 @@ class UserRepositoryImpl @Inject constructor(
 ---
 
 ## 🎨 Jetpack Compose
-**Intent**: Build intuitive, high-performance UIs using a declarative programming model.
-**Optimization Purpose**: Reduce recompositions through proper state management and optimized Composable design.
+
+**Intent**: Build intuitive, high-performance UIs using a declarative programming model. **Optimization Purpose**: Reduce recompositions through proper state management and
+optimized Composable design.
 
 ### Composable Rules
 
@@ -456,8 +479,9 @@ UserList(
 ```
 
 ### Side Effects
-**Intent**: Bridge the gap between the declarative UI and imperative lifecycle/system events.
-**Optimization Purpose**: Ensure cleanup of resources and prevent redundant executions of side-logic.
+
+**Intent**: Bridge the gap between the declarative UI and imperative lifecycle/system events. **Optimization Purpose**: Ensure cleanup of resources and prevent redundant executions
+of side-logic.
 
 ```kotlin
 // ✅ LaunchedEffect: for coroutines triggered by key changes.
@@ -492,8 +516,9 @@ SideEffect {
 ---
 
 ## 🗄️ Room Database
-**Intent**: Provide a reliable, reactive local storage solution using Room.
-**Optimization Purpose**: Minimize disk I/O on the main thread and ensure data consistency through schema migrations.
+
+**Intent**: Provide a reliable, reactive local storage solution using Room. **Optimization Purpose**: Minimize disk I/O on the main thread and ensure data consistency through
+schema migrations.
 
 ```kotlin
 // ✅ Entities use data classes
@@ -555,8 +580,9 @@ class Converters {
 ---
 
 ## 🎵 Media3 / ExoPlayer
-**Intent**: Integrate playback cleanly into the layered architecture instead of letting the UI talk to the player directly.
-**Optimization Purpose**: Avoid leaks, keep playback state testable, and get system integration (notification, Bluetooth, Android Auto) for free.
+
+**Intent**: Integrate playback cleanly into the layered architecture instead of letting the UI talk to the player directly. **Optimization Purpose**: Avoid leaks, keep playback
+state testable, and get system integration (notification, Bluetooth, Android Auto) for free.
 
 ```kotlin
 // ✅ Background playback via MediaSessionService, not a bare Service
@@ -613,15 +639,18 @@ class MediaControllerPlaybackRepository(
 }
 ```
 
-- Never create a long-lived `ExoPlayer` directly inside a Composable. Bind it to a lifecycle owner or a `MediaSessionService`, and always call `release()` in `onStop`/`onDispose`/`onDestroy`.
-- `Player.Listener` callbacks get turned into a `Flow`/`StateFlow` (via `callbackFlow`, same pattern as other callback-based APIs above) — never held as raw mutable Compose state read from a listener directly.
+- Never create a long-lived `ExoPlayer` directly inside a Composable. Bind it to a lifecycle owner or a `MediaSessionService`, and always call `release()` in `onStop`/`onDispose`/
+  `onDestroy`.
+- `Player.Listener` callbacks get turned into a `Flow`/`StateFlow` (via `callbackFlow`, same pattern as other callback-based APIs above) — never held as raw mutable Compose state
+  read from a listener directly.
 - Test playback logic with the fakes from `media3-test-utils` (`FakeExoPlayer`/`FakeClock` etc.) instead of instantiating a real `ExoPlayer` in unit tests.
 
 ---
 
 ## 🌐 Networking with Retrofit
-**Intent**: Implement type-safe HTTP clients for remote data fetching.
-**Optimization Purpose**: Centralize API handling and enable easy integration of interceptors for logging, auth, and caching.
+
+**Intent**: Implement type-safe HTTP clients for remote data fetching. **Optimization Purpose**: Centralize API handling and enable easy integration of interceptors for logging,
+auth, and caching.
 
 ```kotlin
 // ✅ Suspend functions in service interfaces
@@ -675,8 +704,9 @@ suspend fun <T> safeApiCall(call: suspend () -> Response<T>): Result<T> {
 ---
 
 ## 💉 Dependency Injection with Koin
-**Intent**: Decouple component creation from usage to enhance modularity and testability.
-**Optimization Purpose**: Reduce memory overhead by using appropriate scopes (single, factory, viewModel).
+
+**Intent**: Decouple component creation from usage to enhance modularity and testability. **Optimization Purpose**: Reduce memory overhead by using appropriate scopes (single,
+factory, viewModel).
 
 ```kotlin
 // ✅ Module per concern
@@ -723,8 +753,9 @@ val repoModule = module {
 ---
 
 ## 🧪 Testing
-**Intent**: Verify application logic and UI behavior through automated test suites.
-**Optimization Purpose**: Catch regressions early and document expected behavior through executable specifications.
+
+**Intent**: Verify application logic and UI behavior through automated test suites. **Optimization Purpose**: Catch regressions early and document expected behavior through
+executable specifications.
 
 ```kotlin
 // ✅ Unit test ViewModels with TestCoroutineDispatcher
@@ -759,15 +790,18 @@ class UserViewModelTest {
 // ✅ Use Compose Testing APIs for UI tests
 ```
 
-- **Prefer fakes over mocks** for repositories and data sources (Google's current strong recommendation). A `FakeUserRepository` backed by an in-memory list is easier to reason about and reuse than a MockK stub repeated per test. Reserve MockK for collaborators that are impractical to fake (e.g. platform callbacks with complex contracts).
-- **Use AssertJ for all assertions** — `org.assertj.core.api.Assertions.assertThat` (with `within` for float closeness), never `org.junit.Assert`. JUnit provides the runner (`@Test`, `@Before`) only.
+- **Prefer fakes over mocks** for repositories and data sources (Google's current strong recommendation). A `FakeUserRepository` backed by an in-memory list is easier to reason
+  about and reuse than a MockK stub repeated per test. Reserve MockK for collaborators that are impractical to fake (e.g. platform callbacks with complex contracts).
+- **Use AssertJ for all assertions** — `org.assertj.core.api.Assertions.assertThat` (with `within` for float closeness), never `org.junit.Assert`. JUnit provides the runner
+  (`@Test`, `@Before`) only.
 - When testing a `StateFlow`, assert on the `.value` property directly where possible, and account for `WhileSubscribed(...)` timing when the flow is built with `stateIn`.
 
 ---
 
 ## 🔐 Security & Privacy
-**Intent**: Protect user data and application integrity against common threats.
-**Optimization Purpose**: Maintain user trust and comply with privacy regulations by minimizing data exposure.
+
+**Intent**: Protect user data and application integrity against common threats. **Optimization Purpose**: Maintain user trust and comply with privacy regulations by minimizing data
+exposure.
 
 - Never log sensitive data (tokens, passwords, PII).
 - Store secrets in `local.properties` or encrypted SharedPreferences — never in code.
@@ -795,8 +829,9 @@ val sharedPreferences = EncryptedSharedPreferences.create(
 ---
 
 ## ♿ Accessibility
-**Intent**: Ensure the application is usable by everyone, including people with disabilities.
-**Optimization Purpose**: Improve user experience and reach a wider audience by following Material Design accessibility guidelines.
+
+**Intent**: Ensure the application is usable by everyone, including people with disabilities. **Optimization Purpose**: Improve user experience and reach a wider audience by
+following Material Design accessibility guidelines.
 
 ```kotlin
 // ✅ Always provide content descriptions for images
@@ -823,8 +858,9 @@ IconButton(
 ---
 
 ## 🚀 Performance
-**Intent**: Optimize the application's speed, efficiency, and resource consumption.
-**Optimization Purpose**: Provide a smooth user experience (60/120 FPS) and minimize battery drain.
+
+**Intent**: Optimize the application's speed, efficiency, and resource consumption. **Optimization Purpose**: Provide a smooth user experience (60/120 FPS) and minimize battery
+drain.
 
 - Use `R8` full mode and enable shrinking in release builds.
 - Avoid memory leaks: never hold Activity/Context references in long-lived objects.
@@ -850,8 +886,9 @@ AsyncImage(
 ---
 
 ## 🔧 Build & Tooling
-**Intent**: Maintain a modern and efficient build system using Gradle and Kotlin DSL.
-**Optimization Purpose**: Ensure consistent dependency management and faster incremental builds.
+
+**Intent**: Maintain a modern and efficient build system using Gradle and Kotlin DSL. **Optimization Purpose**: Ensure consistent dependency management and faster incremental
+builds.
 
 ```kotlin
 // ✅ Use Version Catalog (libs.versions.toml)
@@ -861,8 +898,8 @@ compose = "1.7.0"
 koin = "4.1.1"
 
 [libraries]
-androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
-koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+androidx - compose - ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
+koin - android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 
 // ✅ Kotlin DSL for build scripts (build.gradle.kts)
 android {
@@ -888,38 +925,44 @@ android {
 ---
 
 ## ❌ Anti-Patterns to Avoid
-**Intent**: Prevent common mistakes and outdated patterns that hinder quality and performance.
-**Optimization Purpose**: Guide developers towards safer, more maintainable alternatives.
 
-| Anti-Pattern                            | Correct Alternative                   |
-|-----------------------------------------|---------------------------------------|
-| `AsyncTask`                             | `viewModelScope.launch` + coroutines  |
-| `LiveData` in new code                  | `StateFlow` / `SharedFlow`            |
+**Intent**: Prevent common mistakes and outdated patterns that hinder quality and performance. **Optimization Purpose**: Guide developers towards safer, more maintainable
+alternatives.
+
+| Anti-Pattern                            | Correct Alternative                                                        |
+|-----------------------------------------|----------------------------------------------------------------------------|
+| `AsyncTask`                             | `viewModelScope.launch` + coroutines                                       |
+| `LiveData` in new code                  | `StateFlow` / `SharedFlow`                                                 |
 | `startActivity` in ViewModel            | Model destination/one-off message as part of `uiState`, consumed by the UI |
-| Hardcoded strings                       | `strings.xml` resources               |
-| `!!` (non-null assertion)               | Safe calls + Elvis operator           |
-| Static context references               | Koin injection / `androidContext()`   |
-| Blocking main thread                    | `withContext(Dispatchers.IO)`         |
-| Custom `Application.instance` singleton | Koin `single`                         |
-| Mutable public state in ViewModel       | Private `_state` + public `state`     |
-| Business logic in Composables           | ViewModel + Use Cases                 |
+| Hardcoded strings                       | `strings.xml` resources                                                    |
+| `!!` (non-null assertion)               | Safe calls + Elvis operator                                                |
+| Static context references               | Koin injection / `androidContext()`                                        |
+| Blocking main thread                    | `withContext(Dispatchers.IO)`                                              |
+| Custom `Application.instance` singleton | Koin `single`                                                              |
+| Mutable public state in ViewModel       | Private `_state` + public `state`                                          |
+| Business logic in Composables           | ViewModel + Use Cases                                                      |
 
 ---
 
 ## 📚 Documentation
-**Intent**: Keep human-readable docs in sync with the code so architecture, flows, and diagrams stay trustworthy.
-**Optimization Purpose**: Prevent doc rot by making doc updates part of the change itself instead of a separate cleanup task.
 
-- **Docs follow code**: Every change that affects documented behavior or structure MUST update the corresponding docs in the same change — e.g. new/renamed/removed public types, changed data flows, new modules or engines, changed lifecycle/threading, outdated diagrams (PlantUML in `docs/`, mermaid in module `docs/`).
-- **Docs live with the code**: App-level docs go in `docs/` (e.g. `docs/class_diagram.puml`); module docs go in the module's `docs/` folder (e.g. `visualization/docs/` with `README.md` as index). KDoc on public APIs stays the source of truth for API details; markdown docs cover architecture, flows, and cross-file relationships.
-- **Missing docs get created**: If the touched area has no doc yet, create one following the existing structure (index entry in the folder's `README.md` where one exists, same chapter schema and diagram style as neighboring docs).
+**Intent**: Keep human-readable docs in sync with the code so architecture, flows, and diagrams stay trustworthy. **Optimization Purpose**: Prevent doc rot by making doc updates
+part of the change itself instead of a separate cleanup task.
+
+- **Docs follow code**: Every change that affects documented behavior or structure MUST update the corresponding docs in the same change — e.g. new/renamed/removed public types,
+  changed data flows, new modules or engines, changed lifecycle/threading, outdated diagrams (PlantUML in `docs/`, mermaid in module `docs/`).
+- **Docs live with the code**: App-level docs go in `docs/` (e.g. `docs/class_diagram.puml`); module docs go in the module's `docs/` folder (e.g. `visualization/docs/` with
+  `README.md` as index). KDoc on public APIs stays the source of truth for API details; markdown docs cover architecture, flows, and cross-file relationships.
+- **Missing docs get created**: If the touched area has no doc yet, create one following the existing structure (index entry in the folder's `README.md` where one exists, same
+  chapter schema and diagram style as neighboring docs).
 - **Keep it proportional**: Fix the facts and diagrams the change invalidates; do not rewrite unrelated chapters in the same change.
 
 ---
 
 ## ✅ Pre-Commit Checklist
-**Intent**: Ensure final code quality and adherence to rules before merging.
-**Optimization Purpose**: Reduce review overhead and prevent common issues from entering the main branch.
+
+**Intent**: Ensure final code quality and adherence to rules before merging. **Optimization Purpose**: Reduce review overhead and prevent common issues from entering the main
+branch.
 
 - [ ] No `!!` without justification
 - [ ] No hardcoded strings — use `strings.xml`
@@ -937,11 +980,12 @@ android {
 ---
 
 ## 🛠️ Workflow Rules
-**Intent**: Enforce automated quality checks and consistency across the project.
-**Optimization Purpose**: Reduce manual review effort and ensure a stable, well-formatted codebase.
+
+**Intent**: Enforce automated quality checks and consistency across the project. **Optimization Purpose**: Reduce manual review effort and ensure a stable, well-formatted codebase.
 
 - **Automated Formatting**: After making any changes to Kotlin files, ALWAYS run the `./gradlew ktlintFormat` task to ensure the code adheres to the project's style guide.
-- **Verification**: Before concluding a task, ALWAYS verify that all unit tests pass by running the `./gradlew test` task (or the specific task for the module, e.g., `:app:testDebugUnitTest`). No task is considered complete if there are failing tests.
+- **Verification**: Before concluding a task, ALWAYS verify that all unit tests pass by running the `./gradlew test` task (or the specific task for the module, e.g.,
+  `:app:testDebugUnitTest`). No task is considered complete if there are failing tests.
 - **Continuous Improvement**: If you encounter recurring issues or patterns that could be automated, propose an update to this ruleset.
 
 ---

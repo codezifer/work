@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,11 +17,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_THIN
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.GLASS_BORDER_ALPHA
 import de.carsten.android.muzzic.ui.GLASS_BORDER_ALPHA_STRONG
@@ -86,6 +90,21 @@ fun PlayingQueueItem(
         colorSource = colorSource,
         isCurrent = isCurrentSong,
     )
+
+    val titleStyle = MaterialTheme.typography.titleMedium.copy(
+        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
+    )
+
+    val buttonColors = if (isCurrentSong) {
+        IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = adaptiveColors.accentColor.copy(alpha = 0.2f),
+            contentColor = adaptiveColors.accentColor,
+        )
+    } else {
+        IconButtonDefaults.iconButtonColors(
+            contentColor = adaptiveColors.accentColor,
+        )
+    }
 
     Box(
         modifier =
@@ -149,10 +168,7 @@ fun PlayingQueueItem(
             ) {
                 Text(
                     text = playingQueueDto.title,
-                    style =
-                    MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
-                    ),
+                    style = titleStyle,
                     color = adaptiveColors.contentColor,
                     maxLines = 1,
                 )
@@ -167,6 +183,35 @@ fun PlayingQueueItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = adaptiveColors.labelColor,
                     maxLines = 1,
+                )
+            }
+
+            OutlinedButton(
+                onClick = {},
+                modifier = Modifier.padding(
+                    start = SPACING_MEDIUM,
+                    end = SPACING_MEDIUM,
+                ),
+                border = BorderStroke(
+                    width = BORDER_WIDTH_THIN,
+                    color = adaptiveColors.accentColor,
+                ),
+                contentPadding = PaddingValues(SPACING_MEDIUM),
+                colors = if (isCurrentSong) {
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = adaptiveColors.accentColor.copy(alpha = 0.2f),
+                        contentColor = adaptiveColors.accentColor,
+                    )
+                } else {
+                    ButtonDefaults.outlinedButtonColors(
+                        contentColor = adaptiveColors.accentColor,
+                    )
+                },
+            ) {
+                Text(
+                    text = "#${playingQueueDto.queuePosition}",
+                    style = titleStyle,
+                    color = adaptiveColors.accentColor,
                 )
             }
 

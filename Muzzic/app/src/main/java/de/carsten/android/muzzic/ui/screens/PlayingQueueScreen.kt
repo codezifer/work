@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +48,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
+import de.carsten.android.muzzic.ui.component.rememberReorderableState
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -75,37 +76,34 @@ fun PlayingQueueScreen(
         }
     }
 
-    AppTheme {
-        PlayingQueueContent(
-            modifier = modifier,
-            name = uiState.name,
-            playingQueue = uiState.queue,
-            selectionState = selectionState,
-            currentSong = uiState.currentSong,
-            isPlaying = uiState.isPlaying,
-            progress = progress,
-            colorSource = colorSource,
-            onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
-            onSongClick = { index, songId ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleSongSelection(songId)
-                } else {
-                    playingQueueViewModel.playSongAt(index)
-                }
-            },
-            onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
-            onRemoveItem = { item ->
-                playingQueueViewModel.removeSongs(listOf(item.toMediaItem()))
-            },
-            onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
-            onSortByMetadata = { playingQueueViewModel.sortQueueByMetadata() },
-            onShuffle = { playingQueueViewModel.shuffleQueue() },
-        )
-    }
+    PlayingQueueContent(
+        modifier = modifier,
+        name = uiState.name,
+        playingQueue = uiState.queue,
+        selectionState = selectionState,
+        currentSong = uiState.currentSong,
+        isPlaying = uiState.isPlaying,
+        progress = progress,
+        colorSource = colorSource,
+        onSongLongClick = { songId -> selectionViewModel.toggleSongSelection(songId) },
+        onSongClick = { index, songId ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleSongSelection(songId)
+            } else {
+                playingQueueViewModel.playSongAt(index)
+            }
+        },
+        onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
+        onRemoveItem = { item ->
+            playingQueueViewModel.removeSongs(listOf(item.toMediaItem()))
+        },
+        onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
+        onSortByMetadata = { playingQueueViewModel.sortQueueByMetadata() },
+        onShuffle = { playingQueueViewModel.shuffleQueue() },
+    )
 }
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayingQueueContent(
     modifier: Modifier,
@@ -125,6 +123,20 @@ private fun PlayingQueueContent(
     onShuffle: () -> Unit = {},
 ) {
     var showSortMenu by remember { mutableStateOf(false) }
+    val reorderableState = rememberReorderableState()
+
+    val currentSongIndex = remember(playingQueue, currentSong) {
+        playingQueue.indexOfFirst { it.mediaId == currentSong?.mediaId }
+    }
+
+    var hasScrolled by remember { mutableStateOf(false) }
+
+    LaunchedEffect(playingQueue, currentSongIndex) {
+        if (!hasScrolled && currentSongIndex in playingQueue.indices) {
+            reorderableState.listState.scrollToItem(currentSongIndex)
+            hasScrolled = true
+        }
+    }
 
     Column(
         modifier =
@@ -190,6 +202,7 @@ private fun PlayingQueueContent(
                 items = playingQueue,
                 onMove = onMove,
                 key = { _, item -> item.mediaId },
+                state = reorderableState,
                 modifier =
                 Modifier
                     .weight(1f)
