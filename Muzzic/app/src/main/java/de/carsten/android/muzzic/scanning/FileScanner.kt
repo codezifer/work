@@ -60,7 +60,7 @@ interface FileScanner {
      * @param extensions supported file extensions
      * @return [Flow] of chunked [Set] of [ScannedFile]
      */
-    fun scanForFiles(context: Context, uri: Uri?, extensions: Set<String>): Flow<Set<ScannedFile>> = FileUtil.getScannedFileFlow(
+    fun scanForFiles(context: Context, uri: Uri?, extensions: Set<String>): Flow<List<ScannedFile>> = FileUtil.getScannedFileFlow(
         context = context,
         uri = uri,
         supportedFiles = extensions,

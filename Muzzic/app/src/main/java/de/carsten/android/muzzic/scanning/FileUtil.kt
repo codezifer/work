@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -60,32 +61,44 @@ object FileUtil {
      * @param chunkSize chunk size [Int]
      * @return [Flow] of [List] of [ScannedFile]
      */
-    fun getScannedFileFlow(context: Context, uri: Uri?, chunkSize: Int = AppConfig.Scanning.CHUNK_SIZE, supportedFiles: Set<String> = emptySet()): Flow<Set<ScannedFile>> = flow {
+    fun getScannedFileFlow(context: Context, uri: Uri?, chunkSize: Int = AppConfig.Scanning.CHUNK_SIZE, supportedFiles: Set<String> = emptySet()): Flow<List<ScannedFile>> = flow {
         if (uri == null) {
-            emit(setOf())
+            emit(listOf())
             return@flow
         }
 
-        val chunk = mutableSetOf<ScannedFile>()
+        val chunk = ArrayList<ScannedFile>(chunkSize)
         val lowerExtensions: Set<String> = supportedFiles.map { it.lowercase() }.toSet()
 
         traverseSafTree(context, uri, ScannedFile.PROJECTION) { cursor, dirStack ->
-            val indices = ScannedFile.Indices.from(cursor)
 
             while (cursor.moveToNext()) {
-                val mimeType = cursor.getString(indices.mime)
+                val mimeType = cursor.getString(ScannedFile.MIME_TYPE_IDX)
                 if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                    dirStack.add(cursor.getString(indices.id))
+                    dirStack.add(cursor.getString(ScannedFile.DOCUMENT_ID_IDX))
                 } else {
-                    val displayName = cursor.getString(indices.name)
+                    val displayName = cursor.getString(ScannedFile.DISPLAY_NAME_IDX)
                     val ext = displayName.substringAfterLast('.', "").lowercase()
                     if (ext in lowerExtensions) {
-                        val prepared = ScannedFile.prepare(cursor, indices)
-                        if (prepared != null) {
-                            val processed = prepared.copy(uri = DocumentsContract.buildDocumentUriUsingTree(uri, prepared.documentId))
-                            chunk.add(processed)
-                            if (chunk.size >= chunkSize) {
-                                emit(chunk.toSet())
+                        val documentId = cursor.getString(ScannedFile.DOCUMENT_ID_IDX)
+                        val scannedFile = try {
+                            ScannedFile(
+                                uri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId),
+                                documentId = documentId,
+                                displayName = displayName,
+                                mimeType = mimeType,
+                                size = cursor.getLong(ScannedFile.SIZE_IDX),
+                                lastModified = cursor.getLong(ScannedFile.LAST_MODIFIED_IDX),
+                            )
+                        } catch (e: Exception) {
+                            logger.error("An error occurred while scanning documentId $documentId ...", e)
+                            null
+                        }
+
+                        if (scannedFile != null) {
+                            chunk.add(scannedFile)
+                            if (chunk.size == chunkSize) {
+                                emit(chunk.toList())
                                 chunk.clear()
                             }
                         }
@@ -94,8 +107,8 @@ object FileUtil {
             }
         }
 
-        if (chunk.isNotEmpty()) emit(chunk.toSet())
-    }.flowOn(Dispatchers.IO)
+        if (chunk.isNotEmpty()) emit(chunk.toList())
+    }.buffer(capacity = AppConfig.Scanning.NUM_CHUNKS).flowOn(Dispatchers.IO)
 
     /**
      * Optimized method to count files matching the supported extensions.
@@ -117,16 +130,12 @@ object FileUtil {
 
         logger.debug("Start counting files ...")
         traverseSafTree(context, uri, projection) { cursor, dirStack ->
-            val idIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val nameIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            val mimeIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
-
             while (cursor.moveToNext()) {
-                val mimeType = cursor.getString(mimeIdx)
+                val mimeType = cursor.getString(ScannedFile.MIME_TYPE_IDX)
                 if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                    dirStack.add(cursor.getString(idIdx))
+                    dirStack.add(cursor.getString(ScannedFile.DOCUMENT_ID_IDX))
                 } else {
-                    val displayName = cursor.getString(nameIdx)
+                    val displayName = cursor.getString(ScannedFile.DISPLAY_NAME_IDX)
                     val ext = displayName.substringAfterLast('.', "").lowercase()
                     if (ext in lowerExtensions) {
                         count++

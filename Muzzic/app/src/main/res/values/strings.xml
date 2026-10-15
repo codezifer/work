@@ -31,6 +31,7 @@
     <string name="scan_notification_title">Scanning library</string>
     <string name="scan_status_scanning">Searching files…</string>
     <string name="scan_status_metadata">Extracting metadata (%1$d%%)…</string>
+    <string name="scan_status_metadata2">Extracting metadata …</string>
     <string name="scan_status_cleaning">Cleaning up library…</string>
 
     <!-- Playlists -->

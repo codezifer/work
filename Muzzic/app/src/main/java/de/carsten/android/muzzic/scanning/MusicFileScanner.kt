@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.scanning
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
@@ -44,6 +45,13 @@ class MusicFileScanner(
 ) : FileScanner {
 
     companion object {
+        private val PROJECTION = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+        )
         const val SCANNER_ID = "MusicFileScanner"
         private val logger = logger()
     }
@@ -80,7 +88,11 @@ class MusicFileScanner(
                     processedFiles += newFiles.size
                 }
                 val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-                val progressMessage: String = context.getString(R.string.scan_status_metadata, progress)
+                val progressMessage: String = if (progress > 0) {
+                    context.getString(R.string.scan_status_metadata, progress)
+                } else {
+                    context.getString(R.string.scan_status_metadata2)
+                }
                 onProgress?.invoke(progressMessage, progress)
             }
 

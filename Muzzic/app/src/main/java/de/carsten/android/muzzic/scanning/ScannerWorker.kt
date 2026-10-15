@@ -84,7 +84,7 @@ class ScannerWorker(context: Context, params: WorkerParameters) :
             .setSmallIcon(R.drawable.disc)
             .setContentText(status)
             .setOngoing(true)
-            .setProgress(AppConfig.Scanning.MAX_PROGRESS, progress, progress >= 0)
+            .setProgress(AppConfig.Scanning.MAX_PROGRESS, progress, progress < 0)
             .setOnlyAlertOnce(true)
             .build()
 

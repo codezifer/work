@@ -30,6 +30,7 @@
     <string name="scan_notification_title">Bibliothek wird gescannt</string>
     <string name="scan_status_scanning">Dateien werden gesucht…</string>
     <string name="scan_status_metadata">Metadaten werden extrahiert (%1$d%%)…</string>
+    <string name="scan_status_metadata2">Metadaten werden extrahiert …</string>
     <string name="scan_status_cleaning">Bibliothek wird bereinigt…</string>
 
     <!-- Playlists -->

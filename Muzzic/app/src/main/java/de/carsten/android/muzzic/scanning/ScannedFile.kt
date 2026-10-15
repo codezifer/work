@@ -1,26 +1,17 @@
 package de.carsten.android.muzzic.scanning
 
-import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
-import de.carsten.android.muzzic.logging.logger
 
 data class ScannedFile(val uri: Uri = Uri.EMPTY, val documentId: String, val displayName: String, val mimeType: String, val size: Long, val lastModified: Long) {
 
-    data class Indices(val id: Int, val name: Int, val mime: Int, val size: Int, val modified: Int) {
-        companion object {
-            fun from(cursor: Cursor) = Indices(
-                id = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
-                name = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME),
-                mime = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE),
-                size = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE),
-                modified = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_LAST_MODIFIED),
-            )
-        }
-    }
-
     companion object {
-        private val logger = logger()
+        const val DOCUMENT_ID_IDX = 0
+        const val DISPLAY_NAME_IDX = 1
+        const val MIME_TYPE_IDX = 2
+        const val SIZE_IDX = 3
+        const val LAST_MODIFIED_IDX = 4
+
         val PROJECTION = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -28,23 +19,6 @@ data class ScannedFile(val uri: Uri = Uri.EMPTY, val documentId: String, val dis
             DocumentsContract.Document.COLUMN_SIZE,
             DocumentsContract.Document.COLUMN_LAST_MODIFIED,
         )
-
-        fun prepare(cursor: Cursor): ScannedFile? = prepare(cursor, Indices.from(cursor))
-
-        fun prepare(cursor: Cursor, indices: Indices): ScannedFile? {
-            try {
-                return ScannedFile(
-                    documentId = cursor.getString(indices.id),
-                    displayName = cursor.getString(indices.name),
-                    mimeType = cursor.getString(indices.mime),
-                    size = cursor.getLong(indices.size),
-                    lastModified = cursor.getLong(indices.modified),
-                )
-            } catch (e: Exception) {
-                logger.error("Unable to iterate over current cursor!", e)
-                return null
-            }
-        }
     }
 
     override fun equals(other: Any?): Boolean {
