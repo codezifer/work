@@ -130,13 +130,10 @@ dependencies {
     // core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.palette)
     implementation(libs.androidx.activity)
-    implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout)
-    implementation(libs.androidx.media)
     implementation(libs.androidx.media.session)
     implementation(libs.androidx.work.runtime)
 
@@ -162,7 +159,6 @@ dependencies {
     // room
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.paging)
     implementation(libs.kotlinx.serialization.json)
     ksp(libs.androidx.room.compiler)
     androidTestImplementation(libs.androidx.room.testing)
@@ -180,13 +176,6 @@ dependencies {
     // okhttp
     implementation(libs.okhttp)
 
-    // paging
-    implementation(libs.androidx.paging)
-    implementation(libs.androidx.paging.compose)
-
-    // permissions
-    implementation(libs.permissions)
-
     // testing
     testImplementation(composeBomPlatform)
     testImplementation(libs.junit)
@@ -203,7 +192,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit.ktx)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.test.assertj)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.koin.test)

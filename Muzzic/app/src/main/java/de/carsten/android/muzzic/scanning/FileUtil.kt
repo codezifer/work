@@ -71,7 +71,6 @@ object FileUtil {
         val lowerExtensions: Set<String> = supportedFiles.map { it.lowercase() }.toSet()
 
         traverseSafTree(context, uri, ScannedFile.PROJECTION) { cursor, dirStack ->
-
             while (cursor.moveToNext()) {
                 val mimeType = cursor.getString(ScannedFile.MIME_TYPE_IDX)
                 if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
@@ -121,8 +120,8 @@ object FileUtil {
     suspend fun countFiles(context: Context, uri: Uri?, supportedFiles: Set<String>): Int = withContext(Dispatchers.IO) {
         if (uri == null) return@withContext 0
         var count = 0
-        val lowerExtensions: Set<String> = supportedFiles.map { it.lowercase() }.toSet()
-        val projection: Array<String> = arrayOf(
+        val lowerExtensions = supportedFiles.map { it.lowercase() }.toSet()
+        val projection = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
             DocumentsContract.Document.COLUMN_MIME_TYPE,

@@ -2,8 +2,6 @@ package de.carsten.android.muzzic.scanning
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import android.net.Uri
-import android.provider.DocumentsContract
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
@@ -24,9 +22,14 @@ import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.utils.GenreUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
 /**
@@ -45,13 +48,6 @@ class MusicFileScanner(
 ) : FileScanner {
 
     companion object {
-        private val PROJECTION = arrayOf(
-            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-            DocumentsContract.Document.COLUMN_MIME_TYPE,
-            DocumentsContract.Document.COLUMN_SIZE,
-            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-        )
         const val SCANNER_ID = "MusicFileScanner"
         private val logger = logger()
     }
@@ -59,55 +55,64 @@ class MusicFileScanner(
     override val scannerId: String = SCANNER_ID
     override val notificationTitleRes: Int = R.string.scan_notification_title
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun scan(onProgress: ((String, Int) -> Unit)?) = coroutineScope {
         try {
             logger.info("Start to scan for music files...")
             onProgress?.invoke(context.getString(R.string.scan_status_scanning), 0)
 
-            val configuredDir: Uri? = appSettingsRepository.getMusicDirectory()?.toUri()
-            val currentFilePaths: List<String> = withContext(Dispatchers.IO) {
-                songDao.getAllSongFilePaths().first()
+            val configuredDir = appSettingsRepository.getMusicDirectory()?.toUri()
+            val currentFilePaths = withContext(Dispatchers.IO) {
+                songDao.getAllSongFilePaths().first().toHashSet()
             }
-            val supportedFiles: Set<String> = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
-
-            val countedFiles: Int = FileUtil.countFiles(context, configuredDir, supportedFiles)
-            val existingFilePaths: MutableSet<String> = mutableSetOf()
+            val supportedFiles = AppConfig.Scanning.SUPPORTED_MUSIC_FILES
+            val countedFiles = FileUtil.countFiles(context, configuredDir, supportedFiles)
+            val existingFilePaths = mutableSetOf<String>()
             var processedFiles = 0
             var scannedFilesCount = 0
 
             // Streaming pass: collect paths that still exist on disk (needed for cleanup) and
             // parse new files chunk-wise while the directory walk continues, so the
             // library is populated incrementally instead of all at once. Single pass avoids duplicate folder traversal.
-            scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
-                this@coroutineScope.ensureActive()
-                scannedFilesCount += scannedFiles.size
-                scannedFiles.forEach { existingFilePaths.add(it.uri.toString()) }
-                val newFiles: Set<ScannedFile> = scannedFiles.filter { it.uri.toString() !in currentFilePaths }.toSet()
-                if (newFiles.isNotEmpty()) {
-                    processChunk(newFiles)
-                    processedFiles += newFiles.size
+            scanForFiles(context, configuredDir, supportedFiles)
+                .onEach { chunk ->
+                    this@coroutineScope.ensureActive()
+                    scannedFilesCount += chunk.size
+                    existingFilePaths.addAll(chunk.map { it.uri.toString() })
+                    val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+                    val progressMessage: String = if (progress > 0) {
+                        context.getString(R.string.scan_status_metadata, progress)
+                    } else {
+                        context.getString(R.string.scan_status_metadata2)
+                    }
+                    onProgress?.invoke(progressMessage, progress)
                 }
-                val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-                val progressMessage: String = if (progress > 0) {
-                    context.getString(R.string.scan_status_metadata, progress)
-                } else {
-                    context.getString(R.string.scan_status_metadata2)
+                .flatMapMerge(concurrency = AppConfig.Scanning.PARALLELISM) { chunk ->
+                    flow {
+                        val fresh = chunk.filter { it.uri.toString() !in currentFilePaths }
+                        if (fresh.isNotEmpty()) emit(fresh.map { extractSongMetadata(it) })
+                    }.flowOn(Dispatchers.IO)
                 }
-                onProgress?.invoke(progressMessage, progress)
-            }
+                .collect { songs ->
+                    if (songs.isNotEmpty()) {
+                        processChunk(songs)
+                        processedFiles += songs.size
+                    }
+                    val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+                    onProgress?.invoke(progressMessage(context, progress), progress)
+                }
 
             if (processedFiles > 0) {
                 logger.debug("... processedFiles = $processedFiles ...")
                 updateAutomaticPlaylists()
             }
 
-            val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-            val finalProgressMessage: String = context.getString(R.string.scan_status_metadata, progress)
-            onProgress?.invoke(finalProgressMessage, progress)
+            val progress = reportScanProgress(scannedFilesCount, countedFiles, "", null)
+            onProgress?.invoke(progressMessage(context, progress), progress)
             ensureActive()
 
             // Clean up songs that no longer exist on disk, BUT keep mock songs and remote URLs
-            val missingSongs: List<String> = currentFilePaths.filter { songFilePath ->
+            val missingSongs = currentFilePaths.filter { songFilePath ->
                 !songFilePath.startsWith("content://mock") &&
                     !songFilePath.startsWith("http://") &&
                     !songFilePath.startsWith("https://") &&
@@ -124,11 +129,14 @@ class MusicFileScanner(
         }
     }
 
-    private suspend fun processChunk(chunk: Set<ScannedFile>) = withContext(Dispatchers.IO) {
-        val songs: List<Song> = chunk.map { file ->
-            extractSongMetadata(file).copy(documentId = file.documentId)
-        }
-        songDao.upsertSongs(songs)
+    private fun progressMessage(context: Context, progress: Int): String = if (progress > 0) {
+        context.getString(R.string.scan_status_metadata, progress)
+    } else {
+        context.getString(R.string.scan_status_metadata2)
+    }
+
+    private suspend fun processChunk(chunk: List<Song>) = withContext(Dispatchers.IO) {
+        songDao.upsertSongs(chunk)
     }
 
     /**

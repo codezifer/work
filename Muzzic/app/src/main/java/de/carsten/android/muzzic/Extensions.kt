@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 private const val TAG = "EXTENSIONS"
 
@@ -128,4 +130,10 @@ fun String?.inferMimeType(): String? {
         "mp4", "m4a" -> "audio/mp4"
         else -> null
     }
+}
+
+@OptIn(ExperimentalContracts::class)
+fun Any?.isPresent(): Boolean {
+    contract { returns(true) implies (this@isPresent != null) }
+    return this != null
 }

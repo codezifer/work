@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.persistence.dao
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -25,9 +24,6 @@ interface SongDao {
 
     @Query("SELECT DISTINCT s.documentId FROM songs s ORDER BY s.createdAt DESC")
     fun getAllDocumentIds(): Flow<List<String>>
-
-    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
-    fun getAllSongsPagingSource(): PagingSource<Int, Song>
 
     @Query("SELECT DISTINCT UPPER(SUBSTR(title, 1, 1)) FROM songs ORDER BY 1")
     suspend fun getSongAlphabet(): List<String>

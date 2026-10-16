@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.scanning
 
 import android.content.Context
-import android.net.Uri
 import androidx.core.net.toUri
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
@@ -62,7 +61,7 @@ class PlaylistFileScanner(
 
                     // Also try resolving SAF content URI to real absolute path
                     try {
-                        val resolvedFsPath = FileUtil.getFilePathFromUri(context, Uri.parse(filePath))
+                        val resolvedFsPath = FileUtil.getFilePathFromUri(context, filePath.toUri())
                         if (resolvedFsPath != null) {
                             pathToSong[resolvedFsPath] = song
                         }
