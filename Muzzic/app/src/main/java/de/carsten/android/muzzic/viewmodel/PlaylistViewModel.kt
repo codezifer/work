@@ -6,13 +6,13 @@ import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import kotlinx.coroutines.launch
 
-class PlaylistViewModel(val repository: PlaylistRepository, val playingQueueRepository: PlayingQueueRepository) : ViewModel() {
+class PlaylistViewModel(val playlistRepository: PlaylistRepository, val playingQueueRepository: PlayingQueueRepository) : ViewModel() {
 
     fun persistCurrentQueueAsPlaylist(name: String) {
         viewModelScope.launch {
             val queued = playingQueueRepository.getCompleteQueue()
             playingQueueRepository.persistQueue(queued)
-            repository.createPlaylistFromSongs(name, queued)
+            playlistRepository.createPlaylistFromSongs(name, queued)
         }
     }
 }

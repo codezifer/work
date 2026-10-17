@@ -37,4 +37,5 @@ object MediaKeys {
     const val CREATED_AT = "createdAt"
     const val UPDATED_AT = "updatedAt"
     const val QUEUE_POSITION = "queuePosition"
+    const val ENQUEUED = "enqueued"
 }

@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "playlist_songs",
+    tableName = PlaylistSong.TABLE_NAME,
     primaryKeys = ["playlistId", "songId"],
     foreignKeys = [
         ForeignKey(
@@ -26,4 +26,8 @@ import androidx.room.Index
         Index("songId"),
     ],
 )
-data class PlaylistSong(val playlistId: String, val songId: String, val position: Int = 0) : AbstractTimestampEntity()
+data class PlaylistSong(val playlistId: String, val songId: String, val position: Int = 0) : AbstractTimestampEntity() {
+    companion object {
+        const val TABLE_NAME = "playlist_songs"
+    }
+}

@@ -164,7 +164,8 @@ class MusicFileScanner(
                     mimeType = art.mimeType,
                 ).get()
             }
-            Song.fromId3(filePath, metadata, albumArt, duration)
+
+            Song.fromId3(filePath, metadata, albumArt, duration).copy(documentId = file.documentId)
         } catch (e: Exception) {
             logger.error("Failed to extract metadata for $filePath", e)
             fallbackSong(filePath)

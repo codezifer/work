@@ -22,7 +22,7 @@ class AlbumRepository(val albumDao: AlbumDao) {
     fun getAlbumsByArtist(artistName: String): Flow<List<AlbumDto>> = albumDao.getAlbumsByArtist(artistName).map { it.toDto() }
 
     fun getSongsByAlbum(artistName: String, albumName: String): Flow<List<SongDto>> =
-        albumDao.getSongsByAlbum(albumName, artistName).map { list -> list.map { song -> song.toDto() } }
+        albumDao.getSongsByAlbum(albumName, artistName).map { list -> list.mapIndexed { index, song -> song.toDto(index) } }
 
     suspend fun searchAlbums(query: String): List<AlbumDto> = albumDao.searchAlbums(query).toDto()
 }

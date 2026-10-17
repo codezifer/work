@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 open class PlayingQueueViewModel(
-    private val repository: PlayingQueueRepository,
+    private val playingQueueRepository: PlayingQueueRepository,
     private val playlistRepository: PlaylistRepository,
     private val mediaLibraryManager: MediaLibraryManager,
 ) : ViewModel(),
@@ -52,7 +52,7 @@ open class PlayingQueueViewModel(
 
     open fun setupQueueObservation() {
         viewModelScope.launch {
-            repository.observePlayingQueue().collect { queue ->
+            playingQueueRepository.observePlayingQueue().collect { queue ->
                 _uiState.update { it.copy(queue = queue) }
             }
         }
@@ -140,32 +140,32 @@ open class PlayingQueueViewModel(
 
         // Update persistence
         viewModelScope.launch {
-            repository.persistQueue(playlist.map { it.toMediaItem() })
+            playingQueueRepository.persistQueue(playlist.map { it.toMediaItem() })
         }
     }
 
     fun clear() {
         mediaLibraryManager.clearPlaylist()
         viewModelScope.launch {
-            repository.clear()
+            playingQueueRepository.clear()
         }
     }
 
     fun savePlayingQueue(mediaItems: List<MediaItem>) {
         viewModelScope.launch {
-            repository.addSongs(mediaItems)
+            playingQueueRepository.addSongs(mediaItems)
         }
     }
 
     fun removeSongs(mediaItems: List<MediaItem>) {
         viewModelScope.launch {
-            repository.removeSongs(mediaItems)
+            playingQueueRepository.removeSongs(mediaItems)
         }
     }
 
     fun persistCurrentQueue() {
         viewModelScope.launch {
-            repository.persistQueue(repository.getCompleteQueue())
+            playingQueueRepository.persistQueue(playingQueueRepository.getCompleteQueue())
         }
     }
 
@@ -199,7 +199,7 @@ open class PlayingQueueViewModel(
 
         // Update persistence
         viewModelScope.launch {
-            repository.persistQueue(mediaItems)
+            playingQueueRepository.persistQueue(mediaItems)
         }
     }
 }

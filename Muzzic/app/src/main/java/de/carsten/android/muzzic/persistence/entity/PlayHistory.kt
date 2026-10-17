@@ -11,7 +11,7 @@ import androidx.room.Index
  * @property playedAt The timestamp (epoch millis) of the playback.
  */
 @Entity(
-    tableName = "play_history",
+    tableName = PlayHistory.TABLE_NAME,
     foreignKeys = [
         ForeignKey(
             entity = Song::class,
@@ -25,4 +25,8 @@ import androidx.room.Index
         Index("playedAt"),
     ],
 )
-data class PlayHistory(val songId: String, val playedAt: Long = System.currentTimeMillis()) : AbstractEntity()
+data class PlayHistory(val songId: String, val playedAt: Long = System.currentTimeMillis()) : AbstractEntity() {
+    companion object {
+        const val TABLE_NAME = "play_history"
+    }
+}

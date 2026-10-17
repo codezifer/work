@@ -80,15 +80,22 @@ object FileUtil {
                     val ext = displayName.substringAfterLast('.', "").lowercase()
                     if (ext in lowerExtensions) {
                         val documentId = cursor.getString(ScannedFile.DOCUMENT_ID_IDX)
+                        val documentUri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId)
+                        val fileSize = cursor.getLong(ScannedFile.SIZE_IDX)
                         val scannedFile = try {
-                            ScannedFile(
-                                uri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId),
-                                documentId = documentId,
-                                displayName = displayName,
-                                mimeType = mimeType,
-                                size = cursor.getLong(ScannedFile.SIZE_IDX),
-                                lastModified = cursor.getLong(ScannedFile.LAST_MODIFIED_IDX),
-                            )
+                            if (fileSize <= 0L) {
+                                logger.warning("... File $documentUri has an invalid file size $fileSize, gets skipped ...")
+                                null
+                            } else {
+                                ScannedFile(
+                                    uri = documentUri,
+                                    documentId = documentId,
+                                    displayName = displayName,
+                                    mimeType = mimeType,
+                                    size = fileSize,
+                                    lastModified = cursor.getLong(ScannedFile.LAST_MODIFIED_IDX),
+                                )
+                            }
                         } catch (e: Exception) {
                             logger.error("An error occurred while scanning documentId $documentId ...", e)
                             null

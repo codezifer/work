@@ -40,7 +40,7 @@ class MusicRepository(
 
     fun getAllSongs(): Flow<List<SongDto>> = songDao.getAllSongs()
         .distinctUntilChanged()
-        .map { list -> list.map { song -> song.toDto() } }
+        .map { list -> list.mapIndexed { index, song -> song.toDto(index) } }
 
     fun scanMusicLibrary() {
         musicFileScanner.enqueue(context)

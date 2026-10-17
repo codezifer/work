@@ -29,7 +29,7 @@ class ArtistRepository(val artistDao: ArtistDao, val genreDao: GenreDao) {
      * @param artistName The name of the artist.
      * @return A [List] of [SongDto]
      */
-    suspend fun getSongsByArtist(artistName: String): List<SongDto> = artistDao.getSongsByArtist(artistName).map { song -> song.toDto() }
+    suspend fun getSongsByArtist(artistName: String): List<SongDto> = artistDao.getSongsByArtist(artistName).mapIndexed { index, song -> song.toDto(index) }
 
     /**
      * Search a single artist by query from a list of artist names (SQL like search)

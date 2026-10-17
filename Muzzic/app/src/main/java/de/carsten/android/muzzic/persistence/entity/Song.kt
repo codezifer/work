@@ -21,7 +21,7 @@ import de.carsten.android.muzzic.ui.utils.getStarRating
 import java.time.Instant
 
 @Entity(
-    tableName = "songs",
+    tableName = Song.TABLE_NAME,
     indices = [
         Index("updatedAt"),
         Index("artist", "albumYear", "album", "trackNumber", "title"),
@@ -65,6 +65,8 @@ data class Song(
     }
 
     companion object {
+        const val TABLE_NAME = "songs"
+
         /**
          * Creates a [Song] from parsed [Id3Metadata].
          *
@@ -126,8 +128,11 @@ data class Song(
 
     /**
      * Maps the current [Song] to a [SongDto]
+     *
+     * @param index queue position as [Int]
+     * @return [SongDto]
      */
-    fun toDto(): SongDto = SongDto(
+    fun toDto(index: Int = 0): SongDto = SongDto(
         id = id,
         title = title,
         trackNumber = trackNumber,
@@ -143,6 +148,7 @@ data class Song(
         albumArt = albumArt ?: UNKNOWN,
         createdAt = createdAt ?: Instant.EPOCH,
         updatedAt = updatedAt ?: Instant.EPOCH,
+        queuePosition = index,
     )
 
     fun toMediaItem(index: Int? = null): MediaItem = MediaItem
@@ -171,7 +177,7 @@ data class Song(
         ).build()
 
     private fun getExtras(index: Int?) = Bundle().apply {
-        putString("songId", id)
+        putString(MediaKeys.SONG_ID, id)
         putInt(MediaKeys.PLAY_COUNT, playCount)
         putInt(MediaKeys.QUEUE_POSITION, index ?: -1)
         putLong(MediaKeys.LAST_PLAYED, lastPlayed.toEpochMilli())

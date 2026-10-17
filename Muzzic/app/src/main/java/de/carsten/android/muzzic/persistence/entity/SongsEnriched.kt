@@ -16,7 +16,7 @@ import androidx.room.Embedded
  * the Kotlin properties stay camelCase.
  */
 @DatabaseView(
-    viewName = "songs_enriched",
+    viewName = SongsEnriched.VIEW_NAME,
     value = """
     SELECT s.*,
         LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalized_genre,
@@ -29,4 +29,8 @@ import androidx.room.Embedded
     FROM songs s
     """,
 )
-data class SongsEnriched(@Embedded val song: Song, @ColumnInfo(name = "normalized_genre") val normalizedGenre: String, @ColumnInfo(name = "sort_artist") val sortArtist: String)
+data class SongsEnriched(@Embedded val song: Song, @ColumnInfo(name = "normalized_genre") val normalizedGenre: String, @ColumnInfo(name = "sort_artist") val sortArtist: String) {
+    companion object {
+        const val VIEW_NAME = "songs_enriched"
+    }
+}

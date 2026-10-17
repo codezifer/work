@@ -11,10 +11,14 @@ import androidx.room.PrimaryKey
  * @property value The string representation of the setting's value.
  * @property type The type of the value (e.g., "STRING", "INT", "BOOLEAN") for proper conversion.
  */
-@Entity(tableName = "generic_settings")
+@Entity(tableName = GenericSetting.TABLE_NAME)
 data class GenericSetting(
     @PrimaryKey
     val settingName: String,
     val value: String,
     val type: String = "STRING",
-) : AbstractEntity()
+) : AbstractEntity() {
+    companion object {
+        const val TABLE_NAME = "generic_settings"
+    }
+}

@@ -17,11 +17,11 @@ class PlaylistRepository(val playlistDao: PlaylistDao) {
 
     suspend fun searchPlaylists(query: String): List<Playlist> = playlistDao.searchPlaylists(query)
 
-    suspend fun getSongsInPlaylist(playlistId: String): List<SongDto> = playlistDao.getSongsInPlaylist(playlistId).map { song -> song.toDto() }
+    suspend fun getSongsInPlaylist(playlistId: String): List<SongDto> = playlistDao.getSongsInPlaylist(playlistId).mapIndexed { index, song -> song.toDto(index) }
 
     suspend fun deletePlaylist(playlistId: String): Unit = playlistDao.deletePlaylist(playlistId)
 
-    suspend fun getSongsByPlaylist(playlistName: String): List<SongDto> = playlistDao.getSongsByPlaylist(playlistName).map { song -> song.toDto() }
+    suspend fun getSongsByPlaylist(playlistName: String): List<SongDto> = playlistDao.getSongsByPlaylist(playlistName).mapIndexed { index, song -> song.toDto(index) }
 
     suspend fun createPlaylistFromSongs(name: String, songs: List<MediaItem>) {
         val playlistId = mediaId(name).toString()

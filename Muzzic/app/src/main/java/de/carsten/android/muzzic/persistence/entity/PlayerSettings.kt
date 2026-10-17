@@ -6,13 +6,14 @@ import androidx.room.Entity
 /**
  * Entity representing the player settings like shuffle and repeat mode.
  */
-@Entity(tableName = "player_settings")
+@Entity(tableName = PlayerSettings.TABLE_NAME)
 data class PlayerSettings(val shuffleEnabled: Boolean = false, val repeatMode: Int = Player.REPEAT_MODE_OFF) : AbstractEntity() {
-    init {
-        id = SETTINGS_ID
+    companion object {
+        const val TABLE_NAME = "player_settings"
+        const val SETTINGS_ID = "singleton_settings"
     }
 
-    companion object {
-        const val SETTINGS_ID = "singleton_settings"
+    init {
+        id = SETTINGS_ID
     }
 }

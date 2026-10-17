@@ -26,9 +26,10 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
 
     suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<MediaItem> {
         val entities =
-            mediaItems.map { item ->
+            mediaItems.mapIndexed { index, item ->
                 PlayingQueue.fromMediaItem(item).apply {
                     this.enqueued = enqueued
+                    this.queuePosition = index
                 }
             }
         playingQueueDao.addSongs(entities)

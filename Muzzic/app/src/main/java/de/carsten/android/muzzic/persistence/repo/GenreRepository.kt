@@ -22,7 +22,7 @@ class GenreRepository(val genreDao: GenreDao) {
     suspend fun getSongsByGenre(genre: String): List<SongDto> {
         val variants = getGenreVariants(genre)
         if (variants.isEmpty()) return emptyList()
-        return genreDao.getSongsByGenres(variants).map { song -> song.toDto() }
+        return genreDao.getSongsByGenres(variants).mapIndexed { index, song -> song.toDto(index) }
     }
 
     /**

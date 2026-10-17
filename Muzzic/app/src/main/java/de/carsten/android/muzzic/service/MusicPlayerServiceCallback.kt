@@ -24,7 +24,6 @@ import de.carsten.android.muzzic.model.MediaKeys.PLAYLIST_PREFIX
 import de.carsten.android.muzzic.model.MediaKeys.ROOT_ID
 import de.carsten.android.muzzic.model.MediaKeys.SONGS_ID
 import de.carsten.android.muzzic.model.MediaKeys.SONGS_PREFIX
-import de.carsten.android.muzzic.persistence.entity.toMediaItem
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.GenreRepository
