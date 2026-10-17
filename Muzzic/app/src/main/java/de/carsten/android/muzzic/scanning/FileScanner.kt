@@ -6,6 +6,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import de.carsten.android.muzzic.AppConfig
@@ -69,6 +70,11 @@ interface FileScanner {
     /**
      * Enqueues a scan task using [WorkManager].
      *
+     * The work is requested as expedited so it starts as soon as possible: WorkManager
+     * promotes it to a foreground service immediately, which makes [ScannerWorker] post
+     * its scan notification right after the request instead of waiting for the OS to
+     * schedule a regular job. A pending or running scan is kept (see [ExistingWorkPolicy.KEEP]).
+     *
      * @param context Android context to access WorkManager.
      */
     fun enqueue(context: Context) {
@@ -77,9 +83,9 @@ interface FileScanner {
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                    .setRequiresBatteryNotLow(true)
                     .build(),
             )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .addTag(scannerId)
             .build()
 

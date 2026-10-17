@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.persistence
 
 import androidx.room.testing.MigrationTestHelper
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.carsten.android.muzzic.persistence.migrations.Migrations
@@ -198,6 +199,67 @@ class MigrationTest {
         songCursor.moveToFirst()
         assertThat(songCursor.getString(songCursor.getColumnIndex("documentId"))).isEqualTo("Unknown")
         songCursor.close()
+
+        // Validation: the ratings default now matches the entity (128, not the legacy 3).
+        assertThat(columnDefault(db, "songs", "rating"))
+            .describedAs("rating default should be the WMP default")
+            .isEqualTo("128")
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate8To9() {
+        val testDbName = "migration-test-8to9"
+        var db = helper.createDatabase(testDbName, 8)
+
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'Artist', 'Album', 'Genre', 3, 1000)",
+        )
+        // Queue entry referencing the song; it must survive the `songs` rebuild.
+        db.execSQL(
+            "INSERT INTO playing_queue (songId, enqueued, queuePosition, id, createdAt, updatedAt) " +
+                "VALUES ('s1', 1, 0, 's1', 1000, 1000)",
+        )
+        db.close()
+
+        db = helper.runMigrationsAndValidate(testDbName, 9, true, *Migrations.supply())
+
+        // Validation 1: row data is preserved.
+        val songCursor = db.query("SELECT title FROM songs WHERE id = 's1'")
+        assertThat(songCursor.count).describedAs("Song data should be preserved").isEqualTo(1)
+        songCursor.close()
+
+        // Validation 2: the queue entry is untouched even though its parent was rebuilt.
+        val queueCursor = db.query("SELECT songId FROM playing_queue WHERE id = 's1'")
+        assertThat(queueCursor.count).describedAs("Queue entry should survive the songs rebuild").isEqualTo(1)
+        queueCursor.close()
+
+        // Validation 3: the rating default matches the entity.
+        assertThat(columnDefault(db, "songs", "rating"))
+            .describedAs("rating default should be the WMP default")
+            .isEqualTo("128")
+    }
+
+    /**
+     * Reads the declared default value of [column] in [table].
+     *
+     * @param db open database to inspect.
+     * @param table table name.
+     * @param column column name.
+     * @return the raw `dflt_value` as reported by `PRAGMA table_info`, or `null`.
+     */
+    private fun columnDefault(db: SupportSQLiteDatabase, table: String, column: String): String? {
+        db.query("PRAGMA table_info(`$table`)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val defaultIndex = cursor.getColumnIndex("dflt_value")
+            while (cursor.moveToNext()) {
+                if (cursor.getString(nameIndex) == column) {
+                    return cursor.getString(defaultIndex)
+                }
+            }
+        }
+        return null
     }
 
     @Test
