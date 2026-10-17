@@ -43,6 +43,7 @@ extensions.configure<ApplicationExtension> {
     }
 
     testOptions {
+        unitTests.isReturnDefaultValues = true
         unitTests.all {
             it.jvmArgs(
                 "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",

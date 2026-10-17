@@ -1,23 +1,16 @@
 package de.carsten.android.muzzic.persistence.entity
 
-import android.os.Bundle
-import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.UNKNOWN_ALBUM
 import de.carsten.android.muzzic.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.UNKNOWN_GENRE
 import de.carsten.android.muzzic.id3.model.Id3Metadata
-import de.carsten.android.muzzic.inferMimeType
-import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.songId
-import de.carsten.android.muzzic.toPlayableUri
 import de.carsten.android.muzzic.ui.model.SongDto
-import de.carsten.android.muzzic.ui.utils.getStarRating
 import java.time.Instant
 
 @Entity(
@@ -50,8 +43,8 @@ data class Song(
     val albumArt: String? = null,
     @ColumnInfo(defaultValue = "-1")
     val albumYear: Int = -1,
-    @ColumnInfo(defaultValue = "3")
-    val rating: Int = 0, // 0-5 stars
+    @ColumnInfo(defaultValue = "${AppConfig.Persistence.DEFAULT_WMP_RATING}")
+    val rating: Int = AppConfig.Persistence.DEFAULT_WMP_RATING, // WMP-Rating 0-255 -> 0-5 stars
     @ColumnInfo(defaultValue = "0")
     val playCount: Int = 0,
     @ColumnInfo(defaultValue = "0")
@@ -150,38 +143,4 @@ data class Song(
         updatedAt = updatedAt ?: Instant.EPOCH,
         queuePosition = index,
     )
-
-    fun toMediaItem(index: Int? = null): MediaItem = MediaItem
-        .Builder()
-        .setMediaId(this.id)
-        .setUri(this.filePath.toPlayableUri())
-        .setMimeType(this.filePath.inferMimeType())
-        .setMediaMetadata(
-            MediaMetadata
-                .Builder()
-                .setTitle(this.title)
-                .setTrackNumber(this.trackNumber)
-                .setTotalTrackCount(this.totalTracks)
-                .setArtist(this.artist)
-                .setAlbumTitle(this.album)
-                .setReleaseYear(this.albumYear)
-                .setAlbumArtist(this.artist)
-                .setArtworkUri(this.albumArt?.toUri())
-                .setGenre(this.genre)
-                .setDurationMs(this.duration)
-                .setUserRating(getStarRating(this.rating))
-                .setIsPlayable(true)
-                .setIsBrowsable(false)
-                .setExtras(getExtras(index))
-                .build(),
-        ).build()
-
-    private fun getExtras(index: Int?) = Bundle().apply {
-        putString(MediaKeys.SONG_ID, id)
-        putInt(MediaKeys.PLAY_COUNT, playCount)
-        putInt(MediaKeys.QUEUE_POSITION, index ?: -1)
-        putLong(MediaKeys.LAST_PLAYED, lastPlayed.toEpochMilli())
-        putLong(MediaKeys.CREATED_AT, createdAt?.toEpochMilli() ?: Instant.EPOCH.toEpochMilli())
-        putLong(MediaKeys.UPDATED_AT, updatedAt?.toEpochMilli() ?: Instant.EPOCH.toEpochMilli())
-    }
 }

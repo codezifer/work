@@ -12,38 +12,50 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.media3.common.Player
 import de.carsten.android.muzzic.AppConfig
+import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.UI_EMPTY
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.FONT_SIZE_LARGE_TITLE
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
+import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.component.IndicatorSlider
+import de.carsten.android.muzzic.ui.component.RatingDialog
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.PlayerControls
 import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
+import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreenContext(
     modifier: Modifier = Modifier,
@@ -64,14 +76,17 @@ fun PlayerScreenContext(
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
     colorSource: ColorSource = composableColorSource(),
+    ratingStars: Float = 0f,
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
     onProgressChanged: (Float) -> Unit = {}, // Callback for when user scrubs the progress bar
     onToggleShuffle: () -> Unit = {},
     onToggleRepeat: () -> Unit = {},
+    onRatingChanged: (Float) -> Unit = {},
 ) {
     val textColor = MaterialTheme.colorScheme.onSurface
+    var showRatingDialog by remember { mutableStateOf(false) }
 
     // We don't need local scrubbing state anymore as IndicatorSlider handles it
     // But we need it for the duration text below the slider if we want those to update too
@@ -134,6 +149,15 @@ fun PlayerScreenContext(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            // Opens the rating popup for the currently playing song.
+            IconButton(onClick = { showRatingDialog = true }) {
+                Icon(
+                    imageVector = if (ratingStars > 0f) Icons.Filled.Star else Icons.Filled.StarBorder,
+                    contentDescription = stringResource(R.string.rate_song),
+                    tint = if (ratingStars > 0f) CustomColors.starColor else textColor.copy(alpha = 0.7f),
+                    modifier = Modifier.size(ICON_SIZE_MEDIUM),
+                )
+            }
         }
 
         // Progress Bar
@@ -197,6 +221,14 @@ fun PlayerScreenContext(
 
         // volume
         VolumeControl(accentColor = colorSource.accentColor)
+    }
+
+    if (showRatingDialog) {
+        RatingDialog(
+            rating = ratingStars,
+            onRatingChanged = onRatingChanged,
+            onDismiss = { showRatingDialog = false },
+        )
     }
 }
 

@@ -133,6 +133,11 @@ val ICON_SIZE_CONTROL_SMALL = 32.dp
 val ICON_SIZE_FAST_SCROLL_THUMB = 50.dp
 
 /**
+ * Star Rating Tokens
+ */
+val STAR_RATING_ICON_SPACING = 2.dp
+
+/**
  * FastScroller Tokens
  */
 const val FAST_SCROLL_HIDE_DELAY_MS = 2000L

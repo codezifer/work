@@ -1,19 +1,19 @@
 package de.carsten.android.muzzic.persistence.entity
 
-import android.os.Bundle
-import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import de.carsten.android.muzzic.EMPTY
-import de.carsten.android.muzzic.UNKNOWN
-import de.carsten.android.muzzic.inferMimeType
 import de.carsten.android.muzzic.model.MediaKeys
-import de.carsten.android.muzzic.toPlayableUri
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 
+/**
+ * Persisted playback queue entry.
+ *
+ * Mirrors the columns needed to restore a playable [MediaItem] after a process
+ * restart. Song-level values such as the rating are not stored here; they are
+ * resolved at read time by joining against `songs`
+ * (see `PlayingQueueSongAggregation`).
+ */
 @Entity(
     tableName = PlayingQueue.TABLE_NAME,
     foreignKeys = [
@@ -46,6 +46,15 @@ data class PlayingQueue(
     companion object {
         const val TABLE_NAME = "playing_queue"
 
+        /**
+         * Creates a [PlayingQueue] entry from a [MediaItem].
+         *
+         * Queue position, enqueued flag and song id are read from the media item's
+         * extras; a non-blank media id becomes the entity id.
+         *
+         * @param mediaItem the item being persisted.
+         * @return the mapped queue entry.
+         */
         fun fromMediaItem(mediaItem: MediaItem) = PlayingQueue(
             title = mediaItem.mediaMetadata.title?.toString(),
             trackNumber = mediaItem.mediaMetadata.trackNumber,
@@ -59,9 +68,9 @@ data class PlayingQueue(
             filePath = mediaItem.localConfiguration?.uri?.toString(),
             enqueued = mediaItem.mediaMetadata.extras?.getBoolean(MediaKeys.ENQUEUED),
             songId =
-            mediaItem.mediaMetadata.extras?.getString(MediaKeys.SONG_ID).let {
-                if (it.isNullOrBlank()) null else it
-            },
+                mediaItem.mediaMetadata.extras?.getString(MediaKeys.SONG_ID).let {
+                    if (it.isNullOrBlank()) null else it
+                },
             queuePosition = mediaItem.mediaMetadata.extras?.getInt(MediaKeys.QUEUE_POSITION) ?: 0,
         ).apply {
             if (mediaItem.mediaId.isNotBlank()) {
@@ -70,51 +79,4 @@ data class PlayingQueue(
         }
     }
 
-    fun toMediaItem(): MediaItem = MediaItem
-        .Builder()
-        .setMediaId(id)
-        .setUri(filePath.toPlayableUri())
-        .setMimeType(filePath.inferMimeType())
-        .setMediaMetadata(
-            MediaMetadata
-                .Builder()
-                .setTitle(title)
-                .setTrackNumber(trackNumber)
-                .setTotalTrackCount(totalTracks)
-                .setArtist(artist)
-                .setAlbumTitle(album)
-                .setReleaseYear(albumYear)
-                .setArtworkUri(albumArt?.toUri())
-                .setGenre(genre)
-                .setDurationMs(duration)
-                .setIsPlayable(true)
-                .setIsBrowsable(false)
-                .setExtras(getExtras())
-                .build(),
-        ).build()
-
-    fun toDto() = PlayingQueueDto(
-        title = title ?: UNKNOWN,
-        trackNumber = trackNumber ?: -1,
-        totalTracks = totalTracks ?: -1,
-        artist = artist ?: UNKNOWN,
-        album = album ?: UNKNOWN,
-        albumYear = albumYear ?: -1,
-        albumArt = albumArt ?: UNKNOWN,
-        genre = genre ?: UNKNOWN,
-        duration = duration ?: -1L,
-        filePath = filePath ?: EMPTY,
-        enqueued = enqueued ?: false,
-        queuePosition = queuePosition,
-        songId = songId ?: EMPTY,
-        mediaId = id,
-    )
-
-    private fun getExtras(): Bundle = Bundle().apply {
-        putInt(MediaKeys.QUEUE_POSITION, queuePosition)
-        putBoolean(MediaKeys.ENQUEUED, enqueued ?: false)
-        putString(MediaKeys.SONG_ID, songId ?: "")
-        putLong(MediaKeys.CREATED_AT, createdAt?.toEpochMilli() ?: 0L)
-        putLong(MediaKeys.UPDATED_AT, updatedAt?.toEpochMilli() ?: 0L)
-    }
 }

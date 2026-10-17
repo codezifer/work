@@ -1,6 +1,7 @@
 package de.carsten.android.muzzic.viewmodel
 
 import android.app.Application
+import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaBrowser
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
@@ -10,6 +11,8 @@ import de.carsten.android.muzzic.ui.state.PlayerUiState
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.service.VisualizerSink
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -18,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -34,6 +38,8 @@ class PlayerViewModelTest {
     private val appSettingsRepository: AppSettingsRepository = mockk()
     private val application: Application = mockk()
     private val browser: MediaBrowser = mockk(relaxed = true)
+
+    private val songId = "song-1"
 
     private val browserFlow = MutableStateFlow<MediaBrowser?>(null)
     private val engineFlow = MutableStateFlow(VisualizerEngine.BARS)
@@ -153,5 +159,23 @@ class PlayerViewModelTest {
         viewModel.onPrevClicked()
 
         verify { browser.seekToPreviousMediaItem() }
+    }
+
+    @Test
+    fun `onRatingChanged persists wmp rating and updates current song`() = runTest {
+        every { browser.currentMediaItem } returns MediaItem.Builder().setMediaId(songId).build()
+        coEvery { repository.updateSongRating(any(), any()) } returns Unit
+
+        viewModel.shouldObserveBrowser = true
+        viewModel.setupBrowserObservation()
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.currentSong?.id).isEqualTo(songId)
+
+        viewModel.onRatingChanged(3f)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.currentSong?.rating).isEqualTo(153)
+        coVerify { repository.updateSongRating(songId, 153) }
     }
 }

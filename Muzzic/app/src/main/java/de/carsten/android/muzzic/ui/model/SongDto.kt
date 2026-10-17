@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.StarRating
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.MAX_STARS
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.inferMimeType
@@ -15,6 +16,12 @@ import de.carsten.android.muzzic.ui.utils.getStarRating
 import de.carsten.android.muzzic.ui.utils.getWmpRating
 import java.time.Instant
 
+/**
+ * UI model for a single song.
+ *
+ * [rating] uses the Windows Media Player / ID3 POPM scale `0..255`; it is encoded
+ * as a 0..5 star value when mapped to a [MediaItem].
+ */
 @Immutable
 data class SongDto(
     val id: String = UNKNOWN,
@@ -25,7 +32,7 @@ data class SongDto(
     val albumYear: Int = -1,
     val artist: String = UNKNOWN,
     val duration: Long = 0L,
-    val rating: Int = 128,
+    val rating: Int = AppConfig.Persistence.DEFAULT_WMP_RATING,
     val playCount: Int = 0,
     val lastPlayed: Instant = Instant.EPOCH,
     val genre: String = UNKNOWN,
@@ -38,6 +45,16 @@ data class SongDto(
     Comparable<SongDto> {
 
     companion object {
+        /**
+         * Maps a [MediaItem] back to a [SongDto].
+         *
+         * The rating is read from the media item's user rating (a star rating) and
+         * converted back to the WMP `0..255` scale; a missing user rating counts as
+         * the maximum. Absent metadata falls back to the `UNKNOWN` constants.
+         *
+         * @param mediaItem the media item to map.
+         * @return the mapped song.
+         */
         fun fromMediaItem(mediaItem: MediaItem): SongDto {
             val metadata = mediaItem.mediaMetadata
             return SongDto(
@@ -71,6 +88,13 @@ data class SongDto(
         "%02d".format(trackNumber)
     }
 
+    /**
+     * Maps this song to a playable [MediaItem].
+     *
+     * @param index queue position stored in the extras (default = 0).
+     * @return a playable, non-browsable [MediaItem] whose user rating encodes
+     *   [rating] (WMP `0..255`) as a star rating.
+     */
     fun toMediaItem(index: Int = 0): MediaItem = MediaItem
         .Builder()
         .setMediaId(this.id)
@@ -108,4 +132,20 @@ data class SongDto(
         putLong(MediaKeys.CREATED_AT, createdAt.toEpochMilli())
         putLong(MediaKeys.UPDATED_AT, updatedAt.toEpochMilli())
     }
+
+    fun toPlayingQueueDto() = PlayingQueueDto(
+        title = this.title,
+        trackNumber = this.trackNumber,
+        totalTracks = this.totalTracks,
+        artist = this.artist,
+        album = this.album,
+        albumYear = this.albumYear,
+        albumArt = this.albumArt,
+        genre = this.genre,
+        duration = this.duration,
+        mediaId = this.id,
+        songId = this.id,
+        filePath = this.filePath,
+        queuePosition = this.queuePosition,
+    )
 }

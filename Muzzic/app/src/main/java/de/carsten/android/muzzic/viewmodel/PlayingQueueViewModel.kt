@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnstableApi::class)
 open class PlayingQueueViewModel(
@@ -84,7 +85,7 @@ open class PlayingQueueViewModel(
                     val dur = b.duration.takeIf { it > 0 } ?: 0L
                     _uiState.update { it.copy(currentPosition = pos, duration = dur) }
                 }
-                delay(500)
+                delay(500.milliseconds)
             }
         }
     }
@@ -151,15 +152,9 @@ open class PlayingQueueViewModel(
         }
     }
 
-    fun savePlayingQueue(mediaItems: List<MediaItem>) {
+    fun removeSongs(songIds: List<String>) {
         viewModelScope.launch {
-            playingQueueRepository.addSongs(mediaItems)
-        }
-    }
-
-    fun removeSongs(mediaItems: List<MediaItem>) {
-        viewModelScope.launch {
-            playingQueueRepository.removeSongs(mediaItems)
+            playingQueueRepository.removeSongs(songIds)
         }
     }
 

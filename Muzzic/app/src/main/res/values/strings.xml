@@ -18,6 +18,9 @@
     <string name="no_song_selected">No song selected</string>
     <string name="unknown_artist">Unknown artist</string>
     <string name="unknown_album">Unknown album</string>
+    <string name="rate_song">Rate song</string>
+    <string name="rating_dialog_title">Rate song</string>
+    <string name="rating_value_format">%1$.1f / 5</string>
 
     <!-- Library -->
     <string name="library">Library</string>

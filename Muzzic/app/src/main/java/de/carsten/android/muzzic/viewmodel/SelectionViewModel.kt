@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
@@ -37,7 +36,7 @@ class SelectionViewModel(
      * Tracks songs that were enqueued during the current selection session.
      * This allows for rolling back the enqueue operation if the user cancels.
      */
-    private val recentlyEnqueuedSongs = mutableListOf<MediaItem>()
+    private val recentlyEnqueuedSongIds = mutableListOf<String>()
 
     /**
      * Toggles the selection status of an artist.
@@ -139,7 +138,7 @@ class SelectionViewModel(
      */
     fun clearSelection() {
         _selectionState.value = SelectionState()
-        recentlyEnqueuedSongs.clear()
+        recentlyEnqueuedSongIds.clear()
     }
 
     /**
@@ -148,9 +147,9 @@ class SelectionViewModel(
      */
     fun rollbackEnqueued(onComplete: (String) -> Unit) {
         viewModelScope.launch {
-            if (recentlyEnqueuedSongs.isNotEmpty()) {
-                playingQueueRepository.removeSongs(recentlyEnqueuedSongs.toList())
-                recentlyEnqueuedSongs.clear()
+            if (recentlyEnqueuedSongIds.isNotEmpty()) {
+                playingQueueRepository.removeSongs(recentlyEnqueuedSongIds.toList())
+                recentlyEnqueuedSongIds.clear()
                 onComplete("Queue rollback complete")
             } else {
                 onComplete("Selection cleared")
@@ -171,11 +170,7 @@ class SelectionViewModel(
             val songIds = state.selectedSongs.toList()
 
             if (songIds.isNotEmpty()) {
-                val mediaItemsToRemove =
-                    songIds.map { id ->
-                        MediaItem.Builder().setMediaId(id).build()
-                    }
-                playingQueueRepository.removeSongs(mediaItemsToRemove)
+                playingQueueRepository.removeSongs(songIds)
             }
 
             clearSelection()
@@ -201,7 +196,7 @@ class SelectionViewModel(
             if (songsToEnqueue.isNotEmpty()) {
                 val mediaItems = songsToEnqueue.map { it.toMediaItem() }
                 val addedItems = playingQueueRepository.addSongs(mediaItems, enqueued = false)
-                recentlyEnqueuedSongs.addAll(addedItems)
+                recentlyEnqueuedSongIds.addAll(addedItems.map { it.mediaId }.distinct())
                 toggleEnqueued()
                 onComplete("Added ${songsToEnqueue.size} songs to queue")
             } else {

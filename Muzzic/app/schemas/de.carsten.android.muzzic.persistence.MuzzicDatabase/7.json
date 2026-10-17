@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "4640229a2d614e6cbc48127aecd618ff",
+    "identityHash": "68336e2578d0a4ef9dd33d7bedf6049e",
     "entities": [
       {
         "tableName": "songs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT NOT NULL, `trackNumber` INTEGER NOT NULL DEFAULT 0, `totalTracks` INTEGER NOT NULL DEFAULT 0, `artist` TEXT NOT NULL COLLATE NOCASE, `album` TEXT NOT NULL COLLATE NOCASE, `genre` TEXT NOT NULL COLLATE NOCASE, `duration` INTEGER NOT NULL DEFAULT 0, `filePath` TEXT, `albumArt` TEXT, `albumYear` INTEGER NOT NULL DEFAULT -1, `rating` INTEGER NOT NULL DEFAULT 3, `playCount` INTEGER NOT NULL DEFAULT 0, `lastPlayed` INTEGER NOT NULL DEFAULT 0, `documentId` TEXT NOT NULL COLLATE NOCASE DEFAULT 'Unknown', `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT NOT NULL, `trackNumber` INTEGER NOT NULL DEFAULT 0, `totalTracks` INTEGER NOT NULL DEFAULT 0, `artist` TEXT NOT NULL COLLATE NOCASE, `album` TEXT NOT NULL COLLATE NOCASE, `genre` TEXT NOT NULL COLLATE NOCASE, `duration` INTEGER NOT NULL DEFAULT 0, `filePath` TEXT, `albumArt` TEXT, `albumYear` INTEGER NOT NULL DEFAULT -1, `rating` INTEGER NOT NULL DEFAULT 128, `playCount` INTEGER NOT NULL DEFAULT 0, `lastPlayed` INTEGER NOT NULL DEFAULT 0, `documentId` TEXT NOT NULL COLLATE NOCASE DEFAULT 'Unknown', `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "title",
@@ -75,7 +75,7 @@
             "columnName": "rating",
             "affinity": "INTEGER",
             "notNull": true,
-            "defaultValue": "3"
+            "defaultValue": "128"
           },
           {
             "fieldPath": "playCount",
@@ -633,7 +633,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4640229a2d614e6cbc48127aecd618ff')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68336e2578d0a4ef9dd33d7bedf6049e')"
     ]
   }
 }

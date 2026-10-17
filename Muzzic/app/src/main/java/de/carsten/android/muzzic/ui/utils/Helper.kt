@@ -6,6 +6,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Formats duration (milliseconds) as string format mm:ss"
@@ -70,46 +72,55 @@ fun artistName(artistName: String): String {
 }
 
 /**
- * gets star rating
- *
- * @param rating [Int] wmp9 rating (0..255) integer value
- * @return [StarRating] rating in the range 0f..5f
+ * WMP9 rating anchor values for the eleven 0.5-star steps from 0 to 5 stars.
+ * These are the canonical Windows Media Player values (0 = unrated, 255 = 5 stars);
+ * every value in between is snapped to the nearest anchor.
  */
-fun getStarRating(rating: Int? = 128): StarRating = StarRating(
-    MAX_STARS,
-    when (rating) {
-        0 -> 0f
-        in 1..25 -> 0.5f
-        in 25..51 -> 1.0f
-        in 52..75 -> 1.5f
-        in 76..102 -> 2.0f
-        in 103..128 -> 2.5f
-        in 129..153 -> 3.0f
-        in 154..178 -> 3.5f
-        in 179..204 -> 4.0f
-        in 205..225 -> 4.5f
-        in 226..255 -> 5.0f
-        else -> 2.5f // default rating
-    },
-)
+private val WMP_RATING_ANCHORS = intArrayOf(0, 25, 51, 75, 102, 128, 153, 178, 204, 225, 255)
 
 /**
- * gets wmp rating
- *
- * @param starRating [StarRating] current star / float based rating (0..5f)
- * @return [Int] ]rating in the range of 0..255
+ * Number of half-star steps spanned by the rating (5 stars * 2).
  */
-fun getWmpRating(starRating: StarRating): Int = when (starRating.starRating) {
-    0f -> 0
-    in 0f..0.5f -> 25
-    in 0.6f..1.0f -> 51
-    in 1.1f..1.5f -> 75
-    in 1.6f..2.0f -> 102
-    in 2.1f..2.5f -> 128
-    in 2.6f..3.0f -> 153
-    in 3.1f..3.5f -> 178
-    in 3.6f..4.0f -> 204
-    in 4.1f..4.5f -> 225
-    in 4.6f..5.0f -> 255
-    else -> 128 // default rating
+private const val RATING_HALF_STEPS = 10
+
+/**
+ * Converts a WMP9 rating (0..255) into a star value in the range 0f..5f,
+ * quantized to 0.5 steps.
+ *
+ * @param rating WMP9 rating (0..255) or `null` when unrated.
+ * @return star value in the range 0f..5f, e.g. 2.5f.
+ */
+fun getStars(rating: Int?): Float {
+    val wmpValue = rating ?: 0
+    val nearestIndex = WMP_RATING_ANCHORS.indices.minByOrNull { index ->
+        abs(WMP_RATING_ANCHORS[index] - wmpValue)
+    } ?: 0
+    return nearestIndex / 2f
 }
+
+/**
+ * Gets the Media3 star rating for a WMP9 value.
+ *
+ * @param rating WMP9 rating (0..255) or `null` when unrated.
+ * @return [StarRating] in the range 0f..5f.
+ */
+fun getStarRating(rating: Int? = 0): StarRating = StarRating(MAX_STARS, getStars(rating))
+
+/**
+ * Converts a star value into the canonical WMP9 rating.
+ *
+ * @param stars star value in the range 0f..5f (0.5 steps).
+ * @return WMP9 rating in the range 0..255.
+ */
+fun getWmpRating(stars: Float): Int {
+    val stepIndex = (stars * 2f).roundToInt().coerceIn(0, RATING_HALF_STEPS)
+    return WMP_RATING_ANCHORS[stepIndex]
+}
+
+/**
+ * Gets the WMP9 rating for a Media3 star rating.
+ *
+ * @param starRating current star / float based rating (0..5f).
+ * @return WMP9 rating in the range 0..255.
+ */
+fun getWmpRating(starRating: StarRating): Int = getWmpRating(starRating.starRating)

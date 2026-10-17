@@ -24,8 +24,10 @@ import de.carsten.android.muzzic.ui.FONT_SIZE_TITLE
 import de.carsten.android.muzzic.ui.RANK_COLUMN_WIDTH
 import de.carsten.android.muzzic.ui.RATING_STAR_SIZE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.component.StarRating
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
+import de.carsten.android.muzzic.ui.utils.getStars
 
 @Composable
 fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResource(R.string.songs_distribution, AppConfig.Ui.NUM_OF_TOP_SONGS)) {
@@ -91,9 +93,8 @@ fun SongStatsCard(topSongs: List<SongPlayCount>, titelText: String = stringResou
                         )
 
                         StarRating(
-                            rating = rating,
-                            onRatingChanged = { },
-                            size = RATING_STAR_SIZE,
+                            rating = getStars(rating),
+                            starSize = RATING_STAR_SIZE,
                         )
                     }
                 }

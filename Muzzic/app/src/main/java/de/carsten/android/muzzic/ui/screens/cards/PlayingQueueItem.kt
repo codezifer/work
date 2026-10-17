@@ -57,6 +57,7 @@ import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.rememberAdaptiveContentColors
@@ -94,17 +95,6 @@ fun PlayingQueueItem(
     val titleStyle = MaterialTheme.typography.titleMedium.copy(
         fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
     )
-
-    val buttonColors = if (isCurrentSong) {
-        IconButtonDefaults.filledTonalIconButtonColors(
-            containerColor = adaptiveColors.accentColor.copy(alpha = 0.2f),
-            contentColor = adaptiveColors.accentColor,
-        )
-    } else {
-        IconButtonDefaults.iconButtonColors(
-            contentColor = adaptiveColors.accentColor,
-        )
-    }
 
     Box(
         modifier =

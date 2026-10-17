@@ -44,11 +44,13 @@ import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
 import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
+import de.carsten.android.muzzic.ui.component.StarRating
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.formatDuration
+import de.carsten.android.muzzic.ui.utils.getStars
 import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -153,9 +155,8 @@ fun SongListItem(
                     horizontalAlignment = Alignment.End,
                 ) {
                     StarRating(
-                        rating = song.rating,
-                        onRatingChanged = { /* Update rating */ },
-                        size = ICON_SIZE_TINY,
+                        rating = getStars(song.rating),
+                        starSize = ICON_SIZE_TINY,
                     )
 
                     Text(

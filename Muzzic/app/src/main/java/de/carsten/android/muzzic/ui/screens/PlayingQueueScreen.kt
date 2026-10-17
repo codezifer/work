@@ -51,6 +51,7 @@ import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.component.rememberReorderableState
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
@@ -79,7 +80,7 @@ fun PlayingQueueScreen(
     PlayingQueueContent(
         modifier = modifier,
         name = uiState.name,
-        playingQueue = uiState.queue,
+        songs = uiState.queue,
         selectionState = selectionState,
         currentSong = uiState.currentSong,
         isPlaying = uiState.isPlaying,
@@ -95,7 +96,7 @@ fun PlayingQueueScreen(
         },
         onMove = { from, to -> playingQueueViewModel.moveSong(from, to) },
         onRemoveItem = { item ->
-            playingQueueViewModel.removeSongs(listOf(item.toMediaItem()))
+            playingQueueViewModel.removeSongs(listOf(item.id))
         },
         onTogglePlayPause = { playingQueueViewModel.togglePlayPause() },
         onSortByMetadata = { playingQueueViewModel.sortQueueByMetadata() },
@@ -108,7 +109,7 @@ fun PlayingQueueScreen(
 private fun PlayingQueueContent(
     modifier: Modifier,
     name: String = PLAYING_QUEUE,
-    playingQueue: List<PlayingQueueDto>,
+    songs: List<SongDto>,
     selectionState: SelectionState = SelectionState(),
     currentSong: MediaItem? = null,
     isPlaying: Boolean = false,
@@ -116,7 +117,7 @@ private fun PlayingQueueContent(
     colorSource: ColorSource = composableColorSource(),
     onSongClick: (Int, String) -> Unit = { _, _ -> },
     onSongLongClick: (String) -> Unit = {},
-    onRemoveItem: (PlayingQueueDto) -> Unit = {},
+    onRemoveItem: (SongDto) -> Unit = {},
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onTogglePlayPause: () -> Unit = {},
     onSortByMetadata: () -> Unit = {},
@@ -125,14 +126,14 @@ private fun PlayingQueueContent(
     var showSortMenu by remember { mutableStateOf(false) }
     val reorderableState = rememberReorderableState()
 
-    val currentSongIndex = remember(playingQueue, currentSong) {
-        playingQueue.indexOfFirst { it.mediaId == currentSong?.mediaId }
+    val currentSongIndex = remember(songs, currentSong) {
+        songs.indexOfFirst { it.id == currentSong?.mediaId }
     }
 
     var hasScrolled by remember { mutableStateOf(false) }
 
-    LaunchedEffect(playingQueue, currentSongIndex) {
-        if (!hasScrolled && currentSongIndex in playingQueue.indices) {
+    LaunchedEffect(songs, currentSongIndex) {
+        if (!hasScrolled && currentSongIndex in songs.indices) {
             reorderableState.listState.scrollToItem(currentSongIndex)
             hasScrolled = true
         }
@@ -140,16 +141,16 @@ private fun PlayingQueueContent(
 
     Column(
         modifier =
-        modifier
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
-            .fillMaxSize()
-            .padding(SPACING_LARGE),
+            modifier
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
+                .fillMaxSize()
+                .padding(SPACING_LARGE),
     ) {
         Row(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = SPACING_MEDIUM),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = SPACING_MEDIUM),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -190,7 +191,7 @@ private fun PlayingQueueContent(
             }
         }
 
-        if (playingQueue.isEmpty()) {
+        if (songs.isEmpty()) {
             Text(
                 text = stringResource(R.string.empty_pq),
                 color = MaterialTheme.colorScheme.onSurface,
@@ -199,17 +200,17 @@ private fun PlayingQueueContent(
             )
         } else {
             ReorderableLazyColumn(
-                items = playingQueue,
+                items = songs,
                 onMove = onMove,
-                key = { _, item -> item.mediaId },
+                key = { _, item -> item.lazyKey() },
                 state = reorderableState,
                 modifier =
-                Modifier
-                    .weight(1f)
-                    .padding(top = SPACING_MEDIUM),
+                    Modifier
+                        .weight(1f)
+                        .padding(top = SPACING_MEDIUM),
             ) { index, item, isDragging, dragModifier ->
-                val isSelected = selectionState.selectedSongs.contains(item.mediaId)
-                val isCurrentSong = item.mediaId == currentSong?.mediaId
+                val isSelected = selectionState.selectedSongs.contains(item.id)
+                val isCurrentSong = item.id == currentSong?.mediaId
 
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
@@ -223,7 +224,7 @@ private fun PlayingQueueContent(
                 )
 
                 AnimatedVisibility(
-                    visible = playingQueue.any { it.mediaId == item.mediaId },
+                    visible = songs.any { it.id == item.id },
                     exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(),
                 ) {
                     SwipeToDismissBox(
@@ -253,7 +254,7 @@ private fun PlayingQueueContent(
                         },
                         content = {
                             PlayingQueueItem(
-                                playingQueueDto = item,
+                                playingQueueDto = item.toPlayingQueueDto(),
                                 isPlaying = isPlaying,
                                 isCurrentSong = isCurrentSong,
                                 progress = if (isCurrentSong) progress else 0f,
@@ -261,13 +262,13 @@ private fun PlayingQueueContent(
                                 isSelected = isSelected,
                                 dragModifier = dragModifier,
                                 colorSource = colorSource,
-                                onClick = { onSongClick(index, item.mediaId) },
-                                onLongClick = { onSongLongClick(item.mediaId) },
+                                onClick = { onSongClick(index, item.id) },
+                                onLongClick = { onSongLongClick(item.id) },
                                 onTogglePlayPause = {
                                     if (isCurrentSong) {
                                         onTogglePlayPause()
                                     } else {
-                                        onSongClick(index, item.mediaId)
+                                        onSongClick(index, item.id)
                                     }
                                 },
                             )
@@ -287,20 +288,19 @@ fun PlayingQueueScreenPreview() {
         PlayingQueueContent(
             modifier = Modifier.padding(SPACING_TINY),
             name = "Test Queue",
-            playingQueue =
-            listOf(
-                PlayingQueueDto(
-                    title = "Puritania",
-                    album = "Puritanical Euphoric Misantropia",
-                    artist = "Dimmu Borgir",
-                    trackNumber = 5,
-                    totalTracks = 12,
-                    duration = 180000,
-                    genre = "Black Metal",
-                    queuePosition = 5,
-                    enqueued = true,
+            songs =
+                listOf(
+                    SongDto(
+                        title = "Puritania",
+                        album = "Puritanical Euphoric Misantropia",
+                        artist = "Dimmu Borgir",
+                        trackNumber = 5,
+                        totalTracks = 12,
+                        duration = 180000,
+                        genre = "Black Metal",
+                        queuePosition = 5,
+                    ),
                 ),
-            ),
         )
     }
 }

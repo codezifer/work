@@ -17,6 +17,7 @@ import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.PlayerUiState
+import de.carsten.android.muzzic.ui.utils.getWmpRating
 import de.carsten.android.muzzic.visualization.service.VisualizerSink
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class, UnstableApi::class)
 open class PlayerViewModel(
-    private val repository: MusicRepository,
+    private val musicRepository: MusicRepository,
     private val mediaLibraryManager: MediaLibraryManager,
     private val visualizerSink: VisualizerSink,
     private val appSettingsRepository: AppSettingsRepository,
@@ -49,41 +50,40 @@ open class PlayerViewModel(
     val spectrumProcessor = visualizerSink.spectrumProcessor
 
     val songs =
-        repository.getAllSongs().stateIn(
+        musicRepository.getAllSongs().stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList(),
         )
 
-    private val playerListener =
-        object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _uiState.update { it.copy(isPlaying = isPlaying) }
-            }
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _uiState.update { it.copy(isPlaying = isPlaying) }
+        }
 
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _uiState.update { state ->
-                    state.copy(
-                        currentSong = mediaItem?.let { SongDto.fromMediaItem(it) },
-                        duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L,
-                    )
-                }
-            }
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_READY) {
-                    _uiState.update { it.copy(duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L) }
-                }
-            }
-
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                _uiState.update { it.copy(shuffleModeEnabled = shuffleModeEnabled) }
-            }
-
-            override fun onRepeatModeChanged(repeatMode: Int) {
-                _uiState.update { it.copy(repeatMode = repeatMode) }
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _uiState.update { state ->
+                state.copy(
+                    currentSong = mediaItem?.let { SongDto.fromMediaItem(it) },
+                    duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L,
+                )
             }
         }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_READY) {
+                _uiState.update { it.copy(duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L) }
+            }
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            _uiState.update { it.copy(shuffleModeEnabled = shuffleModeEnabled) }
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            _uiState.update { it.copy(repeatMode = repeatMode) }
+        }
+    }
 
     init {
         scanLibrary()
@@ -169,6 +169,25 @@ open class PlayerViewModel(
         }
     }
 
+    /**
+     * Persists the rating of the currently playing song.
+     *
+     * The star value (0..5 in 0.5 steps) is stored as a WMP rating (0..255).
+     * The UI state is updated optimistically because the running queue's
+     * `MediaItem` keeps its original user rating and would not reflect the
+     * change otherwise.
+     *
+     * @param stars new rating in the range 0f..5f.
+     */
+    fun onRatingChanged(stars: Float) {
+        val song = _uiState.value.currentSong ?: return
+        val wmpRating = getWmpRating(stars)
+        _uiState.update { state -> state.copy(currentSong = state.currentSong?.copy(rating = wmpRating)) }
+        viewModelScope.launch {
+            musicRepository.updateSongRating(song.id, wmpRating)
+        }
+    }
+
     fun toggleShuffle() {
         val b = browser.value ?: return
         b.shuffleModeEnabled = !b.shuffleModeEnabled
@@ -243,7 +262,7 @@ open class PlayerViewModel(
 
     open fun scanLibrary() {
         viewModelScope.launch {
-            repository.scanMusicLibrary()
+            musicRepository.scanMusicLibrary()
         }
     }
 }

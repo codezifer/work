@@ -8,8 +8,14 @@ import androidx.media3.common.MediaMetadata
 import de.carsten.android.muzzic.EMPTY
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.inferMimeType
+import de.carsten.android.muzzic.model.MediaKeys
 import de.carsten.android.muzzic.toPlayableUri
 
+/**
+ * UI model for a persisted queue entry.
+ *
+ * Keeps [mediaId] (playback identity) and [songId] (library identity) separate.
+ */
 @Immutable
 data class PlayingQueueDto(
     val title: String = UNKNOWN,
@@ -26,7 +32,8 @@ data class PlayingQueueDto(
     val queuePosition: Int = -1,
     val songId: String = EMPTY,
     val mediaId: String = EMPTY,
-) : Comparable<PlayingQueueDto> {
+) : UiDto,
+    Comparable<PlayingQueueDto> {
 
     override fun compareTo(other: PlayingQueueDto): Int {
         val c1 = this.genre.compareTo(other.genre)
@@ -47,6 +54,12 @@ data class PlayingQueueDto(
         }
     }
 
+    /**
+     * Maps this queue entry to a playable [MediaItem].
+     *
+     * @return a playable [MediaItem] carrying the enqueued flag, queue position and
+     *   song id as extras. No user rating is set, since the DTO holds none.
+     */
     fun toMediaItem() = MediaItem
         .Builder()
         .setMediaId(mediaId)
@@ -64,12 +77,15 @@ data class PlayingQueueDto(
                 .setGenre(genre)
                 .setDurationMs(duration)
                 .setArtworkUri(albumArt.toUri())
-                .setExtras(
-                    Bundle().apply {
-                        putBoolean("enqueued", enqueued)
-                        putInt("queuePosition", queuePosition)
-                        putString("songId", songId)
-                    },
-                ).build(),
+                .setExtras(getExtras())
+                .build(),
         ).build()
+
+    override fun lazyKey(): String = this.songId
+
+    private fun getExtras() = Bundle().apply {
+        putBoolean(MediaKeys.ENQUEUED, enqueued)
+        putInt(MediaKeys.QUEUE_POSITION, queuePosition)
+        putString(MediaKeys.SONG_ID, songId)
+    }
 }

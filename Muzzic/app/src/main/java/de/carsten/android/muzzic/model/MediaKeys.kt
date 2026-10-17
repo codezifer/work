@@ -33,6 +33,7 @@ object MediaKeys {
 
     // Song/Media playback specific extras
     const val PLAY_COUNT = "playCount"
+    const val RATING = "rating"
     const val LAST_PLAYED = "lastPlayed"
     const val CREATED_AT = "createdAt"
     const val UPDATED_AT = "updatedAt"

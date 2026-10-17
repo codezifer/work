@@ -337,6 +337,7 @@ package "UI Layer" {
       +onPrevClicked()
       +toggleShuffle()
       +toggleRepeatMode()
+      +onRatingChanged(stars: Float)
       +scanLibrary()
     }
 

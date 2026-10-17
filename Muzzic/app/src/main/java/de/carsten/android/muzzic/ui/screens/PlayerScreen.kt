@@ -38,6 +38,7 @@ import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.getStars
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
@@ -68,12 +69,14 @@ fun PlayerScreen(modifier: Modifier = Modifier, appState: MusicAppState, colorSo
         spectrumBus = playerViewModel.spectrumBus,
         spectrumProcessor = playerViewModel.spectrumProcessor,
         colorSource = colorSource,
+        ratingStars = uiState.currentSong?.let { getStars(it.rating) } ?: 0f,
         onPrevClicked = playerViewModel::onPrevClicked,
         onNextClicked = playerViewModel::onNextClicked,
         onPlayPauseClicked = playerViewModel::togglePlayPause,
         onProgressChanged = playerViewModel::onProgressChanged,
         onToggleShuffle = playerViewModel::toggleShuffle,
         onToggleRepeat = playerViewModel::toggleRepeatMode,
+        onRatingChanged = playerViewModel::onRatingChanged,
     )
 }
 
@@ -95,12 +98,14 @@ private fun PlayerScreenContent(
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
     colorSource: ColorSource = composableColorSource(),
+    ratingStars: Float = 0f,
     onPrevClicked: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onProgressChanged: (Float) -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeat: () -> Unit,
+    onRatingChanged: (Float) -> Unit = {},
 ) {
     val appName = stringResource(R.string.app_name)
 
@@ -164,12 +169,14 @@ private fun PlayerScreenContent(
                 spectrumBus = spectrumBus,
                 spectrumProcessor = spectrumProcessor,
                 colorSource = colorSource,
+                ratingStars = ratingStars,
                 onPreviousClicked = onPrevClicked,
                 onPlayPauseClicked = onPlayPauseClicked,
                 onNextClicked = onNextClicked,
                 onProgressChanged = onProgressChanged,
                 onToggleShuffle = onToggleShuffle,
                 onToggleRepeat = onToggleRepeat,
+                onRatingChanged = onRatingChanged,
             )
         }
     }
