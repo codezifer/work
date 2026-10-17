@@ -48,7 +48,6 @@ import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.controls.AlbumArtControl
 import de.carsten.android.muzzic.ui.screens.controls.PlayerControls
-import de.carsten.android.muzzic.ui.screens.controls.VolumeControl
 import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.ui.utils.formatDuration
 import de.carsten.android.muzzic.visualization.audio.SpectrumProcessor
@@ -149,15 +148,6 @@ fun PlayerScreenContext(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            // Opens the rating popup for the currently playing song.
-            IconButton(onClick = { showRatingDialog = true }) {
-                Icon(
-                    imageVector = if (ratingStars > 0f) Icons.Filled.Star else Icons.Filled.StarBorder,
-                    contentDescription = stringResource(R.string.rate_song),
-                    tint = if (ratingStars > 0f) CustomColors.starColor else textColor.copy(alpha = 0.7f),
-                    modifier = Modifier.size(ICON_SIZE_MEDIUM),
-                )
-            }
         }
 
         // Progress Bar
@@ -219,8 +209,15 @@ fun PlayerScreenContext(
             onToggleRepeat = onToggleRepeat,
         )
 
-        // volume
-        VolumeControl(accentColor = colorSource.accentColor)
+        // Opens the rating popup for the currently playing song.
+        IconButton(onClick = { showRatingDialog = true }) {
+            Icon(
+                imageVector = if (ratingStars > 0f) Icons.Filled.Star else Icons.Filled.StarBorder,
+                contentDescription = stringResource(R.string.rate_song),
+                tint = if (ratingStars > 0f) CustomColors.starColor else textColor.copy(alpha = 0.7f),
+                modifier = Modifier.size(ICON_SIZE_MEDIUM),
+            )
+        }
     }
 
     if (showRatingDialog) {
