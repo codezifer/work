@@ -27,34 +27,70 @@ internal fun rebuildSongsTable(db: SupportSQLiteDatabase) {
     // dropped up front and recreated once the new table is in place.
     db.execSQL("DROP VIEW IF EXISTS `songs_enriched`")
     db.execSQL(
-        "CREATE TABLE IF NOT EXISTS `songs_new` (" +
-            "`title` TEXT NOT NULL, " +
-            "`trackNumber` INTEGER NOT NULL DEFAULT 0, " +
-            "`totalTracks` INTEGER NOT NULL DEFAULT 0, " +
-            "`artist` TEXT NOT NULL COLLATE NOCASE, " +
-            "`album` TEXT NOT NULL COLLATE NOCASE, " +
-            "`genre` TEXT NOT NULL COLLATE NOCASE, " +
-            "`duration` INTEGER NOT NULL DEFAULT 0, " +
-            "`filePath` TEXT, " +
-            "`albumArt` TEXT, " +
-            "`albumYear` INTEGER NOT NULL DEFAULT -1, " +
-            "`rating` INTEGER NOT NULL DEFAULT 128, " +
-            "`playCount` INTEGER NOT NULL DEFAULT 0, " +
-            "`lastPlayed` INTEGER NOT NULL DEFAULT 0, " +
-            "`documentId` TEXT NOT NULL COLLATE NOCASE DEFAULT 'Unknown', " +
-            "`id` TEXT NOT NULL, " +
-            "`createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, " +
-            "`updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, " +
-            "PRIMARY KEY(`id`))",
+        """
+        CREATE TABLE IF NOT EXISTS `songs_new` (
+            `title` TEXT NOT NULL,
+            `trackNumber` INTEGER NOT NULL DEFAULT 0,
+            `totalTracks` INTEGER NOT NULL DEFAULT 0,
+            `artist` TEXT NOT NULL COLLATE NOCASE,
+            `album` TEXT NOT NULL COLLATE NOCASE,
+            `genre` TEXT NOT NULL COLLATE NOCASE,
+            `duration` INTEGER NOT NULL DEFAULT 0,
+            `filePath` TEXT,
+            `albumArt` TEXT,
+            `albumYear` INTEGER NOT NULL DEFAULT -1,
+            `rating` INTEGER NOT NULL DEFAULT 128,
+            `playCount` INTEGER NOT NULL DEFAULT 0,
+            `lastPlayed` INTEGER NOT NULL DEFAULT 0,
+            `documentId` TEXT NOT NULL COLLATE NOCASE DEFAULT 'Unknown',
+            `id` TEXT NOT NULL,
+            `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP,
+            `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(`id`)
+        )
+        """.trimIndent(),
     )
     db.execSQL(
-        "INSERT INTO `songs_new` " +
-            "(`title`, `trackNumber`, `totalTracks`, `artist`, `album`, `genre`, `duration`, " +
-            "`filePath`, `albumArt`, `albumYear`, `rating`, `playCount`, `lastPlayed`, " +
-            "`documentId`, `id`, `createdAt`, `updatedAt`) " +
-            "SELECT `title`, `trackNumber`, `totalTracks`, `artist`, `album`, `genre`, `duration`, " +
-            "`filePath`, `albumArt`, `albumYear`, `rating`, `playCount`, `lastPlayed`, " +
-            "`documentId`, `id`, `createdAt`, `updatedAt` FROM `songs`",
+        """
+        INSERT INTO `songs_new` (
+            `title`,
+            `trackNumber`,
+            `totalTracks`,
+            `artist`,
+            `album`,
+            `genre`,
+            `duration`,
+            `filePath`,
+            `albumArt`,
+            `albumYear`,
+            `rating`,
+            `playCount`,
+            `lastPlayed`,
+            `documentId`,
+            `id`,
+            `createdAt`,
+            `updatedAt`
+        )
+        SELECT
+            `title`,
+            `trackNumber`,
+            `totalTracks`,
+            `artist`,
+            `album`,
+            `genre`,
+            `duration`,
+            `filePath`,
+            `albumArt`,
+            `albumYear`,
+            `rating`,
+            `playCount`,
+            `lastPlayed`,
+            `documentId`,
+            `id`,
+            `createdAt`,
+            `updatedAt`
+        FROM `songs`
+        """.trimIndent(),
     )
     db.execSQL("DROP TABLE `songs`")
     db.execSQL("ALTER TABLE `songs_new` RENAME TO `songs`")
