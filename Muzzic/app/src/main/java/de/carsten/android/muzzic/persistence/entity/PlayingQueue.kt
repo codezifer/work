@@ -9,10 +9,12 @@ import de.carsten.android.muzzic.model.MediaKeys
 /**
  * Persisted playback queue entry.
  *
- * Mirrors the columns needed to restore a playable [MediaItem] after a process
- * restart. Song-level values such as the rating are not stored here; they are
- * resolved at read time by joining against `songs`
- * (see `PlayingQueueSongAggregation`).
+ * Holds only the reference to the library song ([songId]) plus the queue state
+ * ([enqueued], [queuePosition]); the surrogate [AbstractEntity.id] remains the
+ * primary key and [AbstractTimestampEntity.createdAt]/[AbstractTimestampEntity.updatedAt]
+ * keep the entry timestamps. All song metadata is resolved at read time by
+ * joining against `songs` (see `PlayingQueueSongAggregation`), so the `songs`
+ * table stays the single source of truth.
  */
 @Entity(
     tableName = PlayingQueue.TABLE_NAME,
@@ -28,55 +30,30 @@ import de.carsten.android.muzzic.model.MediaKeys
         Index("songId"),
     ],
 )
-data class PlayingQueue(
-    val title: String? = null,
-    val trackNumber: Int? = null,
-    val totalTracks: Int? = null,
-    val artist: String? = null,
-    val album: String? = null,
-    val albumYear: Int? = null,
-    val albumArt: String? = null,
-    val genre: String? = null,
-    val duration: Long? = null, // in milliseconds
-    val filePath: String? = null,
-    var enqueued: Boolean? = null,
-    val songId: String? = null,
-    var queuePosition: Int = 0,
-) : AbstractEntity() {
+data class PlayingQueue(val songId: String, var enqueued: Boolean = false, var queuePosition: Int = 0) : AbstractEntity() {
     companion object {
         const val TABLE_NAME = "playing_queue"
 
         /**
          * Creates a [PlayingQueue] entry from a [MediaItem].
          *
-         * Queue position, enqueued flag and song id are read from the media item's
-         * extras; a non-blank media id becomes the entity id.
+         * The song id is read from the media item's extras and falls back to the
+         * media id. The enqueued flag and queue position are supplied by the
+         * caller; a non-blank media id becomes the entity id.
          *
          * @param mediaItem the item being persisted.
+         * @param enqueued whether the entry belongs to the active playback queue.
+         * @param queuePosition the position inside the queue.
          * @return the mapped queue entry.
          */
-        fun fromMediaItem(mediaItem: MediaItem) = PlayingQueue(
-            title = mediaItem.mediaMetadata.title?.toString(),
-            trackNumber = mediaItem.mediaMetadata.trackNumber,
-            totalTracks = mediaItem.mediaMetadata.totalTrackCount,
-            artist = mediaItem.mediaMetadata.artist?.toString(),
-            album = mediaItem.mediaMetadata.albumTitle?.toString(),
-            albumYear = mediaItem.mediaMetadata.releaseYear,
-            albumArt = mediaItem.mediaMetadata.artworkUri?.toString(),
-            genre = mediaItem.mediaMetadata.genre?.toString(),
-            duration = mediaItem.mediaMetadata.durationMs,
-            filePath = mediaItem.localConfiguration?.uri?.toString(),
-            enqueued = mediaItem.mediaMetadata.extras?.getBoolean(MediaKeys.ENQUEUED),
-            songId =
-                mediaItem.mediaMetadata.extras?.getString(MediaKeys.SONG_ID).let {
-                    if (it.isNullOrBlank()) null else it
-                },
-            queuePosition = mediaItem.mediaMetadata.extras?.getInt(MediaKeys.QUEUE_POSITION) ?: 0,
+        fun fromMediaItem(mediaItem: MediaItem, enqueued: Boolean, queuePosition: Int): PlayingQueue = PlayingQueue(
+            songId = mediaItem.mediaMetadata.extras?.getString(MediaKeys.SONG_ID).orEmpty().ifBlank { mediaItem.mediaId },
+            enqueued = enqueued,
+            queuePosition = queuePosition,
         ).apply {
             if (mediaItem.mediaId.isNotBlank()) {
                 id = mediaItem.mediaId
             }
         }
     }
-
 }

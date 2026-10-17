@@ -2,7 +2,6 @@ package de.carsten.android.muzzic.ui.state
 
 import androidx.media3.common.MediaItem
 import de.carsten.android.muzzic.ui.PLAYING_QUEUE
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.SongDto
 
 data class PlayingQueueUiState(

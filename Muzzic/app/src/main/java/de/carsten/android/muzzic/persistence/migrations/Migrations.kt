@@ -13,7 +13,7 @@ import androidx.room.migration.Migration
  */
 object Migrations {
     // Current DB migration version
-    const val VERSION = 7
+    const val VERSION = 8
 
     private val allMigrations: List<Migration> = listOf(
         V1To2_RemovePlayHistory,
@@ -22,6 +22,7 @@ object Migrations {
         V4To5_CreateSongsEnrichedView,
         V5To6_UpdateSongsEnrichedView,
         V6To7_AlterTableSongDocumentId,
+        V7To8_TrimPlayingQueueMetadata,
     ).also { validateVersionChain(it) }
 
     /**

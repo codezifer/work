@@ -132,20 +132,4 @@ data class SongDto(
         putLong(MediaKeys.CREATED_AT, createdAt.toEpochMilli())
         putLong(MediaKeys.UPDATED_AT, updatedAt.toEpochMilli())
     }
-
-    fun toPlayingQueueDto() = PlayingQueueDto(
-        title = this.title,
-        trackNumber = this.trackNumber,
-        totalTracks = this.totalTracks,
-        artist = this.artist,
-        album = this.album,
-        albumYear = this.albumYear,
-        albumArt = this.albumArt,
-        genre = this.genre,
-        duration = this.duration,
-        mediaId = this.id,
-        songId = this.id,
-        filePath = this.filePath,
-        queuePosition = this.queuePosition,
-    )
 }

@@ -56,19 +56,17 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.GradientBlurredBackground
 import de.carsten.android.muzzic.ui.model.ColorSource
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.utils.rememberAdaptiveContentColors
-import java.util.UUID
 
 /**
  * A modern and stylish single item in the playing queue.
  */
 @Composable
 fun PlayingQueueItem(
-    playingQueueDto: PlayingQueueDto,
+    song: SongDto,
     isPlaying: Boolean = false,
     isCurrentSong: Boolean = false,
     progress: Float = 0f,
@@ -81,7 +79,7 @@ fun PlayingQueueItem(
     onTogglePlayPause: () -> Unit = {},
 ) {
     val adaptiveColors = rememberAdaptiveContentColors(
-        albumArt = playingQueueDto.albumArt,
+        albumArt = song.albumArt,
         overlayColor = when {
             isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GLASS_OVERLAY_ALPHA_DRAGGING)
             isSelected -> colorSource.accentColor.copy(alpha = GLASS_OVERLAY_ALPHA_HIGH)
@@ -121,7 +119,7 @@ fun PlayingQueueItem(
     ) {
         // 1. Gradient Blurred Background
         GradientBlurredBackground(
-            data = playingQueueDto.albumArt,
+            data = song.albumArt,
             modifier = Modifier.matchParentSize(),
             blurRadius = BLUR_RADIUS_LARGE,
         )
@@ -157,18 +155,18 @@ fun PlayingQueueItem(
                     .padding(horizontal = SPACING_NORMAL),
             ) {
                 Text(
-                    text = playingQueueDto.title,
+                    text = song.title,
                     style = titleStyle,
                     color = adaptiveColors.contentColor,
                     maxLines = 1,
                 )
                 Text(
-                    text = if (playingQueueDto.trackNumber >
+                    text = if (song.trackNumber >
                         0
                     ) {
-                        "${playingQueueDto.trackNumber}. ${playingQueueDto.artist} • ${playingQueueDto.album}"
+                        "${song.trackNumber}. ${song.artist} • ${song.album}"
                     } else {
-                        "${playingQueueDto.artist} • ${playingQueueDto.album}"
+                        "${song.artist} • ${song.album}"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = adaptiveColors.labelColor,
@@ -199,7 +197,7 @@ fun PlayingQueueItem(
                 },
             ) {
                 Text(
-                    text = "#${playingQueueDto.queuePosition}",
+                    text = "#${song.queuePosition}",
                     style = titleStyle,
                     color = adaptiveColors.accentColor,
                 )
@@ -253,7 +251,7 @@ fun PlayingQueueItem(
 fun PlayingQueueItemPausedPreview() {
     AppTheme {
         PlayingQueueItem(
-            playingQueueDto = PlayingQueueDto(
+            song = SongDto(
                 title = "Puritania",
                 trackNumber = 5,
                 totalTracks = 12,
@@ -262,9 +260,6 @@ fun PlayingQueueItemPausedPreview() {
                 genre = "Black Metal",
                 queuePosition = 1,
                 duration = 210000L,
-                enqueued = true,
-                songId = UUID.randomUUID().toString(),
-                mediaId = UUID.randomUUID().toString(),
             ),
             isPlaying = false,
             isCurrentSong = true,
@@ -281,7 +276,7 @@ fun PlayingQueueItemPausedPreview() {
 fun PlayingQueueItemPlayingPreview() {
     AppTheme {
         PlayingQueueItem(
-            playingQueueDto = PlayingQueueDto(
+            song = SongDto(
                 title = "Puritania",
                 trackNumber = 5,
                 totalTracks = 12,
@@ -290,9 +285,6 @@ fun PlayingQueueItemPlayingPreview() {
                 genre = "Black Metal",
                 queuePosition = 1,
                 duration = 210000L,
-                enqueued = true,
-                songId = UUID.randomUUID().toString(),
-                mediaId = UUID.randomUUID().toString(),
             ),
             isPlaying = true,
             isCurrentSong = false,

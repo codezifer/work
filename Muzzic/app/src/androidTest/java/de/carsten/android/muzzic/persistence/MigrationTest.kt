@@ -202,7 +202,57 @@ class MigrationTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrateAllFrom1To7() {
+    fun migrate7To8() {
+        val testDbName = "migration-test-7to8"
+        var db = helper.createDatabase(testDbName, 7)
+
+        db.execSQL(
+            "INSERT INTO songs (id, title, artist, album, genre, playCount, lastPlayed) " +
+                "VALUES ('s1', 'Song', 'Artist', 'Album', 'Genre', 3, 1000)",
+        )
+
+        // Legacy queue row carrying the duplicated song metadata.
+        db.execSQL(
+            "INSERT INTO playing_queue (title, artist, album, duration, filePath, enqueued, songId, queuePosition, id, createdAt, updatedAt) " +
+                "VALUES ('Song', 'Artist', 'Album', 1000, 'file:///song.mp3', 1, 's1', 0, 's1', 1000, 1000)",
+        )
+        // Legacy queue row without a song reference; it cannot be resolved after the migration.
+        db.execSQL(
+            "INSERT INTO playing_queue (title, enqueued, songId, queuePosition, id, createdAt, updatedAt) " +
+                "VALUES ('Orphan', 0, NULL, 1, 'orphan', 1000, 1000)",
+        )
+
+        db.close()
+
+        db = helper.runMigrationsAndValidate(testDbName, 8, true, *Migrations.supply())
+
+        // Validation 1: the referenced entry keeps its queue state.
+        val queueCursor = db.query("SELECT songId, enqueued, queuePosition FROM playing_queue WHERE id = 's1'")
+        assertThat(queueCursor.count).describedAs("Queue entry for a known song should be preserved").isEqualTo(1)
+        queueCursor.moveToFirst()
+        assertThat(queueCursor.getString(queueCursor.getColumnIndex("songId"))).isEqualTo("s1")
+        assertThat(queueCursor.getInt(queueCursor.getColumnIndex("enqueued"))).isEqualTo(1)
+        assertThat(queueCursor.getInt(queueCursor.getColumnIndex("queuePosition"))).isEqualTo(0)
+        queueCursor.close()
+
+        // Validation 2: duplicated metadata columns are gone.
+        val columnsCursor = db.query("PRAGMA table_info(`playing_queue`)")
+        val columns = mutableListOf<String>()
+        while (columnsCursor.moveToNext()) {
+            columns.add(columnsCursor.getString(columnsCursor.getColumnIndex("name")))
+        }
+        columnsCursor.close()
+        assertThat(columns).containsExactlyInAnyOrder("id", "songId", "enqueued", "queuePosition", "createdAt", "updatedAt")
+
+        // Validation 3: entries without a song reference are dropped.
+        val orphanCursor = db.query("SELECT * FROM playing_queue WHERE id = 'orphan'")
+        assertThat(orphanCursor.count).describedAs("Entries without a song reference should be dropped").isEqualTo(0)
+        orphanCursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrateAllFrom1ToVersion() {
         val testDbName = "migration-test-all"
         var db = helper.createDatabase(testDbName, 1)
         db.close()

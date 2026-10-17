@@ -50,7 +50,6 @@ import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.component.ReorderableLazyColumn
 import de.carsten.android.muzzic.ui.component.rememberReorderableState
 import de.carsten.android.muzzic.ui.model.ColorSource
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -141,16 +140,16 @@ private fun PlayingQueueContent(
 
     Column(
         modifier =
-            modifier
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
-                .fillMaxSize()
-                .padding(SPACING_LARGE),
+        modifier
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA))
+            .fillMaxSize()
+            .padding(SPACING_LARGE),
     ) {
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = SPACING_MEDIUM),
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = SPACING_MEDIUM),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -205,9 +204,9 @@ private fun PlayingQueueContent(
                 key = { _, item -> item.lazyKey() },
                 state = reorderableState,
                 modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(top = SPACING_MEDIUM),
+                Modifier
+                    .weight(1f)
+                    .padding(top = SPACING_MEDIUM),
             ) { index, item, isDragging, dragModifier ->
                 val isSelected = selectionState.selectedSongs.contains(item.id)
                 val isCurrentSong = item.id == currentSong?.mediaId
@@ -254,7 +253,7 @@ private fun PlayingQueueContent(
                         },
                         content = {
                             PlayingQueueItem(
-                                playingQueueDto = item.toPlayingQueueDto(),
+                                song = item,
                                 isPlaying = isPlaying,
                                 isCurrentSong = isCurrentSong,
                                 progress = if (isCurrentSong) progress else 0f,
@@ -289,18 +288,18 @@ fun PlayingQueueScreenPreview() {
             modifier = Modifier.padding(SPACING_TINY),
             name = "Test Queue",
             songs =
-                listOf(
-                    SongDto(
-                        title = "Puritania",
-                        album = "Puritanical Euphoric Misantropia",
-                        artist = "Dimmu Borgir",
-                        trackNumber = 5,
-                        totalTracks = 12,
-                        duration = 180000,
-                        genre = "Black Metal",
-                        queuePosition = 5,
-                    ),
+            listOf(
+                SongDto(
+                    title = "Puritania",
+                    album = "Puritanical Euphoric Misantropia",
+                    artist = "Dimmu Borgir",
+                    trackNumber = 5,
+                    totalTracks = 12,
+                    duration = 180000,
+                    genre = "Black Metal",
+                    queuePosition = 5,
                 ),
+            ),
         )
     }
 }

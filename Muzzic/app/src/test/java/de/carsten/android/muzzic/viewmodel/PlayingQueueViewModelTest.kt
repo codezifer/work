@@ -6,7 +6,7 @@ import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.PlayingQueueUiState
 import io.mockk.every
 import io.mockk.mockk
@@ -29,7 +29,7 @@ class PlayingQueueViewModelTest {
     private val playlistRepository: PlaylistRepository = mockk()
     private val mediaLibraryManager: MediaLibraryManager = mockk()
 
-    private val queueFlow = MutableStateFlow<List<PlayingQueueDto>>(emptyList())
+    private val queueFlow = MutableStateFlow<List<SongDto>>(emptyList())
     private val browserFlow = MutableStateFlow<MediaBrowser?>(null)
 
     private lateinit var viewModel: TestPlayingQueueViewModel

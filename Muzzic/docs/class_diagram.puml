@@ -56,21 +56,9 @@ package "Data Layer" {
     }
 
     class PlayingQueue {
-      +title: String?
-      +trackNumber: Int?
-      +totalTracks: Int?
-      +artist: String?
-      +album: String?
-      +albumYear: Int?
-      +albumArt: String?
-      +genre: String?
-      +duration: Long?
-      +filePath: String?
-      +enqueued: Boolean?
-      +songId: String?
+      +songId: String
+      +enqueued: Boolean
       +queuePosition: Int
-      +toMediaItem(): MediaItem
-      +toDto(): PlayingQueueDto
     }
 
     class PlayerSettings {
@@ -94,6 +82,14 @@ package "Data Layer" {
       +song: Song
       +normalizedGenre: String
       +sortArtist: String
+    }
+
+    class PlayingQueueSongAggregation {
+      +song: Song
+      +enqueued: Boolean
+      +queuePosition: Int
+      +toSongDto(): SongDto
+      +toMediaItem(): MediaItem
     }
 
     class LibrarySummary {
@@ -206,10 +202,10 @@ package "Data Layer" {
     }
 
     interface PlayingQueueDao {
-      +findEnqueued(): List<PlayingQueue>
-      +observeEnqueued(): Flow<List<PlayingQueue>>
-      +findAll(): List<PlayingQueue>
-      +observeAll(): Flow<List<PlayingQueue>>
+      +findEnqueued(): List<PlayingQueueSongAggregation>
+      +observeEnqueued(): Flow<List<PlayingQueueSongAggregation>>
+      +findAll(): List<PlayingQueueSongAggregation>
+      +observeAll(): Flow<List<PlayingQueueSongAggregation>>
       +clearQueue()
       +addSongs(songs: List<PlayingQueue>)
       +removeSongs(songIds: List<String>)
@@ -264,7 +260,7 @@ package "Data Layer" {
     class PlayingQueueRepository {
       +getPlayingQueue(): List<MediaItem>
       +getCompleteQueue(): List<MediaItem>
-      +observePlayingQueue(): Flow<List<PlayingQueueDto>>
+      +observePlayingQueue(): Flow<List<SongDto>>
       +observeEnqueued(): Flow<List<MediaItem>>
       +clear()
       +addSongs(mediaItems: List<MediaItem>, enqueued: Boolean): List<MediaItem>
@@ -545,6 +541,7 @@ ArtistDao -up..> Song
 AlbumDao -up..> ArtistAlbum
 AlbumDao -up..> Song
 PlayingQueueDao -up..> PlayingQueue
+PlayingQueueDao -up..> PlayingQueueSongAggregation
 PlayerSettingsDao -up..> PlayerSettings
 GenericSettingDao -up..> GenericSetting
 

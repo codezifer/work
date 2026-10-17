@@ -53,11 +53,10 @@ class MusicRepository(
     /**
      * Clears the entire library: songs, playlists, play history and the playing queue.
      *
-     * Playlist-song assignments are removed via foreign key cascade; the queue is cleared
-     * explicitly because its [de.carsten.android.muzzic.persistence.entity.PlayingQueue]
-     * entries may reference no song at all. Runs atomically so a failure cannot leave
-     * the library half-cleared. App settings (e.g. configured directories)
-     * are kept so the library can be rescanned fresh.
+     * Playlist-song assignments and queue entries are removed via foreign key cascade;
+     * the queue is still cleared explicitly to keep the intent obvious. Runs atomically
+     * so a failure cannot leave the library half-cleared. App settings (e.g. configured
+     * directories) are kept so the library can be rescanned fresh.
      */
     suspend fun clearLibrary() = database.withTransaction {
         songDao.deleteAllSongs()

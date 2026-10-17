@@ -11,28 +11,26 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Data access object for the [PlayingQueue] table.
  *
- * Read queries that need song-level values (rating, play count) join the `songs`
- * table and surface the result through [PlayingQueueSongAggregation].
+ * The queue only stores the song reference and its queue state; read queries
+ * join the `songs` table to resolve every playable value and surface the result
+ * through [PlayingQueueSongAggregation].
  */
 @Dao
 interface PlayingQueueDao {
     /**
      * Returns every enqueued queue entry ordered by queue position, enriched with
-     * the matching song's `playCount` and `rating`.
+     * the matching song's metadata.
      *
-     * The join is a `LEFT JOIN`, so an entry whose song was deleted is still
-     * returned; its `playCount` and `rating` then fall back to their defaults.
-     *
-     * @return the enqueued queue with song-level values attached.
+     * @return the enqueued queue with the songs attached.
      */
     @Query(
         """
         SELECT
-            pq.*,
-            s.playCount AS playCount,
-            s.rating AS rating
+            s.*,
+            pq.enqueued AS enqueued,
+            pq.queuePosition AS queuePosition
         FROM playing_queue pq
-        LEFT JOIN songs s ON pq.songId = s.id
+        INNER JOIN songs s ON s.id = pq.songId
         WHERE pq.enqueued = 1
         ORDER BY pq.queuePosition ASC
         """,
@@ -41,18 +39,18 @@ interface PlayingQueueDao {
 
     /**
      * Observes every enqueued queue entry ordered by queue position, enriched with
-     * the matching song's `playCount` and `rating` (same shape as [findEnqueued]).
+     * the matching song's metadata (same shape as [findEnqueued]).
      *
-     * @return a flow of the enqueued queue with song-level values attached.
+     * @return a flow of the enqueued queue with the songs attached.
      */
     @Query(
         """
         SELECT
-            pq.*,
-            s.playCount AS playCount,
-            s.rating AS rating
+            s.*,
+            pq.enqueued AS enqueued,
+            pq.queuePosition AS queuePosition
         FROM playing_queue pq
-        LEFT JOIN songs s ON pq.songId = s.id
+        INNER JOIN songs s ON s.id = pq.songId
         WHERE pq.enqueued = 1
         ORDER BY pq.queuePosition ASC
         """,
@@ -60,48 +58,43 @@ interface PlayingQueueDao {
     fun observeEnqueued(): Flow<List<PlayingQueueSongAggregation>>
 
     /**
-     * Returns the full queue, enqueued entries first, then ordered by queue position,
-     * enriched with the matching song's `playCount` and `rating`.
+     * Returns the full queue, enqueued entries first, then ordered by queue
+     * position, enriched with the matching song's metadata.
      *
-     * The join is a `LEFT JOIN`, so an entry whose song was deleted is still
-     * returned; its `playCount` and `rating` then fall back to their defaults.
-     *
-     * @return a snapshot of the complete queue with song-level values attached.
+     * @return a snapshot of the complete queue with the songs attached.
      */
     @Query(
         """
         SELECT
-            pq.*,
-            s.playCount AS playCount,
-            s.rating AS rating
+            s.*,
+            pq.enqueued AS enqueued,
+            pq.queuePosition AS queuePosition
         FROM playing_queue pq
-        LEFT JOIN songs s ON pq.songId = s.id
+        INNER JOIN songs s ON s.id = pq.songId
         ORDER BY
-            enqueued DESC,
-            queuePosition ASC
+            pq.enqueued DESC,
+            pq.queuePosition ASC
         """,
     )
     suspend fun findAll(): List<PlayingQueueSongAggregation>
 
     /**
-     * Observes the full queue, enqueued entries first, then ordered by queue position.
-     *
-     * Unlike [findAll] this emits a plain [PlayingQueue], so the joined song columns
-     * are not mapped onto the result.
+     * Observes the full queue, enqueued entries first, then ordered by queue
+     * position, enriched with the matching song's metadata (same shape as [findAll]).
      *
      * @return a flow of the complete queue.
      */
     @Query(
         """
         SELECT
-            pq.*,
-            s.playCount AS playCount,
-            s.rating AS rating
+            s.*,
+            pq.enqueued AS enqueued,
+            pq.queuePosition AS queuePosition
         FROM playing_queue pq
-        LEFT JOIN songs s ON pq.songId = s.id
+        INNER JOIN songs s ON s.id = pq.songId
         ORDER BY
-            enqueued DESC,
-            queuePosition ASC
+            pq.enqueued DESC,
+            pq.queuePosition ASC
         """,
     )
     fun observeAll(): Flow<List<PlayingQueueSongAggregation>>
@@ -121,10 +114,10 @@ interface PlayingQueueDao {
     suspend fun addSongs(songs: List<PlayingQueue>)
 
     /**
-     * Removes the queue entries matching the given ids.
+     * Removes the queue entries referencing the given song ids.
      *
-     * @param songIds media ids to delete, matched against the `id` column.
+     * @param songIds song ids to delete, matched against the `songId` column.
      */
-    @Query("DELETE FROM playing_queue WHERE id IN (:songIds)")
+    @Query("DELETE FROM playing_queue WHERE songId IN (:songIds)")
     suspend fun removeSongs(songIds: List<String>)
 }

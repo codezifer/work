@@ -9,15 +9,15 @@ import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
-import de.carsten.android.muzzic.ui.model.PlayingQueueDto
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.PlayingQueueUiState
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnstableApi::class)
 open class PlayingQueueViewModel(
@@ -107,12 +107,12 @@ open class PlayingQueueViewModel(
             val match =
                 b.mediaItemCount == currentQueue.size &&
                     (0 until b.mediaItemCount).all { i ->
-                        b.getMediaItemAt(i).mediaId == currentQueue[i].mediaId
+                        b.getMediaItemAt(i).mediaId == currentQueue[i].id
                     }
 
             if (!match) {
                 // If they don't match, reload the whole queue into the player
-                mediaLibraryManager.playPlaylist(currentQueue.map { it.toMediaItem() }, index)
+                mediaLibraryManager.playPlaylist(currentQueue.mapIndexed { index, song -> song.toMediaItem(index) }, index)
             } else {
                 // If they match, just seek to the correct item
                 b.seekToDefaultPosition(index)
@@ -124,7 +124,7 @@ open class PlayingQueueViewModel(
 
     fun saveAsPlaylist(name: String) {
         viewModelScope.launch {
-            playlistRepository.createPlaylistFromSongs(name, uiState.value.queue.map { it.toMediaItem() })
+            playlistRepository.createPlaylistFromSongs(name, uiState.value.queue.mapIndexed { index, song -> song.toMediaItem(index) })
         }
     }
 
@@ -141,7 +141,7 @@ open class PlayingQueueViewModel(
 
         // Update persistence
         viewModelScope.launch {
-            playingQueueRepository.persistQueue(playlist.map { it.toMediaItem() })
+            playingQueueRepository.persistQueue(playlist.mapIndexed { index, song -> song.toMediaItem(index) })
         }
     }
 
@@ -177,15 +177,15 @@ open class PlayingQueueViewModel(
 
     fun sortQueueByMetadata() {
         val sorted = uiState.value.queue.sortedWith(
-            compareBy<PlayingQueueDto> { it.artist }
+            compareBy<SongDto> { it.artist }
                 .thenBy { it.albumYear }
                 .thenBy { it.trackNumber },
         )
         updateQueue(sorted)
     }
 
-    private fun updateQueue(newQueue: List<PlayingQueueDto>) {
-        val mediaItems = newQueue.map { it.toMediaItem() }
+    private fun updateQueue(newQueue: List<SongDto>) {
+        val mediaItems = newQueue.mapIndexed { index, song -> song.toMediaItem(index) }
 
         // Update player
         val b = mediaLibraryManager.browser.value ?: return

@@ -12,12 +12,13 @@ import kotlinx.coroutines.flow.map
  * Repository over [PlayingQueueDao] that maps persisted queue rows to playable
  * [MediaItem]s.
  *
- * Reads through the enqueued join carry the song's rating, so [getPlayingQueue]
- * preserves it across a queue restore.
+ * The queue stores only song references; every playable value is joined from the
+ * `songs` table, so reads always reflect the current library state (rating, play
+ * count, metadata).
  */
 class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     /**
-     * Loads the enqueued queue including song-level values (rating, play count).
+     * Loads the enqueued queue including the song's metadata.
      *
      * @return playable [MediaItem]s ordered by queue position.
      */
@@ -65,11 +66,8 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<MediaItem> {
         val entities =
             mediaItems.mapIndexed { index, item ->
-                PlayingQueue.fromMediaItem(item).apply {
-                    this.enqueued = enqueued
-                    this.queuePosition = index
-                }
-            }
+                PlayingQueue.fromMediaItem(item, enqueued = enqueued, queuePosition = index)
+            }.filter { it.songId.isNotBlank() }
         playingQueueDao.addSongs(entities)
         return mediaItems.mapIndexed { index, item ->
             item.mediaMetadata.extras?.putInt(MediaKeys.QUEUE_POSITION, index)
@@ -79,7 +77,7 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     }
 
     /**
-     * Removes the queue entries whose media id appears in [songIds].
+     * Removes the queue entries whose song id appears in [songIds].
      *
      * @param songIds song ids to delete from the queue.
      */
@@ -95,11 +93,8 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     suspend fun persistQueue(mediaItems: List<MediaItem>) {
         playingQueueDao.addSongs(
             mediaItems.mapIndexed { index, item ->
-                PlayingQueue.fromMediaItem(item).apply {
-                    this.queuePosition = index
-                    this.enqueued = true
-                }
-            },
+                PlayingQueue.fromMediaItem(item, enqueued = true, queuePosition = index)
+            }.filter { it.songId.isNotBlank() },
         )
     }
 }
