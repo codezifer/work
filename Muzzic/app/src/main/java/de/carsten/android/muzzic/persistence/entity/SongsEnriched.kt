@@ -25,7 +25,9 @@ import androidx.room.Embedded
             WHEN lower(s.artist) LIKE 'an %' THEN substr(s.artist, 4)
             WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)
             ELSE s.artist
-        END AS sort_artist
+        END AS sort_artist,
+        strftime('%Y-%m-%d %H:%M:%S', createdAt / 1000, 'unixepoch') AS createdAt_h,
+        strftime('%Y-%m-%d %H:%M:%S', updatedAt / 1000, 'unixepoch') AS updatedAt_h
     FROM songs s
     """,
 )

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "4584188e421d8cbac4b216bb8e7fa59c",
+    "identityHash": "1203b674b03c638ba7b00fbcafd77523",
     "entities": [
       {
         "tableName": "songs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT NOT NULL, `trackNumber` INTEGER NOT NULL DEFAULT 0, `totalTracks` INTEGER NOT NULL DEFAULT 0, `artist` TEXT NOT NULL COLLATE NOCASE, `album` TEXT NOT NULL COLLATE NOCASE, `genre` TEXT NOT NULL COLLATE NOCASE, `duration` INTEGER NOT NULL DEFAULT 0, `filePath` TEXT, `albumArt` TEXT, `albumYear` INTEGER NOT NULL DEFAULT -1, `rating` INTEGER NOT NULL DEFAULT 3, `playCount` INTEGER NOT NULL DEFAULT 0, `lastPlayed` INTEGER NOT NULL DEFAULT 0, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT NOT NULL, `trackNumber` INTEGER NOT NULL DEFAULT 0, `totalTracks` INTEGER NOT NULL DEFAULT 0, `artist` TEXT NOT NULL COLLATE NOCASE, `album` TEXT NOT NULL COLLATE NOCASE, `genre` TEXT NOT NULL COLLATE NOCASE, `duration` INTEGER NOT NULL DEFAULT 0, `filePath` TEXT, `albumArt` TEXT, `albumYear` INTEGER NOT NULL DEFAULT -1, `rating` INTEGER NOT NULL DEFAULT 128, `playCount` INTEGER NOT NULL DEFAULT 0, `lastPlayed` INTEGER NOT NULL DEFAULT 0, `documentId` TEXT NOT NULL COLLATE NOCASE DEFAULT 'Unknown', `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "title",
@@ -75,7 +75,7 @@
             "columnName": "rating",
             "affinity": "INTEGER",
             "notNull": true,
-            "defaultValue": "3"
+            "defaultValue": "128"
           },
           {
             "fieldPath": "playCount",
@@ -90,6 +90,13 @@
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "0"
+          },
+          {
+            "fieldPath": "documentId",
+            "columnName": "documentId",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Unknown'"
           },
           {
             "fieldPath": "id",
@@ -118,6 +125,49 @@
         },
         "indices": [
           {
+            "name": "index_songs_updatedAt",
+            "unique": false,
+            "columnNames": [
+              "updatedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_updatedAt` ON `${TABLE_NAME}` (`updatedAt`)"
+          },
+          {
+            "name": "index_songs_artist_albumYear_album_trackNumber_title",
+            "unique": false,
+            "columnNames": [
+              "artist",
+              "albumYear",
+              "album",
+              "trackNumber",
+              "title"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_artist_albumYear_album_trackNumber_title` ON `${TABLE_NAME}` (`artist`, `albumYear`, `album`, `trackNumber`, `title`)"
+          },
+          {
+            "name": "index_songs_album_artist",
+            "unique": false,
+            "columnNames": [
+              "album",
+              "artist"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_album_artist` ON `${TABLE_NAME}` (`album`, `artist`)"
+          },
+          {
+            "name": "index_songs_genre_rating_playCount",
+            "unique": false,
+            "columnNames": [
+              "genre",
+              "rating",
+              "playCount"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_genre_rating_playCount` ON `${TABLE_NAME}` (`genre`, `rating`, `playCount`)"
+          },
+          {
             "name": "index_songs_artist",
             "unique": false,
             "columnNames": [
@@ -143,6 +193,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_genre` ON `${TABLE_NAME}` (`genre`)"
+          },
+          {
+            "name": "index_songs_documentId",
+            "unique": false,
+            "columnNames": [
+              "documentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_songs_documentId` ON `${TABLE_NAME}` (`documentId`)"
           }
         ]
       },
@@ -281,68 +340,95 @@
         ]
       },
       {
-        "tableName": "playing_queue",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `trackNumber` INTEGER, `totalTracks` INTEGER, `artist` TEXT, `album` TEXT, `albumYear` INTEGER, `albumArt` TEXT, `genre` TEXT, `duration` INTEGER, `filePath` TEXT, `enqueued` INTEGER, `songId` TEXT, `queuePosition` INTEGER NOT NULL, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`), FOREIGN KEY(`songId`) REFERENCES `songs`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "tableName": "play_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`songId` TEXT NOT NULL, `playedAt` INTEGER NOT NULL, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`), FOREIGN KEY(`songId`) REFERENCES `songs`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
-            "fieldPath": "title",
-            "columnName": "title",
-            "affinity": "TEXT"
+            "fieldPath": "songId",
+            "columnName": "songId",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
-            "fieldPath": "trackNumber",
-            "columnName": "trackNumber",
-            "affinity": "INTEGER"
+            "fieldPath": "playedAt",
+            "columnName": "playedAt",
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
-            "fieldPath": "totalTracks",
-            "columnName": "totalTracks",
-            "affinity": "INTEGER"
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
-            "fieldPath": "artist",
-            "columnName": "artist",
-            "affinity": "TEXT"
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "defaultValue": "CURRENT_TIMESTAMP"
           },
           {
-            "fieldPath": "album",
-            "columnName": "album",
-            "affinity": "TEXT"
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "defaultValue": "CURRENT_TIMESTAMP"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_play_history_songId",
+            "unique": false,
+            "columnNames": [
+              "songId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_play_history_songId` ON `${TABLE_NAME}` (`songId`)"
           },
           {
-            "fieldPath": "albumYear",
-            "columnName": "albumYear",
-            "affinity": "INTEGER"
-          },
+            "name": "index_play_history_playedAt",
+            "unique": false,
+            "columnNames": [
+              "playedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_play_history_playedAt` ON `${TABLE_NAME}` (`playedAt`)"
+          }
+        ],
+        "foreignKeys": [
           {
-            "fieldPath": "albumArt",
-            "columnName": "albumArt",
-            "affinity": "TEXT"
-          },
+            "table": "songs",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "songId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "playing_queue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`songId` TEXT NOT NULL, `enqueued` INTEGER NOT NULL, `queuePosition` INTEGER NOT NULL, `id` TEXT NOT NULL, `createdAt` INTEGER DEFAULT CURRENT_TIMESTAMP, `updatedAt` INTEGER DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(`id`), FOREIGN KEY(`songId`) REFERENCES `songs`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
           {
-            "fieldPath": "genre",
-            "columnName": "genre",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "duration",
-            "columnName": "duration",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "filePath",
-            "columnName": "filePath",
-            "affinity": "TEXT"
+            "fieldPath": "songId",
+            "columnName": "songId",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "enqueued",
             "columnName": "enqueued",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "songId",
-            "columnName": "songId",
-            "affinity": "TEXT"
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
             "fieldPath": "queuePosition",
@@ -491,9 +577,15 @@
         }
       }
     ],
+    "views": [
+      {
+        "viewName": "songs_enriched",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT s.*,\n        LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalized_genre,\n        CASE\n            WHEN lower(s.artist) LIKE 'the %' THEN substr(s.artist, 5)\n            WHEN lower(s.artist) LIKE 'an %' THEN substr(s.artist, 4)\n            WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)\n            ELSE s.artist\n        END AS sort_artist,\n        strftime('%Y-%m-%d %H:%M:%S', createdAt / 1000, 'unixepoch') AS createdAt_h,\n        strftime('%Y-%m-%d %H:%M:%S', updatedAt / 1000, 'unixepoch') AS updatedAt_h\n    FROM songs s"
+      }
+    ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4584188e421d8cbac4b216bb8e7fa59c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1203b674b03c638ba7b00fbcafd77523')"
     ]
   }
 }
