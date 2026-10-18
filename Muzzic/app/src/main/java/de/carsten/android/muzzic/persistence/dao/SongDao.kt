@@ -69,7 +69,7 @@ interface SongDao {
     /**
      * Sums play counts per normalized genre key.
      *
-     * Groups over [de.carsten.android.muzzic.persistence.entity.SongsEnriched], so
+     * Groups over [de.carsten.android.muzzic.persistence.view.SongsEnriched], so
      * spelling variants share one row. The [genre][de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount.genre]
      * holds the normalized key (or [unknownLabel] for blank genres) and is mapped to
      * the canonical display name by the caller. The limit is applied after the

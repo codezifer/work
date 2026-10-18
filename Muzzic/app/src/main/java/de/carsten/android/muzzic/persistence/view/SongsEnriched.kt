@@ -1,8 +1,9 @@
-package de.carsten.android.muzzic.persistence.entity
+package de.carsten.android.muzzic.persistence.view
 
 import androidx.room.ColumnInfo
 import androidx.room.DatabaseView
 import androidx.room.Embedded
+import de.carsten.android.muzzic.persistence.entity.Song
 
 /**
  * Songs enriched with derived grouping and sorting keys.
@@ -26,8 +27,9 @@ import androidx.room.Embedded
             WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)
             ELSE s.artist
         END AS sort_artist,
-        strftime('%Y-%m-%d %H:%M:%S', createdAt / 1000, 'unixepoch') AS createdAt_h,
-        strftime('%Y-%m-%d %H:%M:%S', updatedAt / 1000, 'unixepoch') AS updatedAt_h
+        strftime('%Y-%m-%d %H:%M:%S', s.lastPlayed / 1000, 'unixepoch') AS lastPlayed_h,
+        strftime('%Y-%m-%d %H:%M:%S', s.createdAt / 1000, 'unixepoch') AS createdAt_h,
+        strftime('%Y-%m-%d %H:%M:%S', s.updatedAt / 1000, 'unixepoch') AS updatedAt_h
     FROM songs s
     """,
 )

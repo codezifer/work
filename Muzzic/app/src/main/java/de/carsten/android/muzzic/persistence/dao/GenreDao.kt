@@ -59,7 +59,7 @@ interface GenreDao {
     /**
      * Aggregates song statistics by normalized genre key.
      *
-     * Groups over [de.carsten.android.muzzic.persistence.entity.SongsEnriched], so
+     * Groups over [de.carsten.android.muzzic.persistence.view.SongsEnriched], so
      * spelling variants like "Death Core", "Death-Core" and "Deathcore" share one row
      * with exact distinct artist/album counts and summed song counts and durations.
      *
