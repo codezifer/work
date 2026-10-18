@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "1203b674b03c638ba7b00fbcafd77523",
+    "identityHash": "cf3654048352e8d0f64459052f7a689b",
     "entities": [
       {
         "tableName": "songs",
@@ -580,12 +580,12 @@
     "views": [
       {
         "viewName": "songs_enriched",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT s.*,\n        LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalized_genre,\n        CASE\n            WHEN lower(s.artist) LIKE 'the %' THEN substr(s.artist, 5)\n            WHEN lower(s.artist) LIKE 'an %' THEN substr(s.artist, 4)\n            WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)\n            ELSE s.artist\n        END AS sort_artist,\n        strftime('%Y-%m-%d %H:%M:%S', createdAt / 1000, 'unixepoch') AS createdAt_h,\n        strftime('%Y-%m-%d %H:%M:%S', updatedAt / 1000, 'unixepoch') AS updatedAt_h\n    FROM songs s"
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT s.*,\n        LOWER(REPLACE(REPLACE(s.genre, ' ', ''), '-', '')) AS normalized_genre,\n        CASE\n            WHEN lower(s.artist) LIKE 'the %' THEN substr(s.artist, 5)\n            WHEN lower(s.artist) LIKE 'an %' THEN substr(s.artist, 4)\n            WHEN lower(s.artist) LIKE 'a %' THEN substr(s.artist, 3)\n            ELSE s.artist\n        END AS sort_artist,\n        strftime('%Y-%m-%d %H:%M:%S', s.lastPlayed / 1000, 'unixepoch') AS lastPlayed_h,\n        strftime('%Y-%m-%d %H:%M:%S', s.createdAt / 1000, 'unixepoch') AS createdAt_h,\n        strftime('%Y-%m-%d %H:%M:%S', s.updatedAt / 1000, 'unixepoch') AS updatedAt_h\n    FROM songs s"
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1203b674b03c638ba7b00fbcafd77523')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cf3654048352e8d0f64459052f7a689b')"
     ]
   }
 }
