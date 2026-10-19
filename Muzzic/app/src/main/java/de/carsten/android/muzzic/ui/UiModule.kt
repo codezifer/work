@@ -9,6 +9,7 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import de.carsten.android.muzzic.AppConfig
+import de.carsten.android.muzzic.BuildConfig
 import de.carsten.android.muzzic.IMAGE_CACHE
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import java.util.concurrent.TimeUnit
@@ -26,7 +27,9 @@ private fun getImageLoader(context: Context): ImageLoader {
 
     return ImageLoader
         .Builder(context)
-        .logger(DebugLogger())
+        // Request logging is debug-only: it writes every request (including file paths) to Logcat
+        // and measurably slows the loader down.
+        .logger(if (BuildConfig.DEBUG) DebugLogger() else null)
         .crossfade(AppConfig.Ui.DEFAULT_CROSSFADE)
         .components {
             add(AlbumArtFetcher.Mapper())
