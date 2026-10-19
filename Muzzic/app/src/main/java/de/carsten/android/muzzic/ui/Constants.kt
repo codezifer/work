@@ -174,9 +174,13 @@ val SUBTITLE_SPACING = 2.dp
 val SUBTITLE_ICON_TEXT_SPACING = 1.dp
 
 /**
- * Fixed thumbnail edge length for collage tiles (56.dp thumb split into a 3x3 grid).
+ * Fixed thumbnail edge length for collage tiles, used by the prefetcher.
+ *
+ * The tiles themselves are sized by the layout (one third of the card width), so this value must
+ * be at least that large: Coil's [coil3.size.Precision.INEXACT] only accepts a cached bitmap that
+ * is not smaller than the requested one.
  */
-const val COLLAGE_TILE_PX = 128
+const val COLLAGE_TILE_PX = 256
 
 /**
  * Maximum number of covers shown in a 3x3 collage and prefetched per item.
@@ -195,9 +199,14 @@ const val PREFETCH_AHEAD_COUNT = 8
 const val PREFETCH_LOOKBEHIND_COUNT = 2
 
 /**
- * Fixed edge length for full-width card covers (aspect 1.1-1.4).
+ * Fixed edge length for card covers, used by the prefetcher.
+ *
+ * Card covers are sized by the layout, so this value must cover the largest expected card width
+ * (a 1440 px wide screen at ~3.5x density yields roughly 670 px). Slightly overshooting is
+ * intentional: [coil3.size.Precision.INEXACT] accepts a cached bitmap that is larger than the
+ * request, but never a smaller one.
  */
-const val CARD_COVER_PX = 512
+const val CARD_COVER_PX = 768
 
 /**
  * Fixed edge length for blurred backgrounds; blur hides detail so a small size is sufficient.
@@ -205,6 +214,17 @@ const val CARD_COVER_PX = 512
 const val BLUR_BG_PX = 256
 
 /**
- * Fixed edge length for the player detail artwork.
+ * Edge length used for palette extraction. Only colours are needed, so a small decode suffices.
  */
-const val PLAYER_ART_PX = 1024
+const val PALETTE_SIZE_PX = 96
+
+/**
+ * Memory cache key suffix for palette-decoded covers. Kept separate from the display entry
+ * because palette extraction needs a software bitmap at a much smaller size.
+ */
+const val COVER_KEY_PALETTE = "#palette"
+
+/**
+ * Memory cache key suffix for blurred background covers.
+ */
+const val COVER_KEY_BLUR = "#blur"

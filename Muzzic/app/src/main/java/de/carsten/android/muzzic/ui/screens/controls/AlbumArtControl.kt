@@ -21,7 +21,6 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.model.TestingTags.Screens.FALLBACK_PAINTER
 import de.carsten.android.muzzic.model.TestingTags.Screens.SUCCESS_ASYNC_IMAGE
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
-import de.carsten.android.muzzic.ui.PLAYER_ART_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
@@ -40,12 +39,7 @@ private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = M
         is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
         else -> null
     }
-    val cacheKey: String? = when (albumArtInput) {
-        is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
-        is AlbumArtInput.FromUri -> albumArtInput.audioFileUri.toString()
-        else -> null
-    }
-    val request = rememberCoverImageRequest(data, cacheKey, PLAYER_ART_PX)
+    val request = rememberCoverImageRequest(data)
 
     val testTag = if (albumArtInput is AlbumArtInput.None) FALLBACK_PAINTER else SUCCESS_ASYNC_IMAGE
 

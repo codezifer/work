@@ -26,10 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
-import de.carsten.android.muzzic.ui.CARD_COVER_PX
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
@@ -46,7 +44,7 @@ fun AlbumCard(
     isSelected: Boolean = false,
     borderColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    val palette by rememberPaletteState(album.lastAlbumArt?.toAlbumArtUri())
+    val palette by rememberPaletteState(album.lastAlbumArt)
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
         defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -64,7 +62,7 @@ fun AlbumCard(
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
-                    model = rememberCoverImageRequest(album.lastAlbumArt, album.lastAlbumArt, CARD_COVER_PX),
+                    model = rememberCoverImageRequest(album.lastAlbumArt),
                     contentDescription = stringResource(R.string.album_art),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,

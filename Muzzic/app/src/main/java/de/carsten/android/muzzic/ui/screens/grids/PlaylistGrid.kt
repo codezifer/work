@@ -26,12 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
 import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
+import de.carsten.android.muzzic.ui.COVER_KEY_PALETTE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
+import de.carsten.android.muzzic.ui.PALETTE_SIZE_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
 import de.carsten.android.muzzic.ui.component.LazyGridPrefetchEffect
@@ -113,7 +114,15 @@ private fun InternalPlaylistGrid(playlists: List<PlaylistDto>, onPlaylistClick: 
                 }
             }
             playlist.lastAlbumArt?.let { art ->
-                add(CoverPreloadSpec(data = art.toAlbumArtUri(), cacheKey = null, allowHardware = false))
+                add(
+                    CoverPreloadSpec(
+                        data = art,
+                        cacheKey = art,
+                        sizePx = PALETTE_SIZE_PX,
+                        allowHardware = false,
+                        keySuffix = COVER_KEY_PALETTE,
+                    ),
+                )
             }
         }
     }

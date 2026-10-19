@@ -924,6 +924,69 @@ android {
 
 ---
 
+## 🤖 Android CLI (`android`)
+
+**Intent**: Give agents and scripts one official, versioned entry point for device/emulator control, SDK management, project scaffolding, documentation lookup, and skills discovery. **Optimization Purpose**: Replace ad-hoc `adb`/`sdkmanager`/`avdmanager`/`emulator` calls with a stable interface and up-to-date Android knowledge, and keep CI/automation reproducible.
+
+- Prefer `android` over raw `adb`, `sdkmanager`, `avdmanager`, and `emulator` for project, device, and SDK automation. Drop to the raw tools only where `android` has no equivalent.
+- Run `android info` once per session to confirm the SDK path, CLI version, and connected devices.
+- Keep the CLI current with `android update`; run `android init` to install the `android-cli` skill.
+- **Gradle stays the build entry point** (`./gradlew …`). Use `android` to locate build artifacts and deploy them, not to replace the build.
+
+| Command | Use it for |
+| --- | --- |
+| `android info [<field>]` | SDK location, CLI version, connected devices |
+| `android describe --project_dir=.` | Build targets and output artifact paths (APK/AAB) as JSON |
+| `android install --apks=…` | Fast (delta) APK install without activating components |
+| `android run --apks=…` | Deploy and launch an app |
+| `android emulator list/create/start/stop` | Manage AVDs; `start` returns once the device is ready |
+| `android screen capture/resolve` | Screenshots and annotated bounding boxes (`#N`) |
+| `android layout [--pretty]` | Accessibility/UI tree as JSON |
+| `android input tap/text/key/swipe/scroll` | Drive the running app by selector |
+| `android sdk install/update/list/remove` | Manage SDK packages |
+| `android docs search/fetch` | Search/fetch the official Android Knowledge Base (`kb://…`) |
+| `android studio …` | Bridge to a running Android Studio: semantic analysis, Compose preview rendering, version lookup |
+| `android skills add/list/find` | Discover and install official Android skills |
+| `android create <template>` | Scaffold a new project from a template |
+
+```bash
+# Environment
+android info
+android sdk list --all
+
+# Locate + deploy the app under development
+android describe --project_dir=.          # JSON with build targets and APK paths
+./gradlew :app:assembleDebug              # Gradle remains the build tool
+android install --apks=app/build/outputs/apk/debug/app-debug.apk
+android run --apks=app/build/outputs/apk/debug/app-debug.apk --debug
+
+# Emulator lifecycle (start returns when the device is ready)
+android emulator list
+android emulator start --headless Pixel_10
+
+# Inspect + drive the running UI
+android screen capture --annotate --output=/tmp/opencode/screen.png
+android layout --pretty -o /tmp/opencode/layout.json
+android input tap 'text=Play' --wait=3000
+android input key back
+
+# Official, up-to-date knowledge instead of guessing
+android docs search "Media3 MediaSessionService background playback"
+android docs fetch kb://android/agents/skills/devtools/android-cli/references/interact
+```
+
+- **Interaction loop**: `android layout` (JSON UI dump) is the primary way to inspect the UI; `android layout --diff` narrows the output to what changed since the last call and keeps context
+  small; fall back to `android screen capture --annotate` for WebViews/animations and **always visually examine the PNG** before acting.
+- **Device interaction reference is mandatory**: before the first `android layout`, `android screen`, or `android input` call in a task, load the official interaction reference with
+  `android docs fetch kb://android/agents/skills/devtools/android-cli/references/interact` and follow it exactly — it defines element properties, coordinate/selector semantics, scroll
+  behaviour, and text-input escaping. The same applies to journey tests (`…/references/journeys`). If the reference and the installed CLI disagree on a flag, the installed CLI (`--help`) wins,
+  since the knowledge base tracks a newer release.
+- **Docs before code**: for unfamiliar APIs, migrations, or version questions, search `android docs` (and `android studio version-lookup`) instead of relying on memory.
+- Never commit files the CLI (re)generates: `.gradle/init.gradle.kts` and `~/.androidrc` are local tooling state.
+- Pass `--no-metrics` in CI if CLI usage telemetry is not wanted.
+
+---
+
 ## ❌ Anti-Patterns to Avoid
 
 **Intent**: Prevent common mistakes and outdated patterns that hinder quality and performance. **Optimization Purpose**: Guide developers towards safer, more maintainable
@@ -941,6 +1004,10 @@ alternatives.
 | Custom `Application.instance` singleton | Koin `single`                                                              |
 | Mutable public state in ViewModel       | Private `_state` + public `state`                                          |
 | Business logic in Composables           | ViewModel + Use Cases                                                      |
+| Raw `adb install` / `adb shell am start` | `android install` / `android run`                                         |
+| `adb shell screencap` / `uiautomator dump` | `android screen capture` / `android layout`                              |
+| `sdkmanager` / `avdmanager` directly    | `android sdk` / `android emulator`                                         |
+| Guessing API usage from memory          | `android docs search` / `android studio version-lookup`                    |
 
 ---
 
@@ -976,6 +1043,7 @@ branch.
 - [ ] ProGuard rules updated for new dependencies
 - [ ] Accessibility: content descriptions on interactive elements
 - [ ] No sensitive data in logs
+- [ ] UI/behaviour changes verified on a running device/emulator via `android` (`emulator start` → `install`/`run` → `screen capture`/`layout`)
 
 ---
 
@@ -986,6 +1054,8 @@ branch.
 - **Automated Formatting**: After making any changes to Kotlin files, ALWAYS run the `./gradlew ktlintFormat` task to ensure the code adheres to the project's style guide.
 - **Verification**: Before concluding a task, ALWAYS verify that all unit tests pass by running the `./gradlew test` task (or the specific task for the module, e.g.,
   `:app:testDebugUnitTest`). No task is considered complete if there are failing tests.
+- **On-device Verification**: For changes that affect UI or playback behaviour, go beyond a compiling build — boot an AVD with `android emulator start`, deploy with `android install`/`android run`
+  and inspect the live state with `android screen capture --annotate` / `android layout`. This complements `./gradlew test`, it does not replace it.
 - **Continuous Improvement**: If you encounter recurring issues or patterns that could be automated, propose an update to this ruleset.
 
 ---

@@ -14,6 +14,7 @@ import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
+import coil3.size.Precision
 import de.carsten.android.muzzic.ui.PREFETCH_AHEAD_COUNT
 import de.carsten.android.muzzic.ui.PREFETCH_LOOKBEHIND_COUNT
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -22,13 +23,22 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  * Data specification for preloading an image with Coil 3.
  *
  * @param data The image source (path string, Uri, AlbumArtUri, etc.).
- * @param cacheKey Stable memory/disk cache key, or null if no explicit key is used.
+ * @param cacheKey Stable cache key (content identity), or null if no explicit key is used.
  * Defaults to [data] when it is a String, otherwise null.
  * @param sizePx Target square dimension in pixels, or null for default/original size.
  * @param allowHardware Whether hardware bitmap allocation is permitted (set false for Palette).
  * @param crossfade Whether crossfade animation is enabled when loading.
+ * @param keySuffix Memory cache key suffix for variant entries (palette, blur), or null for the
+ * display entry. The disk key always remains [cacheKey], so all variants share one raw blob.
  */
-data class CoverPreloadSpec(val data: Any?, val cacheKey: String? = data as? String, val sizePx: Int? = null, val allowHardware: Boolean = true, val crossfade: Boolean = true)
+data class CoverPreloadSpec(
+    val data: Any?,
+    val cacheKey: String? = data as? String,
+    val sizePx: Int? = null,
+    val allowHardware: Boolean = true,
+    val crossfade: Boolean = true,
+    val keySuffix: String? = null,
+)
 
 /**
  * Prefetches image assets ahead of the scroll position in a [LazyGridState].
@@ -136,22 +146,25 @@ private fun <T> PrefetchHost(
 
 private fun enqueueSpec(context: Context, imageLoader: ImageLoader, spec: CoverPreloadSpec, enqueuedKeys: HashSet<String>) {
     val data = spec.data ?: return
-    val key = "${data}_${spec.cacheKey}_${spec.sizePx}_${spec.allowHardware}_${spec.crossfade}"
-    if (enqueuedKeys.add(key)) {
-        val builder = ImageRequest.Builder(context)
+    val memoryKey = spec.cacheKey?.plus(spec.keySuffix.orEmpty())
+    val dedupKey = "${data}_${memoryKey}_${spec.sizePx}_${spec.allowHardware}_${spec.crossfade}"
+    if (!enqueuedKeys.add(dedupKey)) return
+
+    val builder =
+        ImageRequest
+            .Builder(context)
             .data(data)
             .allowHardware(spec.allowHardware)
             .crossfade(spec.crossfade)
+            .precision(Precision.INEXACT)
 
-        spec.cacheKey?.let { cacheKey ->
-            builder.memoryCacheKey(cacheKey)
-                .diskCacheKey(cacheKey)
-                .placeholderMemoryCacheKey(cacheKey)
+    if (memoryKey != null) {
+        builder.memoryCacheKey(memoryKey).diskCacheKey(spec.cacheKey)
+        if (spec.keySuffix == null) {
+            builder.placeholderMemoryCacheKey(memoryKey)
         }
-        spec.sizePx?.let { sizePx ->
-            builder.size(sizePx)
-        }
-
-        imageLoader.enqueue(builder.build())
     }
+    spec.sizePx?.let { builder.size(it) }
+
+    imageLoader.enqueue(builder.build())
 }

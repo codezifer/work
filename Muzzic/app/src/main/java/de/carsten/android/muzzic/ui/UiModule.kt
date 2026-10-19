@@ -5,6 +5,10 @@ import android.content.Context
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.crossfade
+import coil3.util.DebugLogger
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.IMAGE_CACHE
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import java.util.concurrent.TimeUnit
@@ -22,9 +26,12 @@ private fun getImageLoader(context: Context): ImageLoader {
 
     return ImageLoader
         .Builder(context)
+        .logger(DebugLogger())
+        .crossfade(AppConfig.Ui.DEFAULT_CROSSFADE)
         .components {
             add(AlbumArtFetcher.Mapper())
-            add(AlbumArtFetcher.Factory(context, okHttpClient))
+            add(AlbumArtFetcher.Factory(context))
+            add(OkHttpNetworkFetcherFactory(callFactory = { okHttpClient }))
         }.memoryCache {
             MemoryCache
                 .Builder()

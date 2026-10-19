@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.component.PlayerBackground
 import de.carsten.android.muzzic.ui.component.TextInputDialog
 import de.carsten.android.muzzic.ui.model.ColorSource
@@ -76,7 +75,7 @@ fun MusicPlayerApp(
 
     val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
     val currentSong = playerUiState.currentSong
-    val palette by rememberPaletteState(currentSong?.albumArt?.toAlbumArtUri())
+    val palette by rememberPaletteState(currentSong?.albumArt)
     val isDark = isSystemInDarkTheme()
     val albumArtPath = currentSong?.albumArt
 

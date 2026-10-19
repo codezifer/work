@@ -36,4 +36,9 @@ Bei geringer Screen-/Bar-Höhe sind die Buchstaben des FastScrollers teilweise v
 ### Manual
 - Compose-Preview `FastScrollerShortPreview` (300dp, A–Z): Buchstaben + Dots vollständig sichtbar, kein Überlappen.
 - Auf Gerät/Emulator: kurze Bar scrubben — Handle folgt Finger, Zwischen-Buchstaben im Bubble sichtbar.
-- Optional: Verifikation auf kleinem Emulator via `android` CLI (`android emulator list/start`).
+
+### On-Device (Emulator Pixel_10, 1080×2424 @420dpi, `android` CLI, 2026-10-18) ✅
+- **Normale Höhe:** Songs-Liste gescrollt → Bar zeigt komprimiertes Modell (Buchstaben + `•`), alle Glyphen vollständig lesbar, keine Überlappung.
+- **Drag:** Pointer-Drag auf der Bar → Bubble zeigt aktuelles Zeichen, Handle folgt dem Finger proportional, Liste springt zum gemappten Buchstaben (z. B. Bubble „T" → „This Is War", Bubble „2" → Titel „23"); alle Zwischen-Buchstaben wählbar (Mapping auf volles Alphabet inkl. Ziffern-Labels).
+- **Kompression via `wm density 700`** (Leistenbereich ~442dp → ~227dp): Slot-Dichte reduziert sich weiter (weniger Buchstaben, mehr `•`), Slots ≥ `FAST_SCROLL_ITEM_MIN_HEIGHT`, Buchstaben unverzerrt und unbeschnitten, Drag-Mapping weiterhin korrekt (Sprung zum ersten Eintrag bei Top-Slot).
+- Density danach auf 420 dpi zurückgesetzt; Emulator bleibt mit SwiftShader-GPU (`hw.gpu.mode=swiftshader_indirect` im AVD-`config.ini`) stabil.

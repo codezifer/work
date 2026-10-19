@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.ui.BLUR_BG_PX
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -34,7 +33,7 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  */
 @Composable
 fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRadius: Dp = BLUR_RADIUS_LARGE, contentScale: ContentScale = ContentScale.Crop) {
-    val imageRequest = rememberCoverImageRequest(data, data as? String, BLUR_BG_PX)
+    val imageRequest = rememberBlurImageRequest(data)
     Box(modifier = modifier) {
         // 1. Fully Blurred Background Layer
         AsyncImage(

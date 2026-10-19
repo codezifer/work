@@ -11,11 +11,12 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
 import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
+import de.carsten.android.muzzic.ui.COVER_KEY_PALETTE
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
+import de.carsten.android.muzzic.ui.PALETTE_SIZE_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
 import de.carsten.android.muzzic.ui.component.FastScrollBox
@@ -48,7 +49,15 @@ fun ArtistGrid(
                 add(CoverPreloadSpec(data = path, cacheKey = path, sizePx = COLLAGE_TILE_PX))
             }
             artist.lastAlbumArt?.let { art ->
-                add(CoverPreloadSpec(data = art.toAlbumArtUri(), cacheKey = null, allowHardware = false))
+                add(
+                    CoverPreloadSpec(
+                        data = art,
+                        cacheKey = art,
+                        sizePx = PALETTE_SIZE_PX,
+                        allowHardware = false,
+                        keySuffix = COVER_KEY_PALETTE,
+                    ),
+                )
             }
         }
     }

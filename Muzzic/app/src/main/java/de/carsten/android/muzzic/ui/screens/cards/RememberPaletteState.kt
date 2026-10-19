@@ -13,11 +13,10 @@ import androidx.palette.graphics.Palette
 import coil3.SingletonImageLoader
 import coil3.asDrawable
 import coil3.request.ErrorResult
-import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import coil3.request.allowHardware
 import de.carsten.android.muzzic.logging.rememberLogger
-import de.carsten.android.muzzic.model.AlbumArtUri
+import de.carsten.android.muzzic.ui.component.coverBaseKey
+import de.carsten.android.muzzic.ui.component.rememberPaletteImageRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -27,38 +26,23 @@ private const val PALETTE_MAX_COLOR_COUNT = 24
 private val paletteCache = LruCache<String, Palette>(PALETTE_CACHE_SIZE)
 
 /**
- * Returns a stable cache key for the palette cache.
- *
- * Uses the full [AlbumArtUri.get] string (including file path) instead of
- * [AlbumArtUri.equals], which ignores the file path and would collide for
- * different files with identical size/hash metadata.
- *
- * @param source the palette image source.
- * @return a stable cache key, or null if [source] is null.
- */
-private fun paletteCacheKey(source: Any?): String? = when (source) {
-    null -> null
-    is AlbumArtUri -> source.get()
-    else -> source.toString()
-}
-
-/**
  * Remembers the [Palette] for the given image [source].
  *
- * Loads the image with hardware bitmaps disabled (required for pixel access),
- * generates the palette off the calling thread and caches the result in a
- * shared LRU cache keyed by [paletteCacheKey].
+ * Loads the image through [rememberPaletteImageRequest], which requests a small software bitmap:
+ * hardware bitmaps cannot be read by [Palette], and the display resolution is not needed for
+ * colour extraction. The resulting palette is cached in a shared LRU keyed by [coverBaseKey].
  *
- * @param source the image data (cover path string, Uri, [AlbumArtUri], or null).
+ * @param source the image data (cover path string, Uri, AlbumArtUri, or null).
  * @return the palette state, null while loading or on failure.
  */
 @SuppressLint("LocalContextResourcesRead")
 @Composable
 fun rememberPaletteState(source: Any?): State<Palette?> {
     val context = LocalContext.current
-    val cacheKey = remember(source) { paletteCacheKey(source) }
+    val cacheKey = remember(source) { coverBaseKey(source) }
     val initialPalette = remember(cacheKey) { cacheKey?.let { paletteCache.get(it) } }
     val paletteState = remember(cacheKey) { mutableStateOf<Palette?>(initialPalette) }
+    val request = rememberPaletteImageRequest(source)
     val logger = rememberLogger("RememberPaletteState")
 
     LaunchedEffect(cacheKey) {
@@ -67,14 +51,9 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
             return@LaunchedEffect
         }
 
-        withContext(Dispatchers.IO) {
+        // Palette generation is CPU bound; Coil performs its own IO internally.
+        withContext(Dispatchers.Default) {
             val loader = SingletonImageLoader.get(context)
-            val request =
-                ImageRequest
-                    .Builder(context)
-                    .data(source)
-                    .allowHardware(false) // Required for Palette to read pixels
-                    .build()
 
             when (val result = loader.execute(request)) {
                 is SuccessResult -> {

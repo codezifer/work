@@ -9,7 +9,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
-import de.carsten.android.muzzic.model.toAlbumArtUri
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.rememberPaletteState
@@ -68,7 +67,7 @@ data class AdaptiveContentColors(val contentColor: Color, val labelColor: Color,
  */
 @Composable
 fun rememberAdaptiveContentColors(albumArt: String?, overlayColor: Color, colorSource: ColorSource = composableColorSource(), isCurrent: Boolean = false): AdaptiveContentColors {
-    val palette by rememberPaletteState(albumArt.toAlbumArtUri())
+    val palette by rememberPaletteState(albumArt)
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 

@@ -47,8 +47,3 @@ data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Lo
         }
     }
 }
-
-fun String?.toAlbumArtUri(): AlbumArtUri? {
-    if (this == null) return null
-    return AlbumArtUri.parse(this)
-}

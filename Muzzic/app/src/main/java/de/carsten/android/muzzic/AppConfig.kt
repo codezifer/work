@@ -17,6 +17,7 @@ object AppConfig {
     }
 
     object Ui {
+        const val DEFAULT_CROSSFADE = true
         const val NUM_OF_TOP_SONGS = 10
         const val NUM_OF_TOP_GENRES = 10
         const val NUM_OF_MONTHS = 6

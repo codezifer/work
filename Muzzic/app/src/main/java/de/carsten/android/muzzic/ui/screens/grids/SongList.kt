@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.BLUR_BG_PX
+import de.carsten.android.muzzic.ui.COVER_KEY_BLUR
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
 import de.carsten.android.muzzic.ui.component.FastScrollBox
@@ -41,7 +42,7 @@ fun SongList(
     ) { song ->
         buildList {
             if (song.albumArt.isNotBlank()) {
-                add(CoverPreloadSpec(data = song.albumArt, cacheKey = song.albumArt, sizePx = BLUR_BG_PX))
+                add(CoverPreloadSpec(data = song.albumArt, cacheKey = song.albumArt, sizePx = BLUR_BG_PX, keySuffix = COVER_KEY_BLUR))
             }
         }
     }
