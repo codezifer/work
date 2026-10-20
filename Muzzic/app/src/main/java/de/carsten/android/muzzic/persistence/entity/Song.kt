@@ -138,7 +138,7 @@ data class Song(
         playCount = playCount,
         lastPlayed = lastPlayed,
         filePath = filePath ?: UNKNOWN,
-        albumArt = albumArt ?: UNKNOWN,
+        albumArt = albumArt,
         createdAt = createdAt ?: Instant.EPOCH,
         updatedAt = updatedAt ?: Instant.EPOCH,
         queuePosition = index,

@@ -41,8 +41,8 @@ fun SongList(
         items = songs,
     ) { song ->
         buildList {
-            if (song.albumArt.isNotBlank()) {
-                add(CoverPreloadSpec(data = song.albumArt, cacheKey = song.albumArt, sizePx = BLUR_BG_PX, keySuffix = COVER_KEY_BLUR))
+            song.albumArt?.takeIf { it.isNotBlank() }?.let { art ->
+                add(CoverPreloadSpec(data = art, cacheKey = art, sizePx = BLUR_BG_PX, keySuffix = COVER_KEY_BLUR))
             }
         }
     }

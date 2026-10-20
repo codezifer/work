@@ -206,7 +206,7 @@ const val PREFETCH_LOOKBEHIND_COUNT = 2
  * intentional: [coil3.size.Precision.INEXACT] accepts a cached bitmap that is larger than the
  * request, but never a smaller one.
  */
-const val CARD_COVER_PX = 768
+const val CARD_COVER_PX = 512
 
 /**
  * Fixed edge length for blurred backgrounds; blur hides detail so a small size is sufficient.

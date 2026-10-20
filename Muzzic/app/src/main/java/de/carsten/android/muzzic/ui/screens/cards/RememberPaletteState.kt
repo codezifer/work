@@ -42,11 +42,12 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
     val cacheKey = remember(source) { coverBaseKey(source) }
     val initialPalette = remember(cacheKey) { cacheKey?.let { paletteCache.get(it) } }
     val paletteState = remember(cacheKey) { mutableStateOf<Palette?>(initialPalette) }
-    val request = rememberPaletteImageRequest(source)
+    val request = if (source == null) null else rememberPaletteImageRequest(source)
     val logger = rememberLogger("RememberPaletteState")
 
     LaunchedEffect(cacheKey) {
         val key = cacheKey ?: return@LaunchedEffect
+        val imageRequest = request ?: return@LaunchedEffect
         if (paletteState.value != null) {
             return@LaunchedEffect
         }
@@ -55,7 +56,7 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
         withContext(Dispatchers.Default) {
             val loader = SingletonImageLoader.get(context)
 
-            when (val result = loader.execute(request)) {
+            when (val result = loader.execute(imageRequest)) {
                 is SuccessResult -> {
                     val bitmap = result.image.asDrawable(context.resources).toBitmap()
                     val newPalette = Palette

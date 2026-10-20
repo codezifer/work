@@ -36,7 +36,8 @@ data class SongDto(
     val playCount: Int = 0,
     val lastPlayed: Instant = Instant.EPOCH,
     val genre: String = UNKNOWN,
-    val albumArt: String = UNKNOWN,
+    /** Cover art URI; null when the track has no embedded artwork. */
+    val albumArt: String? = null,
     val filePath: String = UNKNOWN,
     val queuePosition: Int = 0,
     val createdAt: Instant = Instant.EPOCH,
@@ -66,7 +67,7 @@ data class SongDto(
                 artist = metadata.artist.toString(),
                 album = metadata.albumTitle.toString(),
                 albumYear = metadata.releaseYear ?: -1,
-                albumArt = metadata.artworkUri.toString(),
+                albumArt = metadata.artworkUri?.toString(),
                 genre = metadata.genre.toString(),
                 duration = metadata.durationMs ?: 0L,
                 rating = getWmpRating(metadata.userRating as? StarRating ?: StarRating(MAX_STARS, 0f)),
@@ -109,7 +110,7 @@ data class SongDto(
                 .setTrackNumber(this.trackNumber)
                 .setTotalTrackCount(this.totalTracks)
                 .setReleaseYear(this.albumYear)
-                .setArtworkUri(this.albumArt.toUri())
+                .setArtworkUri(this.albumArt?.toUri())
                 .setGenre(this.genre)
                 .setDurationMs(this.duration)
                 .setUserRating(getStarRating(this.rating))

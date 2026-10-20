@@ -26,49 +26,67 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  * A background component that renders an image with a gradient blur effect.
  * The blur is strongest on the left and gradually clears towards the right.
  *
- * @param data The data to load (e.g., URL, URI, or File).
+ * @param data The data to load (e.g., URL, URI, or File). When null, the default artwork is
+ *   rendered blurred instead, so no data-less image request is executed.
  * @param modifier The modifier to be applied to the background.
  * @param blurRadius The maximum blur radius applied on the left.
  * @param contentScale How the image should be scaled.
  */
 @Composable
 fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRadius: Dp = BLUR_RADIUS_LARGE, contentScale: ContentScale = ContentScale.Crop) {
-    val imageRequest = rememberBlurImageRequest(data)
-    Box(modifier = modifier) {
-        // 1. Fully Blurred Background Layer
-        AsyncImage(
-            model = imageRequest,
-            contentDescription = null,
-            modifier = Modifier
-                .matchParentSize()
-                .blur(blurRadius),
-            contentScale = contentScale,
-            placeholder = painterResource(R.drawable.disc),
-            error = painterResource(R.drawable.disc),
-        )
+    val imageRequest = if (data == null) null else rememberBlurImageRequest(data)
 
-        // 2. Clear Foreground Layer with Horizontal Gradient Mask
-        // We use BlendMode.DstIn to mask the clear image with an alpha gradient.
-        AsyncImage(
-            model = imageRequest,
-            contentDescription = null,
-            modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent, // Blurred part (left)
-                                Color.Black, // Clear part (right)
+    Box(modifier = modifier) {
+        if (imageRequest == null) {
+            // No cover available: render the default artwork as the blurred backdrop.
+            DefaultAlbumArt(
+                modifier =
+                Modifier
+                    .matchParentSize()
+                    .blur(blurRadius),
+                contentScale = contentScale,
+                contentDescription = null,
+            )
+        } else {
+            // 1. Fully Blurred Background Layer
+            AsyncImage(
+                model = imageRequest,
+                contentDescription = null,
+                modifier =
+                Modifier
+                    .matchParentSize()
+                    .blur(blurRadius),
+                contentScale = contentScale,
+                placeholder = painterResource(R.drawable.disc),
+                error = painterResource(R.drawable.disc),
+            )
+
+            // 2. Clear Foreground Layer with Horizontal Gradient Mask
+            // We use BlendMode.DstIn to mask the clear image with an alpha gradient.
+            AsyncImage(
+                model = imageRequest,
+                contentDescription = null,
+                modifier =
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush =
+                            Brush.horizontalGradient(
+                                colors =
+                                listOf(
+                                    Color.Transparent, // Blurred part (left)
+                                    Color.Black, // Clear part (right)
+                                ),
                             ),
-                        ),
-                        blendMode = BlendMode.DstIn,
-                    )
-                },
-            contentScale = contentScale,
-        )
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
+                contentScale = contentScale,
+            )
+        }
     }
 }
 

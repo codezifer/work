@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
@@ -97,25 +96,6 @@ interface SongDao {
 
     @Update
     suspend fun updateSongs(songs: List<Song>)
-
-    @Transaction
-    suspend fun upsertSongs(songs: List<Song>) {
-        val insertResults = insertSongs(songs)
-        val updatedSongs = mutableListOf<Song>()
-
-        for (idx in insertResults.indices) {
-            if (insertResults[idx] == -1L) {
-                updatedSongs.add(
-                    songs[idx].apply {
-                        updatedAt = java.time.Instant.now()
-                    },
-                )
-            }
-        }
-        if (updatedSongs.isNotEmpty()) {
-            updateSongs(updatedSongs)
-        }
-    }
 
     @Delete
     suspend fun deleteSongs(songs: List<Song>)

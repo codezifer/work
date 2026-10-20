@@ -20,11 +20,15 @@ import de.carsten.android.muzzic.ui.PALETTE_SIZE_PX
  * density-aware. [coverBaseKey] is used for memory, disk and placeholder-memory keys, so
  * scrolling back hits the memory cache synchronously.
  *
- * @param data the image data (cover path string, [Uri], [AlbumArtUri] or null).
+ * `data` is intentionally non-nullable: Coil fails a request without data before any
+ * placeholder or error painter is applied, so a missing cover must be handled by the caller
+ * (see [DefaultAlbumArt]).
+ *
+ * @param data the image data (cover path string, [Uri] or [AlbumArtUri]).
  * @return the remembered [ImageRequest].
  */
 @Composable
-fun rememberCoverImageRequest(data: Any?): ImageRequest {
+fun rememberCoverImageRequest(data: Any): ImageRequest {
     val context = LocalContext.current
     return remember(data) {
         val key = coverBaseKey(data)
@@ -47,11 +51,11 @@ fun rememberCoverImageRequest(data: Any?): ImageRequest {
  * replacing the full-size display bitmap. The disk key stays [coverBaseKey], so the raw
  * cover bytes exist only once.
  *
- * @param data the image data (cover path string, [Uri], [AlbumArtUri] or null).
+ * @param data the image data (cover path string, [Uri] or [AlbumArtUri]).
  * @return the remembered [ImageRequest].
  */
 @Composable
-fun rememberPaletteImageRequest(data: Any?): ImageRequest {
+fun rememberPaletteImageRequest(data: Any): ImageRequest {
     val context = LocalContext.current
     return remember(data) {
         val key = coverBaseKey(data)
@@ -73,11 +77,11 @@ fun rememberPaletteImageRequest(data: Any?): ImageRequest {
  * A blurred layer carries no fine detail, so a small decode is sufficient. The separate
  * memory key keeps it from replacing the full-size display bitmap.
  *
- * @param data the image data (cover path string, [Uri], [AlbumArtUri] or null).
+ * @param data the image data (cover path string, [Uri] or [AlbumArtUri]).
  * @return the remembered [ImageRequest].
  */
 @Composable
-fun rememberBlurImageRequest(data: Any?): ImageRequest {
+fun rememberBlurImageRequest(data: Any): ImageRequest {
     val context = LocalContext.current
     return remember(data) {
         val key = coverBaseKey(data)
@@ -97,6 +101,7 @@ fun rememberBlurImageRequest(data: Any?): ImageRequest {
  *
  * Only types with a stable identity are mapped. Anything else (e.g. an `InputStream`) returns
  * null so Coil falls back to its own keying instead of storing a per-instance identity hash.
+ * A null [data] has no identity at all; callers treat that as "no cover" and skip the request.
  *
  * @param data the image source passed to Coil.
  * @return the stable key, or null when [data] has no stable identity.

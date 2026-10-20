@@ -30,6 +30,7 @@ import de.carsten.android.muzzic.ui.CARD_CONTENT_HEIGHT
 import de.carsten.android.muzzic.ui.CARD_CONTENT_SPACING
 import de.carsten.android.muzzic.ui.MAINTITLE_FONTSIZE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.DefaultAlbumArt
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -44,7 +45,8 @@ fun AlbumCard(
     isSelected: Boolean = false,
     borderColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    val palette by rememberPaletteState(album.lastAlbumArt)
+    val coverData = album.lastAlbumArt
+    val palette by rememberPaletteState(coverData)
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
         defaultContent = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -61,14 +63,18 @@ fun AlbumCard(
                     .aspectRatio(1.1f),
                 contentAlignment = Alignment.Center,
             ) {
-                AsyncImage(
-                    model = rememberCoverImageRequest(album.lastAlbumArt),
-                    contentDescription = stringResource(R.string.album_art),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(R.drawable.disc),
-                    error = painterResource(R.drawable.disc),
-                )
+                if (coverData == null) {
+                    DefaultAlbumArt(modifier = Modifier.fillMaxSize())
+                } else {
+                    AsyncImage(
+                        model = rememberCoverImageRequest(coverData),
+                        contentDescription = stringResource(R.string.album_art),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.disc),
+                        error = painterResource(R.drawable.disc),
+                    )
+                }
             }
         },
         backgroundColor = backgroundColor,

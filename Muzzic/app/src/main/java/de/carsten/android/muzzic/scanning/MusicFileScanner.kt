@@ -136,7 +136,7 @@ class MusicFileScanner(
     }
 
     private suspend fun processChunk(chunk: List<Song>) = withContext(Dispatchers.IO) {
-        songDao.upsertSongs(chunk)
+        songDao.insertSongs(chunk)
     }
 
     /**

@@ -86,6 +86,7 @@ fun digestUUID(payload: ByteArray, namespace: UUID): UUID {
  * @param title song title as [String]
  * @param album song album as [String]
  * @param artist song artist as [String]
+ * @param namespace additional namespace uuid [UUID]
  * @return [UUID]
  */
 fun songId(title: String, album: String, artist: String, namespace: UUID = UUID.nameUUIDFromBytes(byteArrayOf())): UUID {

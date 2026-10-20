@@ -22,10 +22,20 @@ import de.carsten.android.muzzic.model.TestingTags.Screens.FALLBACK_PAINTER
 import de.carsten.android.muzzic.model.TestingTags.Screens.SUCCESS_ASYNC_IMAGE
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.component.DefaultAlbumArt
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
+/**
+ * Renders the album art for the given [albumArtInput].
+ *
+ * A missing cover ([AlbumArtInput.None]) is resolved before Coil is involved: the default
+ * artwork is drawn directly, so no data-less [coil3.request.ImageRequest] is ever executed.
+ *
+ * @param albumArtInput the cover source; [AlbumArtInput.None] shows the default artwork.
+ * @param modifier the modifier applied to the album art container.
+ */
 @Composable
 fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier: Modifier = Modifier) {
     AlbumArtContent(albumArtInput, modifier)
@@ -33,15 +43,7 @@ fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier:
 
 @Composable
 private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = Modifier) {
-    val data: Any? = when (albumArtInput) {
-        is AlbumArtInput.FromPath -> albumArtInput.audioFilePath
-        is AlbumArtInput.FromInputStream -> albumArtInput.inputStream
-        is AlbumArtInput.FromUri -> albumArtInput.audioFileUri
-        else -> null
-    }
-    val request = rememberCoverImageRequest(data)
-
-    val testTag = if (albumArtInput is AlbumArtInput.None) FALLBACK_PAINTER else SUCCESS_ASYNC_IMAGE
+    val data: Any? = albumArtInput.toImageSource()
 
     Box(
         contentAlignment = Alignment.Center,
@@ -52,17 +54,40 @@ private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = M
             .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
             .background(MaterialTheme.colorScheme.background),
     ) {
-        AsyncImage(
-            model = request,
-            contentDescription = stringResource(R.string.album_art),
-            placeholder = painterResource(R.drawable.disc),
-            error = painterResource(R.drawable.disc),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag(testTag),
-        )
+        if (data == null) {
+            // No cover available: draw the default artwork instead of asking Coil to load nothing.
+            DefaultAlbumArt(
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag(FALLBACK_PAINTER),
+            )
+        } else {
+            AsyncImage(
+                model = rememberCoverImageRequest(data),
+                contentDescription = stringResource(R.string.album_art),
+                placeholder = painterResource(R.drawable.disc),
+                error = painterResource(R.drawable.disc),
+                contentScale = ContentScale.Crop,
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag(SUCCESS_ASYNC_IMAGE),
+            )
+        }
     }
+}
+
+/**
+ * Maps the album art input to the data handed to Coil.
+ *
+ * @return the Coil data, or null when no cover is available.
+ */
+private fun AlbumArtInput.toImageSource(): Any? = when (this) {
+    is AlbumArtInput.FromPath -> audioFilePath
+    is AlbumArtInput.FromInputStream -> inputStream
+    is AlbumArtInput.FromUri -> audioFileUri
+    AlbumArtInput.None -> null
 }
 
 @Composable

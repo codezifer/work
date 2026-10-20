@@ -66,6 +66,9 @@ class PlayerScreenContextTest {
         }
 
         // then
+        // The default artwork is drawn by a plain Image, so no data-less image request
+        // is executed and no AsyncImage node exists.
         composeTestRule.onNodeWithTag(TestingTags.Screens.FALLBACK_PAINTER).assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestingTags.Screens.SUCCESS_ASYNC_IMAGE).assertDoesNotExist()
     }
 }
