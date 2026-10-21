@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, unique by descriptor.
  *
- * @property header frame header.
  * @property encoding text encoding of filename and description.
  * @property mimeType MIME type, always ISO-8859-1.
  * @property filename case sensitive filename.

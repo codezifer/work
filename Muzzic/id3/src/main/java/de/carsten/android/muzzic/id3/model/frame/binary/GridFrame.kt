@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * The group symbol ($80-F0 in v2.4) links grouped frames to this
  * registration. Unique by symbol and by owner.
  *
- * @property header frame header.
  * @property ownerIdentifier grouping owner URL or email.
  * @property groupSymbol symbol referenced by grouped frames.
  * @property groupData group-specific data, e.g. a signature.

@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * The counter grows by one byte in front when reaching all one's.
  * At least 32 bits long initially.
  *
- * @property header frame header.
  * @property counter big-endian counter bytes.
  */
 data class PcntFrame(override val header: FrameHeader, val counter: DataBytes) : BinaryDataFrame {

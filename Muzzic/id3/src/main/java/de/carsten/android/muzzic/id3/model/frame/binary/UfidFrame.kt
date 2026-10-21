@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, unique by owner.
  *
- * @property header frame header.
  * @property ownerIdentifier database owner URL or email.
  * @property identifier database identifier, up to 64 bytes.
  */

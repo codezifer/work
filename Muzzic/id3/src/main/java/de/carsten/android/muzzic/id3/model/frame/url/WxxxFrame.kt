@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * The URL itself is always ISO-8859-1 encoded. Multiple frames per tag
  * allowed, unique by description.
  *
- * @property header frame header.
  * @property encoding text encoding of the description.
  * @property description description of the URL.
  * @property url actual URL.

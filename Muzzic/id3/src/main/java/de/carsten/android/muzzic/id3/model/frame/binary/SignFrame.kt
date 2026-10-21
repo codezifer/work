@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, but no two may be identical.
  *
- * @property header frame header.
  * @property groupSymbol signed group symbol.
  * @property signature signature bytes.
  */

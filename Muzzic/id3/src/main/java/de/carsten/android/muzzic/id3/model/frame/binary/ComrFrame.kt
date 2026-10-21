@@ -11,7 +11,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, but no two may be identical.
  *
- * @property header frame header.
  * @property encoding text encoding of seller and description.
  * @property priceString slash-separated prices with ISO-4217 prefixes.
  * @property validUntil price validity as YYYYMMDD.

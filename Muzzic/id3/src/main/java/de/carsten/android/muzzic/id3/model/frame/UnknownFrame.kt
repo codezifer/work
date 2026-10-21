@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Parsers must preserve these frames when the status flags require it
  * instead of dropping them.
  *
- * @property header frame header.
  * @property raw undecoded frame body.
  */
 data class UnknownFrame(override val header: FrameHeader, val raw: DataBytes) : Id3Frame {

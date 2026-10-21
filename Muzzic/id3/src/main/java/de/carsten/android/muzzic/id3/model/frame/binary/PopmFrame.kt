@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Rating is 1-255 (1 worst, 255 best), 0 means unknown. Multiple frames
  * per tag allowed, unique by email.
  *
- * @property header frame header.
  * @property email user email address.
  * @property rating rating byte.
  * @property counter personal play counter, null if omitted.

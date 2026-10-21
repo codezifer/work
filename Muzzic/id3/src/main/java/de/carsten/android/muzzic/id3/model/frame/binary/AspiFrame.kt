@@ -8,7 +8,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Requires a TLEN frame. At most one per tag. New in v2.4.
  *
- * @property header frame header.
  * @property indexedDataStart byte offset of the indexed audio data.
  * @property indexedDataLength byte length of the indexed audio data.
  * @property fractions numerators of fractional offsets, denominator is 2^bitsPerPoint.

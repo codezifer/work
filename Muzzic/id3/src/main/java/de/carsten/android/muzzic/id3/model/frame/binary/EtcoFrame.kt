@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Events must be chronologically ordered. At most one per tag.
  *
- * @property header frame header.
  * @property format timestamp unit.
  * @property events chronologically ordered events.
  */

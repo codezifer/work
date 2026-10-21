@@ -12,7 +12,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Use "-->" as MIME type with a URL as picture data for linked images.
  * Multiple frames per tag allowed, unique by description.
  *
- * @property header frame header.
  * @property encoding text encoding of the description.
  * @property mimeType MIME type and subtype, "image/" is implied if omitted.
  * @property pictureType picture kind.

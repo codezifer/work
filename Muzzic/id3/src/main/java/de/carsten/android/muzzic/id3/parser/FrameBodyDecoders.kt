@@ -113,8 +113,7 @@ private const val TIMESTAMP_SIZE = 4
 private const val SYLT_MIN_SIZE = 6
 
 /** Fixed YYYYMMDD date field size in OWNE and COMR frames. */
-private const val OWNE_DATE_LENGTH = 8
-private const val COMR_DATE_LENGTH = 8
+private const val DATE_FIELD_LENGTH = 8
 
 /** Per-channel head size in RVA2 entries: type + adjustment (2) + peak bits. */
 private const val RVA2_CHANNEL_HEAD_SIZE = 4
@@ -211,100 +210,83 @@ internal fun FrameDecoderRegistry.registerUrlFrames() {
         FrameIds.WPUB to ::WpubFrame,
     )
     factories.forEach { (id, factory) ->
-        register(id) { header, body, _ -> factory(header, decodeUrlBody(body)) }
+        register(id) { header, body, _ -> factory(header, readIsoString(body, 0).first) }
     }
 }
 
 /**
  * Decodes a TXXX user defined text frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
+ * Layout: encoding + description (encoding, terminated) + value (rest).
+ *
  * @return decoded frame.
  */
 internal fun decodeTxxx(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val encoding = encodingOf(body)
     val (description, valueOffset) = readEncodedString(body, 1, encoding)
-    return TxxxFrame(header, encoding, description, decodeString(body, valueOffset, body.size, encoding))
+    return TxxxFrame(header, encoding, description, decodeSegment(body, valueOffset, body.size, encoding.charset))
 }
 
 /**
  * Decodes a WXXX user defined URL frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
+ * Layout: encoding + description (encoding, terminated) + URL (ISO-8859-1, terminated).
+ *
  * @return decoded frame.
  */
 internal fun decodeWxxx(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val encoding = encodingOf(body)
     val (description, urlOffset) = readEncodedString(body, 1, encoding)
-    return WxxxFrame(header, encoding, description, decodeUrlBody(body, urlOffset, body.size))
+    return WxxxFrame(header, encoding, description, readIsoString(body, urlOffset).first)
 }
 
 /**
  * Decodes a COMM comment frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
+ * Layout: encoding + language (3 bytes) + descriptor (encoding, terminated) + text (rest).
+ *
  * @return decoded frame.
  */
 internal fun decodeComm(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    val encoding = encodingOf(body)
-    val language = languageOf(body)
-    val (descriptor, textOffset) = readEncodedString(body, 4, encoding)
-    return CommFrame(header, encoding, language, descriptor, decodeString(body, textOffset, body.size, encoding))
+    val (encoding, language, descriptor, text) = readLanguageText(body)
+    return CommFrame(header, encoding, language, descriptor, text)
 }
 
 /**
  * Decodes a USLT unsynchronised lyrics frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
+ * Layout: encoding + language (3 bytes) + descriptor (encoding, terminated) + lyrics (rest).
+ *
  * @return decoded frame.
  */
 internal fun decodeUslt(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    val encoding = encodingOf(body)
-    val language = languageOf(body)
-    val (descriptor, textOffset) = readEncodedString(body, 4, encoding)
-    return UsltFrame(header, encoding, language, descriptor, decodeString(body, textOffset, body.size, encoding))
+    val (encoding, language, descriptor, text) = readLanguageText(body)
+    return UsltFrame(header, encoding, language, descriptor, text)
 }
 
 /**
  * Decodes a UFID unique file identifier frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodeUfid(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val (owner, dataOffset) = readIsoString(body, 0)
-    return UfidFrame(header, owner, DataBytes(body.copyOfRange(dataOffset, body.size), offset = bodyOffset + dataOffset))
+    return UfidFrame(header, owner, trailingBytes(body, dataOffset, bodyOffset))
 }
 
 /**
  * Decodes a PRIV private frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodePriv(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val (owner, dataOffset) = readIsoString(body, 0)
-    return PrivFrame(header, owner, DataBytes(body.copyOfRange(dataOffset, body.size), offset = bodyOffset + dataOffset))
+    return PrivFrame(header, owner, trailingBytes(body, dataOffset, bodyOffset))
 }
 
 /**
  * Decodes a PCNT play counter frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodePcnt(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame = PcntFrame(header, DataBytes(body, offset = bodyOffset))
@@ -312,18 +294,13 @@ internal fun decodePcnt(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
 /**
  * Decodes a POPM popularimeter frame.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodePopm(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val (email, ratingOffset) = readIsoString(body, 0)
     if (ratingOffset >= body.size) return PopmFrame(header, email, 0u, null)
     val rating = body[ratingOffset].toUByte()
-    val counter = body.copyOfRange(ratingOffset + 1, body.size).takeIf { it.isNotEmpty() }?.let {
-        DataBytes(it, offset = bodyOffset + ratingOffset + 1)
-    }
+    val counter = if (ratingOffset + 1 < body.size) trailingBytes(body, ratingOffset + 1, bodyOffset) else null
     return PopmFrame(header, email, rating, counter)
 }
 
@@ -334,19 +311,12 @@ internal fun decodePopm(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * description (encoding, terminated) + picture data (rest, may be a linked
  * URL when the MIME type is "-->").
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] when truncated.
  */
 internal fun decodeApic(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    val encoding = encodingOf(body)
-    val (mimeType, typeOffset) = readIsoString(body, 1)
-    if (typeOffset >= body.size) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    val pictureType = PictureType.fromCode(body[typeOffset])
-    val (description, dataOffset) = readEncodedString(body, typeOffset + 1, encoding)
-    val data = DataBytes(body.copyOfRange(dataOffset, body.size), offset = bodyOffset + dataOffset)
-    return ApicFrame(header, encoding, mimeType, pictureType, description, data)
+    val fields = parseApicFields(body) ?: return unknown(header, body, bodyOffset)
+    val data = trailingBytes(body, fields.dataOffset, bodyOffset)
+    return ApicFrame(header, fields.encoding, fields.mimeType, fields.pictureType, fields.description, data)
 }
 
 /**
@@ -357,20 +327,31 @@ internal fun decodeApic(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * stream [offset][DataBytes.offset] and [length][DataBytes.length], so
  * consumers can lazy-load the bytes later (see [Id3ParseOptions]).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame with empty picture payload, or [UnknownFrame] when truncated.
  */
 internal fun decodeApicSkipped(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
+    val fields = parseApicFields(body) ?: return unknown(header, body, bodyOffset)
+    val skipped = DataBytes(byteArrayOf(), offset = bodyOffset + fields.dataOffset, length = body.size - fields.dataOffset)
+    return ApicFrame(header, fields.encoding, fields.mimeType, fields.pictureType, fields.description, skipped)
+}
+
+/**
+ * Parses the fields shared by APIC and skip-mode APIC frames.
+ *
+ * @param body plain body bytes.
+ * @return parsed fields, or `null` when the body ends before the picture type.
+ */
+private fun parseApicFields(body: ByteArray): ApicFields? {
     val encoding = encodingOf(body)
     val (mimeType, typeOffset) = readIsoString(body, 1)
-    if (typeOffset >= body.size) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    if (typeOffset >= body.size) return null
     val pictureType = PictureType.fromCode(body[typeOffset])
     val (description, dataOffset) = readEncodedString(body, typeOffset + 1, encoding)
-    val skipped = DataBytes(byteArrayOf(), offset = bodyOffset + dataOffset, length = body.size - dataOffset)
-    return ApicFrame(header, encoding, mimeType, pictureType, description, skipped)
+    return ApicFields(encoding, mimeType, pictureType, description, dataOffset)
 }
+
+/** Parsed APIC fields before the picture payload. */
+private data class ApicFields(val encoding: TextEncoding, val mimeType: String, val pictureType: PictureType, val description: String, val dataOffset: Int)
 
 /**
  * Decodes a GEOB general encapsulated object frame (§4.15).
@@ -380,9 +361,6 @@ internal fun decodeApicSkipped(header: FrameHeader, body: ByteArray, bodyOffset:
  * (rest). MIME type and filename may be empty except for their
  * terminators.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodeGeob(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
@@ -390,8 +368,7 @@ internal fun decodeGeob(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
     val (mimeType, filenameOffset) = readIsoString(body, 1)
     val (filename, descriptionOffset) = readEncodedString(body, filenameOffset, encoding)
     val (description, dataOffset) = readEncodedString(body, descriptionOffset, encoding)
-    val data = DataBytes(body.copyOfRange(dataOffset, body.size), offset = bodyOffset + dataOffset)
-    return GeobFrame(header, encoding, mimeType, filename, description, data)
+    return GeobFrame(header, encoding, mimeType, filename, description, trailingBytes(body, dataOffset, bodyOffset))
 }
 
 /**
@@ -399,15 +376,12 @@ internal fun decodeGeob(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  *
  * Layout: encoding + language (3 bytes) + text (rest, newlines allowed).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame.
  */
 internal fun decodeUser(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val encoding = encodingOf(body)
     val language = languageOf(body)
-    return UserFrame(header, encoding, language, decodeString(body, 4, body.size, encoding))
+    return UserFrame(header, encoding, language, decodeSegment(body, 4, body.size, encoding.charset))
 }
 
 /**
@@ -416,19 +390,14 @@ internal fun decodeUser(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * Layout: encoding + price paid (ISO-8859-1, terminated) + purchase date
  * (fixed 8 bytes, YYYYMMDD, not terminated) + seller (rest, encoding).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] when truncated.
  */
 internal fun decodeOwne(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val encoding = encodingOf(body)
     val (pricePaid, dateOffset) = readIsoString(body, 1)
-    if (dateOffset + OWNE_DATE_LENGTH > body.size) {
-        return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    }
-    val purchaseDate = String(body, dateOffset, OWNE_DATE_LENGTH, ISO_8859_1)
-    val seller = decodeString(body, dateOffset + OWNE_DATE_LENGTH, body.size, encoding)
+    if (dateOffset + DATE_FIELD_LENGTH > body.size) return unknown(header, body, bodyOffset)
+    val purchaseDate = String(body, dateOffset, DATE_FIELD_LENGTH, ISO_8859_1)
+    val seller = decodeSegment(body, dateOffset + DATE_FIELD_LENGTH, body.size, encoding.charset)
     return OwneFrame(header, encoding, pricePaid, purchaseDate, seller)
 }
 
@@ -441,17 +410,13 @@ internal fun decodeOwne(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * "32 bit sized" format description). Parsing stops tolerantly at a
  * truncated tail.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] for unknown formats or truncation.
  */
 internal fun decodeSylt(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    if (body.size < SYLT_MIN_SIZE) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    if (body.size < SYLT_MIN_SIZE) return unknown(header, body, bodyOffset)
     val encoding = encodingOf(body)
     val language = languageOf(body)
-    val format = TimestampFormat.fromCode(body[4])
-        ?: return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    val format = TimestampFormat.fromCode(body[4]) ?: return unknown(header, body, bodyOffset)
     val contentType = SyltContentType.fromCode(body[5])
     val (descriptor, entryOffset) = readEncodedString(body, 6, encoding)
     val entries = mutableListOf<SyncEntry>()
@@ -474,15 +439,11 @@ internal fun decodeSylt(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * as the actual type. Unknown event codes fall back to [UnknownFrame] so
  * no bytes are lost.
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] for unknown formats or codes.
  */
 internal fun decodeEtco(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    if (body.isEmpty()) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    val format = TimestampFormat.fromCode(body[0])
-        ?: return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    if (body.isEmpty()) return unknown(header, body, bodyOffset)
+    val format = TimestampFormat.fromCode(body[0]) ?: return unknown(header, body, bodyOffset)
     val events = mutableListOf<TimingEvent>()
     var index = 1
     while (index < body.size) {
@@ -492,8 +453,7 @@ internal fun decodeEtco(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
             if (code == PADDING_BYTE && index + TIMESTAMP_SIZE <= body.size) index += TIMESTAMP_SIZE
             continue
         }
-        val type = EventType.fromCode(code.toByte())
-            ?: return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+        val type = EventType.fromCode(code.toByte()) ?: return unknown(header, body, bodyOffset)
         if (index + TIMESTAMP_SIZE > body.size) break
         events.add(TimingEvent(type, readU32BE(body, index)))
         index += TIMESTAMP_SIZE
@@ -509,9 +469,6 @@ internal fun decodeEtco(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * big-endian, value × 512) + peak bits + peak volume (`ceil(bits/8)`
  * bytes, absent when bits is 0).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] when truncated.
  */
 internal fun decodeRva2(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
@@ -519,24 +476,22 @@ internal fun decodeRva2(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
     val channels = mutableListOf<Rva2ChannelAdjust>()
     var index = channelOffset
     while (index < body.size) {
-        if (index + RVA2_CHANNEL_HEAD_SIZE > body.size) {
-            return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-        }
+        if (index + RVA2_CHANNEL_HEAD_SIZE > body.size) return unknown(header, body, bodyOffset)
         val channelType = Rva2ChannelType.fromCode(body[index])
         val adjustment = readI16BE(body, index + 1)
         val peakBits = body[index + 3].toUByte()
         index += RVA2_CHANNEL_HEAD_SIZE
         val peakBytes = (peakBits.toInt() + Byte.SIZE_BITS - 1) / Byte.SIZE_BITS
-        if (peakBytes > 0) {
-            if (index + peakBytes > body.size) {
-                return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+        val peak =
+            if (peakBytes > 0) {
+                if (index + peakBytes > body.size) return unknown(header, body, bodyOffset)
+                val bytes = DataBytes(body.copyOfRange(index, index + peakBytes), offset = bodyOffset + index)
+                index += peakBytes
+                bytes
+            } else {
+                null
             }
-            val peak = DataBytes(body.copyOfRange(index, index + peakBytes), offset = bodyOffset + index)
-            index += peakBytes
-            channels.add(Rva2ChannelAdjust(channelType, adjustment, peakBits, peak))
-        } else {
-            channels.add(Rva2ChannelAdjust(channelType, adjustment, peakBits, null))
-        }
+        channels.add(Rva2ChannelAdjust(channelType, adjustment, peakBits, peak))
     }
     return Rva2Frame(header, identification, channels)
 }
@@ -548,21 +503,16 @@ internal fun decodeRva2(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * + repeated points of frequency (2 bytes big-endian, ½ Hz units) +
  * fixed-point dB adjustment (2 bytes signed big-endian, value × 512).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] when truncated.
  */
 internal fun decodeEqu2(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    if (body.isEmpty()) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    if (body.isEmpty()) return unknown(header, body, bodyOffset)
     val interpolation = Equ2Interpolation.fromCode(body[0])
     val (identification, pointOffset) = readIsoString(body, 1)
     val points = mutableListOf<Equ2Point>()
     var index = pointOffset
     while (index < body.size) {
-        if (index + EQU2_POINT_SIZE > body.size) {
-            return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-        }
+        if (index + EQU2_POINT_SIZE > body.size) return unknown(header, body, bodyOffset)
         points.add(Equ2Point(readU16BE(body, index), readI16BE(body, index + 2)))
         index += EQU2_POINT_SIZE
     }
@@ -578,22 +528,15 @@ internal fun decodeEqu2(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * terminated) + description (encoding, terminated) + optional logo of
  * MIME type (ISO-8859-1, terminated) + logo bytes (rest).
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] when truncated.
  */
 internal fun decodeComr(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
     val encoding = encodingOf(body)
     val (priceString, dateOffset) = readIsoString(body, 1)
-    if (dateOffset + COMR_DATE_LENGTH > body.size) {
-        return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    }
-    val validUntil = String(body, dateOffset, COMR_DATE_LENGTH, ISO_8859_1)
-    val (contactUrl, receivedOffset) = readIsoString(body, dateOffset + COMR_DATE_LENGTH)
-    if (receivedOffset >= body.size) {
-        return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    }
+    if (dateOffset + DATE_FIELD_LENGTH > body.size) return unknown(header, body, bodyOffset)
+    val validUntil = String(body, dateOffset, DATE_FIELD_LENGTH, ISO_8859_1)
+    val (contactUrl, receivedOffset) = readIsoString(body, dateOffset + DATE_FIELD_LENGTH)
+    if (receivedOffset >= body.size) return unknown(header, body, bodyOffset)
     val receivedAs = ReceivedAs.fromCode(body[receivedOffset])
     val (sellerName, descriptionOffset) = readEncodedString(body, receivedOffset + 1, encoding)
     val (description, logoOffset) = readEncodedString(body, descriptionOffset, encoding)
@@ -601,8 +544,7 @@ internal fun decodeComr(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
         return ComrFrame(header, encoding, priceString, validUntil, contactUrl, receivedAs, sellerName, description, null, null)
     }
     val (mimeType, logoStart) = readIsoString(body, logoOffset)
-    val logo = DataBytes(body.copyOfRange(logoStart, body.size), offset = bodyOffset + logoStart)
-        .takeIf { logoStart < body.size }
+    val logo = if (logoStart < body.size) trailingBytes(body, logoStart, bodyOffset) else null
     return ComrFrame(header, encoding, priceString, validUntil, contactUrl, receivedAs, sellerName, description, mimeType, logo)
 }
 
@@ -613,13 +555,10 @@ internal fun decodeComr(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
  * count (2 bytes) + bits per point (8 or 16) + fractions of `bits/8`
  * bytes each. Other precisions fall back to [UnknownFrame].
  *
- * @param header frame header.
- * @param body plain body bytes.
- * @param bodyOffset absolute stream position of `body[0]`.
  * @return decoded frame, or [UnknownFrame] for unsupported layouts.
  */
 internal fun decodeAspi(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame {
-    if (body.size < ASPI_HEAD_SIZE) return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+    if (body.size < ASPI_HEAD_SIZE) return unknown(header, body, bodyOffset)
     val start = readU32BE(body, 0).toUInt()
     val length = readU32BE(body, 4).toUInt()
     val count = readU16BE(body, 8)
@@ -627,11 +566,9 @@ internal fun decodeAspi(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
     val pointBytes = when (bits.toInt()) {
         Byte.SIZE_BITS -> 1
         Short.SIZE_BITS -> 2
-        else -> return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+        else -> return unknown(header, body, bodyOffset)
     }
-    if (ASPI_HEAD_SIZE + count * pointBytes > body.size) {
-        return UnknownFrame(header, DataBytes(body, offset = bodyOffset))
-    }
+    if (ASPI_HEAD_SIZE + count * pointBytes > body.size) return unknown(header, body, bodyOffset)
     val fractions = List(count) { point ->
         val offset = ASPI_HEAD_SIZE + point * pointBytes
         if (pointBytes == 1) body[offset].toInt() and 0xFF else readU16BE(body, offset)
@@ -639,20 +576,27 @@ internal fun decodeAspi(header: FrameHeader, body: ByteArray, bodyOffset: Int): 
     return AspiFrame(header, start, length, fractions, bits)
 }
 
+/** Wraps an unparsable frame body in an [UnknownFrame] that keeps its absolute offset. */
+private fun unknown(header: FrameHeader, body: ByteArray, bodyOffset: Int): Id3Frame = UnknownFrame(header, DataBytes(body, offset = bodyOffset))
+
 private fun decodeTextBody(body: ByteArray): Pair<TextEncoding, List<String>> {
-    if (body.isEmpty()) return TextEncoding.ISO_8859_1 to emptyList()
     val encoding = encodingOf(body)
     return encoding to splitStrings(body, 1, encoding)
 }
 
-private fun decodeUrlBody(body: ByteArray): String = decodeUrlBody(body, 0, body.size)
-
-private fun decodeUrlBody(bytes: ByteArray, start: Int, end: Int): String {
-    if (start >= end) return ""
-    var stop = start
-    while (stop < end && bytes[stop] != 0x00.toByte()) stop += 1
-    return String(bytes, start, stop - start, ISO_8859_1)
+/** Reads the encoding + language + descriptor/text layout shared by COMM and USLT. */
+private fun readLanguageText(body: ByteArray): LanguageText {
+    val encoding = encodingOf(body)
+    val language = languageOf(body)
+    val (descriptor, textOffset) = readEncodedString(body, 4, encoding)
+    return LanguageText(encoding, language, descriptor, decodeSegment(body, textOffset, body.size, encoding.charset))
 }
+
+/** Decoded COMM/USLT fields. */
+private data class LanguageText(val encoding: TextEncoding, val language: LanguageCode, val descriptor: String, val text: String)
+
+/** Copies the body tail starting at [start], keeping its absolute stream position. */
+private fun trailingBytes(body: ByteArray, start: Int, bodyOffset: Int): DataBytes = DataBytes(body.copyOfRange(start, body.size), offset = bodyOffset + start)
 
 private fun encodingOf(body: ByteArray): TextEncoding = if (body.isEmpty()) TextEncoding.ISO_8859_1 else TextEncoding.fromCode(body[0]) ?: TextEncoding.ISO_8859_1
 
@@ -704,11 +648,6 @@ private fun readIsoString(bytes: ByteArray, offset: Int): Pair<String, Int> {
     return String(bytes, offset, index - offset, ISO_8859_1) to (index + 1).coerceAtMost(bytes.size)
 }
 
-private fun decodeString(bytes: ByteArray, start: Int, end: Int, encoding: TextEncoding): String {
-    if (start >= end) return ""
-    return decodeSegment(bytes, start, end, encoding.charset)
-}
-
 private fun decodeSegment(bytes: ByteArray, start: Int, end: Int, charset: Charset): String {
     if (start >= end) return ""
     return String(bytes, start, end - start, charset)
@@ -734,7 +673,7 @@ private fun readU16BE(bytes: ByteArray, offset: Int): Int = (bytes[offset].toInt
  * @param offset start offset.
  * @return signed value.
  */
-private fun readI16BE(bytes: ByteArray, offset: Int): Short = ((bytes[offset].toInt() and 0xFF shl 8) or (bytes[offset + 1].toInt() and 0xFF)).toShort()
+private fun readI16BE(bytes: ByteArray, offset: Int): Short = readU16BE(bytes, offset).toShort()
 
 /**
  * Reads an unsigned 32 bit big-endian integer.

@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * At most one per tag. Pairs well with USER and TOWN.
  *
- * @property header frame header.
  * @property encoding text encoding of the seller name.
  * @property pricePaid price with ISO-4217 currency prefix, e.g. "EUR12.50".
  * @property purchaseDate purchase date as YYYYMMDD.

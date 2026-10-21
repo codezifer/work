@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, unique by owner.
  *
- * @property header frame header.
  * @property ownerIdentifier encryption owner URL or email.
  * @property previewStart unencrypted preview start in frames.
  * @property previewLength unencrypted preview length in frames.

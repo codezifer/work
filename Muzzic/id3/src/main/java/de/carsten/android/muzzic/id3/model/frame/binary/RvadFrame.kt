@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Front channels are always present; back, centre and bass channels are
  * appended as raw extension data when present.
  *
- * @property header frame header.
  * @property incrementDecrement channel direction bits (bit 0 right, 1 left, 2 right back, ...).
  * @property bitsUsedForVolume bits used per volume description, never $00.
  * @property frontRightChange front right volume change bytes.

@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * At most one per tag.
  *
- * @property header frame header.
  * @property encoding text encoding.
  * @property entries involvement/name pairs.
  */

@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Delays are milliseconds, bounces count echoes ($FF is infinite),
  * feedback and premix range from $00 (0 %) to $FF (100 %).
  *
- * @property header frame header.
  * @property reverbLeftMs delay between left bounces in ms.
  * @property reverbRightMs delay between right bounces in ms.
  * @property bouncesLeft number of left bounces.

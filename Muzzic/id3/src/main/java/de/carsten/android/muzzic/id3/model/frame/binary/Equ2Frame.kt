@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Points should be ordered by frequency. Multiple frames per tag
  * allowed, unique by identification.
  *
- * @property header frame header.
  * @property interpolation preferred interpolation method.
  * @property identification situation or device this curve applies to.
  * @property points adjustment points ordered by frequency.

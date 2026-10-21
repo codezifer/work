@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * A linked frame counts as part of the tag with the same uniqueness
  * restrictions as a physical frame.
  *
- * @property header frame header.
  * @property linkedFrameId identifier of the linked frame.
  * @property url reference to the file holding the linked frame.
  * @property additionalData frame-specific id data, e.g. descriptor or language.

@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Newlines allowed in the text.
  *
- * @property header frame header.
  * @property encoding text encoding.
  * @property language content language.
  * @property text actual terms text.

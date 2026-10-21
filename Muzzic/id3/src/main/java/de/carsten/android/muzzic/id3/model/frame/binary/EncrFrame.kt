@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * The method symbol ($80-F0 in v2.4) links encrypted frames to this
  * registration. Unique by symbol and by owner.
  *
- * @property header frame header.
  * @property ownerIdentifier encryption owner URL or email.
  * @property methodSymbol symbol referenced by encrypted frames.
  * @property encryptionData method-specific data.

@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Bands should be ordered by frequency. At most one per tag.
  *
- * @property header frame header.
  * @property adjustmentBits bits used per adjustment value, never $00.
  * @property bands equalisation bands.
  */

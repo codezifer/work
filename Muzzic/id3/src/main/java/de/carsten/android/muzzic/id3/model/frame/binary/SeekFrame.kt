@@ -8,7 +8,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * At most one per tag. New in v2.4.
  *
- * @property header frame header.
  * @property minOffsetToNextTag minimum offset from this tag's end to the next tag.
  */
 data class SeekFrame(override val header: FrameHeader, val minOffsetToNextTag: Int) : BinaryDataFrame {

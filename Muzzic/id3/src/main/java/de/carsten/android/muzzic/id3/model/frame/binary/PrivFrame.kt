@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed with different content.
  *
- * @property header frame header.
  * @property ownerIdentifier producer URL or email.
  * @property privateData producer-specific bytes.
  */

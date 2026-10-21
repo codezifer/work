@@ -10,7 +10,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Tempo descriptors must be chronologically ordered. At most one per tag.
  *
- * @property header frame header.
  * @property format timestamp unit.
  * @property tempoData encoded tempo and timestamp pairs.
  */

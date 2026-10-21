@@ -8,7 +8,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
 /**
  * Position synchronisation for stream pickup (POSS). At most one per tag.
  *
- * @property header frame header.
  * @property format timestamp unit.
  * @property position stream offset of the next frame.
  */

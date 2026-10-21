@@ -13,7 +13,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  * Each entry carries the timestamp where it belongs in the audio.
  * Unique per language and descriptor.
  *
- * @property header frame header.
  * @property encoding text encoding.
  * @property language content language.
  * @property format timestamp unit.

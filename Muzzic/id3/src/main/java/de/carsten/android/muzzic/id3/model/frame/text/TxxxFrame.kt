@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, unique by description.
  *
- * @property header frame header.
  * @property encoding text encoding.
  * @property description description of the value.
  * @property value actual string value.

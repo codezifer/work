@@ -9,7 +9,6 @@ import de.carsten.android.muzzic.id3.model.visitor.Id3FrameVisitor
  *
  * Multiple frames per tag allowed, unique by identification.
  *
- * @property header frame header.
  * @property identification situation or device this adjustment applies to.
  * @property channels per-channel adjustments.
  */
