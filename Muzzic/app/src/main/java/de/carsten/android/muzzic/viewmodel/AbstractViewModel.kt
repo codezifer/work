@@ -9,11 +9,11 @@ import de.carsten.android.muzzic.ui.model.SongDto
 @UnstableApi
 abstract class AbstractViewModel(private val playingQueueRepository: PlayingQueueRepository, private val mediaLibraryManager: MediaLibraryManager) : ViewModel() {
 
-    protected suspend fun enqueue(songs: List<SongDto>) {
+    protected suspend fun enqueue(songs: List<SongDto>, startIndex: Int = 0) {
         if (songs.isEmpty()) return
         val mediaItems = songs.mapIndexed { index, song -> song.toMediaItem(index) }
         playingQueueRepository.clear()
         playingQueueRepository.addSongs(mediaItems)
-        mediaLibraryManager.playPlaylist(mediaItems, 0)
+        mediaLibraryManager.playPlaylist(mediaItems, startIndex.coerceIn(0, mediaItems.lastIndex))
     }
 }

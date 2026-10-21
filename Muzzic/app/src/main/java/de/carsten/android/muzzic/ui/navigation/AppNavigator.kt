@@ -30,7 +30,7 @@ class AppNavigator(private val navController: NavHostController) {
             }
 
             NavigationEvent.ToPlaylists -> {
-                navigateToRoot(AppDestinations.PLAYLISTS)
+                navigateToRoot(AppDestinations.PLAYLISTS_GRAPH)
             }
 
             NavigationEvent.ToStatistics -> {
@@ -59,6 +59,10 @@ class AppNavigator(private val navController: NavHostController) {
 
             is NavigationEvent.ToGenreArtists -> {
                 navController.navigate(AppDestinations.genreArtists(event.genreName))
+            }
+
+            is NavigationEvent.ToPlaylistSongs -> {
+                navController.navigate(AppDestinations.playlistSongs(event.playlistId))
             }
         }
     }

@@ -24,8 +24,16 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.utils.extractColors
 
+/**
+ * A card representing a playlist.
+ *
+ * @param playlist the [PlaylistDto] to display.
+ * @param onClick callback triggered when the card is clicked.
+ * @param onPlayClick callback triggered when the play button is clicked; the button
+ *   is hidden when `null`.
+ */
 @Composable
-fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
+fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}, onPlayClick: (() -> Unit)? = null) {
     val palette by rememberPaletteState(playlist.lastAlbumArt)
     val colors = palette.extractColors(
         defaultBackground = MaterialTheme.colorScheme.primaryContainer,
@@ -47,7 +55,9 @@ fun PlaylistCard(playlist: PlaylistDto, onClick: () -> Unit = {}) {
         },
         backgroundColor = backgroundColor,
         contentColor = contentColor,
+        borderColor = backgroundColor.copy(alpha = 1f), // Use palette color for border/glow
         onClick = onClick,
+        onPlayClick = onPlayClick,
         contentHeight = CARD_CONTENT_HEIGHT,
     ) {
         Text(

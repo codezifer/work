@@ -63,4 +63,10 @@ sealed class NavigationEvent {
      * @property genreName The name of the genre.
      */
     data class ToGenreArtists(val genreName: String) : NavigationEvent()
+
+    /**
+     * Navigates to the Playlist Songs screen.
+     * @property playlistId The id of the playlist.
+     */
+    data class ToPlaylistSongs(val playlistId: String) : NavigationEvent()
 }

@@ -19,6 +19,26 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlists WHERE name LIKE '%' || :query || '%' ORDER BY name ASC")
     suspend fun searchPlaylists(query: String): List<Playlist>
 
+    /**
+     * Observes a single playlist by its id.
+     *
+     * @param playlistId id of the playlist.
+     * @return a flow emitting the playlist, or `null` when it no longer exists.
+     */
+    @Query("SELECT * FROM playlists WHERE id = :playlistId")
+    fun observePlaylist(playlistId: String): Flow<Playlist?>
+
+    /**
+     * Observes the songs of a playlist in playlist order.
+     *
+     * @param playlistId id of the playlist.
+     * @return a flow emitting the songs ordered by their position in the playlist.
+     */
+    @Query(
+        "SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.songId WHERE ps.playlistId = :playlistId ORDER BY ps.position",
+    )
+    fun observeSongsInPlaylist(playlistId: String): Flow<List<Song>>
+
     @Query(
         "SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.songId WHERE ps.playlistId = :playlistId ORDER BY ps.position",
     )

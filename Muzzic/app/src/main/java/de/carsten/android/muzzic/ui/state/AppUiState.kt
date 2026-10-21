@@ -11,7 +11,7 @@ sealed class AppUiState {
 
     data class Queue(val isManaging: Boolean = true) : AppUiState()
 
-    data object Playlists : AppUiState()
+    data class Playlists(val selectionActive: Boolean = false) : AppUiState()
 
     data object Statistics : AppUiState()
 

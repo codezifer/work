@@ -17,6 +17,24 @@ class PlaylistRepository(val playlistDao: PlaylistDao) {
 
     suspend fun searchPlaylists(query: String): List<Playlist> = playlistDao.searchPlaylists(query)
 
+    /**
+     * Observes the name of a playlist.
+     *
+     * @param playlistId id of the playlist.
+     * @return a flow emitting the playlist name, or `null` when the playlist no longer exists.
+     */
+    fun observePlaylistName(playlistId: String): Flow<String?> = playlistDao.observePlaylist(playlistId).map { it?.name }
+
+    /**
+     * Observes the songs of a playlist in playlist order.
+     *
+     * @param playlistId id of the playlist.
+     * @return a flow emitting the songs ordered by their position in the playlist.
+     */
+    fun observeSongsInPlaylist(playlistId: String): Flow<List<SongDto>> = playlistDao.observeSongsInPlaylist(playlistId).map { songs ->
+        songs.mapIndexed { index, song -> song.toDto(index) }
+    }
+
     suspend fun getSongsInPlaylist(playlistId: String): List<SongDto> = playlistDao.getSongsInPlaylist(playlistId).mapIndexed { index, song -> song.toDto(index) }
 
     suspend fun deletePlaylist(playlistId: String): Unit = playlistDao.deletePlaylist(playlistId)

@@ -44,7 +44,7 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, @StringRes 
 
     object Queue : BottomNavItem(AppDestinations.QUEUE, Icons.Default.Queue, R.string.nav_queue)
 
-    object Playlists : BottomNavItem(AppDestinations.PLAYLISTS, Icons.AutoMirrored.Filled.PlaylistPlay, R.string.nav_playlists)
+    object Playlists : BottomNavItem(AppDestinations.PLAYLISTS_GRAPH, Icons.AutoMirrored.Filled.PlaylistPlay, R.string.nav_playlists)
 
     object Statistics : BottomNavItem(AppDestinations.STATISTICS, Icons.Default.BarChart, R.string.nav_stats)
 }

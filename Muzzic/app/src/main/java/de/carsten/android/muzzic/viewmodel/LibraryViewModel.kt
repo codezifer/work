@@ -74,17 +74,6 @@ class LibraryViewModel(
         }
     }
 
-    fun setIntoPlayingQueue(playlistId: String) {
-        viewModelScope.launch {
-            playingQueueRepository.clear()
-            playingQueueRepository.addSongs(
-                playlistRepository
-                    .getSongsInPlaylist(playlistId)
-                    .map { it.toMediaItem() },
-            )
-        }
-    }
-
     fun playGenre(genreName: String) {
         viewModelScope.launch {
             enqueue(genreRepository.getSongsByGenre(genreName))

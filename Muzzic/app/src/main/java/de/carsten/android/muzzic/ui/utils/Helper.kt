@@ -23,6 +23,23 @@ fun formatDuration(durationMs: Long): String {
 }
 
 /**
+ * Formats a total duration for headers and summaries, e.g. "01h:30min" or "00h:50min".
+ *
+ * The format is always `HHh:MMmin`; hours are padded to two digits and minutes are
+ * truncated to full minutes.
+ *
+ * @param durationMs duration in milliseconds as [Long].
+ * @return the formatted duration as [String].
+ */
+fun formatDurationLong(durationMs: Long): String {
+    val totalMinutes = durationMs / MILLIS_PER_MINUTE
+    return "%02dh:%02dmin".format(totalMinutes / MINUTES_PER_HOUR, totalMinutes % MINUTES_PER_HOUR)
+}
+
+private const val MILLIS_PER_MINUTE = 60_000L
+private const val MINUTES_PER_HOUR = 60
+
+/**
  * Format time as string
  *
  * @param timeMs the time ms as [Long]

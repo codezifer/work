@@ -20,6 +20,9 @@ import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY
 import de.carsten.android.muzzic.ui.AppDestinations.LIBRARY_GRAPH
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYER
 import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS
+import de.carsten.android.muzzic.ui.AppDestinations.PLAYLISTS_GRAPH
+import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST_ID_ARGUMENT
+import de.carsten.android.muzzic.ui.AppDestinations.PLAYLIST_SONGS
 import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.SETTINGS
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
@@ -35,6 +38,7 @@ import de.carsten.android.muzzic.ui.screens.GenresScreen
 import de.carsten.android.muzzic.ui.screens.LibraryScreen
 import de.carsten.android.muzzic.ui.screens.PlayerScreen
 import de.carsten.android.muzzic.ui.screens.PlayingQueueScreen
+import de.carsten.android.muzzic.ui.screens.PlaylistSongsScreen
 import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
 import de.carsten.android.muzzic.ui.screens.SettingsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
@@ -73,12 +77,12 @@ fun AppNavHost(
         }
     }
 
-    val onPlaylistClick = remember(libraryViewModel, playingQueueViewModel, appState) {
+    val onPlaylistClick = remember(appState, selectionViewModel) {
         { playlistDto: PlaylistDto ->
-            libraryViewModel.setIntoPlayingQueue(playlistDto.playlistId)
-            playingQueueViewModel.setPlayQueueName(playlistDto.playlistName)
-            appState.onNavigationEvent(NavigationEvent.ToQueue)
-            appState.showSnackbar("Set ${playlistDto.playlistName}")
+            appState.onNavigationEvent(
+                NavigationEvent.ToPlaylistSongs(playlistDto.playlistId),
+                selectionViewModel.selectionState.value,
+            )
         }
     }
 
@@ -144,6 +148,7 @@ fun AppNavHost(
                     onAlbumClick = onAlbumClick,
                     onGenreClick = onGenreClick,
                     onPlaylistClick = onPlaylistClick,
+                    onPlaylistPlayClick = onPlayPlaylist,
                     onSettingsClick = onSettingsClick,
                     libraryViewModel = libraryViewModel,
                     selectionViewModel = selectionViewModel,
@@ -204,17 +209,34 @@ fun AppNavHost(
             )
         }
 
-        composable(PLAYLISTS) {
-            PlaylistsScreen(
-                modifier = modifier,
-                appState = appState,
-                libraryViewModel = libraryViewModel,
-                playingQueueViewModel = playingQueueViewModel,
-                colorSource = colorSource,
-                onPlaylistClick = onPlaylistClick,
-                onPlayPlaylist = onPlayPlaylist,
-                onDeletePlaylist = onDeletePlaylist,
-            )
+        navigation(
+            route = PLAYLISTS_GRAPH,
+            startDestination = PLAYLISTS,
+        ) {
+            composable(PLAYLISTS) {
+                PlaylistsScreen(
+                    modifier = modifier,
+                    appState = appState,
+                    libraryViewModel = libraryViewModel,
+                    playingQueueViewModel = playingQueueViewModel,
+                    colorSource = colorSource,
+                    onPlaylistClick = onPlaylistClick,
+                    onPlayPlaylist = onPlayPlaylist,
+                    onDeletePlaylist = onDeletePlaylist,
+                )
+            }
+
+            composable(
+                route = PLAYLIST_SONGS,
+                arguments = listOf(navArgument(PLAYLIST_ID_ARGUMENT) { type = NavType.StringType }),
+            ) {
+                PlaylistSongsScreen(
+                    modifier = modifier,
+                    colorSource = colorSource,
+                    onBackClick = onBackClick,
+                    selectionViewModel = selectionViewModel,
+                )
+            }
         }
 
         composable(GENRES) {

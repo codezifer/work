@@ -202,6 +202,7 @@ fun MusicPlayerApp(
                 derivedStateOf {
                     when (uiState) {
                         is AppUiState.Library -> uiState.selectionActive
+                        is AppUiState.Playlists -> uiState.selectionActive
                         is AppUiState.Queue -> true
                         else -> false
                     }

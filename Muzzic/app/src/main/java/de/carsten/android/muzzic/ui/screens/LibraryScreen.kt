@@ -69,6 +69,7 @@ fun LibraryScreen(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
+    onPlaylistPlayClick: (PlaylistDto) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     libraryViewModel: LibraryViewModel,
     selectionViewModel: SelectionViewModel,
@@ -131,6 +132,7 @@ fun LibraryScreen(
                 libraryViewModel.playGenre(genre.genreName)
             },
             onPlaylistClick = onPlaylistClick,
+            onPlaylistPlayClick = onPlaylistPlayClick,
             onSettingsClick = onSettingsClick,
             selectedArtists = selectionState.selectedArtists,
             selectedAlbums = selectionState.selectedAlbums,
@@ -162,6 +164,7 @@ private fun LibraryScreenContent(
     onGenreClick: (GenreDto) -> Unit = {},
     onGenrePlayClick: (GenreDto) -> Unit = {},
     onPlaylistClick: (PlaylistDto) -> Unit = {},
+    onPlaylistPlayClick: (PlaylistDto) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
     selectedAlbums: Set<String> = emptySet(),
@@ -275,6 +278,7 @@ private fun LibraryScreenContent(
                     playlists = playlists,
                     modifier = contentModifier,
                     onPlaylistClick = onPlaylistClick,
+                    onPlaylistPlayClick = onPlaylistPlayClick,
                 )
             }
         }

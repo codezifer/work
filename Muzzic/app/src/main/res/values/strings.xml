@@ -43,6 +43,7 @@
     <string name="create_playlist">Create playlist</string>
     <string name="top_100_format">%s - Top 100</string>
     <string name="add_playlists">Add playlists</string>
+    <string name="playlist_songs_count">%1$d songs</string>
 
     <!-- Stats -->
     <string name="monthly_plays">Monthly plays</string>

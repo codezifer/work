@@ -152,6 +152,8 @@ package "Data Layer" {
     interface PlaylistDao {
       +getAllPlaylists(): Flow<List<Playlist>>
       +searchPlaylists(query: String): List<Playlist>
+      +observePlaylist(playlistId: String): Flow<Playlist?>
+      +observeSongsInPlaylist(playlistId: String): Flow<List<Song>>
       +getSongsInPlaylist(playlistId: String): List<Song>
       +getSongsByPlaylist(playlistName: String): List<Song>
       +insertPlaylist(playlist: Playlist): Long
@@ -244,6 +246,8 @@ package "Data Layer" {
 
     class PlaylistRepository {
       +getPlaylistInformation(): Flow<List<PlaylistDto>>
+      +observePlaylistName(playlistId: String): Flow<String?>
+      +observeSongsInPlaylist(playlistId: String): Flow<List<SongDto>>
       +getSongsInPlaylist(playlistId: String): List<SongDto>
       +getSongsByPlaylist(playlistName: String): List<SongDto>
       +createPlaylistFromSongs(name: String, songs: List<MediaItem>)
@@ -305,6 +309,7 @@ package "UI Layer" {
     class PlayerScreen
     class PlayingQueueScreen
     class PlaylistsScreen
+    class PlaylistSongsScreen
     class StatisticsScreen
     class AlbumSongsScreen
     class ArtistAlbumsScreen
@@ -362,6 +367,11 @@ package "UI Layer" {
 
     class AlbumSongsViewModel {
       +uiState: StateFlow<AlbumSongsUiState>
+      +playSong(song: SongDto, allSongs: List<SongDto>)
+    }
+
+    class PlaylistSongsViewModel {
+      +uiState: StateFlow<PlaylistSongsUiState>
       +playSong(song: SongDto, allSongs: List<SongDto>)
     }
 
@@ -466,6 +476,9 @@ StatisticsViewModel -up-> GenreRepository
 PlaylistViewModel -up-> PlaylistRepository
 PlaylistViewModel -up-> PlayingQueueRepository
 AlbumSongsViewModel -up-> AlbumRepository
+PlaylistSongsViewModel -up-> PlaylistRepository
+PlaylistSongsViewModel -up-> PlayingQueueRepository
+PlaylistSongsViewModel -up-> MediaLibraryManager
 ArtistAlbumsViewModel -up-> AlbumRepository
 GenresViewModel -up-> GenreRepository
 GenresViewModel -up-> ArtistRepository
@@ -480,6 +493,7 @@ LibraryScreen -down..> LibraryViewModel
 PlayerScreen -down..> PlayerViewModel
 PlayingQueueScreen -down..> PlayingQueueViewModel
 PlaylistsScreen -down..> LibraryViewModel
+PlaylistSongsScreen -down..> PlaylistSongsViewModel
 StatisticsScreen -down..> StatisticsViewModel
 AlbumSongsScreen -down..> AlbumSongsViewModel
 ArtistAlbumsScreen -down..> ArtistAlbumsViewModel

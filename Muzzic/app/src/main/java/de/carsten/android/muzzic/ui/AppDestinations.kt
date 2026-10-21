@@ -6,6 +6,7 @@ object AppDestinations {
     const val LIBRARY = "library"
     const val QUEUE = "queue"
     const val PLAYLISTS = "playlists"
+    const val PLAYLISTS_GRAPH = "playlists_graph"
 
     const val GENRES = "genres"
     const val STATISTICS = "statistics"
@@ -20,6 +21,9 @@ object AppDestinations {
     const val GENRE_ARGUMENT = "genreName"
     const val GENRE_ARTISTS = "genre/{$GENRE_ARGUMENT}/artists"
 
+    const val PLAYLIST_ID_ARGUMENT = "playlistId"
+    const val PLAYLIST_SONGS = "playlist/{$PLAYLIST_ID_ARGUMENT}/songs"
+
     // Legacy constants if needed
     const val ARTIST = "artist"
     const val ALBUM = "album"
@@ -33,4 +37,6 @@ object AppDestinations {
     fun albumSongs(artistName: String, albumName: String) = "album/$artistName/$albumName/songs"
 
     fun genreArtists(genreName: String) = "genre/$genreName/artists"
+
+    fun playlistSongs(playlistId: String) = "playlist/$playlistId/songs"
 }

@@ -41,7 +41,7 @@ class MusicAppStateMachine {
 
                 NavigationEvent.ToPlaylists -> {
                     sideEffects.add(AppSideEffect.Navigate(event))
-                    AppUiState.Playlists
+                    AppUiState.Playlists()
                 }
 
                 NavigationEvent.ToStatistics -> {
@@ -69,6 +69,11 @@ class MusicAppStateMachine {
                 is NavigationEvent.ToArtistAlbums, is NavigationEvent.ToAlbumSongs, is NavigationEvent.ToGenreArtists -> {
                     sideEffects.add(AppSideEffect.Navigate(event))
                     AppUiState.Library(selectionActive = selectionState.isActive)
+                }
+
+                is NavigationEvent.ToPlaylistSongs -> {
+                    sideEffects.add(AppSideEffect.Navigate(event))
+                    AppUiState.Playlists(selectionActive = selectionState.isActive)
                 }
             }
 
@@ -98,7 +103,11 @@ class MusicAppStateMachine {
         }
 
         AppDestinations.PLAYLISTS -> {
-            AppUiState.Playlists
+            AppUiState.Playlists()
+        }
+
+        AppDestinations.PLAYLIST_SONGS -> {
+            AppUiState.Playlists(selectionActive = selectionActive)
         }
 
         AppDestinations.STATISTICS -> {
