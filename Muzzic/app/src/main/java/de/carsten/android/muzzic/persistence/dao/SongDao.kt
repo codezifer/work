@@ -1,11 +1,9 @@
 package de.carsten.android.muzzic.persistence.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
@@ -21,14 +19,8 @@ interface SongDao {
     @Query("SELECT DISTINCT s.filePath FROM songs s ORDER BY s.filePath")
     fun getAllSongFilePaths(): Flow<List<String>>
 
-    @Query("SELECT DISTINCT s.documentId FROM songs s ORDER BY s.createdAt DESC")
-    fun getAllDocumentIds(): Flow<List<String>>
-
     @Query("SELECT DISTINCT UPPER(SUBSTR(title, 1, 1)) FROM songs ORDER BY 1")
     suspend fun getSongAlphabet(): List<String>
-
-    @Query("SELECT COUNT(*) FROM songs WHERE title < (SELECT MIN(title) FROM songs WHERE title LIKE :letter || '%')")
-    suspend fun getSongLetterPositon(letter: String): Int
 
     @Query("UPDATE songs SET playCount = playCount + 1, lastPlayed = :timestamp, updatedAt = :timestamp WHERE id = :songId")
     suspend fun incrementPlayCount(songId: String, timestamp: Long = System.currentTimeMillis())
@@ -89,19 +81,7 @@ interface SongDao {
     suspend fun getTopSongs(limit: Int): List<SongPlayCount>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertSong(song: Song): Long
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSongs(songs: List<Song>): List<Long>
-
-    @Update
-    suspend fun updateSongs(songs: List<Song>)
-
-    @Delete
-    suspend fun deleteSongs(songs: List<Song>)
-
-    @Query("DELETE FROM songs WHERE filePath = :filePath")
-    suspend fun deleteSongByPath(filePath: String)
 
     @Query("DELETE FROM songs where filePath in (:filePaths)")
     suspend fun deleteSongByPaths(filePaths: List<String>)

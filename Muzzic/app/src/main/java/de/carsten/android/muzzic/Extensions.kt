@@ -2,13 +2,11 @@ package de.carsten.android.muzzic
 
 import android.net.Uri
 import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.time.Instant
 import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -27,20 +25,6 @@ fun playbackStateToString(state: Int): String = when (state) {
     Player.STATE_READY -> "READY"
     Player.STATE_ENDED -> "ENDED"
     else -> "UNKNOWN$state"
-}
-
-/**
- * Gets datetime from media item metadata extras
- *
- * @param key key of the datetime
- * @return [Instant]
- */
-fun MediaItem.mediaItemInstant(key: String): Instant = this.mediaMetadata.extras?.getLong(key).let { time ->
-    if (time == null) {
-        Instant.now()
-    } else {
-        Instant.ofEpochMilli(time)
-    }
 }
 
 // canonical serialization: length-prefixed UTF-8 bytes to avoid collisions

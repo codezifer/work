@@ -19,6 +19,7 @@ import de.carsten.android.muzzic.scanning.PlaylistFileScanner
 import de.carsten.android.muzzic.ui.model.SongDto
 import java.time.YearMonth
 import java.time.ZoneOffset
+import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -35,7 +36,8 @@ class MusicRepository(
     private val genreRepository: GenreRepository,
 ) {
     companion object {
-        private const val ONE_YEAR_MS = 31536000000L // one year in milliseconds
+        /** Rolling stats window: one year in milliseconds. */
+        private val ONE_YEAR_MS = 365.days.inWholeMilliseconds
     }
 
     fun getAllSongs(): Flow<List<SongDto>> = songDao.getAllSongs()

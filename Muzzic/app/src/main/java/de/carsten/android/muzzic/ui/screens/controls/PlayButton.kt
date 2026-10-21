@@ -60,12 +60,8 @@ fun PlayButton(
         Color.Black.copy(alpha = 0.35f)
     }
 
-    // Icon color: usually primary or white/black depending on contrast
-    val iconColor = if (isDark) {
-        Color.White
-    } else {
-        Color.White // Keep it white for better contrast on dark blur
-    }
+    // Icon color: white reads best on the dark blur in both themes.
+    val iconColor = Color.White
 
     Box(
         modifier = modifier

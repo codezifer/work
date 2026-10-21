@@ -2,24 +2,12 @@ package de.carsten.android.muzzic.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import de.carsten.android.muzzic.persistence.entity.ArtistAlbum
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.AlbumAggregation
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AlbumDao {
-    @Query(
-        "SELECT DISTINCT UPPER(SUBSTR(album, 1, 1)) FROM (SELECT DISTINCT album FROM songs ORDER BY album ASC) ORDER BY 1",
-    )
-    suspend fun getAlbumAlphabet(): List<String>
-
-    @Query("SELECT COUNT(*) FROM songs WHERE album < (SELECT MIN(album) FROM songs WHERE album LIKE :letter || '%')")
-    suspend fun getAlbumLetterPositon(letter: String): Int
-
-    @Query("SELECT DISTINCT album, artist, albumArt FROM songs ORDER BY album ASC")
-    suspend fun getAllAlbums(): List<ArtistAlbum>
-
     @Query("SELECT * FROM songs WHERE album = :album AND artist = :artist ORDER BY trackNumber ASC, title ASC")
     fun getSongsByAlbum(album: String, artist: String): Flow<List<Song>>
 
