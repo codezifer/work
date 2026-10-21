@@ -114,12 +114,4 @@ object PresetManager {
             ?.sorted()
             ?: emptyList()
     }
-
-    /**
-     * Returns the full file path for a specific preset file name.
-     */
-    fun getPresetFilePath(context: Context, fileName: String): String {
-        val dirPath = ensurePresetsExtracted(context)
-        return File(dirPath, fileName).absolutePath
-    }
 }

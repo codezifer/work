@@ -6,6 +6,7 @@ import de.carsten.android.muzzic.visualization.DEFAULT_SPECTRUM_BANDS
 import de.carsten.android.muzzic.visualization.MAX_ANALYSIS_DT_SEC
 import de.carsten.android.muzzic.visualization.MIN_FRAME_DT_SEC
 import de.carsten.android.muzzic.visualization.NANOS_PER_SECOND
+import de.carsten.android.muzzic.visualization.PCM_16BIT_PEAK_AMPLITUDE
 import de.carsten.android.muzzic.visualization.bus.SpectrumBus
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -42,8 +43,8 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
     private val fftImag = FloatArray(config.fftSize)
     private val fftAmp = FloatArray(config.fftSize / 2 + 1)
 
-    private var bandMapper = BandMapper(bandCount, sampleRate, config.fftSize, config.fMinHz, config.effectiveFMax(sampleRate))
-    private var autoGain = AutoGain(bandCount, config, bandMapper.fCenter)
+    private var bandMapper = createBandMapper()
+    private var autoGain = createAutoGain()
 
     private val bandAmpBuffer = FloatArray(bandCount)
     private val normalizedBuffer = FloatArray(bandCount)
@@ -68,10 +69,16 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
         sampleRate = sampleRateHz
         channelCount = channels
 
-        bandMapper = BandMapper(bandCount, sampleRate, config.fftSize, config.fMinHz, config.effectiveFMax(sampleRate))
-        autoGain = AutoGain(bandCount, config, bandMapper.fCenter)
+        bandMapper = createBandMapper()
+        autoGain = createAutoGain()
         resetBuffers()
     }
+
+    /** Builds the band mapper for the current sample rate and analysis config. */
+    private fun createBandMapper() = BandMapper(bandCount, sampleRate, config.fftSize, config.fMinHz, config.effectiveFMax(sampleRate))
+
+    /** Builds the auto-gain stage for the current band mapper. */
+    private fun createAutoGain() = AutoGain(bandCount, config, bandMapper.fCenter)
 
     /**
      * Resets analysis ring buffers and writes a zero frame to the bus (e.g. on seek or flush).
@@ -120,7 +127,7 @@ class SpectrumProcessor(val bandCount: Int = DEFAULT_SPECTRUM_BANDS, val config:
             for (f in 0 until frames) {
                 var sum = 0f
                 for (c in 0 until channelCount) {
-                    sum += shortBuf.get().toFloat() / 32768f
+                    sum += shortBuf.get().toFloat() / PCM_16BIT_PEAK_AMPLITUDE
                 }
                 pushMonoSample(sum / channelCount)
             }

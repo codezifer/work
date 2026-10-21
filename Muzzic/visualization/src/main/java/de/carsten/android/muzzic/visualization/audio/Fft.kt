@@ -14,28 +14,17 @@ import kotlin.math.sin
  */
 class Fft(val size: Int) {
 
-    init {
-        require(size > 0 && (size and (size - 1)) == 0) {
-            "FFT size must be a positive power of 2, but was $size"
-        }
-    }
-
     private val bitReverse = IntArray(size)
     private val twiddleCos = FloatArray(size / 2)
     private val twiddleSin = FloatArray(size / 2)
 
     init {
-        // Bit-reversal table: mirror each index across all significant bits.
-        // Int.SIZE_BITS (32) minus the bit-width of the FFT size gives the shift
-        // that keeps only the significant bits of the reversed integer.
-        var shift = 1
-        var tempSize = size shr 1
-        while (tempSize > 0) {
-            shift++
-            tempSize = tempSize shr 1
+        require(size > 0 && (size and (size - 1)) == 0) {
+            "FFT size must be a positive power of 2, but was $size"
         }
-        shift = Int.SIZE_BITS - shift + 1
 
+        // Bit-reversal table: mirror each index across the significant bits only.
+        val shift = Int.SIZE_BITS - Integer.numberOfTrailingZeros(size)
         for (i in 0 until size) {
             bitReverse[i] = Integer.reverse(i) ushr shift
         }

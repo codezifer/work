@@ -1,9 +1,11 @@
 package de.carsten.android.muzzic.visualization
 
+import android.content.res.Configuration
+
 /**
  * Preview Dark Mode Constant
  */
-const val PREVIEW_DARK_MODE = 0x20
+const val PREVIEW_DARK_MODE = Configuration.UI_MODE_NIGHT_YES
 
 /**
  * Hue shift in degrees applied to derive the mirrored-BARS edge color.
@@ -173,6 +175,12 @@ const val DEFAULT_ZONE_HIGH_START = 0.85f
 
 /** Full hue wheel span in degrees, for wrapping hue rotations. */
 const val HUE_WHEEL_DEG = 360f
+
+/** Off intensity of unlit segments for color themes (subtle glow). */
+const val DEFAULT_OFF_INTENSITY = 0.06f
+
+/** Off intensity of unlit segments in the acrylic "frost" look (BARS/LED). */
+const val FROST_OFF_INTENSITY = 0.14f
 
 /** Maximum lightness value in HSL conversions. */
 const val MAX_LIGHTNESS = 1f

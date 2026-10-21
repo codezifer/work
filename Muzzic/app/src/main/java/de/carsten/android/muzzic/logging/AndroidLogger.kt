@@ -47,105 +47,67 @@ class AndroidLogger private constructor(private val tag: String) : MuzzicLogger 
      * @param level log level
      * @return [Boolean]
      */
-    private fun loggable(level: Int): Boolean = BuildConfig.DEBUG || Log.isLoggable(tag, level)
+    private fun isLoggable(level: Int): Boolean = BuildConfig.DEBUG || Log.isLoggable(tag, level)
 
     /**
      * Debug level logging
      */
     override fun debug(message: String) {
-        if (isDebugEnabled()) {
+        if (isLoggable(Log.DEBUG)) {
             Log.d(tag, formatMessage(message))
         }
     }
 
-    override fun d(message: String) = this.debug(message)
-
     override fun debug(message: String, throwable: Throwable) {
-        if (isDebugEnabled()) {
+        if (isLoggable(Log.DEBUG)) {
             Log.d(tag, formatMessage(message), throwable)
         }
     }
-
-    override fun d(message: String, throwable: Throwable) = this.debug(message, throwable)
 
     /**
      * Info level logging
      */
     override fun info(message: String) {
-        if (isInfoEnabled()) {
+        if (isLoggable(Log.INFO)) {
             Log.i(tag, formatMessage(message))
         }
     }
 
-    override fun i(message: String) = this.info(message)
-
     override fun info(message: String, throwable: Throwable) {
-        if (isInfoEnabled()) {
+        if (isLoggable(Log.INFO)) {
             Log.i(tag, formatMessage(message), throwable)
         }
     }
-
-    override fun i(message: String, throwable: Throwable) = this.info(message, throwable)
 
     /**
      * Warning level logging
      */
     override fun warning(message: String) {
-        if (isWarningEnabled()) {
+        if (isLoggable(Log.WARN)) {
             Log.w(tag, formatMessage(message))
         }
     }
 
-    override fun w(message: String) = this.warning(message)
-
     override fun warning(message: String, throwable: Throwable) {
-        if (isWarningEnabled()) {
+        if (isLoggable(Log.WARN)) {
             Log.w(tag, formatMessage(message), throwable)
         }
     }
-
-    override fun w(message: String, throwable: Throwable) = this.warning(message, throwable)
 
     /**
      * Error level logging
      */
     override fun error(message: String) {
-        if (isErrorEnabled()) {
+        if (isLoggable(Log.ERROR)) {
             Log.e(tag, formatMessage(message))
         }
     }
 
-    override fun e(message: String) = this.error(message)
-
     override fun error(message: String, throwable: Throwable) {
-        if (isErrorEnabled()) {
+        if (isLoggable(Log.ERROR)) {
             Log.e(tag, formatMessage(message), throwable)
         }
     }
-
-    override fun e(message: String, throwable: Throwable) = this.error(message, throwable)
-
-    // Additional convenience methods
-
-    /**
-     * Check if debug logging is enabled
-     */
-    override fun isDebugEnabled(): Boolean = loggable(Log.DEBUG)
-
-    /**
-     * Check if info logging is enabled
-     */
-    override fun isInfoEnabled(): Boolean = loggable(Log.INFO)
-
-    /**
-     * Check if warning logging is enabled
-     */
-    override fun isWarningEnabled(): Boolean = loggable(Log.WARN)
-
-    /**
-     * Check if error logging is enabled
-     */
-    override fun isErrorEnabled(): Boolean = loggable(Log.ERROR)
 }
 
 /**

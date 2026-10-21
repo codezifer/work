@@ -1,28 +1,25 @@
 package de.carsten.android.muzzic.logging
 
+/**
+ * Minimal logging facade shared by all Muzzic modules.
+ *
+ * Implementations live outside this module (the app provides the Android
+ * backed logger), which keeps `id3` and `playlist` free of Android APIs.
+ */
 interface MuzzicLogger {
-    fun d(message: String)
     fun debug(message: String)
-    fun d(message: String, throwable: Throwable)
+
     fun debug(message: String, throwable: Throwable)
 
-    fun i(message: String)
     fun info(message: String)
-    fun i(message: String, throwable: Throwable)
+
     fun info(message: String, throwable: Throwable)
 
-    fun w(message: String)
     fun warning(message: String)
-    fun w(message: String, throwable: Throwable)
+
     fun warning(message: String, throwable: Throwable)
 
-    fun e(message: String)
     fun error(message: String)
-    fun e(message: String, throwable: Throwable)
-    fun error(message: String, throwable: Throwable)
 
-    fun isDebugEnabled(): Boolean
-    fun isInfoEnabled(): Boolean
-    fun isWarningEnabled(): Boolean
-    fun isErrorEnabled(): Boolean
+    fun error(message: String, throwable: Throwable)
 }

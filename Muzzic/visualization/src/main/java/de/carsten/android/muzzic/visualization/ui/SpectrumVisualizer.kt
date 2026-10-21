@@ -109,15 +109,13 @@ fun SpectrumVisualizer(
                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
                         val thread = HandlerThread("VisualizerGL").apply { start() }
-                        val host = GlHost(thread, Handler(thread.looper), eglManager)
+                        val host = GlHost(thread, Handler(thread.looper))
                         glHost = host
                         host.handler.post {
                             if (!eglManager.init(surface, width, height)) {
                                 Handler(Looper.getMainLooper()).post { eglFailed = true }
                                 return@post
                             }
-                            host.width = width
-                            host.height = height
                             renderer.onSurfaceCreated()
                             renderer.onSurfaceChanged(width, height)
                             val driver = RenderDriver(
@@ -139,8 +137,6 @@ fun SpectrumVisualizer(
 
                     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
                         val host = glHost ?: return
-                        host.width = width
-                        host.height = height
                         host.handler.post {
                             eglManager.setBufferSize(width, height)
                             renderer.onSurfaceChanged(width, height)
@@ -196,12 +192,8 @@ fun SpectrumVisualizer(
 
 /**
  * Render-thread host for one live GL surface: the thread, its handler, and the
- * frame driver. `width`/`height` track the last known surface size.
+ * frame driver.
  */
-private class GlHost(val thread: HandlerThread, val handler: Handler, val eglManager: EglManager) {
+private class GlHost(val thread: HandlerThread, val handler: Handler) {
     @Volatile var driver: RenderDriver? = null
-
-    @Volatile var width: Int = 0
-
-    @Volatile var height: Int = 0
 }

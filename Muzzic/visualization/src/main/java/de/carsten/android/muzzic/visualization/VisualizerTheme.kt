@@ -18,7 +18,7 @@ data class VisualizerTheme(
     val colHigh: Color,
     val zoneStart: Pair<Float, Float> = Pair(DEFAULT_ZONE_MID_START, DEFAULT_ZONE_HIGH_START),
     val background: Color = Color.Black,
-    val offIntensity: Float = 0.06f,
+    val offIntensity: Float = DEFAULT_OFF_INTENSITY,
 ) {
     companion object {
         /** Classic HiFi Green -> Yellow -> Red LED theme. */
@@ -53,14 +53,14 @@ data class VisualizerTheme(
         fun barsThemeFrom(base: Color): VisualizerTheme {
             val vivid = ensureVivid(base)
             val hsl = rgbToHsl(vivid.red, vivid.green, vivid.blue)
-            hsl[0] = (hsl[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % 360f
+            hsl[0] = (hsl[0] + VISUALIZER_HUE_COLOR_DEGREE.toFloat()) % HUE_WHEEL_DEG
             val target = hslToColor(hsl[0], hsl[1], hsl[2]).copy(alpha = vivid.alpha)
             return VisualizerTheme(
                 colLow = vivid,
                 colMid = target,
                 colHigh = target,
                 background = Color.Transparent,
-                offIntensity = 0.14f,
+                offIntensity = FROST_OFF_INTENSITY,
             )
         }
 
@@ -98,7 +98,7 @@ data class VisualizerTheme(
                 colMid = mid.copy(alpha = vivid.alpha),
                 colHigh = high.copy(alpha = vivid.alpha),
                 background = Color.Transparent,
-                offIntensity = 0.14f,
+                offIntensity = FROST_OFF_INTENSITY,
             )
         }
 
@@ -147,7 +147,7 @@ data class VisualizerTheme(
          */
         internal fun hslToColor(h: Float, s: Float, l: Float): Color {
             if (s == 0f) return Color(l, l, l)
-            val hh = ((h % 360f) + 360f) % 360f / 360f
+            val hh = ((h % HUE_WHEEL_DEG) + HUE_WHEEL_DEG) % HUE_WHEEL_DEG / HUE_WHEEL_DEG
             val q = if (l < 0.5f) l * (1f + s) else l + s - l * s
             val p = 2f * l - q
             return Color(hueToRgb(p, q, hh + 1f / 3f), hueToRgb(p, q, hh), hueToRgb(p, q, hh - 1f / 3f))

@@ -11,8 +11,6 @@ import java.io.InputStreamReader
  * Supports basic and extended formats (handling `#EXTINF`).
  */
 object M3uParser {
-
-    private const val EXT_M3U_HEADER = "#EXTM3U"
     private const val EXT_INF_PREFIX = "#EXTINF:"
 
     /**
@@ -23,16 +21,9 @@ object M3uParser {
      * @return A list of parsed entries.
      */
     fun parse(file: File, logger: MuzzicLogger): List<M3uEntry> {
-        val entries = mutableListOf<M3uEntry>()
-        if (!file.exists()) return entries
-
+        if (!file.exists()) return emptyList()
         val parentDir = file.parentFile ?: return emptyList()
-        val fileId = file.name
-        val inputStream = file.inputStream()
-
-        parsePlaylist(parentDir, inputStream, entries, logger, fileId)
-
-        return entries
+        return file.inputStream().use { input -> parsePlaylist(parentDir, input, logger, file.name) }
     }
 
     /**
@@ -48,23 +39,21 @@ object M3uParser {
     fun parse(input: InputStream, logger: MuzzicLogger, fileId: String? = null): List<M3uEntry> {
         val logFileId = fileId ?: ""
         try {
-            val entries = mutableListOf<M3uEntry>()
             logger.info("Start to parse playlist $logFileId ...")
-            parsePlaylist(null, input, entries, logger, fileId)
-            return entries
+            return parsePlaylist(null, input, logger, fileId)
         } finally {
             logger.info("... Finished to parse playlist $logFileId.")
         }
     }
 
-    private fun parsePlaylist(parentDir: File?, inputStream: InputStream, entries: MutableList<M3uEntry>, logger: MuzzicLogger, fileId: String? = null) {
+    private fun parsePlaylist(parentDir: File?, inputStream: InputStream, logger: MuzzicLogger, fileId: String? = null): List<M3uEntry> {
+        val entries = mutableListOf<M3uEntry>()
         BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)).use { reader ->
-            var line: String?
             var currentTitle: String? = null
             var currentDuration: Int? = null
 
-            while (reader.readLine().also { line = it } != null) {
-                var trimmedLine = line!!.trim()
+            for (rawLine in reader.lineSequence()) {
+                var trimmedLine = rawLine.trim()
 
                 // Remove UTF-8 BOM if present
                 if (trimmedLine.startsWith("\uFEFF")) {
@@ -94,26 +83,20 @@ object M3uParser {
                 currentDuration = null
             }
         }
+        return entries
     }
 
     private fun parseExtInf(line: String): Pair<Int, String>? {
         // Format: #EXTINF:<duration>,<title>
         // Or sometimes with extra attributes: #EXTINF:-1 tvg-id="..." ,Title
-        try {
-            val content = line.substring(EXT_INF_PREFIX.length)
-            val commaIndex = content.indexOf(',')
-            if (commaIndex == -1) return null
+        val content = line.substring(EXT_INF_PREFIX.length)
+        val commaIndex = content.indexOf(',')
+        if (commaIndex == -1) return null
 
-            val durationPart = content.substring(0, commaIndex).trim()
-            // Extract the first integer part from durationPart (could have attributes separated by space)
-            val durationStr = durationPart.split(' ')[0]
-            val duration = durationStr.toIntOrNull() ?: -1
-
-            val title = content.substring(commaIndex + 1).trim()
-            return Pair(duration, title)
-        } catch (e: Exception) {
-            return null
-        }
+        // The duration may be followed by attributes separated by a space.
+        val duration = content.substring(0, commaIndex).trim().substringBefore(' ').toIntOrNull() ?: -1
+        val title = content.substring(commaIndex + 1).trim()
+        return Pair(duration, title)
     }
 
     private fun resolvePath(trackPath: String, parentDir: File?): String {

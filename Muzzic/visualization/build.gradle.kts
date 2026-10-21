@@ -63,15 +63,7 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 dependencies {
-    implementation(projects.logging)
-
-    // kotlin
-    val kotlinxCoroutinesBom = platform(libs.kotlinx.coroutines)
-    implementation(kotlinxCoroutinesBom)
-    implementation(libs.kotlinx.coroutines.code)
-
-    // core & compose
-    implementation(libs.androidx.core.ktx)
+    // compose
     val composeBomPlatform = platform(libs.androidx.compose.bom)
     implementation(composeBomPlatform)
     implementation(libs.androidx.compose.ui)
@@ -83,16 +75,10 @@ dependencies {
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.exoplayer.common)
 
-    // koin
-    implementation(libs.koin.android)
-    implementation(libs.koin.android.compose)
-
     // compose tooling
     debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.manifest)
 
     // testing
     testImplementation(libs.junit)
     testImplementation(libs.test.assertj)
-    testImplementation(libs.mockk)
 }

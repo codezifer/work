@@ -4,27 +4,10 @@ import android.opengl.GLES30
 import android.util.Log
 
 /**
- * OpenGL ES 3.0 utility functions for compiling shaders, linking programs, and checking GL errors.
+ * OpenGL ES 3.0 utility functions for compiling shaders and linking programs.
  */
 object GlUtil {
     private const val TAG = "GlUtil"
-
-    /**
-     * Checks if GLES 3.0 report any error and logs a warning if found.
-     *
-     * @param op Description of the OpenGL operation being performed.
-     * @return `true` if an error occurred.
-     */
-    fun checkGlError(op: String): Boolean {
-        var error = GLES30.glGetError()
-        var hasError = false
-        while (error != GLES30.GL_NO_ERROR) {
-            Log.e(TAG, "GL Error in $op: 0x${Integer.toHexString(error)}")
-            hasError = true
-            error = GLES30.glGetError()
-        }
-        return hasError
-    }
 
     /**
      * Compiles a shader of the specified [type] from GLSL source string.
