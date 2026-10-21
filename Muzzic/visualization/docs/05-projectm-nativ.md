@@ -146,8 +146,7 @@ Zustand und Lock-Modell (feste Reihenfolge `g_stateMutex` → `g_pcmMutex`, nie 
 - `ensurePresetsExtractedAsync(context, onDone)`: gleiche Arbeit auf einem
   geteilten Daemon-Thread (`PresetExtractor`); Callback-Fehler werden geloggt,
   nie geworfen.
-- `getAvailablePresets` (sortierte `.milk`-Namen) und `getPresetFilePath`
-  für Preset-Auswahl-UIs.
+- `getAvailablePresets` (sortierte `.milk`-Namen) für Preset-Auswahl-UIs.
 - Mitgeliefert: 8 eigene `Muzzic -*`-Presets in `src/main/assets/presets/`.
 
 ## 5.5 Nativ-Build (`CMakeLists.txt`, `jniLibs/`, `build_projectm.sh`)

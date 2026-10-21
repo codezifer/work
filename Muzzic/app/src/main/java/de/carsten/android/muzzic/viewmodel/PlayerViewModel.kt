@@ -12,6 +12,7 @@ import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.observeVisualizerOptions
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.PlayerUiState
@@ -22,7 +23,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -104,28 +104,18 @@ open class PlayerViewModel(
 
     private fun setupSettingsObservation() {
         viewModelScope.launch {
-            combine(
-                appSettingsRepository.observeVisualizerEngine(),
-                appSettingsRepository.observeProjectMPreset(),
-                appSettingsRepository.observeBarsShimmerEnabled(),
-                appSettingsRepository.observeBarsTipGlowEnabled(),
-                // Nested (arity limit of typed combine): hue speed + color source as one slot.
-                combine(
-                    appSettingsRepository.observeHueRotationSpeed(),
-                    appSettingsRepository.observeVisualizerColorSource(),
-                ) { hueRotationSpeed, colorSource -> hueRotationSpeed to colorSource },
-            ) { engine, preset, shimmerEnabled, tipGlowEnabled, (hueRotationSpeed, colorSource) ->
+            appSettingsRepository.observeVisualizerOptions().collect { options ->
                 _uiState.update {
                     it.copy(
-                        visualizerEngine = engine,
-                        projectMPreset = preset,
-                        barsShimmerEnabled = shimmerEnabled,
-                        barsTipGlowEnabled = tipGlowEnabled,
-                        hueRotationSpeed = hueRotationSpeed,
-                        visualizerColorSource = colorSource,
+                        visualizerEngine = options.engine,
+                        projectMPreset = options.preset,
+                        barsShimmerEnabled = options.shimmerEnabled,
+                        barsTipGlowEnabled = options.tipGlowEnabled,
+                        hueRotationSpeed = options.hueRotationSpeed,
+                        visualizerColorSource = options.colorSource,
                     )
                 }
-            }.collect {}
+            }
         }
     }
 

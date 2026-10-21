@@ -64,16 +64,12 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
      * @return the persisted entries mapped back to [MediaItem]s.
      */
     suspend fun addSongs(mediaItems: List<MediaItem>, enqueued: Boolean = true): List<MediaItem> {
-        val entities =
-            mediaItems.mapIndexed { index, item ->
-                PlayingQueue.fromMediaItem(item, enqueued = enqueued, queuePosition = index)
-            }.filter { it.songId.isNotBlank() }
-        playingQueueDao.addSongs(entities)
-        return mediaItems.mapIndexed { index, item ->
+        playingQueueDao.addSongs(toQueueEntities(mediaItems, enqueued))
+        mediaItems.forEachIndexed { index, item ->
             item.mediaMetadata.extras?.putInt(MediaKeys.QUEUE_POSITION, index)
             item.mediaMetadata.extras?.putBoolean(MediaKeys.ENQUEUED, enqueued)
-            item
         }
+        return mediaItems
     }
 
     /**
@@ -91,10 +87,13 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
      * @param mediaItems the queue to persist; the list order becomes the queue position.
      */
     suspend fun persistQueue(mediaItems: List<MediaItem>) {
-        playingQueueDao.addSongs(
-            mediaItems.mapIndexed { index, item ->
-                PlayingQueue.fromMediaItem(item, enqueued = true, queuePosition = index)
-            }.filter { it.songId.isNotBlank() },
-        )
+        playingQueueDao.addSongs(toQueueEntities(mediaItems, enqueued = true))
+    }
+
+    /** Maps playable items to queue rows in order, dropping entries without a song id. */
+    private fun toQueueEntities(items: List<MediaItem>, enqueued: Boolean): List<PlayingQueue> = items.mapIndexedNotNull { index, item ->
+        PlayingQueue
+            .fromMediaItem(item, enqueued = enqueued, queuePosition = index)
+            .takeIf { it.songId.isNotBlank() }
     }
 }

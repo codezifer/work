@@ -5,27 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.observeVisualizerOptions
 import de.carsten.android.muzzic.ui.state.SettingsUiState
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.projectm.PresetManager
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-/**
- * Bundled visualizer options for settings observation.
- */
-private data class VisualizerOptions(
-    val engine: VisualizerEngine,
-    val preset: String?,
-    val shimmerEnabled: Boolean,
-    val tipGlowEnabled: Boolean,
-    val hueRotationSpeed: Float,
-    val colorSource: VisualizerColorSource,
-)
 
 /**
  * ViewModel for the Settings screen.
@@ -38,19 +25,7 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
     override val uiState: StateFlow<SettingsUiState> = combine(
         appSettingsRepository.observeMusicDirectory(),
         appSettingsRepository.observePlaylistDirectory(),
-        combine(
-            appSettingsRepository.observeVisualizerEngine(),
-            appSettingsRepository.observeProjectMPreset(),
-            appSettingsRepository.observeBarsShimmerEnabled(),
-            appSettingsRepository.observeBarsTipGlowEnabled(),
-            // Nested (arity limit of typed combine): hue speed + color source as one slot.
-            combine(
-                appSettingsRepository.observeHueRotationSpeed(),
-                appSettingsRepository.observeVisualizerColorSource(),
-            ) { hueRotationSpeed, colorSource -> hueRotationSpeed to colorSource },
-        ) { visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, (hueRotationSpeed, colorSource) ->
-            VisualizerOptions(visualizerEngine, projectMPreset, barsShimmerEnabled, barsTipGlowEnabled, hueRotationSpeed, colorSource)
-        },
+        appSettingsRepository.observeVisualizerOptions(),
     ) { musicDir, playlistDir, visualizer ->
         val availablePresets = PresetManager.getAvailablePresets(getApplication())
         SettingsUiState(
@@ -64,7 +39,7 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             hueRotationSpeed = visualizer.hueRotationSpeed,
             visualizerColorSource = visualizer.colorSource,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
+    }.asUiState(viewModelScope, SettingsUiState())
 
     /**
      * Updates the active visualizer engine setting.

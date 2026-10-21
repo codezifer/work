@@ -12,12 +12,10 @@ import de.carsten.android.muzzic.persistence.repo.PlaylistRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.LibraryUiState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -46,11 +44,7 @@ class LibraryViewModel(
             genres = genres,
             playlists = playlists,
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = LibraryUiState(),
-    )
+    }.asUiState(viewModelScope, LibraryUiState())
 
     fun playSong(song: SongDto) {
         mediaLibraryManager.playContent(song.toMediaItem())

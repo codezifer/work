@@ -72,12 +72,6 @@ package "Data Layer" {
       +type: String
     }
 
-    class ArtistAlbum {
-      +artist: String
-      +album: String
-      +albumArt: String?
-    }
-
     class SongsEnriched {
       +song: Song
       +normalizedGenre: String
@@ -194,7 +188,6 @@ package "Data Layer" {
     }
 
     interface AlbumDao {
-      +getAllAlbums(): List<ArtistAlbum>
       +getSongsByAlbum(album: String, artist: String): Flow<List<Song>>
       +searchAlbums(query: String): List<AlbumAggregation>
       +getAlbumAggregation(): Flow<List<AlbumAggregation>>
@@ -413,23 +406,12 @@ package "Service Layer" {
 
   class PlaybackManager {
     +exoPlayer: ExoPlayer
-    +play()
-    +pause()
-    +next()
-    +previous()
-    +seekTo(position: Long)
     +release()
   }
 
   class QueueManager {
     +loadPersistedQueue(scope: CoroutineScope, player: ExoPlayer)
     +observeQueueChanges(scope: CoroutineScope, player: ExoPlayer)
-    +setPlaylist(player: ExoPlayer, newPlaylist: List<MediaItem>, startIndex: Int)
-    +playAt(player: ExoPlayer, index: Int)
-  }
-
-  class PlaybackStateManager {
-    +resolveTransition(player: Player, oldState: Int, newState: Int, isPlaying: Boolean): PlaybackStateTransition
   }
 
   class PlaybackAnalytics {
@@ -444,7 +426,6 @@ package "Service Layer" {
 
   class MediaLibraryManager {
     +browser: StateFlow<MediaBrowser?>
-    +getChildren(parentId: String): List<MediaItem>
     +playContent(mediaItem: MediaItem)
     +playPlaylist(mediaItems: List<MediaItem>, startIndex: Int)
     +clearPlaylist()
@@ -538,7 +519,6 @@ PlayHistoryDao -up..> SongPlayCount
 GenreDao -up..> Song
 GenreDao -up..> CanonicalGenreAggregation
 ArtistDao -up..> Song
-AlbumDao -up..> ArtistAlbum
 AlbumDao -up..> Song
 PlayingQueueDao -up..> PlayingQueue
 PlayingQueueDao -up..> PlayingQueueSongAggregation
@@ -548,7 +528,6 @@ GenericSettingDao -up..> GenericSetting
 ' Service wiring (kompakt, vertikal innerhalb Service Layer)
 MusicPlayerService -down-* PlaybackManager
 MusicPlayerService -down-* QueueManager
-MusicPlayerService -down-* PlaybackStateManager
 MusicPlayerService -down-* PlaybackAnalytics
 MusicPlayerService -down-* AutomaticPlaylistManager
 MusicPlayerService -down-* MusicPlayerServiceCallback

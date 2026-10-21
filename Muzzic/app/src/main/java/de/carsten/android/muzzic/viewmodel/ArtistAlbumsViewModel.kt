@@ -9,11 +9,9 @@ import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.AppDestinations.ARTIST_ARGUMENT
 import de.carsten.android.muzzic.ui.state.ArtistAlbumsUiState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -32,11 +30,7 @@ class ArtistAlbumsViewModel(
                 artistName = artistName,
                 albums = albums,
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ArtistAlbumsUiState(artistName),
-        )
+        }.asUiState(viewModelScope, ArtistAlbumsUiState(artistName))
 
     fun playAlbum(artistName: String, albumName: String) {
         viewModelScope.launch {

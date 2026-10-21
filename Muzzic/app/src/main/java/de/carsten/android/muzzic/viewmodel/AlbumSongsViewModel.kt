@@ -9,10 +9,8 @@ import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.state.AlbumSongsUiState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 @OptIn(UnstableApi::class)
 class AlbumSongsViewModel(savedStateHandle: SavedStateHandle, private val albumRepository: AlbumRepository, private val mediaLibraryManager: MediaLibraryManager) :
@@ -28,11 +26,7 @@ class AlbumSongsViewModel(savedStateHandle: SavedStateHandle, private val albumR
                 albumName = albumName,
                 songs = songs,
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AlbumSongsUiState(artistName, albumName),
-        )
+        }.asUiState(viewModelScope, AlbumSongsUiState(artistName, albumName))
 
     fun playSong(song: SongDto, allSongs: List<SongDto>) {
         val startIndex = allSongs.indexOf(song).coerceAtLeast(0)

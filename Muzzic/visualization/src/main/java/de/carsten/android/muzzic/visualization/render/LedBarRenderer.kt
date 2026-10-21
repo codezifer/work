@@ -251,7 +251,6 @@ class LedBarRenderer(
         isIdle = (readBands <= 0 || isStale) && maxVal < RENDERER_IDLE_VALUE_THRESHOLD
 
         // 4. Pack band, peak, and trail arrays for vec4 uniforms
-        val vec4Count = (config.bandCount + 3) / 4
         System.arraycopy(smoother.bands, 0, packedBands, 0, config.bandCount)
         System.arraycopy(smoother.peaks, 0, packedPeaks, 0, config.bandCount)
         System.arraycopy(smoother.trail, 0, packedTrail, 0, config.bandCount)
@@ -261,9 +260,10 @@ class LedBarRenderer(
 
         // 6. Render Scene (style branch, falls back to the working program)
         if (style == RenderStyle.MIRRORED_BARS && barsProgram != 0) {
-            drawMirroredBars()
+            drawFrame(barsProgram, bResLoc, bBandsLoc, bPeaksLoc, bTrailLoc, bHueShiftLoc, bTimeLoc, 0f, 0f, 0f, 0f)
         } else if (program != 0) {
-            drawLed(vec4Count)
+            val background = theme.background
+            drawFrame(program, uResLoc, uBandsLoc, uPeaksLoc, uTrailLoc, uHueShiftLoc, uTimeLoc, background.red, background.green, background.blue, background.alpha)
         }
     }
 
@@ -321,10 +321,36 @@ class LedBarRenderer(
         }
     }
 
-    private fun drawLed(vec4Count: Int) {
+    /** Number of `vec4` uniform slots needed to upload all bands (four values each). */
+    private val vec4Count: Int
+        get() = (config.bandCount + 3) / 4
+
+    /** Hue rotation for the current frame in full turns; `0` keeps the theme colors. */
+    private val hueShift: Float
+        get() = (renderTimeSec * config.hueRotationSpeed) % 1f
+
+    /**
+     * Draws the full-screen visualizer triangle with the per-frame uniforms.
+     *
+     * Both styles share the same frame sequence and only differ in their program,
+     * uniform locations and cleared background color.
+     *
+     * @param program linked GL program to draw with.
+     * @param resLoc `uRes` uniform location.
+     * @param bandsLoc `uBands` uniform location.
+     * @param peaksLoc `uPeaks` uniform location.
+     * @param trailLoc `uTrail` uniform location.
+     * @param hueLoc `uHueShift` uniform location.
+     * @param timeLoc `uTime` uniform location.
+     * @param red cleared background red channel.
+     * @param green cleared background green channel.
+     * @param blue cleared background blue channel.
+     * @param alpha cleared background alpha channel.
+     */
+    private fun drawFrame(program: Int, resLoc: Int, bandsLoc: Int, peaksLoc: Int, trailLoc: Int, hueLoc: Int, timeLoc: Int, red: Float, green: Float, blue: Float, alpha: Float) {
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
 
-        GLES30.glClearColor(theme.background.red, theme.background.green, theme.background.blue, theme.background.alpha)
+        GLES30.glClearColor(red, green, blue, alpha)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
 
         // Non-premultiplied alpha blending against the translucent surface.
@@ -334,39 +360,12 @@ class LedBarRenderer(
         GLES30.glUseProgram(program)
 
         // Per-frame uniforms only; everything else is cached by applyStaticUniformsIfNeeded().
-        GLES30.glUniform2f(uResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
-        GLES30.glUniform4fv(uBandsLoc, vec4Count, packedBands, 0)
-        GLES30.glUniform4fv(uPeaksLoc, vec4Count, packedPeaks, 0)
-        GLES30.glUniform4fv(uTrailLoc, vec4Count, packedTrail, 0)
-        GLES30.glUniform1f(uHueShiftLoc, (renderTimeSec * config.hueRotationSpeed) % 1f)
-        GLES30.glUniform1f(uTimeLoc, renderTimeSec)
-
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
-
-        GLES30.glDisable(GLES30.GL_BLEND)
-    }
-
-    private fun drawMirroredBars() {
-        val vec4Count = (config.bandCount + 3) / 4
-
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
-
-        GLES30.glClearColor(0f, 0f, 0f, 0f)
-        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
-
-        // Non-premultiplied alpha blending against the translucent surface.
-        GLES30.glEnable(GLES30.GL_BLEND)
-        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
-
-        GLES30.glUseProgram(barsProgram)
-
-        // Per-frame uniforms only; everything else is cached by applyStaticUniformsIfNeeded().
-        GLES30.glUniform2f(bResLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
-        GLES30.glUniform4fv(bBandsLoc, vec4Count, packedBands, 0)
-        GLES30.glUniform4fv(bPeaksLoc, vec4Count, packedPeaks, 0)
-        GLES30.glUniform4fv(bTrailLoc, vec4Count, packedTrail, 0)
-        GLES30.glUniform1f(bHueShiftLoc, (renderTimeSec * config.hueRotationSpeed) % 1f)
-        GLES30.glUniform1f(bTimeLoc, renderTimeSec)
+        GLES30.glUniform2f(resLoc, viewportWidth.toFloat(), viewportHeight.toFloat())
+        GLES30.glUniform4fv(bandsLoc, vec4Count, packedBands, 0)
+        GLES30.glUniform4fv(peaksLoc, vec4Count, packedPeaks, 0)
+        GLES30.glUniform4fv(trailLoc, vec4Count, packedTrail, 0)
+        GLES30.glUniform1f(hueLoc, hueShift)
+        GLES30.glUniform1f(timeLoc, renderTimeSec)
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
 

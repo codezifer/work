@@ -10,11 +10,9 @@ import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.AppDestinations.GENRE_ARGUMENT
 import de.carsten.android.muzzic.ui.state.GenresUiState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -37,11 +35,7 @@ class GenresViewModel(
             artists = artists,
             selectedGenreName = genreName,
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = GenresUiState(selectedGenreName = genreName),
-    )
+    }.asUiState(viewModelScope, GenresUiState(selectedGenreName = genreName))
 
     fun playArtist(artistName: String) {
         viewModelScope.launch {

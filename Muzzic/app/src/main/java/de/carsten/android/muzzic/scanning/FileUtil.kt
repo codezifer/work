@@ -68,7 +68,7 @@ object FileUtil {
         }
 
         val chunk = ArrayList<ScannedFile>(chunkSize)
-        val lowerExtensions: Set<String> = supportedFiles.map { it.lowercase() }.toSet()
+        val lowerExtensions: Set<String> = supportedFiles.lowercased()
 
         traverseSafTree(context, uri, ScannedFile.PROJECTION) { cursor, dirStack ->
             while (cursor.moveToNext()) {
@@ -77,8 +77,7 @@ object FileUtil {
                     dirStack.add(cursor.getString(ScannedFile.DOCUMENT_ID_IDX))
                 } else {
                     val displayName = cursor.getString(ScannedFile.DISPLAY_NAME_IDX)
-                    val ext = displayName.substringAfterLast('.', "").lowercase()
-                    if (ext in lowerExtensions) {
+                    if (extensionOf(displayName) in lowerExtensions) {
                         val documentId = cursor.getString(ScannedFile.DOCUMENT_ID_IDX)
                         val documentUri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId)
                         val fileSize = cursor.getLong(ScannedFile.SIZE_IDX)
@@ -127,7 +126,7 @@ object FileUtil {
     suspend fun countFiles(context: Context, uri: Uri?, supportedFiles: Set<String>): Int = withContext(Dispatchers.IO) {
         if (uri == null) return@withContext 0
         var count = 0
-        val lowerExtensions = supportedFiles.map { it.lowercase() }.toSet()
+        val lowerExtensions = supportedFiles.lowercased()
         val projection = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -142,8 +141,7 @@ object FileUtil {
                     dirStack.add(cursor.getString(ScannedFile.DOCUMENT_ID_IDX))
                 } else {
                     val displayName = cursor.getString(ScannedFile.DISPLAY_NAME_IDX)
-                    val ext = displayName.substringAfterLast('.', "").lowercase()
-                    if (ext in lowerExtensions) {
+                    if (extensionOf(displayName) in lowerExtensions) {
                         count++
                     }
                 }
@@ -205,6 +203,12 @@ object FileUtil {
      * Checks if the URI is from ExternalStorageProvider.
      */
     private fun isExternalStorageDocument(uri: Uri): Boolean = uri.authority == "com.android.externalstorage.documents"
+
+    /** Lower-cases the configured extension set once per traversal. */
+    private fun Set<String>.lowercased(): Set<String> = mapTo(HashSet(size)) { it.lowercase() }
+
+    /** Lower-case extension of [fileName] without the dot, or `""` when it has none. */
+    private fun extensionOf(fileName: String): String = fileName.substringAfterLast('.', "").lowercase()
 
     /**
      * Resolves the ExternalStorageProvider document/tree ID to an absolute file path.

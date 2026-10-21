@@ -49,7 +49,6 @@ classDiagram
     class GlUtil {
         +loadShader(type, code): Int
         +createProgram(v, f): Int
-        +checkGlError(op): Boolean
     }
     SpectrumVisualizer *-- EglManager
     SpectrumVisualizer *-- RenderDriver

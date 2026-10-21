@@ -80,12 +80,7 @@ class MusicFileScanner(
                     scannedFilesCount += chunk.size
                     existingFilePaths.addAll(chunk.map { it.uri.toString() })
                     val progress: Int = reportScanProgress(scannedFilesCount, countedFiles, "", null)
-                    val progressMessage: String = if (progress > 0) {
-                        context.getString(R.string.scan_status_metadata, progress)
-                    } else {
-                        context.getString(R.string.scan_status_metadata2)
-                    }
-                    onProgress?.invoke(progressMessage, progress)
+                    onProgress?.invoke(progressMessage(context, progress), progress)
                 }
                 .flatMapMerge(concurrency = AppConfig.Scanning.PARALLELISM) { chunk ->
                     flow {
