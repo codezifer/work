@@ -10,8 +10,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.logging.logger
-import de.carsten.android.muzzic.model.MediaKeys.ALBUMS_ID
-import de.carsten.android.muzzic.model.MediaKeys.ARTISTS_ID
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
@@ -22,11 +20,9 @@ import de.carsten.android.muzzic.visualization.service.VisualizerSink
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -41,20 +37,13 @@ open class PlayerViewModel(
     UiStateViewModel<PlayerUiState> {
     private val logger = this.logger()
 
-    val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
+    private val browser: StateFlow<MediaBrowser?> = mediaLibraryManager.browser
 
     private val _uiState = MutableStateFlow(PlayerUiState())
     override val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     val spectrumBus = visualizerSink.spectrumBus
     val spectrumProcessor = visualizerSink.spectrumProcessor
-
-    val songs =
-        musicRepository.getAllSongs().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList(),
-        )
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -201,43 +190,6 @@ open class PlayerViewModel(
             else -> Player.REPEAT_MODE_OFF
         }
         b.repeatMode = nextMode
-    }
-
-    fun playSong(songId: String) {
-        val b = browser.value ?: return
-        val targetIndex = (0 until b.mediaItemCount).firstOrNull { i ->
-            b.getMediaItemAt(i).mediaId == songId
-        }
-
-        if (targetIndex != null) {
-            b.seekTo(targetIndex, 0L)
-            b.prepare()
-            b.play()
-        }
-    }
-
-    fun playArtist(artistName: String) {
-        val b = browser.value ?: return
-        viewModelScope.launch {
-            val children = mediaLibraryManager.getChildren("$ARTISTS_ID/$artistName")
-            if (children.isNotEmpty()) {
-                b.setMediaItems(children)
-                b.prepare()
-                b.play()
-            }
-        }
-    }
-
-    fun playAlbum(albumTitle: String) {
-        val b = browser.value ?: return
-        viewModelScope.launch {
-            val children = mediaLibraryManager.getChildren("$ALBUMS_ID/$albumTitle")
-            if (children.isNotEmpty()) {
-                b.setMediaItems(children)
-                b.prepare()
-                b.play()
-            }
-        }
     }
 
     open fun startProgressUpdater() {

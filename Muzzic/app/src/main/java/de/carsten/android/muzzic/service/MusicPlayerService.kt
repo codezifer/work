@@ -33,7 +33,6 @@ class MusicPlayerService :
     private val playbackManager: PlaybackManager by inject()
     private val queueManager: QueueManager by inject()
     private val analytics: PlaybackAnalytics by inject()
-    private val stateManager: PlaybackStateManager by inject()
     private val playlistManager: AutomaticPlaylistManager by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val bitmapLoader: BitmapLoader by inject()
@@ -49,9 +48,6 @@ class MusicPlayerService :
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main.immediate + serviceJob)
-
-    private var prevPlaybackState: Int = Player.STATE_IDLE
-    private var isPlaying = false
 
     override fun onCreate() {
         super.onCreate()
@@ -89,22 +85,8 @@ class MusicPlayerService :
     private fun setupPlayerListeners() {
         playbackManager.exoPlayer.addListener(
             object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    this@MusicPlayerService.isPlaying = isPlaying
-                }
-
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                     analytics.onNewSong()
-                }
-
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    stateManager.resolveTransition(
-                        playbackManager.exoPlayer,
-                        prevPlaybackState,
-                        playbackState,
-                        isPlaying,
-                    )
-                    prevPlaybackState = playbackState
                 }
 
                 override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {

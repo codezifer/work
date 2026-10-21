@@ -11,7 +11,6 @@ import coil3.util.DebugLogger
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.BuildConfig
 import de.carsten.android.muzzic.IMAGE_CACHE
-import de.carsten.android.muzzic.service.MediaLibraryManager
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
@@ -53,5 +52,4 @@ private fun getImageLoader(context: Context): ImageLoader {
 val uiModule =
     module {
         single { getImageLoader(get()) }
-        single { MediaLibraryManager(get()) }
     }

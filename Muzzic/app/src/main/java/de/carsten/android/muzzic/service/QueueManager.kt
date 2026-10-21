@@ -74,26 +74,4 @@ class QueueManager(private val playingQueueRepository: PlayingQueueRepository) {
             player.play()
         }
     }
-
-    fun setPlaylist(player: ExoPlayer, newPlaylist: List<MediaItem>, startIndex: Int = 0) {
-        if (newPlaylist.isNotEmpty() && startIndex in newPlaylist.indices) {
-            player.setMediaItems(newPlaylist, startIndex, 0L)
-            player.prepare()
-        } else {
-            player.clearMediaItems()
-            player.stop()
-        }
-    }
-
-    fun addMediaItem(player: ExoPlayer, mediaItem: MediaItem) {
-        player.addMediaItem(mediaItem)
-    }
-
-    fun playAt(player: ExoPlayer, index: Int) {
-        if (index in 0 until player.mediaItemCount) {
-            player.seekToDefaultPosition(index)
-            player.prepare()
-            player.play()
-        }
-    }
 }

@@ -122,7 +122,7 @@ class MusicPlayerServiceCallback(
         val songs = if (query.startsWith(SONGS_PREFIX)) songRepository.searchSongs(query).map { it.toMediaItem() } else emptyList()
         val artists = if (query.startsWith(ARTIST_PREFIX)) artistRepository.searchArtists(query).map { it.toMediaItem() } else emptyList()
         val albums = if (query.startsWith(ALBUM_PREFIX)) albumRepository.searchAlbums(query).map { it.toMediaItem() } else emptyList()
-        val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.playlistDao.searchPlaylists(query).map { it.toMediaItem() } else emptyList()
+        val playlists = if (query.startsWith(PLAYLIST_PREFIX)) playlistRepository.searchPlaylists(query).map { it.toMediaItem() } else emptyList()
 
         val allItems = mutableListOf<MediaItem>()
         allItems.addAll(artists)
