@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -40,7 +39,6 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.screens.controls.PlayButton
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MuzzicCard(
     modifier: Modifier = Modifier,

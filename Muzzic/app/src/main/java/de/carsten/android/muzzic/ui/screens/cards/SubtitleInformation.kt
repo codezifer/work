@@ -2,7 +2,9 @@ package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -39,35 +42,104 @@ fun SubtitleInformation(
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     iconSize: Dp = SUBTITLE_ICONSIZE,
     fontSize: TextUnit = SUBTITLE_FONTSIZE,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, horizontalAlignment),
-        verticalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING),
-    ) {
-        iconTextPairs.forEachIndexed { idx, (img, text) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = img,
-                    tint = fontColor,
-                    modifier = Modifier.size(iconSize),
-                    contentDescription = null,
-                )
-                Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
-                Text(
-                    text = text,
-                    color = fontColor,
-                    fontSize = fontSize,
-                )
-            }
+    if (maxLines == 1) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, horizontalAlignment),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SubtitleRowItems(
+                iconTextPairs = iconTextPairs,
+                fontColor = fontColor,
+                iconSize = iconSize,
+                fontSize = fontSize,
+            )
+        }
+    } else {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING, horizontalAlignment),
+            verticalArrangement = Arrangement.spacedBy(SUBTITLE_SPACING),
+            maxLines = maxLines,
+        ) {
+            SubtitleFlowItems(
+                iconTextPairs = iconTextPairs,
+                fontColor = fontColor,
+                iconSize = iconSize,
+                fontSize = fontSize,
+            )
+        }
+    }
+}
 
-            if (idx < iconTextPairs.size - 1) {
-                Text(
-                    text = BULLET_POINT,
-                    color = fontColor,
-                    fontSize = fontSize,
-                )
-            }
+@Composable
+private fun RowScope.SubtitleRowItems(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color, iconSize: Dp, fontSize: TextUnit) {
+    iconTextPairs.forEachIndexed { idx, (img, text) ->
+        val isNumber = text.toIntOrNull() != null
+        Row(
+            modifier = if (isNumber) Modifier else Modifier.weight(1f, fill = false),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = img,
+                tint = fontColor,
+                modifier = Modifier.size(iconSize),
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
+            Text(
+                text = text,
+                color = fontColor,
+                fontSize = fontSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if (isNumber) Modifier else Modifier.weight(1f, fill = false),
+            )
+        }
+
+        if (idx < iconTextPairs.size - 1) {
+            Text(
+                text = BULLET_POINT,
+                color = fontColor,
+                fontSize = fontSize,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FlowRowScope.SubtitleFlowItems(iconTextPairs: List<Pair<ImageVector, String>>, fontColor: Color, iconSize: Dp, fontSize: TextUnit) {
+    iconTextPairs.forEachIndexed { idx, (img, text) ->
+        val isNumber = text.toIntOrNull() != null
+        Row(
+            modifier = if (isNumber) Modifier else Modifier.weight(1f, fill = false),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = img,
+                tint = fontColor,
+                modifier = Modifier.size(iconSize),
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.width(SUBTITLE_ICON_TEXT_SPACING))
+            Text(
+                text = text,
+                color = fontColor,
+                fontSize = fontSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if (isNumber) Modifier else Modifier.weight(1f, fill = false),
+            )
+        }
+
+        if (idx < iconTextPairs.size - 1) {
+            Text(
+                text = BULLET_POINT,
+                color = fontColor,
+                fontSize = fontSize,
+            )
         }
     }
 }

@@ -63,25 +63,23 @@ fun PlaylistSongsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
-    AppTheme {
-        PlaylistSongsScreenContent(
-            modifier = modifier,
-            playlistName = uiState.playlistName,
-            songs = uiState.songs,
-            totalDurationMs = uiState.totalDurationMs,
-            colorSource = colorSource,
-            onSongClick = { song ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleSongSelection(song.id)
-                } else {
-                    viewModel.playSong(song, uiState.songs)
-                }
-            },
-            onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
-            selectedSongs = selectionState.selectedSongs,
-            onBackClick = onBackClick,
-        )
-    }
+    PlaylistSongsScreenContent(
+        modifier = modifier,
+        playlistName = uiState.playlistName,
+        songs = uiState.songs,
+        totalDurationMs = uiState.totalDurationMs,
+        colorSource = colorSource,
+        onSongClick = { song ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleSongSelection(song.id)
+            } else {
+                viewModel.playSong(song, uiState.songs)
+            }
+        },
+        onSongLongClick = { selectionViewModel.toggleSongSelection(it.id) },
+        selectedSongs = selectionState.selectedSongs,
+        onBackClick = onBackClick,
+    )
 }
 
 /**

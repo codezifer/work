@@ -191,3 +191,25 @@ fun SongListItemPreview() {
         )
     }
 }
+
+@Composable
+@Preview
+@Preview(uiMode = PREVIEW_DARK_MODE, name = "SongListItemPreview_Dark")
+fun SongListItemLongPreview() {
+    AppTheme {
+        SongListItem(
+            song = SongDto(
+                title = "This is just a Test",
+                album = "Test-Album-With-Loooooooooooooooooooooooooooooooooooooooooooooooooooooong Title",
+                artist = "Test-Artist",
+                duration = 3 * 60 * 1000,
+                genre = "Alternative",
+                lastPlayed = Instant.now(),
+                playCount = 3,
+                rating = 3,
+                totalTracks = 10,
+                trackNumber = 3,
+            ),
+        )
+    }
+}

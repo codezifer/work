@@ -116,6 +116,19 @@ fun SongListPreview() {
                     totalTracks = 10,
                     trackNumber = 4,
                 ),
+                SongDto(
+                    id = Uuid.random().toString(),
+                    title = "This is just a Test 3",
+                    album = "Test-Album-With-Looooooooooooooooooooooooooooooooooooooooooong Title",
+                    artist = "Test-Artist",
+                    duration = 3 * 60 * 1000,
+                    genre = "Alternative",
+                    lastPlayed = Instant.now(),
+                    playCount = 2,
+                    rating = 3,
+                    totalTracks = 10,
+                    trackNumber = 5,
+                ),
             ),
         )
     }
