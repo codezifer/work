@@ -28,10 +28,10 @@ import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
 import de.carsten.android.muzzic.ui.ICON_SIZE_TINY
 import de.carsten.android.muzzic.ui.PERCENTAGE_FACTOR
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.SPACING_EXTRA_LARGE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_SMALL
+import de.carsten.android.muzzic.ui.SPACING_XL
 import de.carsten.android.muzzic.ui.component.charts.MuzzicPieChart
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
@@ -80,7 +80,7 @@ fun GenreStatsCard(genreStats: List<GenrePlayCount>) {
                     holeRadiusPercent = CHART_PIE_HOLE_RADIUS,
                     modifier = Modifier
                         .size(CHART_PIE_SIZE)
-                        .padding(bottom = SPACING_EXTRA_LARGE),
+                        .padding(bottom = SPACING_XL),
                 )
             }
 

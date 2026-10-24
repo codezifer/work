@@ -2,7 +2,6 @@ package de.carsten.android.muzzic
 
 import android.net.Uri
 import androidx.core.net.toUri
-import androidx.media3.common.Player
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -12,20 +11,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 private const val TAG = "EXTENSIONS"
-
-/**
- * Playback state to string
- *
- * @param state player state as [Int]
- * @return state name as [String]
- */
-fun playbackStateToString(state: Int): String = when (state) {
-    Player.STATE_IDLE -> "IDLE"
-    Player.STATE_BUFFERING -> "BUFFERING"
-    Player.STATE_READY -> "READY"
-    Player.STATE_ENDED -> "ENDED"
-    else -> "UNKNOWN$state"
-}
 
 // canonical serialization: length-prefixed UTF-8 bytes to avoid collisions
 fun bytesWithLen(s: String): ByteArray {

@@ -5,6 +5,7 @@ import androidx.room.Query
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistAggregation
+import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistPlayCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -144,4 +145,28 @@ interface ArtistDao {
         """,
     )
     fun getArtistAggregationsByGenres(genres: List<String>): Flow<List<ArtistAggregation>>
+
+    /**
+     * Aggregates artist play counts from a specific time per month
+     *
+     * @param fromTimestamp specific timestamp epoch milliseconds as [Long]
+     * @param limit limit aggregated groups as [Int]
+     *
+     * @return aggregation results as [List] of [ArtistPlayCount]
+     */
+    @Query(
+        """
+        SELECT
+            COUNT() as playCount,
+            strftime('%Y-%m', datetime(ph.playedAt/1000, 'unixepoch')) as month,
+            artist as artist
+        FROM songs s
+        INNER JOIN play_history ph ON ph.songId = s.id
+        WHERE ph.playedAt >= :fromTimestamp
+        GROUP BY month, artist
+        ORDER BY month, artist, playCount
+        LIMIT :limit
+        """,
+    )
+    suspend fun getArtistPlayCountAggregation(fromTimestamp: Long, limit: Int): List<ArtistPlayCount>
 }

@@ -53,7 +53,15 @@ interface SongDao {
     suspend fun getLibrarySummary(): LibrarySummary
 
     @Query(
-        "SELECT SUM(playCount) as count, strftime('%Y-%m', datetime(updatedAt/1000, 'unixepoch')) as month FROM songs WHERE updatedAt >= :fromTimestamp GROUP BY month ORDER BY month LIMIT :limit",
+        """
+        SELECT
+            SUM(playCount) as count,
+            strftime('%Y-%m', datetime(updatedAt/1000, 'unixepoch')) as month
+        FROM songs
+        WHERE updatedAt >= :fromTimestamp
+        GROUP BY month
+        LIMIT :limit
+        """,
     )
     suspend fun getMonthlyStats(fromTimestamp: Long, limit: Int): List<MonthlyPlayCount>
 
@@ -71,12 +79,31 @@ interface SongDao {
      * @return play counts per normalized genre key, ordered by count descending.
      */
     @Query(
-        "SELECT CASE WHEN (s.genre IS NULL OR s.genre = '') THEN :unknownLabel ELSE s.normalized_genre END AS genre, SUM(s.playCount) AS count FROM songs_enriched s WHERE s.updatedAt >= :fromTimestamp GROUP BY 1 ORDER BY count DESC",
+        """
+        SELECT
+            CASE
+                WHEN (s.genre IS NULL OR s.genre = '')
+                THEN :unknownLabel
+                ELSE s.normalized_genre
+            END AS genre,
+            SUM(s.playCount) AS count
+        FROM songs_enriched s
+        WHERE s.updatedAt >= :fromTimestamp
+        GROUP BY 1
+        ORDER BY count DESC
+        """,
     )
     suspend fun getGenreStats(fromTimestamp: Long, unknownLabel: String): List<GenrePlayCount>
 
     @Query(
-        "SELECT *, playCount as totalCount FROM songs ORDER BY rating DESC, playCount DESC LIMIT :limit",
+        """
+        SELECT
+            *,
+            playCount as totalCount
+        FROM songs
+        ORDER BY rating DESC, playCount DESC
+        LIMIT :limit
+        """,
     )
     suspend fun getTopSongs(limit: Int): List<SongPlayCount>
 

@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.persistence.repo
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistAggregation
+import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistPlayCount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -41,6 +42,15 @@ class FakeArtistDao(private val songs: List<Song>) : ArtistDao {
                 songCount = grouped.size,
             )
         }
+
+    /**
+     * Play history is not modelled by this fake, so no play counts can be aggregated.
+     *
+     * @param fromTimestamp Ignored, see above.
+     * @param limit Ignored, see above.
+     * @return Always an empty list.
+     */
+    override suspend fun getArtistPlayCountAggregation(fromTimestamp: Long, limit: Int): List<ArtistPlayCount> = emptyList()
 
     private fun aggregations(songs: List<Song>): List<ArtistAggregation> = songs
         .groupBy { it.artist }

@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.ui.utils
 import androidx.media3.common.StarRating
 import de.carsten.android.muzzic.MAX_STARS
 import java.time.Instant
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -58,6 +59,19 @@ fun formatTime(timeMs: Long): String {
  * @return the formatted Datetime as String in format dd.MM.yyyy HH:mm:ss.SSS
  */
 fun formatTime(timeMs: String): String = formatTime(timeMs.toLong())
+
+/**
+ * Gets current beginning of the month as epoch milliseconds
+ *
+ * @param zoneId current Timezone as [ZoneId]
+ * @return epoch milliseconds as [Long]
+ */
+fun currentMonthInMillis(zoneId: ZoneId = ZoneId.systemDefault()): Long = YearMonth
+    .now(zoneId)
+    .atDay(1)
+    .atStartOfDay(zoneId)
+    .toInstant()
+    .toEpochMilli()
 
 /**
  * Formats a date as a localized short date string (without time).

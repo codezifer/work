@@ -60,6 +60,7 @@
     <string name="recently_added_artists">Recently added artists</string>
     <string name="recently_added_albums">Recently added albums</string>
     <string name="duration_minutes">%d min.</string>
+    <string name="artist_plays">Artist plays</string>
 
     <!-- Permissions -->
     <string name="permission_title">Music library access required</string>

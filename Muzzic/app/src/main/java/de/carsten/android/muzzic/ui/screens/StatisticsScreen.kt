@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.persistence.entity.Song
+import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistPlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
 import de.carsten.android.muzzic.persistence.entity.aggregation.MonthlyPlayCount
@@ -38,6 +39,7 @@ import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
+import de.carsten.android.muzzic.ui.screens.cards.ArtistPlayCountCard
 import de.carsten.android.muzzic.ui.screens.cards.GenreDurationCard
 import de.carsten.android.muzzic.ui.screens.cards.GenreStatsCard
 import de.carsten.android.muzzic.ui.screens.cards.LibrarySummaryCard
@@ -66,7 +68,7 @@ fun StatisticsScreen(modifier: Modifier = Modifier, appState: MusicAppState, vie
         months = uiState.monthlyStats,
         genres = uiState.genreStats,
         songs = uiState.topSongs,
-        monthStats = uiState.monthStats,
+        monthArtists = uiState.artistsStats,
         monthGenres = uiState.monthGenreStats,
         monthSongs = uiState.topMonthSongs,
         librarySummary = uiState.librarySummary,
@@ -86,7 +88,7 @@ private fun StatisticsScreenContent(
     months: List<MonthlyPlayCount>,
     genres: List<GenrePlayCount>,
     songs: List<SongPlayCount>,
-    monthStats: List<MonthlyPlayCount> = emptyList(),
+    monthArtists: List<ArtistPlayCount> = emptyList(),
     monthGenres: List<GenrePlayCount> = emptyList(),
     monthSongs: List<SongPlayCount> = emptyList(),
     librarySummary: LibrarySummary? = null,
@@ -155,7 +157,7 @@ private fun StatisticsScreenContent(
                 1 -> {
                     // Current month statistics (based on play_history)
                     item {
-                        MonthlyStatsCard(monthStats)
+                        ArtistPlayCountCard(monthArtists)
                     }
 
                     // Genre distribution of the current month
@@ -275,19 +277,17 @@ fun StatisticsScreenMonthPreview() {
             months = emptyList(),
             genres = emptyList(),
             songs = emptyList(),
-            monthStats = listOf(
-                MonthlyPlayCount("2026-02", 39),
-                MonthlyPlayCount("2026-03", 71),
-                MonthlyPlayCount("2026-04", 48),
-                MonthlyPlayCount("2026-05", 55),
-                MonthlyPlayCount("2026-06", 82),
-                MonthlyPlayCount("2026-07", 66),
-                MonthlyPlayCount("2026-08", 92),
+            monthArtists = listOf(
+                ArtistPlayCount("Dimmu Borgir", "2026-10", 20),
+                ArtistPlayCount("Cradle Of Filth", "2026-10", 10),
+                ArtistPlayCount("Marduk", "2026-10", 15),
+                ArtistPlayCount("Interpol", "2026-10", 30),
+                ArtistPlayCount("Wolfclub", "2026-10", 17),
             ),
             monthGenres = listOf(
                 GenrePlayCount("Black Metal", 45),
                 GenrePlayCount("Post Punk", 30),
-                GenrePlayCount("Ambient", 17),
+                GenrePlayCount("Retro-Wave", 17),
             ),
             monthSongs = listOf(
                 SongPlayCount(

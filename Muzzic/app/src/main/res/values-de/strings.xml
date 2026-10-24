@@ -56,6 +56,7 @@
     <string name="recently_added_artists">Zuletzt hinzugefügte Interpreten</string>
     <string name="recently_added_albums">Zuletzt hinzugefügte Alben</string>
     <string name="duration_minutes">%d Min.</string>
+    <string name="artist_plays">Künstler Wiedergaben</string>
 
     <!-- Permissions -->
     <string name="permission_title">Musikbibliothek-Zugriff erforderlich</string>

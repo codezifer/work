@@ -19,8 +19,8 @@ val SPACING_SMALL = 4.dp
 val SPACING_MEDIUM = 8.dp
 val SPACING_NORMAL = 12.dp
 val SPACING_LARGE = 16.dp
-val SPACING_EXTRA_LARGE = 24.dp
-val SPACING_HUGE = 32.dp
+val SPACING_XL = 24.dp
+val SPACING_XXL = 64.dp
 
 /**
  * Layout Tokens
@@ -72,6 +72,22 @@ val CHART_PREVIEW_WIDTH_MEDIUM = 200.dp
 val CHART_PREVIEW_HEIGHT_LARGE = 200.dp
 val CHART_PREVIEW_HEIGHT_SMALL = 100.dp
 val CHART_FULL_ROUNDING = 50.dp
+
+/**
+ * Height of one row in a horizontal bar chart, including the spacing to the next row.
+ *
+ * Horizontal charts grow with their item count instead of squeezing every bar into a fixed canvas
+ * height, so callers size them as `items * CHART_ROW_HEIGHT`.
+ */
+val CHART_ROW_HEIGHT = 40.dp
+
+/**
+ * Width of the item label column in a horizontal bar chart.
+ *
+ * Wide enough for typical artist names; longer names are truncated with an ellipsis by the chart's
+ * automatic label fitting.
+ */
+val CHART_LABEL_COLUMN_WIDTH = 100.dp
 
 /**
  * Border and Elevation Tokens
@@ -144,8 +160,28 @@ const val OPACITY_FAST_SCROLL_HANDLE = 0.8f
 
 /**
  * Statistics and Chart Tokens
+ *
+ * The `CHART_LABEL_ROTATION_*` constants are item label rotations in degrees. Negative values tilt
+ * the labels so that they read from bottom-left to top-right, keeping them below the axis while
+ * readable.
  */
-const val CHART_BAR_ROTATION = -45f
+const val CHART_LABEL_ROTATION_NONE = 0f
+const val CHART_LABEL_ROTATION_DIAGONAL = -45f
+const val CHART_LABEL_ROTATION_VERTICAL = -90f
+
+/**
+ * Lower bound for an automatically truncated chart label.
+ *
+ * Prevents a label from collapsing to the bare ellipsis when the reserved label area is smaller
+ * than a single glyph, which would leave the bar without any identifiable name.
+ */
+val CHART_LABEL_MIN_WIDTH = 8.dp
+
+/**
+ * Upper bound for the automatically reserved label area, as a fraction of the chart height.
+ * Prevents rotated labels from squeezing the bars below a usable size.
+ */
+const val CHART_LABEL_AREA_MAX_HEIGHT_RATIO = 0.5f
 const val CHART_PIE_HOLE_RADIUS = 0.4f
 val CHART_PIE_SIZE = 160.dp
 const val CHART_PERCENTAGE_THRESHOLD = 5

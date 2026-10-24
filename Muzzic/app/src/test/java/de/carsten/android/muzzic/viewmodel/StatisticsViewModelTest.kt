@@ -48,6 +48,7 @@ class StatisticsViewModelTest {
         every { genreRepository.getGenreInformation() } returns flowOf(emptyList())
         every { playlistRepository.getPlaylistInformation() } returns flowOf(emptyList())
         coEvery { artistRepository.getRecentArtists() } returns emptyList()
+        coEvery { artistRepository.getAristPlayCountAggregation(any()) } returns emptyList()
         coEvery { albumRepository.getRecentAlbums() } returns emptyList()
 
         viewModel = StatisticsViewModel(repository, genreRepository, playlistRepository, artistRepository, albumRepository)

@@ -54,7 +54,7 @@ class GenreRepository(val genreDao: GenreDao) {
      * across multiple mappings.
      * @return statistics with canonical genre names, ordered by count descending.
      */
-    suspend fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>, genreCounts: List<GenrePlayCount>): List<GenrePlayCount> {
+    fun getCanonicalGenreStats(rawStats: List<GenrePlayCount>, genreCounts: List<GenrePlayCount>): List<GenrePlayCount> {
         val weights = GenreUtils.groupByNormalizedKey(genreCounts.associate { it.genre to it.count })
         return rawStats
             .map { stat ->

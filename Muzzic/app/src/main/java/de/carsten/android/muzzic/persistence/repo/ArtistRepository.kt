@@ -3,6 +3,7 @@ package de.carsten.android.muzzic.persistence.repo
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.persistence.dao.ArtistDao
 import de.carsten.android.muzzic.persistence.dao.GenreDao
+import de.carsten.android.muzzic.persistence.entity.aggregation.ArtistPlayCount
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.toDto
@@ -57,4 +58,15 @@ class ArtistRepository(val artistDao: ArtistDao, val genreDao: GenreDao) {
             emitAll(artistDao.getArtistAggregationsByGenres(variants).map { it.toDto() })
         }
     }
+
+    /**
+     * Aggregates artist play counts from a specific time per month
+     *
+     * @param fromTimestamp specific timestamp epoch milliseconds as [Long]
+     * @param limit limit aggregated groups as [Int]
+     *
+     * @return aggregation results as [List] of [ArtistPlayCount]
+     */
+    suspend fun getAristPlayCountAggregation(fromTimestamp: Long, limit: Int = AppConfig.Ui.NUM_OF_TOP_ARTISTS): List<ArtistPlayCount> =
+        artistDao.getArtistPlayCountAggregation(fromTimestamp, limit)
 }

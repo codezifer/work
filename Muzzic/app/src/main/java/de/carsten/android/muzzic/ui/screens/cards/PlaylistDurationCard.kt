@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.CHART_ROW_HEIGHT
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
@@ -51,9 +52,9 @@ fun PlaylistDurationCard(playlistDurations: List<PlaylistDto>) {
                     showValuesInside = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height((playlistDurations.size * 40).dp) // Dynamic height based on number of playlists
+                        .height(CHART_ROW_HEIGHT * playlistDurations.size)
                         .padding(bottom = SPACING_MEDIUM),
-                    labelSpacing = 80.dp, // Extra space for playlist names
+                    labelAreaSize = 80.dp, // Extra space for playlist names
                 )
             } else {
                 Text(
