@@ -1,5 +1,6 @@
 package de.carsten.android.muzzic.ui.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -16,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.BLUR_RADIUS_LARGE
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
@@ -48,23 +49,32 @@ fun GradientBlurredBackground(data: Any?, modifier: Modifier = Modifier, blurRad
                 contentDescription = null,
             )
         } else {
+            // Both layers draw the same painter on purpose: two AsyncImage instances would each
+            // execute the same ImageRequest, and Coil does not join in-flight requests, so the
+            // cover would be fetched and decoded twice.
+            val painter =
+                rememberAsyncImagePainter(
+                    model = imageRequest,
+                    placeholder = painterResource(R.drawable.disc),
+                    error = painterResource(R.drawable.disc),
+                    contentScale = contentScale,
+                )
+
             // 1. Fully Blurred Background Layer
-            AsyncImage(
-                model = imageRequest,
+            Image(
+                painter = painter,
                 contentDescription = null,
                 modifier =
                 Modifier
                     .matchParentSize()
                     .blur(blurRadius),
                 contentScale = contentScale,
-                placeholder = painterResource(R.drawable.disc),
-                error = painterResource(R.drawable.disc),
             )
 
             // 2. Clear Foreground Layer with Horizontal Gradient Mask
             // We use BlendMode.DstIn to mask the clear image with an alpha gradient.
-            AsyncImage(
-                model = imageRequest,
+            Image(
+                painter = painter,
                 contentDescription = null,
                 modifier =
                 Modifier

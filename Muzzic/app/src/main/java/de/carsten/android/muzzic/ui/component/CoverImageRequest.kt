@@ -114,7 +114,9 @@ fun rememberBlurImageRequest(data: Any): ImageRequest {
  */
 fun coverBaseKey(data: Any?): String? = when (data) {
     null -> null
+
     is AlbumArtUri -> data.contentKey() ?: data.get()
+
     is String ->
         if (data.startsWith(ALBUMART_SCHEME)) {
             AlbumArtUri.parse(data).contentKey() ?: data
@@ -123,5 +125,6 @@ fun coverBaseKey(data: Any?): String? = when (data) {
         }
 
     is Uri -> data.toString()
+
     else -> null
 }

@@ -45,6 +45,9 @@ data class CoverPreloadSpec(
 /**
  * Prefetches image assets ahead of the scroll position in a [LazyGridState].
  *
+ * Indices that are currently visible are skipped: their images are already requested by the
+ * composables on screen, and Coil does not join duplicate in-flight requests.
+ *
  * @param gridState The state of the lazy grid.
  * @param items The backing list of items.
  * @param prefetchCount The number of items ahead of the visible area to prefetch.
@@ -64,6 +67,9 @@ fun <T> LazyGridPrefetchEffect(gridState: LazyGridState, items: List<T>, prefetc
 
 /**
  * Prefetches image assets ahead of the scroll position in a [LazyListState].
+ *
+ * Indices that are currently visible are skipped: their images are already requested by the
+ * composables on screen, and Coil does not join duplicate in-flight requests.
  *
  * @param listState The state of the lazy list.
  * @param items The backing list of items.
@@ -94,6 +100,10 @@ fun <T> LazyListPrefetchEffect(listState: LazyListState, items: List<T>, prefetc
  * No dispatcher hop: [ImageLoader.enqueue] is non-suspending and cheap, Coil
  * performs the actual I/O internally, so this runs on the main thread without
  * blocking it.
+ *
+ * Visible indices are excluded via [prefetchRanges]: they are already composed, so their
+ * images are requested by the UI. Prefetching them as well would start a second request for
+ * the same image because Coil does not join in-flight requests.
  *
  * @param stateKey The scroll state object identifying the lazy layout.
  * @param itemCount The number of backing items.
@@ -126,23 +136,53 @@ private fun <T> PrefetchHost(
             if (visible.isEmpty()) {
                 IntRange.EMPTY
             } else {
-                val start = (visible.min() - PREFETCH_LOOKBEHIND_COUNT).coerceAtLeast(0)
-                val end = (visible.max() + prefetchCount).coerceAtMost(itemCount - 1)
-                start..end
+                visible.min()..visible.max()
             }
         }
             .distinctUntilChanged()
-            .collect { range ->
-                if (range.isEmpty()) return@collect
+            .collect { visibleRange ->
+                val ranges = prefetchRanges(visibleRange, itemCount, prefetchCount, PREFETCH_LOOKBEHIND_COUNT)
+                if (ranges.isEmpty()) return@collect
                 val itemsSnapshot = currentItems
                 val extract = currentExtract
-                for (index in range) {
-                    val item = itemsSnapshot.getOrNull(index) ?: continue
-                    extract(item).forEach { spec ->
-                        enqueueSpec(context, imageLoader, spec, enqueuedKeys)
+                for (range in ranges) {
+                    for (index in range) {
+                        val item = itemsSnapshot.getOrNull(index) ?: continue
+                        extract(item).forEach { spec ->
+                            enqueueSpec(context, imageLoader, spec, enqueuedKeys)
+                        }
                     }
                 }
             }
+    }
+}
+
+/**
+ * Computes the index ranges to prefetch around the visible items.
+ *
+ * The visible indices are excluded on purpose: they are already composed, so their images are
+ * already being requested by the UI. Prefetching them again would start a second request for
+ * the same image because Coil does not join in-flight requests.
+ *
+ * @param visibleRange The range of currently visible indices, or [IntRange.EMPTY] if none.
+ * @param itemCount The number of backing items.
+ * @param aheadCount The number of items after the visible range to prefetch.
+ * @param behindCount The number of items before the visible range to prefetch.
+ * @return up to two disjoint ranges in ascending order (lookbehind, then lookahead), clamped
+ * to the list bounds.
+ */
+internal fun prefetchRanges(visibleRange: IntRange, itemCount: Int, aheadCount: Int, behindCount: Int): List<IntRange> {
+    if (itemCount <= 0 || visibleRange.isEmpty()) return emptyList()
+
+    val first = visibleRange.first.coerceIn(0, itemCount - 1)
+    val last = visibleRange.last.coerceIn(first, itemCount - 1)
+
+    return buildList(2) {
+        val behindStart = (first - behindCount).coerceAtLeast(0)
+        if (behindStart < first) add(behindStart until first)
+
+        val aheadEnd = (last + aheadCount).coerceAtMost(itemCount - 1)
+        if (last < aheadEnd) add((last + 1)..aheadEnd)
     }
 }
 
