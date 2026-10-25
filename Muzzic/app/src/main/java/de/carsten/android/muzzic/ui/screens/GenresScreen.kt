@@ -28,17 +28,15 @@ fun GenresScreen(
 ) {
     val uiState by genreViewModel.uiState.collectAsStateWithLifecycle()
 
-    AppTheme {
-        GenresScreenContent(
-            modifier = modifier,
-            appState = appState,
-            genres = uiState.genres,
-            onGenreClick = onGenreClick,
-            onGenrePlayClick = { genre ->
-                genreViewModel.playGenre(genre.genreName)
-            },
-        )
-    }
+    GenresScreenContent(
+        modifier = modifier,
+        appState = appState,
+        genres = uiState.genres,
+        onGenreClick = onGenreClick,
+        onGenrePlayClick = { genre ->
+            genreViewModel.playGenre(genre.genreName)
+        },
+    )
 }
 
 @Composable

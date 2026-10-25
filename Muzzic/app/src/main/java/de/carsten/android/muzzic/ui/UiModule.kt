@@ -26,8 +26,6 @@ private fun getImageLoader(context: Context): ImageLoader {
 
     return ImageLoader
         .Builder(context)
-        // Request logging is debug-only: it writes every request (including file paths) to Logcat
-        // and measurably slows the loader down.
         .logger(if (BuildConfig.DEBUG) DebugLogger() else null)
         .crossfade(AppConfig.Ui.DEFAULT_CROSSFADE)
         .components {

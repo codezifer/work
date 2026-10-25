@@ -18,12 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.UNKNOWN_ARTIST
 import de.carsten.android.muzzic.ui.FONT_SIZE_LARGE_TITLE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
+import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -31,6 +35,7 @@ import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.ArtistAlbumsViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
+import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -46,50 +51,107 @@ fun ArtistAlbumsScreen(
     val uiState by artistAlbumsViewModel.uiState.collectAsStateWithLifecycle()
     val selectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
 
-    AppTheme {
-        Column(
+    ArtistAlbumsScreenContent(
+        modifier = modifier,
+        albums = uiState.albums,
+        artistName = uiState.artistName,
+        selectionState = selectionState,
+        onBackClick = onBackClick,
+        onAlbumClick = { artist, album ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleAlbumSelection(artist, album)
+            } else {
+                onAlbumClick(artist, album)
+            }
+        },
+        onAlbumPlayClick = artistAlbumsViewModel::playAlbum,
+        onAlbumLongClick = selectionViewModel::toggleAlbumSelection,
+        colorSource = colorSource,
+    )
+}
+
+@Composable
+private fun ArtistAlbumsScreenContent(
+    modifier: Modifier = Modifier,
+    albums: List<AlbumDto> = emptyList(),
+    artistName: String = UNKNOWN_ARTIST,
+    selectionState: SelectionState? = null,
+    onBackClick: () -> Unit = {},
+    onAlbumPlayClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumClick: (String, String) -> Unit = { _, _ -> },
+    onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
+    colorSource: ColorSource = composableColorSource(),
+) {
+    Column(
+        modifier =
+        modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
+    ) {
+        Row(
             modifier =
-            modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
+            Modifier
+                .fillMaxWidth()
+                .padding(SPACING_LARGE),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(SPACING_LARGE),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                Text(
-                    text = uiState.artistName,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = FONT_SIZE_LARGE_TITLE,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = SPACING_MEDIUM),
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back),
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
-
-            AlbumGrid(
-                albums = uiState.albums,
-                onAlbumClick = { artist, album ->
-                    if (selectionState.isActive) {
-                        selectionViewModel.toggleAlbumSelection(artist, album)
-                    } else {
-                        onAlbumClick(artist, album)
-                    }
-                },
-                onAlbumPlayClick = { artist, album -> artistAlbumsViewModel.playAlbum(artist, album) },
-                onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
-                selectedAlbums = selectionState.selectedAlbums,
-                colorSource = colorSource,
+            Text(
+                text = artistName,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = FONT_SIZE_LARGE_TITLE,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = SPACING_MEDIUM),
             )
         }
+
+        AlbumGrid(
+            albums = albums,
+            onAlbumClick = onAlbumClick,
+            onAlbumPlayClick = onAlbumPlayClick,
+            onAlbumLongClick = onAlbumLongClick,
+            selectedAlbums = selectionState?.selectedAlbums ?: emptySet(),
+            colorSource = colorSource,
+        )
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = PREVIEW_DARK_MODE)
+fun ArtistAlbumsScreenPreview() {
+    AppTheme {
+        ArtistAlbumsScreenContent(
+            artistName = "Test-Artist",
+            albums = listOf(
+                AlbumDto(
+                    albumName = "Test-Album-01",
+                    artistName = "Test-Artist",
+                    albumYear = 2024,
+                    songCount = 10,
+                    albumDuration = 60 * 60 * 1000L,
+                ),
+                AlbumDto(
+                    albumName = "Test-Album-02",
+                    artistName = "Test-Artist",
+                    albumYear = 2025,
+                    songCount = 10,
+                    albumDuration = 60 * 60 * 1000L,
+                ),
+                AlbumDto(
+                    albumName = "Test-Album-03",
+                    artistName = "Test-Artist",
+                    albumYear = 2026,
+                    songCount = 10,
+                    albumDuration = 60 * 60 * 1000L,
+                ),
+            ),
+        )
     }
 }

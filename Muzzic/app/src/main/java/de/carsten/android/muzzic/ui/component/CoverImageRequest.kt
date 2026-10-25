@@ -7,6 +7,7 @@ import androidx.compose.ui.platform.LocalContext
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.size.Precision
+import de.carsten.android.muzzic.ALBUMART_SCHEME
 import de.carsten.android.muzzic.model.AlbumArtUri
 import de.carsten.android.muzzic.ui.BLUR_BG_PX
 import de.carsten.android.muzzic.ui.COVER_KEY_BLUR
@@ -18,7 +19,8 @@ import de.carsten.android.muzzic.ui.PALETTE_SIZE_PX
  *
  * No size is set, so Coil derives the target size from the measured layout bounds and stays
  * density-aware. [coverBaseKey] is used for memory, disk and placeholder-memory keys, so
- * scrolling back hits the memory cache synchronously.
+ * scrolling back hits the memory cache synchronously. The key is content based, so every
+ * track of an album shares one decoded bitmap.
  *
  * `data` is intentionally non-nullable: Coil fails a request without data before any
  * placeholder or error painter is applied, so a missing cover must be handled by the caller
@@ -48,8 +50,8 @@ fun rememberCoverImageRequest(data: Any): ImageRequest {
  *
  * Decodes a small software bitmap: palette generation cannot read hardware bitmaps, and
  * colours do not need display resolution. The separate memory key keeps the small entry from
- * replacing the full-size display bitmap. The disk key stays [coverBaseKey], so the raw
- * cover bytes exist only once.
+ * replacing the full-size display bitmap. The disk key also stays [coverBaseKey], so network
+ * covers share one disk entry across all variants.
  *
  * @param data the image data (cover path string, [Uri] or [AlbumArtUri]).
  * @return the remembered [ImageRequest].
@@ -99,6 +101,10 @@ fun rememberBlurImageRequest(data: Any): ImageRequest {
 /**
  * Resolves the content identity used as Coil cache key for cover artwork.
  *
+ * Album art URIs are keyed by their image content (see [AlbumArtUri.contentKey]) so that every
+ * track of an album shares one decoded bitmap and one palette instead of holding a copy per
+ * song file. Other strings (HTTP URLs, resource paths) are used as is.
+ *
  * Only types with a stable identity are mapped. Anything else (e.g. an `InputStream`) returns
  * null so Coil falls back to its own keying instead of storing a per-instance identity hash.
  * A null [data] has no identity at all; callers treat that as "no cover" and skip the request.
@@ -108,8 +114,14 @@ fun rememberBlurImageRequest(data: Any): ImageRequest {
  */
 fun coverBaseKey(data: Any?): String? = when (data) {
     null -> null
-    is AlbumArtUri -> data.get()
-    is String -> data
+    is AlbumArtUri -> data.contentKey() ?: data.get()
+    is String ->
+        if (data.startsWith(ALBUMART_SCHEME)) {
+            AlbumArtUri.parse(data).contentKey() ?: data
+        } else {
+            data
+        }
+
     is Uri -> data.toString()
     else -> null
 }

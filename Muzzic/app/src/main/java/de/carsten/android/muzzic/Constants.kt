@@ -1,6 +1,9 @@
 package de.carsten.android.muzzic
 
 const val ALBUMART_SCHEME = "albumart://"
+
+/** Prefix for cache keys that identify album art by its image content instead of its file. */
+const val ALBUMART_CONTENT_KEY = "albumart-content:"
 const val DOT = "•"
 const val EMPTY = ""
 const val FLAC = "flac"

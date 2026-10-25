@@ -80,16 +80,3 @@ fun AlbumAggregation.toDto() = AlbumDto(
 )
 
 fun List<AlbumAggregation>.toDto() = map { it.toDto() }
-
-fun MediaItem.toAlbumDto(): AlbumDto {
-    val metadata = mediaMetadata
-    val extras = metadata.extras ?: Bundle.EMPTY
-    return AlbumDto(
-        artistName = metadata.artist?.toString() ?: "",
-        albumName = metadata.title?.toString() ?: "",
-        albumYear = metadata.releaseYear ?: 0,
-        songCount = extras.getInt(MediaKeys.SONG_COUNT),
-        albumDuration = extras.getLong(MediaKeys.DURATION),
-        lastAlbumArt = metadata.artworkUri?.toString(),
-    )
-}

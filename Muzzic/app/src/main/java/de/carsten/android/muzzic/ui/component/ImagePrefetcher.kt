@@ -24,12 +24,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  *
  * @param data The image source (path string, Uri, AlbumArtUri, etc.).
  * @param cacheKey Stable cache key (content identity), or null if no explicit key is used.
- * Defaults to [data] when it is a String, otherwise null.
+ * Defaults to [data] when it is a String, otherwise null. Album art strings are normalized
+ * through [coverBaseKey], so tracks sharing the same embedded cover share one cache entry.
  * @param sizePx Target square dimension in pixels, or null for default/original size.
  * @param allowHardware Whether hardware bitmap allocation is permitted (set false for Palette).
  * @param crossfade Whether crossfade animation is enabled when loading.
  * @param keySuffix Memory cache key suffix for variant entries (palette, blur), or null for the
- * display entry. The disk key always remains [cacheKey], so all variants share one raw blob.
+ * display entry. The disk key always remains [cacheKey], so network covers share one disk entry
+ * across all variants.
  */
 data class CoverPreloadSpec(
     val data: Any?,
@@ -146,8 +148,11 @@ private fun <T> PrefetchHost(
 
 private fun enqueueSpec(context: Context, imageLoader: ImageLoader, spec: CoverPreloadSpec, enqueuedKeys: HashSet<String>) {
     val data = spec.data ?: return
-    val memoryKey = spec.cacheKey?.plus(spec.keySuffix.orEmpty())
-    val dedupKey = "${data}_${memoryKey}_${spec.sizePx}_${spec.allowHardware}_${spec.crossfade}"
+    val cacheKey = coverBaseKey(spec.cacheKey)
+    val memoryKey = cacheKey?.plus(spec.keySuffix.orEmpty())
+    // Deduplicate on the resolved cache key: a song list repeats the same album cover for
+    // every track, so enqueuing per song would only race for the same memory entry.
+    val dedupKey = "${memoryKey ?: data}_${spec.sizePx}_${spec.allowHardware}_${spec.crossfade}"
     if (!enqueuedKeys.add(dedupKey)) return
 
     val builder =
@@ -159,7 +164,7 @@ private fun enqueueSpec(context: Context, imageLoader: ImageLoader, spec: CoverP
             .precision(Precision.INEXACT)
 
     if (memoryKey != null) {
-        builder.memoryCacheKey(memoryKey).diskCacheKey(spec.cacheKey)
+        builder.memoryCacheKey(memoryKey).diskCacheKey(cacheKey)
         if (spec.keySuffix == null) {
             builder.placeholderMemoryCacheKey(memoryKey)
         }
