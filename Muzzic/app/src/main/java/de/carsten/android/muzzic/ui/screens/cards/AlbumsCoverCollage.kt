@@ -1,7 +1,6 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -148,10 +147,7 @@ private fun CollageGrid(displayedCovers: List<CoverSource>, rows: Int, columns: 
 private fun CollageItem(cover: CoverSource, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier =
-        modifier
-            .fillMaxSize()
-            .border(0.5.dp, MaterialTheme.colorScheme.outline),
+        modifier = modifier.fillMaxSize(),
     ) {
         when (cover) {
             is CoverSource.FromPath -> {
