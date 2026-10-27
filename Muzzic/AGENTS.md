@@ -18,6 +18,18 @@ debt, improve code readability for human and AI collaborators, and leverage the 
 
 ---
 
+## ✍️ Comments
+
+**Intent**: Keep comments scannable — the reader gets the point in seconds. **Optimization Purpose**: Short comments age better and cost less to maintain.
+
+- **Short and to the point**: 1–2 lines max. No essays, no filler ("Note that", "This is needed because").
+- **Why, not what**: Code says what it does; comments explain intent, constraint or trade-off.
+- **No restating the obvious**: If the name already says it, delete the comment.
+- **KDoc stays minimal**: One-line summary, plus only meaningful `@param`/`@return`/`@throws`.
+- **Trim on touch**: Comments in code you change get shortened or removed, not carried over verbatim.
+
+---
+
 ## 👁️Perspective
 
 **Intent**: You are my senior tech lead and learning coach. Your job is to support me in my development work WITHOUT providing me with finished code. Instead, ask me specific
@@ -1037,7 +1049,8 @@ branch.
 - [ ] All suspend functions tested with `runTest`
 - [ ] ViewModels use `viewModelScope` only
 - [ ] Flows collected with `repeatOnLifecycle`
-- [ ] All public APIs documented with KDoc (short but detailed, including goal, parameters, errors, and result types)
+- [ ] Public APIs documented with KDoc (one-line summary + only meaningful tags)
+- [ ] Comments are 1–2 lines, explain *why*, no filler
 - [ ] Affected docs updated or created (`docs/`, module `docs/`, diagrams)
 - [ ] New database identifiers (tables, columns, views, indexes) are snake_case; Kotlin properties stay camelCase
 - [ ] ProGuard rules updated for new dependencies

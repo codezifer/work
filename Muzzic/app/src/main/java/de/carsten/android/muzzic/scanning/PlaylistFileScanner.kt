@@ -66,14 +66,14 @@ class PlaylistFileScanner(
                             pathToSong[resolvedFsPath] = song
                         }
                     } catch (e: Exception) {
-                        // Ignore parsing errors for individual songs
+                        logger.error("An error occurred while parsing filePath=$filePath!", e)
                     }
                 }
             }
 
             scanForFiles(context, configuredDir, supportedFiles).collect { scannedFiles ->
                 scannedFiles.forEach { file ->
-                    ensureActive()
+                    this@withContext.ensureActive()
                     val entries: List<M3uEntry> = try {
                         context.contentResolver.openInputStream(file.uri)?.use { inputStream ->
                             M3uParser.parse(inputStream, logger, file.displayName)
@@ -92,11 +92,11 @@ class PlaylistFileScanner(
                         playlistDao.clearPlaylist(playlistId)
 
                         val playlistSongs = mutableListOf<PlaylistSong>()
-                        entries.forEachIndexed { songIndex, entry ->
+                        entries.forEachIndexed { index, entry ->
                             val matchedSong = pathToSong[entry.path]
                             if (matchedSong != null) {
                                 playlistSongs.add(
-                                    PlaylistSong(playlistId, matchedSong.id, songIndex),
+                                    PlaylistSong(playlistId, matchedSong.id, index),
                                 )
                             }
                         }

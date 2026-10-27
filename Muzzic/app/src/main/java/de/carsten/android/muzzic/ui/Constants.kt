@@ -142,7 +142,7 @@ val ICON_SIZE_PLAYER_MAIN = 72.dp
 val ICON_SIZE_PLAYER_PLAY_PAUSE = 44.dp
 val ICON_SIZE_PLAY_BUTTON_LARGE = 100.dp
 val ICON_SIZE_CONTROL_SMALL = 32.dp
-val ICON_SIZE_FAST_SCROLL_THUMB = 50.dp
+val ICON_SIZE_FAST_SCROLL_THUMB = 64.dp
 
 /**
  * Star Rating Tokens
@@ -157,6 +157,10 @@ val ELEVATION_FAST_SCROLL_IDLE = 2.dp
 const val OPACITY_FAST_SCROLL_BACKGROUND = 0.4f
 const val OPACITY_FAST_SCROLL_BORDER = 0.4f
 const val OPACITY_FAST_SCROLL_HANDLE = 0.8f
+
+// Tail of the preview bubble, pointing at the current letter
+val FAST_SCROLL_THUMB_TAIL_SIZE = 10.dp
+val FAST_SCROLL_THUMB_TAIL_OVERLAP = 3.dp
 
 /**
  * Statistics and Chart Tokens

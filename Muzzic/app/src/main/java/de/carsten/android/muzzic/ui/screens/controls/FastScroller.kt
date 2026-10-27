@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -48,39 +49,48 @@ import de.carsten.android.muzzic.ui.ELEVATION_FAST_SCROLL_IDLE
 import de.carsten.android.muzzic.ui.ELEVATION_MEDIUM
 import de.carsten.android.muzzic.ui.FAST_SCROLL_HIDE_DELAY_MS
 import de.carsten.android.muzzic.ui.FAST_SCROLL_ITEM_MIN_HEIGHT
+import de.carsten.android.muzzic.ui.FAST_SCROLL_THUMB_TAIL_OVERLAP
+import de.carsten.android.muzzic.ui.FAST_SCROLL_THUMB_TAIL_SIZE
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.ICON_SIZE_FAST_SCROLL_THUMB
 import de.carsten.android.muzzic.ui.ICON_SIZE_LARGE
 import de.carsten.android.muzzic.ui.ICON_SIZE_MEDIUM
-import de.carsten.android.muzzic.ui.INDICATOR_SLIDER_PREVIEW_PADDING
 import de.carsten.android.muzzic.ui.OPACITY_FAST_SCROLL_BACKGROUND
 import de.carsten.android.muzzic.ui.OPACITY_FAST_SCROLL_BORDER
 import de.carsten.android.muzzic.ui.OPACITY_FAST_SCROLL_HANDLE
 import de.carsten.android.muzzic.ui.OPACITY_MEDIUM
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
+import de.carsten.android.muzzic.ui.shape.IndicatorShape
+import de.carsten.android.muzzic.ui.shape.TailDirection
 import de.carsten.android.muzzic.ui.utils.contrastColor
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
+/** Bubble shape with a right tail pointing at the letter row. */
+private val fastScrollerThumbShape =
+    IndicatorShape(
+        tailSize = FAST_SCROLL_THUMB_TAIL_SIZE,
+        cornerRadius = ICON_SIZE_FAST_SCROLL_THUMB / 2,
+        direction = TailDirection.Right,
+        tailOverlap = FAST_SCROLL_THUMB_TAIL_OVERLAP,
+    )
+
 /**
- * A fast scroller component that displays a vertical alphabet bar.
- * Enables quick navigation through lists (e.g., artists, albums, songs).
+ * Vertical alphabet bar for quick list navigation (artists, albums, songs).
  *
- * When the available height cannot show every letter at [FAST_SCROLL_ITEM_MIN_HEIGHT], the
- * alphabet is progressively compressed to evenly spread letters (first and last always included)
- * with bullet dots in between; the letter font shrinks as a final fallback, so letters are never
- * partially covered at any screen height.
+ * Compresses letters with bullet dots when the bar is too short; the font shrinks as a fallback.
  *
- * @param alphabet A list of letters (A-Z) to be displayed.
- * @param onLetterSelected Callback invoked when a letter is selected.
+ * @param alphabet Letters to display (e.g. A-Z).
+ * @param onLetterSelected Invoked when a letter is selected.
  * @param isScrolling Whether the associated list is currently scrolling.
  * @param modifier Modifier for the outer Box layout.
- * @param activeLetter The letter currently visible in the list (controlled by the parent).
- * @param colorSource current colors from selected album art
+ * @param activeLetter Letter currently visible in the list (controlled by the parent).
+ * @param colorSource Colors from the selected album art.
  */
 @Composable
 fun FastScroller(
@@ -93,35 +103,30 @@ fun FastScroller(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Stores the letter currently hovered by the finger while dragging
+    // Letter under the finger while dragging
     var draggingLetter by remember { mutableStateOf<String?>(null) }
 
-    // Controls the visibility of the scroller
     var isVisible by remember { mutableStateOf(false) }
 
-    // Effect to handle visibility with a delay
+    // Show while scrolling/dragging, hide after a delay
     LaunchedEffect(isScrolling, draggingLetter) {
         if (isScrolling || draggingLetter != null) {
             isVisible = true
         } else {
-            // Wait before hiding after scrolling/dragging stops
             delay(FAST_SCROLL_HIDE_DELAY_MS.milliseconds)
             isVisible = false
         }
     }
 
-    // The actual height of the component in pixels to perform the index calculation
+    // Bar height in pixels, used for index mapping
     var columnHeight by remember { mutableIntStateOf(0) }
 
-    // Density is needed to correctly convert calculated pixel values to DP
     val density = LocalDensity.current
 
-    // Prioritize the currently dragged letter over the system-reported active letter
+    // Dragged letter wins over the active letter reported by the list
     val effectiveLetter = draggingLetter ?: activeLetter
 
-    // Layout model: which slots are actually rendered for the available height. The pointer
-    // mapping stays proportional to the full alphabet, so every letter remains selectable
-    // even when this model compresses the bar.
+    // Rendered slots for the current height; pointer mapping stays proportional to the full alphabet
     val displayItems =
         remember(alphabet, columnHeight) {
             when {
@@ -132,18 +137,17 @@ fun FastScroller(
                         with(density) { (columnHeight - 2 * SPACING_MEDIUM.toPx()).toDp() }
                     buildFastScrollerDisplayItems(
                         alphabet = alphabet,
-                        // Minimum height per rendered slot (letter or dot) to avoid overlap
+                        // At most one slot per minimum item height
                         maxVisibleItems = (usableHeightDp / FAST_SCROLL_ITEM_MIN_HEIGHT).toInt(),
                     )
                 }
 
-                // Fallback before the first measurement: render one slot per letter
+                // Before the first measurement: one slot per letter
                 else -> alphabet.map { FastScrollerDisplayItem.Letter(it) }
             }
         }
 
-    // Dynamically shrink the letter font so its line box always fits into one slot. The cap keeps
-    // the regular caption size whenever the slots are high enough.
+    // Shrink the font to fit a slot; capped at the caption size
     val letterFontSize =
         if (columnHeight > 0 && displayItems.isNotEmpty()) {
             with(density) {
@@ -160,8 +164,7 @@ fun FastScroller(
             alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
         }
 
-    // Maps a pointer y-position onto its alphabet index. The mapping stays proportional to the
-    // full alphabet, so dragging across a compressed bar still selects every intermediate letter.
+    // Maps a pointer y-position to its alphabet index (proportional to the full alphabet)
     fun letterIndexAt(pointerY: Float): Int {
         if (columnHeight <= 0 || alphabet.isEmpty()) return -1
         val topPaddingPx = with(density) { SPACING_MEDIUM.toPx() }
@@ -180,9 +183,9 @@ fun FastScroller(
             modifier =
             Modifier
                 .width(ICON_SIZE_LARGE)
-                // Measures the height of the bar once it's placed in the layout
+                // Measure the bar height for index mapping
                 .onGloballyPositioned { columnHeight = it.size.height }
-                // Handles simple tapping on a letter
+                // Tap on a letter
                 .pointerInput(alphabet) {
                     detectTapGestures { offset ->
                         letterIndexAt(offset.y)
@@ -190,7 +193,7 @@ fun FastScroller(
                             ?.let { onLetterSelected(alphabet[it]) }
                     }
                 }
-                // Handles the swipe gesture (drag) along the bar
+                // Drag along the bar
                 .pointerInput(alphabet) {
                     detectDragGestures(
                         onDragStart = { offset ->
@@ -208,7 +211,6 @@ fun FastScroller(
                                 .takeIf { it >= 0 }
                                 ?.let { index ->
                                     val letter = alphabet[index]
-                                    // Only update if the letter under the finger has changed
                                     if (draggingLetter != letter) {
                                         draggingLetter = letter
                                         onLetterSelected(letter)
@@ -220,32 +222,32 @@ fun FastScroller(
                 },
             contentAlignment = Alignment.TopCenter,
         ) {
-            // The "handle" (colored indicator) showing the current position
-            if (letterIndex != -1 && alphabet.isNotEmpty() && columnHeight > 0) {
-                // Position the handle proportionally to the full alphabet — mirroring the pointer
-                // mapping, so it follows the finger exactly even across compressed dot slots
-                val handleOffsetPx =
+            // Vertical center of the current letter, shared by handle and preview bubble
+            val centerOffsetDp =
+                if (letterIndex >= 0 && columnHeight > 0) {
                     with(density) {
                         val topPaddingPx = SPACING_MEDIUM.toPx()
                         val usableHeightPx = (columnHeight - 2 * topPaddingPx).coerceAtLeast(1f)
                         val letterFraction =
                             if (alphabet.size > 1) letterIndex.toFloat() / (alphabet.size - 1) else 0.5f
-                        topPaddingPx + letterFraction * usableHeightPx
+                        (topPaddingPx + letterFraction * usableHeightPx).toDp()
                     }
-                // Convert pixels to DP for the modifier.offset, half the handle diameter to center
-                // the circle on the letter position
-                val handleOffsetDp = with(density) { (handleOffsetPx - ICON_SIZE_MEDIUM.toPx() / 2).toDp() }
+                } else {
+                    0.dp
+                }
 
-                // Smoothly animates the handle movement between positions
-                val animatedOffset by animateDpAsState(
-                    targetValue = handleOffsetDp,
-                    label = "handleOffset",
-                )
+            // Animated so the handle and the bubble move in lockstep
+            val animatedCenter by animateDpAsState(
+                targetValue = centerOffsetDp,
+                label = "fastScrollerCenter",
+            )
 
+            // Handle marking the current position
+            if (letterIndex != -1 && alphabet.isNotEmpty() && columnHeight > 0) {
                 Box(
                     modifier =
                     Modifier
-                        .offset(y = animatedOffset)
+                        .offset(y = animatedCenter - ICON_SIZE_MEDIUM / 2)
                         .padding(horizontal = SPACING_MEDIUM)
                         .width(ICON_SIZE_MEDIUM)
                         .height(ICON_SIZE_MEDIUM)
@@ -275,8 +277,7 @@ fun FastScroller(
                     )
                     .padding(vertical = SPACING_MEDIUM),
             ) {
-                // Every rendered slot gets an equal share; the display model never produces more
-                // slots than fit the minimum item height, so letters are never clipped
+                // Equal share per slot; the display model never overflows
                 displayItems.forEach { item ->
                     FastScrollerLetter(
                         letter =
@@ -292,24 +293,41 @@ fun FastScroller(
                 }
             }
 
-            // Large letter preview (bubble) that appears to the left of the bar while dragging
+            // Preview bubble left of the bar; its tail points at the current letter
             draggingLetter?.let { letter ->
+                val maxThumbOffset =
+                    (with(density) { columnHeight.toDp() } - ICON_SIZE_FAST_SCROLL_THUMB).coerceAtLeast(0.dp)
+                // Clamp so the bubble stays inside the bar at the first and last letter
+                val thumbOffset =
+                    (animatedCenter - ICON_SIZE_FAST_SCROLL_THUMB / 2).coerceIn(0.dp, maxThumbOffset)
+                // Tail tip sits just left of the bar edge
+                val thumbOffsetX = -(ICON_SIZE_FAST_SCROLL_THUMB + FAST_SCROLL_THUMB_TAIL_SIZE + SPACING_TINY)
+
                 Box(
                     modifier =
                     Modifier
-                        .align(Alignment.CenterStart)
-                        .offset(x = -INDICATOR_SLIDER_PREVIEW_PADDING) // Positioning to the left of the FastScroller
-                        .size(ICON_SIZE_FAST_SCROLL_THUMB)
-                        .shadow(ELEVATION_MEDIUM, CircleShape)
-                        .clip(CircleShape)
+                        .align(Alignment.TopStart)
+                        .offset(x = thumbOffsetX, y = thumbOffset)
+                        // wrapContentSize: the 40dp bar must not shrink or center the wider bubble
+                        .wrapContentSize(Alignment.TopStart, unbounded = true)
+                        .width(ICON_SIZE_FAST_SCROLL_THUMB + FAST_SCROLL_THUMB_TAIL_SIZE)
+                        .height(ICON_SIZE_FAST_SCROLL_THUMB)
+                        .shadow(ELEVATION_MEDIUM, fastScrollerThumbShape)
+                        .clip(fastScrollerThumbShape)
                         .background(colorSource.accentColor),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.CenterStart,
                 ) {
-                    Text(
-                        text = letter,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colorSource.accentColor.contrastColor(),
-                    )
+                    // Center the letter in the round body, not in body + tail
+                    Box(
+                        modifier = Modifier.size(ICON_SIZE_FAST_SCROLL_THUMB),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = letter,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = colorSource.accentColor.contrastColor(),
+                        )
+                    }
                 }
             }
         }
@@ -317,16 +335,13 @@ fun FastScroller(
 }
 
 /**
- * Renders a single FastScroller slot (a letter or a bullet dot).
+ * Renders one slot: a letter or a bullet dot, centered and never clipped.
  *
- * The line box is forced to the font size itself, so the slot can never clip the glyph, even when
- * the font is dynamically shrunk on short screens.
- *
- * @param letter The character to render (a letter or [BULLET_POINT]).
- * @param fontSize Dynamically fitted font size (never taller than the slot).
- * @param isActive Whether this letter is currently the active one (bold + accent color).
+ * @param letter Character to render (a letter or [BULLET_POINT]).
+ * @param fontSize Font size fitted to the slot height.
+ * @param isActive Whether this letter is the active one (bold + accent color).
  * @param modifier Modifier for the letter's slot box.
- * @param colorSource current colors from selected album art
+ * @param colorSource Colors from the selected album art.
  */
 @Composable
 private fun FastScrollerLetter(letter: String, fontSize: TextUnit, isActive: Boolean, modifier: Modifier = Modifier, colorSource: ColorSource = composableColorSource()) {
@@ -353,33 +368,29 @@ private fun FastScrollerLetter(letter: String, fontSize: TextUnit, isActive: Boo
     }
 }
 
-/**
- * A single rendered slot in the [FastScroller] bar: an alphabet letter or a bullet dot filler.
- */
+/** A rendered slot: an alphabet letter or a decorative bullet dot. */
 private sealed interface FastScrollerDisplayItem {
     /** A rendered alphabet letter. */
     data class Letter(val value: String) : FastScrollerDisplayItem
 
-    /** A decorative bullet dot between two displayed letters. */
+    /** Decorative dot between two letters. */
     data object Dot : FastScrollerDisplayItem
 }
 
 /**
- * Builds the slot model rendered by the [FastScroller] for the available bar height.
+ * Builds the slots rendered for the available bar height.
  *
- * If [maxVisibleItems] slots cannot fit one alphabet letter each, the alphabet is compressed to
- * evenly spread letters (first and last letter always included) alternating with bullet dots, so
- * every rendered slot keeps the minimum item height. Every alphabet letter stays selectable via
- * the proportional pointer mapping.
+ * Compresses the alphabet with dots when [maxVisibleItems] can't fit one letter per slot; the first
+ * and last letter are always kept.
  *
- * @param alphabet The full alphabet to display.
- * @param maxVisibleItems Number of slots that fit into the available height (>= 1).
- * @return The slots in top-to-bottom order.
+ * @param alphabet Full alphabet to display.
+ * @param maxVisibleItems Slots that fit into the available height (>= 1).
+ * @return Slots in top-to-bottom order.
  */
 private fun buildFastScrollerDisplayItems(alphabet: List<String>, maxVisibleItems: Int): List<FastScrollerDisplayItem> {
     if (alphabet.isEmpty()) return emptyList()
 
-    // Compress to roughly half the slot budget: every second slot becomes a bullet dot
+    // Compressed: every second slot is a dot
     val letterCount = if (maxVisibleItems >= alphabet.size) alphabet.size else (maxVisibleItems + 1) / 2
 
     val letterIndices =
@@ -388,7 +399,7 @@ private fun buildFastScrollerDisplayItems(alphabet: List<String>, maxVisibleItem
 
             letterCount == alphabet.size -> alphabet.indices.toList()
 
-            // Evenly spread the letters, always keeping the first and the last letter
+            // Evenly spread, keeping first and last
             else ->
                 (0 until letterCount).map { slot ->
                     (slot.toDouble() * (alphabet.size - 1) / (letterCount - 1)).roundToInt()
@@ -398,7 +409,7 @@ private fun buildFastScrollerDisplayItems(alphabet: List<String>, maxVisibleItem
     val letters = letterIndices.map { FastScrollerDisplayItem.Letter(alphabet[it]) }
     if (letterCount == alphabet.size) return letters
 
-    // Compressed state: fill the gap between consecutive letters with a bullet dot
+    // Alternate letters with dots
     return buildList {
         letters.forEachIndexed { index, item ->
             add(item)
@@ -423,7 +434,7 @@ fun FastScrollerPreview() {
 @Preview
 @Preview(uiMode = PREVIEW_DARK_MODE, name = "FastScrollerShort_Dark")
 fun FastScrollerShortPreview() {
-    // Full alphabet on a short bar: letters compress to evenly spread letters with dots in between
+    // Full alphabet on a short bar: letters compress with dots in between
     FastScroller(
         alphabet = ('A'..'Z').map { it.toString() },
         onLetterSelected = {},

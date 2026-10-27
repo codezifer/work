@@ -85,7 +85,7 @@ class MusicFileScanner(
                 .flatMapMerge(concurrency = AppConfig.Scanning.PARALLELISM) { chunk ->
                     flow {
                         val fresh = chunk.filter { it.uri.toString() !in currentFilePaths }
-                        if (fresh.isNotEmpty()) emit(fresh.map { extractSongMetadata(it) })
+                        if (fresh.isNotEmpty()) emit(fresh.map(::extractSongMetadata))
                     }.flowOn(Dispatchers.IO)
                 }
                 .collect { songs ->
