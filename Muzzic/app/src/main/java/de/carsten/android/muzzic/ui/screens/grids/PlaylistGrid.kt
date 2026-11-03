@@ -26,17 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.R
-import de.carsten.android.muzzic.ui.COLLAGE_COVER_MAX_COUNT
-import de.carsten.android.muzzic.ui.COLLAGE_TILE_PX
-import de.carsten.android.muzzic.ui.COVER_KEY_PALETTE
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
-import de.carsten.android.muzzic.ui.PALETTE_SIZE_PX
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
-import de.carsten.android.muzzic.ui.component.LazyGridPrefetchEffect
-import de.carsten.android.muzzic.ui.model.CoverSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.screens.cards.PlaylistCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -118,30 +111,6 @@ fun PlaylistGrid(
 @Composable
 private fun InternalPlaylistGrid(playlists: List<PlaylistDto>, onPlaylistClick: (PlaylistDto) -> Unit, onPlaylistPlayClick: (PlaylistDto) -> Unit) {
     val gridState = rememberLazyGridState()
-
-    LazyGridPrefetchEffect(
-        gridState = gridState,
-        items = playlists,
-    ) { playlist ->
-        buildList {
-            playlist.collageCovers.take(COLLAGE_COVER_MAX_COUNT).forEach { cover ->
-                if (cover is CoverSource.FromPath) {
-                    add(CoverPreloadSpec(data = cover.path, cacheKey = cover.path, sizePx = COLLAGE_TILE_PX))
-                }
-            }
-            playlist.lastAlbumArt?.let { art ->
-                add(
-                    CoverPreloadSpec(
-                        data = art,
-                        cacheKey = art,
-                        sizePx = PALETTE_SIZE_PX,
-                        allowHardware = false,
-                        keySuffix = COVER_KEY_PALETTE,
-                    ),
-                )
-            }
-        }
-    }
 
     LazyVerticalGrid(
         state = gridState,

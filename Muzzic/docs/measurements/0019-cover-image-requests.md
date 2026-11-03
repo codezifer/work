@@ -78,3 +78,10 @@ Decodes pro Content-Key:
 Diese Zahlen sind die Vergleichsbasis für ein mögliches Folge-Issue zum In-Flight-Deduplicator
 (Änderung 3 aus 0019). Ein solches Ticket sollte auf dieses Dokument und auf Issue 0019 verweisen
 und dieselbe Messung erneut durchführen.
+
+## Hinweis (2026-11-03)
+
+Issue 0020 hat `ImagePrefetcher` vollständig entfernt und den globalen Crossfade abgeschaltet.
+Die Aussagen zu Prefetch-Fenstern in diesem Dokument beschreiben daher den Stand vom 25.10.2026;
+die Messmethode bleibt gültig. Die A/B-Messung dazu (Sprung-Latenz, stetiges Scrollen) steht in
+`0020-cover-latency-fastscroller.md`.

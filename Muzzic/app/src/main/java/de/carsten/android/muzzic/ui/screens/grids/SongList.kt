@@ -11,12 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.UNKNOWN
-import de.carsten.android.muzzic.ui.BLUR_BG_PX
-import de.carsten.android.muzzic.ui.COVER_KEY_BLUR
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.component.CoverPreloadSpec
 import de.carsten.android.muzzic.ui.component.FastScrollBox
-import de.carsten.android.muzzic.ui.component.LazyListPrefetchEffect
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -35,17 +31,6 @@ fun SongList(
     colorSource: ColorSource = composableColorSource(),
 ) {
     val listState = rememberLazyListState()
-
-    LazyListPrefetchEffect(
-        listState = listState,
-        items = songs,
-    ) { song ->
-        buildList {
-            song.albumArt?.takeIf { it.isNotBlank() }?.let { art ->
-                add(CoverPreloadSpec(data = art, cacheKey = art, sizePx = BLUR_BG_PX, keySuffix = COVER_KEY_BLUR))
-            }
-        }
-    }
 
     FastScrollBox(
         items = songs,

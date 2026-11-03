@@ -6,9 +6,7 @@ import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.request.crossfade
 import coil3.util.DebugLogger
-import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.BuildConfig
 import de.carsten.android.muzzic.IMAGE_CACHE
 import java.util.concurrent.TimeUnit
@@ -27,7 +25,7 @@ private fun getImageLoader(context: Context): ImageLoader {
     return ImageLoader
         .Builder(context)
         .logger(if (BuildConfig.DEBUG) DebugLogger() else null)
-        .crossfade(AppConfig.Ui.DEFAULT_CROSSFADE)
+        // No crossfade: Coil's 200 ms fade only delays cold covers (issues.md 0020).
         .components {
             add(AlbumArtFetcher.Mapper())
             add(AlbumArtFetcher.Factory(context))

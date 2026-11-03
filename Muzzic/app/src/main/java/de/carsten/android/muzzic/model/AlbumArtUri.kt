@@ -47,8 +47,7 @@ data class AlbumArtUri(val filePath: String, val offset: Long = 0L, val size: Lo
      *
      * Embedded artwork is stored once per audio file, so every track of an album carries a
      * byte-identical copy of the same cover. [filePath] and [offset] are therefore excluded:
-     * keying by content lets all those copies share one decoded bitmap, one palette and one
-     * prefetch entry.
+     * keying by content lets all those copies share one decoded bitmap and one palette.
      *
      * [hashCode] is only 32 bits wide, so [size] (the image's byte length) and [mimeType] are
      * part of the key as well. That keeps the collision probability negligible without a

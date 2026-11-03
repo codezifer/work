@@ -214,39 +214,9 @@ val SUBTITLE_SPACING = 2.dp
 val SUBTITLE_ICON_TEXT_SPACING = 1.dp
 
 /**
- * Fixed thumbnail edge length for collage tiles, used by the prefetcher.
- *
- * The tiles themselves are sized by the layout (one third of the card width), so this value must
- * be at least that large: Coil's [coil3.size.Precision.INEXACT] only accepts a cached bitmap that
- * is not smaller than the requested one.
- */
-const val COLLAGE_TILE_PX = 256
-
-/**
- * Maximum number of covers shown in a 3x3 collage and prefetched per item.
+ * Maximum number of covers shown in a 3x3 collage.
  */
 const val COLLAGE_COVER_MAX_COUNT = 9
-
-/**
- * Number of items ahead of the visible area to prefetch cover images for.
- */
-const val PREFETCH_AHEAD_COUNT = 8
-
-/**
- * Number of items behind the first visible item to include in the prefetch range,
- * covering fast reverse scrolling without re-fetching.
- */
-const val PREFETCH_LOOKBEHIND_COUNT = 2
-
-/**
- * Fixed edge length for card covers, used by the prefetcher.
- *
- * Card covers are sized by the layout, so this value must cover the largest expected card width
- * (a 1440 px wide screen at ~3.5x density yields roughly 670 px). Slightly overshooting is
- * intentional: [coil3.size.Precision.INEXACT] accepts a cached bitmap that is larger than the
- * request, but never a smaller one.
- */
-const val CARD_COVER_PX = 512
 
 /**
  * Fixed edge length for blurred backgrounds; blur hides detail so a small size is sufficient.
