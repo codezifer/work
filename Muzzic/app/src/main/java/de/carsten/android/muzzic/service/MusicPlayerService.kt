@@ -7,6 +7,7 @@ import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.repo.AlbumRepository
 import de.carsten.android.muzzic.persistence.repo.ArtistRepository
@@ -51,6 +52,7 @@ class MusicPlayerService :
 
     override fun onCreate() {
         super.onCreate()
+        StartupTrace.mark("service.create")
 
         setupPlayerListeners()
         analytics.startMonitoring(serviceScope, playbackManager.exoPlayer)

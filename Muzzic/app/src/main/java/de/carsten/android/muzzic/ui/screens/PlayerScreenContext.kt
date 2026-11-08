@@ -35,6 +35,7 @@ import androidx.media3.common.Player
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.UI_EMPTY
+import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.ui.FONT_SIZE_CAPTION
 import de.carsten.android.muzzic.ui.FONT_SIZE_LARGE_TITLE
 import de.carsten.android.muzzic.ui.FONT_SIZE_SUBTITLE
@@ -127,6 +128,7 @@ fun PlayerScreenContext(
                         AlbumArtInput.FromPath(targetPath)
                     },
                     modifier = Modifier.size(albumArtSize),
+                    onCoverDrawn = { StartupTrace.markOnce("cover.firstFrame") },
                 )
             }
         }

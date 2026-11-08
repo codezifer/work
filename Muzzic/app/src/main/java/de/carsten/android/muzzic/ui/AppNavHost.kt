@@ -43,6 +43,7 @@ import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
 import de.carsten.android.muzzic.ui.screens.SettingsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
+import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 
@@ -56,6 +57,7 @@ fun AppNavHost(
     libraryViewModel: LibraryViewModel,
     selectionViewModel: SelectionViewModel,
     playingQueueViewModel: PlayingQueueViewModel,
+    playerViewModel: PlayerViewModel,
 ) {
     val navController = remember { appState.navController }
 
@@ -132,6 +134,7 @@ fun AppNavHost(
                 modifier = modifier,
                 appState = appState,
                 colorSource = colorSource,
+                playerViewModel = playerViewModel,
             )
         }
 

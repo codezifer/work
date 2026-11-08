@@ -38,6 +38,26 @@ interface PlayingQueueDao {
     suspend fun findEnqueued(): List<PlayingQueueSongAggregation>
 
     /**
+     * Returns the entry the restored queue starts with (lowest queue position).
+     *
+     * @return the first enqueued queue entry, or null when the queue is empty.
+     */
+    @Query(
+        """
+        SELECT
+            s.*,
+            pq.enqueued AS enqueued,
+            pq.queuePosition AS queuePosition
+        FROM playing_queue pq
+        INNER JOIN songs s ON s.id = pq.songId
+        WHERE pq.enqueued = 1
+        ORDER BY pq.queuePosition ASC
+        LIMIT 1
+        """,
+    )
+    suspend fun findFirstEnqueued(): PlayingQueueSongAggregation?
+
+    /**
      * Observes every enqueued queue entry ordered by queue position, enriched with
      * the matching song's metadata (same shape as [findEnqueued]).
      *

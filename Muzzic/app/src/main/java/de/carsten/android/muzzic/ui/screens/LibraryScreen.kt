@@ -87,58 +87,56 @@ fun LibraryScreen(
 
     var selectedFilter by remember { mutableStateOf(ARTIST) }
 
-    AppTheme {
-        LibraryScreenContent(
-            modifier = modifier,
-            filters = filters,
-            selectedFilter = selectedFilter,
-            onFilterChange = { selectedFilter = it },
-            artists = uiState.artists,
-            albums = uiState.albums,
-            songs = uiState.songs,
-            genres = uiState.genres,
-            playlists = uiState.playlists,
-            colorSource = colorSource,
-            onArtistClick = { artist ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleArtistSelection(artist)
-                } else {
-                    onArtistClick(artist)
-                }
-            },
-            onArtistPlayClick = { libraryViewModel.playArtist(it) },
-            onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
-            onAlbumClick = { artist, album ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleAlbumSelection(artist, album)
-                } else {
-                    onAlbumClick(artist, album)
-                }
-            },
-            onAlbumPlayClick = { artist, album -> libraryViewModel.playAlbum(artist, album) },
-            onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
-            onSongClick = { song ->
-                if (selectionState.isActive) {
-                    selectionViewModel.toggleSongSelection(song.id)
-                } else {
-                    libraryViewModel.playSong(song)
-                }
-            },
-            onSongLongClick = {
-                selectionViewModel.toggleSongSelection(it.id)
-            },
-            onGenreClick = onGenreClick,
-            onGenrePlayClick = { genre ->
-                libraryViewModel.playGenre(genre.genreName)
-            },
-            onPlaylistClick = onPlaylistClick,
-            onPlaylistPlayClick = onPlaylistPlayClick,
-            onSettingsClick = onSettingsClick,
-            selectedArtists = selectionState.selectedArtists,
-            selectedAlbums = selectionState.selectedAlbums,
-            selectedSongs = selectionState.selectedSongs,
-        )
-    }
+    LibraryScreenContent(
+        modifier = modifier,
+        filters = filters,
+        selectedFilter = selectedFilter,
+        onFilterChange = { selectedFilter = it },
+        artists = uiState.artists,
+        albums = uiState.albums,
+        songs = uiState.songs,
+        genres = uiState.genres,
+        playlists = uiState.playlists,
+        colorSource = colorSource,
+        onArtistClick = { artist ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleArtistSelection(artist)
+            } else {
+                onArtistClick(artist)
+            }
+        },
+        onArtistPlayClick = { libraryViewModel.playArtist(it) },
+        onArtistLongClick = { selectionViewModel.toggleArtistSelection(it) },
+        onAlbumClick = { artist, album ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleAlbumSelection(artist, album)
+            } else {
+                onAlbumClick(artist, album)
+            }
+        },
+        onAlbumPlayClick = { artist, album -> libraryViewModel.playAlbum(artist, album) },
+        onAlbumLongClick = { artist, album -> selectionViewModel.toggleAlbumSelection(artist, album) },
+        onSongClick = { song ->
+            if (selectionState.isActive) {
+                selectionViewModel.toggleSongSelection(song.id)
+            } else {
+                libraryViewModel.playSong(song)
+            }
+        },
+        onSongLongClick = {
+            selectionViewModel.toggleSongSelection(it.id)
+        },
+        onGenreClick = onGenreClick,
+        onGenrePlayClick = { genre ->
+            libraryViewModel.playGenre(genre.genreName)
+        },
+        onPlaylistClick = onPlaylistClick,
+        onPlaylistPlayClick = onPlaylistPlayClick,
+        onSettingsClick = onSettingsClick,
+        selectedArtists = selectionState.selectedArtists,
+        selectedAlbums = selectionState.selectedAlbums,
+        selectedSongs = selectionState.selectedSongs,
+    )
 }
 
 @Composable

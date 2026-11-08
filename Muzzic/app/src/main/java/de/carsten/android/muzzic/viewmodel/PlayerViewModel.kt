@@ -9,9 +9,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaBrowser
 import de.carsten.android.muzzic.AppConfig
+import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.logging.logger
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.persistence.repo.observeVisualizerOptions
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.model.SongDto
@@ -32,6 +34,7 @@ open class PlayerViewModel(
     private val mediaLibraryManager: MediaLibraryManager,
     private val visualizerSink: VisualizerSink,
     private val appSettingsRepository: AppSettingsRepository,
+    private val playingQueueRepository: PlayingQueueRepository,
     application: Application,
 ) : AndroidViewModel(application),
     UiStateViewModel<PlayerUiState> {
@@ -57,6 +60,7 @@ open class PlayerViewModel(
                     duration = browser.value?.duration?.takeIf { it > 0 } ?: 0L,
                 )
             }
+            if (mediaItem != null) StartupTrace.markOnce("song.available")
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -75,10 +79,25 @@ open class PlayerViewModel(
     }
 
     init {
+        StartupTrace.mark("playerVm.init")
+        preloadCurrentSong()
         scanLibrary()
         startProgressUpdater()
         setupBrowserObservation()
         setupSettingsObservation()
+    }
+
+    /**
+     * Publishes the restored queue's first song before the [MediaBrowser] connects, so the
+     * player UI can request its cover without waiting for the service.
+     */
+    private fun preloadCurrentSong() {
+        viewModelScope.launch {
+            val song = playingQueueRepository.getFirstEnqueuedSong() ?: return@launch
+            if (_uiState.value.currentSong != null) return@launch
+            _uiState.update { it.copy(currentSong = it.currentSong ?: song) }
+            StartupTrace.markOnce("song.prefetched")
+        }
     }
 
     open fun setupBrowserObservation() {
@@ -96,6 +115,8 @@ open class PlayerViewModel(
                             repeatMode = b.repeatMode,
                         )
                     }
+                    StartupTrace.markOnce("browser.connected")
+                    if (b.currentMediaItem != null) StartupTrace.markOnce("song.available")
                     logger.debug("MediaBrowser connected")
                 }
             }

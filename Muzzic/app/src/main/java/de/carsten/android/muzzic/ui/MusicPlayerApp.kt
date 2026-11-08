@@ -168,6 +168,7 @@ fun MusicPlayerApp(
                 libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,
                 playingQueueViewModel = playingQueueViewModel,
+                playerViewModel = playerViewModel,
             )
 
             BottomNavigationBar(

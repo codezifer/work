@@ -179,6 +179,7 @@ open class PlayingQueueViewModel(
         val sorted = uiState.value.queue.sortedWith(
             compareBy<SongDto> { it.artist }
                 .thenBy { it.albumYear }
+                .thenBy { it.album }
                 .thenBy { it.trackNumber },
         )
         updateQueue(sorted)

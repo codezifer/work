@@ -9,7 +9,7 @@ cmakeVersion = "3.22.1"
 ndk = "30.0.16248370"
 # Dependencies Versions
 activityCompose = "1.13.0"
-agp = "9.5.0"
+agp = "9.5.1"
 assertj = "3.27.7"
 coil3 = "3.6.3"
 composeBom = "2026.09.00"

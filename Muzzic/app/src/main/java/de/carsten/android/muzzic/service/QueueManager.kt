@@ -15,6 +15,9 @@ class QueueManager(private val playingQueueRepository: PlayingQueueRepository) {
 
     /**
      * Loads the persisted queue from the database and sets it on the player.
+     *
+     * @param scope service scope of [MusicPlayerService]
+     * @param player current [ExoPlayer] instance
      */
     fun loadPersistedQueue(scope: CoroutineScope, player: ExoPlayer) {
         scope.launch {
@@ -29,6 +32,9 @@ class QueueManager(private val playingQueueRepository: PlayingQueueRepository) {
 
     /**
      * Observes the database for queue changes and synchronizes the player.
+     *
+     * @param scope service scope of [MusicPlayerService]
+     * @param player current [ExoPlayer] instance
      */
     fun observeQueueChanges(scope: CoroutineScope, player: ExoPlayer) {
         scope.launch {
@@ -56,12 +62,11 @@ class QueueManager(private val playingQueueRepository: PlayingQueueRepository) {
         val currentPosition = player.currentPosition
         val wasPlaying = player.isPlaying
 
-        val newIndex =
-            if (currentMediaItem != null) {
-                queue.indexOfFirst { it.mediaId == currentMediaItem.mediaId }
-            } else {
-                -1
-            }
+        val newIndex = if (currentMediaItem != null) {
+            queue.indexOfFirst { it.mediaId == currentMediaItem.mediaId }
+        } else {
+            -1
+        }
 
         if (newIndex != -1) {
             player.setMediaItems(queue, newIndex, currentPosition)

@@ -6,6 +6,7 @@ import androidx.media3.session.MediaBrowser
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
 import de.carsten.android.muzzic.service.MediaLibraryManager
 import de.carsten.android.muzzic.ui.state.PlayerUiState
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
@@ -36,6 +37,7 @@ class PlayerViewModelTest {
     private val mediaLibraryManager: MediaLibraryManager = mockk()
     private val visualizerSink: VisualizerSink = mockk(relaxed = true)
     private val appSettingsRepository: AppSettingsRepository = mockk()
+    private val playingQueueRepository: PlayingQueueRepository = mockk(relaxed = true)
     private val application: Application = mockk()
     private val browser: MediaBrowser = mockk(relaxed = true)
 
@@ -57,8 +59,16 @@ class PlayerViewModelTest {
         mediaLibraryManager: MediaLibraryManager,
         visualizerSink: VisualizerSink,
         appSettingsRepository: AppSettingsRepository,
+        playingQueueRepository: PlayingQueueRepository,
         application: Application,
-    ) : PlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application) {
+    ) : PlayerViewModel(
+        repository,
+        mediaLibraryManager,
+        visualizerSink,
+        appSettingsRepository,
+        playingQueueRepository,
+        application,
+    ) {
         override fun scanLibrary() {}
         override fun startProgressUpdater() {}
         var shouldObserveBrowser = false
@@ -75,13 +85,21 @@ class PlayerViewModelTest {
         every { visualizerSink.spectrumBus } returns mockk(relaxed = true)
         every { visualizerSink.spectrumProcessor } returns mockk(relaxed = true)
         every { repository.getAllSongs() } returns flowOf(emptyList())
+        coEvery { playingQueueRepository.getFirstEnqueuedSong() } returns null
         every { appSettingsRepository.observeVisualizerEngine() } returns engineFlow
         every { appSettingsRepository.observeProjectMPreset() } returns presetFlow
         every { appSettingsRepository.observeBarsShimmerEnabled() } returns shimmerFlow
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
         every { appSettingsRepository.observeHueRotationSpeed() } returns hueRotationSpeedFlow
         every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
-        viewModel = TestPlayerViewModel(repository, mediaLibraryManager, visualizerSink, appSettingsRepository, application)
+        viewModel = TestPlayerViewModel(
+            repository,
+            mediaLibraryManager,
+            visualizerSink,
+            appSettingsRepository,
+            playingQueueRepository,
+            application,
+        )
     }
 
     @After

@@ -8,6 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,15 +41,27 @@ import de.carsten.android.muzzic.ui.theme.AppTheme
  *
  * @param albumArtInput the cover source; [AlbumArtInput.None] shows the default artwork.
  * @param modifier the modifier applied to the album art container.
+ * @param onCoverDrawn invoked after the cover bitmap was drawn for the first time; used by
+ *   the startup measurement.
  */
 @Composable
-fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier: Modifier = Modifier) {
-    AlbumArtContent(albumArtInput, modifier)
+fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier: Modifier = Modifier, onCoverDrawn: (() -> Unit)? = null) {
+    AlbumArtContent(albumArtInput, modifier, onCoverDrawn)
 }
 
 @Composable
-private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = Modifier) {
+private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = Modifier, onCoverDrawn: (() -> Unit)? = null) {
     val data: Any? = albumArtInput.toImageSource()
+    var coverLoaded by remember { mutableStateOf(false) }
+
+    if (onCoverDrawn != null) {
+        LaunchedEffect(coverLoaded) {
+            if (coverLoaded) {
+                withFrameNanos { }
+                onCoverDrawn()
+            }
+        }
+    }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -68,6 +86,7 @@ private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = M
                 contentDescription = stringResource(R.string.album_art),
                 placeholder = painterResource(R.drawable.disc),
                 error = painterResource(R.drawable.disc),
+                onSuccess = { if (onCoverDrawn != null) coverLoaded = true },
                 contentScale = ContentScale.Crop,
                 modifier =
                 Modifier

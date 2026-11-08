@@ -2,6 +2,9 @@ package de.carsten.android.muzzic
 
 const val ALBUMART_SCHEME = "albumart://"
 
+/** Edge length for notification artwork; notifications never show more detail. */
+const val NOTIFICATION_ARTWORK_PX = 512
+
 /** Prefix for cache keys that identify album art by its image content instead of its file. */
 const val ALBUMART_CONTENT_KEY = "albumart-content:"
 const val DOT = "•"

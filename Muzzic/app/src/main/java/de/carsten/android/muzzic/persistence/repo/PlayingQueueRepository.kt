@@ -25,6 +25,13 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     suspend fun getPlayingQueue(): List<MediaItem> = playingQueueDao.findEnqueued().map { queueItem -> queueItem.toMediaItem() }
 
     /**
+     * Loads the song the restored queue will start with, without waiting for the player.
+     *
+     * @return the first enqueued song, or null when the queue is empty.
+     */
+    suspend fun getFirstEnqueuedSong(): SongDto? = playingQueueDao.findFirstEnqueued()?.toSongDto()
+
+    /**
      * Loads the complete queue, enqueued entries first.
      *
      * @return playable [MediaItem]s for the whole queue.

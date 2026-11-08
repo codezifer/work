@@ -14,6 +14,7 @@ import coil3.SingletonImageLoader
 import coil3.asDrawable
 import coil3.request.ErrorResult
 import coil3.request.SuccessResult
+import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.logging.rememberLogger
 import de.carsten.android.muzzic.ui.component.coverBaseKey
 import de.carsten.android.muzzic.ui.component.rememberPaletteImageRequest
@@ -66,6 +67,7 @@ fun rememberPaletteState(source: Any?): State<Palette?> {
 
                     paletteCache.put(key, newPalette)
                     paletteState.value = newPalette
+                    StartupTrace.markOnce("palette.ready")
                 }
 
                 is ErrorResult -> {
