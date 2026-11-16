@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -54,6 +52,8 @@ import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.cards.PlayingQueueItem
+import de.carsten.android.muzzic.ui.screens.menus.MenuItem
+import de.carsten.android.muzzic.ui.screens.menus.SortingMenu
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
@@ -122,7 +122,6 @@ private fun PlayingQueueContent(
     onSortByMetadata: () -> Unit = {},
     onShuffle: () -> Unit = {},
 ) {
-    var showSortMenu by remember { mutableStateOf(false) }
     val reorderableState = rememberReorderableState()
 
     val currentSongIndex = remember(songs, currentSong) {
@@ -159,35 +158,19 @@ private fun PlayingQueueContent(
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
-            Box {
-                IconButton(onClick = { showSortMenu = true }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Sort,
-                        contentDescription = stringResource(R.string.sort),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.sort_metadata)) },
-                        onClick = {
-                            onSortByMetadata()
-                            showSortMenu = false
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.shuffle)) },
-                        onClick = {
-                            onShuffle()
-                            showSortMenu = false
-                        },
-                    )
-                }
-            }
+            SortingMenu(
+                icon = Icons.AutoMirrored.Filled.Sort,
+                iconDescriptionRes = R.string.sort,
+                menuItems =
+                listOf(
+                    MenuItem(R.string.sort_metadata, Icons.AutoMirrored.Filled.Sort) {
+                        onSortByMetadata()
+                    },
+                    MenuItem(R.string.shuffle, Icons.Filled.Shuffle) {
+                        onShuffle()
+                    },
+                ),
+            )
         }
 
         if (songs.isEmpty()) {
