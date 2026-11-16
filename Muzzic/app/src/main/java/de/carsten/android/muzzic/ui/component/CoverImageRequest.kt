@@ -76,7 +76,8 @@ fun rememberPaletteImageRequest(data: Any): ImageRequest {
 /**
  * Remembers a Coil [ImageRequest] for blurred background covers.
  *
- * A blurred layer carries no fine detail, so a small decode is sufficient. The separate
+ * A blurred layer carries no fine detail, so a small decode is sufficient. Software
+ * bitmap, because the hardware allocator disables ImageDecoder's sampling (0025). The separate
  * memory key keeps it from replacing the full-size display bitmap.
  *
  * @param data the image data (cover path string, [Uri] or [AlbumArtUri]).
@@ -93,6 +94,7 @@ fun rememberBlurImageRequest(data: Any): ImageRequest {
             .memoryCacheKey(key?.plus(COVER_KEY_BLUR))
             .diskCacheKey(key)
             .size(BLUR_BG_PX)
+            .allowHardware(false)
             .precision(Precision.INEXACT)
             .build()
     }

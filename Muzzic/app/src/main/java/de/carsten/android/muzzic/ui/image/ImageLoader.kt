@@ -9,9 +9,9 @@ import coil3.util.DebugLogger
 import de.carsten.android.muzzic.BuildConfig
 import de.carsten.android.muzzic.IMAGE_CACHE
 import de.carsten.android.muzzic.ui.AlbumArtFetcher
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
-import java.util.concurrent.TimeUnit
 
 fun ImageLoader(context: Context): ImageLoader {
     val okHttpClient =

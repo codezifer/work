@@ -8,15 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -32,6 +28,7 @@ import de.carsten.android.muzzic.ui.component.DefaultAlbumArt
 import de.carsten.android.muzzic.ui.component.rememberCoverImageRequest
 import de.carsten.android.muzzic.ui.model.AlbumArtInput
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Renders the album art for the given [albumArtInput].
@@ -52,16 +49,9 @@ fun AlbumArtControl(albumArtInput: AlbumArtInput = AlbumArtInput.None, modifier:
 @Composable
 private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = Modifier, onCoverDrawn: (() -> Unit)? = null) {
     val data: Any? = albumArtInput.toImageSource()
-    var coverLoaded by remember { mutableStateOf(false) }
-
-    if (onCoverDrawn != null) {
-        LaunchedEffect(coverLoaded) {
-            if (coverLoaded) {
-                withFrameNanos { }
-                onCoverDrawn()
-            }
-        }
-    }
+    // Plain flags instead of Compose state: the measurement hook must not cost a recomposition.
+    val bitmapLoaded = remember(albumArtInput) { AtomicBoolean(false) }
+    val drawn = remember(albumArtInput) { AtomicBoolean(false) }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -86,12 +76,18 @@ private fun AlbumArtContent(albumArtInput: AlbumArtInput, modifier: Modifier = M
                 contentDescription = stringResource(R.string.album_art),
                 placeholder = painterResource(R.drawable.disc),
                 error = painterResource(R.drawable.disc),
-                onSuccess = { if (onCoverDrawn != null) coverLoaded = true },
+                onSuccess = { bitmapLoaded.set(true) },
                 contentScale = ContentScale.Crop,
                 modifier =
                 Modifier
                     .fillMaxSize()
-                    .testTag(SUCCESS_ASYNC_IMAGE),
+                    .drawWithContent {
+                        drawContent()
+                        // Mark the frame that actually shows the cover, not its placeholder.
+                        if (bitmapLoaded.get() && drawn.compareAndSet(false, true)) {
+                            onCoverDrawn?.invoke()
+                        }
+                    }.testTag(SUCCESS_ASYNC_IMAGE),
             )
         }
     }

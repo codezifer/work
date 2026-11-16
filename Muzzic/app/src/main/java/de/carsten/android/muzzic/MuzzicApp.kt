@@ -17,7 +17,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
-class MuzzicPlayerApplication :
+class MuzzicApp :
     Application(),
     SingletonImageLoader.Factory {
     override fun newImageLoader(context: Context): ImageLoader = get()
@@ -27,7 +27,7 @@ class MuzzicPlayerApplication :
 
         startKoin {
             androidLogger()
-            androidContext(this@MuzzicPlayerApplication)
+            androidContext(this@MuzzicApp)
             modules(
                 databaseModule,
                 repoModule,

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 @UnstableApi
-class MediaLibraryManager(private val context: Context) {
+class MediaLibraryManager(context: Context) {
     private val _browser = MutableStateFlow<MediaBrowser?>(null)
     val browser: StateFlow<MediaBrowser?> = _browser.asStateFlow()
 
@@ -23,9 +23,12 @@ class MediaLibraryManager(private val context: Context) {
                 ComponentName(context, MusicPlayerService::class.java),
             )
         val browserFuture = MediaBrowser.Builder(context, sessionToken).buildAsync()
-        browserFuture.addListener({
-            _browser.value = browserFuture.get()
-        }, MoreExecutors.directExecutor())
+        browserFuture.addListener(
+            {
+                _browser.value = browserFuture.get()
+            },
+            MoreExecutors.directExecutor(),
+        )
     }
 
     fun playContent(mediaItem: MediaItem) {

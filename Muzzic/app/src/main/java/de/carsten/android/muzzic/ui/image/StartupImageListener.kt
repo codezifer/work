@@ -3,11 +3,15 @@ package de.carsten.android.muzzic.ui.image
 import coil3.EventListener
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
+import coil3.fetch.FetchResult
+import coil3.fetch.Fetcher
+import coil3.fetch.SourceFetchResult
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.Options
 import coil3.request.SuccessResult
 import coil3.size.Size
+import coil3.size.SizeResolver
 import de.carsten.android.muzzic.ALBUMART_SCHEME
 import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.ui.COVER_KEY_BLUR
@@ -38,11 +42,46 @@ class StartupImageListener(request: ImageRequest) : EventListener() {
         if (isCover) StartupTrace.mark("cover.$variant.start")
     }
 
+    override fun resolveSizeStart(request: ImageRequest, sizeResolver: SizeResolver) {
+        if (isCover) StartupTrace.mark("cover.$variant.sizeStart")
+    }
+
     override fun resolveSizeEnd(request: ImageRequest, size: Size) {
         if (isCover) {
             resolvedSize = "${size.width}x${size.height}"
             StartupTrace.mark("cover.$variant.size=$resolvedSize")
         }
+    }
+
+    override fun mapStart(request: ImageRequest, input: Any) {
+        if (isCover) StartupTrace.mark("cover.$variant.mapStart")
+    }
+
+    override fun mapEnd(request: ImageRequest, output: Any) {
+        if (isCover) StartupTrace.mark("cover.$variant.mapEnd")
+    }
+
+    override fun keyStart(request: ImageRequest, input: Any) {
+        if (isCover) StartupTrace.mark("cover.$variant.keyStart")
+    }
+
+    override fun keyEnd(request: ImageRequest, output: String?) {
+        if (isCover) StartupTrace.mark("cover.$variant.keyEnd")
+    }
+
+    override fun fetchStart(request: ImageRequest, fetcher: Fetcher, options: Options) {
+        if (isCover) StartupTrace.mark("cover.$variant.fetchStart")
+    }
+
+    override fun fetchEnd(request: ImageRequest, fetcher: Fetcher, options: Options, result: FetchResult?) {
+        if (isCover) {
+            val source = (result as? SourceFetchResult)?.dataSource?.name ?: "-"
+            StartupTrace.mark("cover.$variant.fetchEnd source=$source")
+        }
+    }
+
+    override fun decodeStart(request: ImageRequest, decoder: Decoder, options: Options) {
+        if (isCover) StartupTrace.mark("cover.$variant.decodeStart")
     }
 
     override fun decodeEnd(request: ImageRequest, decoder: Decoder, options: Options, result: DecodeResult?) {

@@ -11,6 +11,7 @@ import coil3.request.CachePolicy
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import coil3.request.allowHardware
 import coil3.size.Precision
 import coil3.toBitmap
 import com.google.common.util.concurrent.ListenableFuture
@@ -53,6 +54,9 @@ class CoilBitmapLoader(private val context: Context, private val imageLoader: Im
                 .data(data)
                 .size(NOTIFICATION_ARTWORK_PX)
                 .precision(Precision.INEXACT)
+                // The icon is parceled to the system; a hardware bitmap forces a synchronous
+                // GPU readback on the main thread, and the hardware allocator blocks sampling.
+                .allowHardware(false)
                 // Read an already decoded player cover, but never replace it with the smaller icon.
                 .memoryCachePolicy(CachePolicy.READ_ONLY)
                 .apply {

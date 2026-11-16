@@ -19,6 +19,6 @@ val serviceModule =
         factoryOf(::QueueManager)
         factoryOf(::PlaybackAnalytics)
         singleOf(::AutomaticPlaylistManager)
-        single { MediaLibraryManager(get()) }
+        singleOf(::MediaLibraryManager)
         singleOf(::CoilBitmapLoader) bind BitmapLoader::class
     }
