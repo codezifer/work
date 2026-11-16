@@ -107,8 +107,6 @@ private fun PlayerScreenContent(
     onToggleRepeat: () -> Unit,
     onRatingChanged: (Float) -> Unit = {},
 ) {
-    val appName = stringResource(R.string.app_name)
-
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -140,7 +138,7 @@ private fun PlayerScreenContent(
                         modifier = Modifier.size(ICON_SIZE_MEDIUM),
                     )
                     Text(
-                        text = appName,
+                        text = stringResource(R.string.app_name),
                         color = colorSource.accentColor,
                         fontSize = FONT_SIZE_TITLE,
                         fontWeight = FontWeight.Bold,

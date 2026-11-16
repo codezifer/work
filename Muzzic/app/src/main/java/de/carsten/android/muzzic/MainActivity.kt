@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import de.carsten.android.muzzic.logging.StartupTrace
 import de.carsten.android.muzzic.logging.logger
-import de.carsten.android.muzzic.ui.MusicPlayerApp
+import de.carsten.android.muzzic.ui.MusicPlayerAppUI
 import de.carsten.android.muzzic.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
-                MusicPlayerApp()
+                MusicPlayerAppUI()
             }
         }
         logFirstFrame()

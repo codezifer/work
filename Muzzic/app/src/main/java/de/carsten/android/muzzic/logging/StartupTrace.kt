@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.logging
 
 import android.os.Process
 import android.os.SystemClock
+import android.os.Trace
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -22,8 +23,13 @@ object StartupTrace {
 
     /**
      * Logs [name] with the milliseconds elapsed since process start.
+     *
+     * Also emits a short atrace slice (`ST:<name>`), so the marker can be aligned with
+     * the other threads and system events in a Perfetto trace.
      */
     fun mark(name: String) {
+        Trace.beginSection("ST:$name")
+        Trace.endSection()
         logger.info("$name @ +${elapsedMs()}ms")
     }
 

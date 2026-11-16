@@ -62,7 +62,7 @@ import org.koin.androidx.compose.koinViewModel
  * Orchestrates the overall layout, navigation, and state-dependent components like toolbars.
  */
 @Composable
-fun MusicPlayerApp(
+fun MusicPlayerAppUI(
     libraryViewModel: LibraryViewModel = koinViewModel(),
     selectionViewModel: SelectionViewModel = koinViewModel(),
     playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
@@ -177,8 +177,7 @@ fun MusicPlayerApp(
                     .padding(APP_FLOATING_MARGIN),
                 navController = appState.navController,
                 colorSource = colorSource,
-                clickHandlers =
-                mapOf(
+                clickHandlers = mapOf(
                     BottomNavItem.Player.route to {
                         appState.onNavigationEvent(NavigationEvent.ToPlayer, selectionState)
                     },

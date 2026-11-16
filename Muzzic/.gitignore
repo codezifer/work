@@ -1,6 +1,7 @@
 *.iml
 *.jar
 .gradle
+.kotlin
 /local.properties
 /.idea
 /.artifacts
