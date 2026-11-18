@@ -1,7 +1,9 @@
-package de.carsten.android.muzzic.ui.screens.controls
+package de.carsten.android.muzzic.ui.component.fastscroll
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_NORMAL
@@ -80,6 +84,9 @@ private val fastScrollerThumbShape =
         tailOverlap = FAST_SCROLL_THUMB_TAIL_OVERLAP,
     )
 
+/** Pill shape of the letter bar. */
+private val fastScrollerBarShape = RoundedCornerShape(50)
+
 /**
  * Vertical alphabet bar for quick list navigation (artists, albums, songs).
  *
@@ -87,30 +94,35 @@ private val fastScrollerThumbShape =
  *
  * @param alphabet Letters to display (e.g. A-Z).
  * @param onLetterSelected Invoked when a letter is selected.
- * @param isScrolling Whether the associated list is currently scrolling.
+ * @param isScrolling Reads whether the associated list is currently scrolling.
  * @param modifier Modifier for the outer Box layout.
- * @param activeLetter Letter currently visible in the list (controlled by the parent).
+ * @param activeLetter Reads the letter currently visible in the list.
  * @param colorSource Colors from the selected album art.
  */
 @Composable
 fun FastScroller(
     alphabet: List<String>,
     onLetterSelected: (String) -> Unit,
-    isScrolling: Boolean,
+    isScrolling: () -> Boolean,
     modifier: Modifier = Modifier,
-    activeLetter: String? = null,
+    activeLetter: () -> String? = { null },
     colorSource: ColorSource = composableColorSource(),
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Letter under the finger while dragging
     var draggingLetter by remember { mutableStateOf<String?>(null) }
+
+    // Pointer y for the bubble; read only in the placement phase
+    var fingerY by remember { mutableFloatStateOf(Float.NaN) }
+    var tapBubble by remember { mutableStateOf<Pair<String, Float>?>(null) }
 
     var isVisible by remember { mutableStateOf(false) }
 
-    // Show while scrolling/dragging, hide after a delay
-    LaunchedEffect(isScrolling, draggingLetter) {
-        if (isScrolling || draggingLetter != null) {
+    // Keyed on the boolean so dragging through letters does not restart the hide delay
+    val active = isScrolling() || draggingLetter != null
+
+    LaunchedEffect(active) {
+        if (active) {
             isVisible = true
         } else {
             delay(FAST_SCROLL_HIDE_DELAY_MS.milliseconds)
@@ -118,59 +130,57 @@ fun FastScroller(
         }
     }
 
-    // Bar height in pixels, used for index mapping
+    LaunchedEffect(tapBubble) {
+        if (tapBubble != null) {
+            delay(FAST_SCROLL_HIDE_DELAY_MS.milliseconds)
+            tapBubble = null
+        }
+    }
+
     var columnHeight by remember { mutableIntStateOf(0) }
 
     val density = LocalDensity.current
 
-    // Dragged letter wins over the active letter reported by the list
-    val effectiveLetter = draggingLetter ?: activeLetter
+    // Single source of the bar geometry shared by hit-test, font size and handle
+    val topPaddingPx = with(density) { SPACING_MEDIUM.toPx() }
+    val usableHeightPx = (columnHeight - 2 * topPaddingPx).coerceAtLeast(1f)
 
-    // Rendered slots for the current height; pointer mapping stays proportional to the full alphabet
+    // Dragged letter wins over the active letter reported by the list
+    val effectiveLetter = draggingLetter ?: activeLetter()
+
     val displayItems =
         remember(alphabet, columnHeight) {
-            when {
-                alphabet.isEmpty() -> emptyList()
-
-                columnHeight > 0 -> {
-                    val usableHeightDp =
-                        with(density) { (columnHeight - 2 * SPACING_MEDIUM.toPx()).toDp() }
-                    buildFastScrollerDisplayItems(
-                        alphabet = alphabet,
-                        // At most one slot per minimum item height
-                        maxVisibleItems = (usableHeightDp / FAST_SCROLL_ITEM_MIN_HEIGHT).toInt(),
-                    )
-                }
-
+            if (columnHeight > 0) {
+                buildFastScrollerDisplayItems(alphabet, (with(density) { usableHeightPx.toDp() } / FAST_SCROLL_ITEM_MIN_HEIGHT).toInt())
+            } else {
                 // Before the first measurement: one slot per letter
-                else -> alphabet.map { FastScrollerDisplayItem.Letter(it) }
+                alphabet.map { FastScrollerDisplayItem.Letter(it) }
             }
         }
 
-    // Shrink the font to fit a slot; capped at the caption size
+    // Shrink the font to fit a slot, capped at the caption size
     val letterFontSize =
         if (columnHeight > 0 && displayItems.isNotEmpty()) {
-            with(density) {
-                val slotHeight = (columnHeight - 2 * SPACING_MEDIUM.toPx()) / displayItems.size
-                val fittingFontSize = slotHeight.toDp().toSp()
-                if (fittingFontSize.value < FONT_SIZE_CAPTION.value) fittingFontSize else FONT_SIZE_CAPTION
-            }
+            with(density) { minOf((usableHeightPx / displayItems.size).toDp(), FONT_SIZE_CAPTION.toDp()).toSp() }
         } else {
             FONT_SIZE_CAPTION
         }
 
-    val letterIndex =
-        remember(effectiveLetter, alphabet) {
-            alphabet.indexOf(effectiveLetter).coerceAtLeast(-1)
-        }
+    // Handle position follows the full alphabet, not the compressed slots
+    val letterIndex = alphabet.indexOf(effectiveLetter)
 
-    // Maps a pointer y-position to its alphabet index (proportional to the full alphabet)
-    fun letterIndexAt(pointerY: Float): Int {
-        if (columnHeight <= 0 || alphabet.isEmpty()) return -1
-        val topPaddingPx = with(density) { SPACING_MEDIUM.toPx() }
-        val usableHeightPx = (columnHeight - 2 * topPaddingPx).coerceAtLeast(1f)
-        val fraction = ((pointerY - topPaddingPx) / usableHeightPx).coerceIn(0f, 1f)
-        return (fraction * (alphabet.size - 1)).roundToInt()
+    fun letterAt(pointerY: Float): String? {
+        if (columnHeight <= 0 || displayItems.isEmpty()) return null
+        val index = (((pointerY - topPaddingPx) / usableHeightPx) * displayItems.size).toInt().coerceIn(0, displayItems.lastIndex)
+        (displayItems[index] as? FastScrollerDisplayItem.Letter)?.let { return it.value }
+        // Dots never sit at the ends, so one neighbour is always a letter
+        val before = displayItems.getOrNull(index - 1) as? FastScrollerDisplayItem.Letter
+        return (before ?: displayItems.getOrNull(index + 1) as? FastScrollerDisplayItem.Letter)?.value
+    }
+
+    fun endDrag() {
+        draggingLetter = null
+        fingerY = Float.NaN
     }
 
     AnimatedVisibility(
@@ -183,66 +193,57 @@ fun FastScroller(
             modifier =
             Modifier
                 .width(ICON_SIZE_LARGE)
-                // Measure the bar height for index mapping
                 .onGloballyPositioned { columnHeight = it.size.height }
-                // Tap on a letter
-                .pointerInput(alphabet) {
+                // Keyed on the geometry so the hit-test cannot go stale
+                .pointerInput(alphabet, columnHeight) {
                     detectTapGestures { offset ->
-                        letterIndexAt(offset.y)
-                            .takeIf { it >= 0 }
-                            ?.let { onLetterSelected(alphabet[it]) }
+                        val letter = letterAt(offset.y) ?: return@detectTapGestures
+                        tapBubble = letter to offset.y
+                        onLetterSelected(letter)
                     }
                 }
-                // Drag along the bar
-                .pointerInput(alphabet) {
+                .pointerInput(alphabet, columnHeight) {
                     detectDragGestures(
                         onDragStart = { offset ->
-                            letterIndexAt(offset.y)
-                                .takeIf { it >= 0 }
-                                ?.let { index ->
-                                    draggingLetter = alphabet[index]
-                                    onLetterSelected(alphabet[index])
-                                }
+                            tapBubble = null
+                            fingerY = offset.y
+                            letterAt(offset.y)?.let { letter ->
+                                draggingLetter = letter
+                                onLetterSelected(letter)
+                            }
                         },
-                        onDragEnd = { draggingLetter = null },
-                        onDragCancel = { draggingLetter = null },
+                        onDragEnd = ::endDrag,
+                        onDragCancel = ::endDrag,
                         onDrag = { change, _ ->
-                            letterIndexAt(change.position.y)
-                                .takeIf { it >= 0 }
-                                ?.let { index ->
-                                    val letter = alphabet[index]
-                                    if (draggingLetter != letter) {
-                                        draggingLetter = letter
-                                        onLetterSelected(letter)
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    }
-                                }
+                            fingerY = change.position.y
+                            val letter = letterAt(change.position.y) ?: return@detectDragGestures
+                            if (draggingLetter != letter) {
+                                draggingLetter = letter
+                                onLetterSelected(letter)
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            }
                         },
                     )
                 },
             contentAlignment = Alignment.TopCenter,
         ) {
-            // Vertical center of the current letter, shared by handle and preview bubble
             val centerOffsetDp =
                 if (letterIndex >= 0 && columnHeight > 0) {
                     with(density) {
-                        val topPaddingPx = SPACING_MEDIUM.toPx()
-                        val usableHeightPx = (columnHeight - 2 * topPaddingPx).coerceAtLeast(1f)
-                        val letterFraction =
-                            if (alphabet.size > 1) letterIndex.toFloat() / (alphabet.size - 1) else 0.5f
-                        (topPaddingPx + letterFraction * usableHeightPx).toDp()
+                        val fraction = if (alphabet.size > 1) letterIndex.toFloat() / (alphabet.size - 1) else 0.5f
+                        (topPaddingPx + fraction * usableHeightPx).toDp()
                     }
                 } else {
                     0.dp
                 }
 
-            // Animated so the handle and the bubble move in lockstep
+            // Snap while dragging so the handle does not lag behind the list
             val animatedCenter by animateDpAsState(
                 targetValue = centerOffsetDp,
+                animationSpec = if (draggingLetter != null) snap() else tween(),
                 label = "fastScrollerCenter",
             )
 
-            // Handle marking the current position
             if (letterIndex != -1 && alphabet.isNotEmpty() && columnHeight > 0) {
                 Box(
                     modifier =
@@ -256,7 +257,6 @@ fun FastScroller(
                 )
             }
 
-            // The vertical list of letters
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier =
@@ -264,20 +264,19 @@ fun FastScroller(
                     .fillMaxHeight()
                     .shadow(
                         elevation = if (draggingLetter != null) ELEVATION_MEDIUM else ELEVATION_FAST_SCROLL_IDLE,
-                        shape = RoundedCornerShape(50),
+                        shape = fastScrollerBarShape,
                     )
                     .background(
                         color = MaterialTheme.colorScheme.surface.copy(alpha = OPACITY_FAST_SCROLL_BACKGROUND),
-                        shape = RoundedCornerShape(50),
+                        shape = fastScrollerBarShape,
                     )
                     .border(
                         width = BORDER_WIDTH_NORMAL,
                         color = colorSource.accentColor.copy(alpha = OPACITY_FAST_SCROLL_BORDER),
-                        shape = RoundedCornerShape(50),
+                        shape = fastScrollerBarShape,
                     )
                     .padding(vertical = SPACING_MEDIUM),
             ) {
-                // Equal share per slot; the display model never overflows
                 displayItems.forEach { item ->
                     FastScrollerLetter(
                         letter =
@@ -293,21 +292,21 @@ fun FastScroller(
                 }
             }
 
-            // Preview bubble left of the bar; its tail points at the current letter
-            draggingLetter?.let { letter ->
-                val maxThumbOffset =
-                    (with(density) { columnHeight.toDp() } - ICON_SIZE_FAST_SCROLL_THUMB).coerceAtLeast(0.dp)
-                // Clamp so the bubble stays inside the bar at the first and last letter
-                val thumbOffset =
-                    (animatedCenter - ICON_SIZE_FAST_SCROLL_THUMB / 2).coerceIn(0.dp, maxThumbOffset)
-                // Tail tip sits just left of the bar edge
-                val thumbOffsetX = -(ICON_SIZE_FAST_SCROLL_THUMB + FAST_SCROLL_THUMB_TAIL_SIZE + SPACING_TINY)
-
+            // Bubble follows the finger while dragging, otherwise the last tap
+            (draggingLetter ?: tapBubble?.first)?.let { letter ->
                 Box(
                     modifier =
                     Modifier
                         .align(Alignment.TopStart)
-                        .offset(x = thumbOffsetX, y = thumbOffset)
+                        // Placement-phase offset: drag movement skips recomposition
+                        .offset {
+                            val bubbleY = if (draggingLetter != null) fingerY else tapBubble?.second ?: 0f
+                            val thumbSizePx = ICON_SIZE_FAST_SCROLL_THUMB.toPx()
+                            val maxY = (columnHeight - thumbSizePx).coerceAtLeast(0f)
+                            // Tail tip sits just left of the bar edge
+                            val x = -(ICON_SIZE_FAST_SCROLL_THUMB + FAST_SCROLL_THUMB_TAIL_SIZE + SPACING_TINY).toPx()
+                            IntOffset(x.roundToInt(), (bubbleY - thumbSizePx / 2).coerceIn(0f, maxY).roundToInt())
+                        }
                         // wrapContentSize: the 40dp bar must not shrink or center the wider bubble
                         .wrapContentSize(Alignment.TopStart, unbounded = true)
                         .width(ICON_SIZE_FAST_SCROLL_THUMB + FAST_SCROLL_THUMB_TAIL_SIZE)
@@ -378,10 +377,7 @@ private sealed interface FastScrollerDisplayItem {
 }
 
 /**
- * Builds the slots rendered for the available bar height.
- *
- * Compresses the alphabet with dots when [maxVisibleItems] can't fit one letter per slot; the first
- * and last letter are always kept.
+ * Builds the slots for [maxVisibleItems]; compresses with dots, keeping first and last letter.
  *
  * @param alphabet Full alphabet to display.
  * @param maxVisibleItems Slots that fit into the available height (>= 1).
@@ -425,8 +421,8 @@ fun FastScrollerPreview() {
     FastScroller(
         alphabet = listOf("A", "B", "C"),
         onLetterSelected = {},
-        isScrolling = true,
-        activeLetter = "C",
+        isScrolling = { true },
+        activeLetter = { "C" },
     )
 }
 
@@ -438,8 +434,8 @@ fun FastScrollerShortPreview() {
     FastScroller(
         alphabet = ('A'..'Z').map { it.toString() },
         onLetterSelected = {},
-        isScrolling = true,
-        activeLetter = "M",
+        isScrolling = { true },
+        activeLetter = { "M" },
         modifier = Modifier.height(300.dp),
     )
 }

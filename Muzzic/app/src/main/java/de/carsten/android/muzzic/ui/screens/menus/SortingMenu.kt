@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.DropdownMenu
@@ -108,7 +109,7 @@ private fun SortingMenuEntry(item: MenuItem, onClick: () -> Unit) {
 
 private val previewMenuItems =
     listOf(
-        MenuItem(R.string.sort_metadata, Icons.AutoMirrored.Filled.Sort) {},
+        MenuItem(R.string.sort_metadata, Icons.AutoMirrored.Filled.QueueMusic) {},
         MenuItem(R.string.shuffle, Icons.Filled.Shuffle) {},
     )
 

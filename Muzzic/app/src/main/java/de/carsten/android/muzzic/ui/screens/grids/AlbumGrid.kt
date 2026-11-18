@@ -10,10 +10,11 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.component.FastScrollBox
+import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -34,7 +35,7 @@ fun AlbumGrid(
 
     FastScrollBox(
         items = albums,
-        label = { it.albumName },
+        getLabel = { it.albumName.take(AppConfig.Ui.NUM_OF_LETTERS) },
         firstVisibleItemIndex = { gridState.firstVisibleItemIndex },
         isScrollInProgress = { gridState.isScrollInProgress },
         scrollToItem = { index -> gridState.scrollToItem(index) },
@@ -43,7 +44,7 @@ fun AlbumGrid(
     ) {
         LazyVerticalGrid(
             state = gridState,
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Fixed(AppConfig.Ui.NUM_OF_GRID_COLUMNS),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = GRID_HORIZONTAL_PADDING),

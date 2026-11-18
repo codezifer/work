@@ -764,6 +764,30 @@ val repoModule = module {
 
 ---
 
+## 👨‍🔧 Refactoring & Optimization: Don't Grow the Codebase
+
+Every additional code artifact (file, module, class, function, type, interface,
+config, test helper, dependency) adds complexity and maintenance cost.
+Refactorings and optimizations must therefore **not increase the number of
+artifacts**. Ideally they reduce it.
+
+- Prefer modifying, merging, or deleting existing artifacts over adding new ones.
+- Don't introduce new abstractions (interfaces, base classes, wrappers, helpers,
+  factories) unless they replace at least two existing artifacts, or the user
+  explicitly asks for them.
+- Don't split files, classes, or functions just for structure. Split only if the
+  result is demonstrably simpler overall.
+- Remove code made redundant by the change (dead code, unused imports, obsolete
+  helpers, outdated tests) in the same change.
+- Don't add new dependencies for something solvable with existing code or the
+  standard library.
+- If a new artifact is truly unavoidable, state in the summary why and which
+  existing artifact it replaces or simplifies.
+- Before finishing, check the net result: the number of artifacts and the total
+  amount of code must not be higher than before.
+
+---
+
 ## 🧪 Testing
 
 **Intent**: Verify application logic and UI behavior through automated test suites. **Optimization Purpose**: Catch regressions early and document expected behavior through
@@ -938,7 +962,9 @@ android {
 
 ## 🤖 Android CLI (`android`)
 
-**Intent**: Give agents and scripts one official, versioned entry point for device/emulator control, SDK management, project scaffolding, documentation lookup, and skills discovery. **Optimization Purpose**: Replace ad-hoc `adb`/`sdkmanager`/`avdmanager`/`emulator` calls with a stable interface and up-to-date Android knowledge, and keep CI/automation reproducible.
+**Intent**: Give agents and scripts one official, versioned entry point for device/emulator control, SDK management, project scaffolding, documentation lookup, and skills
+discovery. **Optimization Purpose**: Replace ad-hoc `adb`/`sdkmanager`/`avdmanager`/`emulator` calls with a stable interface and up-to-date Android knowledge, and keep
+CI/automation reproducible.
 
 - Prefer `android` over raw `adb`, `sdkmanager`, `avdmanager`, and `emulator` for project, device, and SDK automation. Drop to the raw tools only where `android` has no equivalent.
 - Run `android info` once per session to confirm the SDK path, CLI version, and connected devices.
@@ -946,7 +972,7 @@ android {
 - **Gradle stays the build entry point** (`./gradlew …`). Use `android` to locate build artifacts and deploy them, not to replace the build.
 
 | Command                                   | Use it for                                                                                       |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
+|-------------------------------------------|--------------------------------------------------------------------------------------------------|
 | `android info [<field>]`                  | SDK location, CLI version, connected devices                                                     |
 | `android describe --project_dir=.`        | Build targets and output artifact paths (APK/AAB) as JSON                                        |
 | `android install --apks=…`                | Fast (delta) APK install without activating components                                           |
@@ -987,11 +1013,15 @@ android docs search "Media3 MediaSessionService background playback"
 android docs fetch kb://android/agents/skills/devtools/android-cli/references/interact
 ```
 
-- **Interaction loop**: `android layout` (JSON UI dump) is the primary way to inspect the UI; `android layout --diff` narrows the output to what changed since the last call and keeps context
+- **Interaction loop**: `android layout` (JSON UI dump) is the primary way to inspect the UI; `android layout --diff` narrows the output to what changed since the last call and
+  keeps context
   small; fall back to `android screen capture --annotate` for WebViews/animations and **always visually examine the PNG** before acting.
-- **Device interaction reference is mandatory**: before the first `android layout`, `android screen`, or `android input` call in a task, load the official interaction reference with
-  `android docs fetch kb://android/agents/skills/devtools/android-cli/references/interact` and follow it exactly — it defines element properties, coordinate/selector semantics, scroll
-  behaviour, and text-input escaping. The same applies to journey tests (`…/references/journeys`). If the reference and the installed CLI disagree on a flag, the installed CLI (`--help`) wins,
+- **Device interaction reference is mandatory**: before the first `android layout`, `android screen`, or `android input` call in a task, load the official interaction reference
+  with
+  `android docs fetch kb://android/agents/skills/devtools/android-cli/references/interact` and follow it exactly — it defines element properties, coordinate/selector semantics,
+  scroll
+  behaviour, and text-input escaping. The same applies to journey tests (`…/references/journeys`). If the reference and the installed CLI disagree on a flag, the installed CLI
+  (`--help`) wins,
   since the knowledge base tracks a newer release.
 - **Docs before code**: for unfamiliar APIs, migrations, or version questions, search `android docs` (and `android studio version-lookup`) instead of relying on memory.
 - Never commit files the CLI (re)generates: `.gradle/init.gradle.kts` and `~/.androidrc` are local tooling state.
@@ -1005,7 +1035,7 @@ android docs fetch kb://android/agents/skills/devtools/android-cli/references/in
 alternatives.
 
 | Anti-Pattern                               | Correct Alternative                                                        |
-| ------------------------------------------ | -------------------------------------------------------------------------- |
+|--------------------------------------------|----------------------------------------------------------------------------|
 | `AsyncTask`                                | `viewModelScope.launch` + coroutines                                       |
 | `LiveData` in new code                     | `StateFlow` / `SharedFlow`                                                 |
 | `startActivity` in ViewModel               | Model destination/one-off message as part of `uiState`, consumed by the UI |

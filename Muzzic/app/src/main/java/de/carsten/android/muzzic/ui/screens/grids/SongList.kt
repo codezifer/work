@@ -10,9 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
-import de.carsten.android.muzzic.ui.component.FastScrollBox
+import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -34,7 +35,7 @@ fun SongList(
 
     FastScrollBox(
         items = songs,
-        label = { it.title },
+        getLabel = { it.title.take(AppConfig.Ui.NUM_OF_LETTERS) },
         firstVisibleItemIndex = { listState.firstVisibleItemIndex },
         isScrollInProgress = { listState.isScrollInProgress },
         scrollToItem = { index -> listState.scrollToItem(index) },

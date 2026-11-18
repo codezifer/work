@@ -1,6 +1,5 @@
 package de.carsten.android.muzzic.ui.screens.cards
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
@@ -17,8 +17,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +48,8 @@ import de.carsten.android.muzzic.ui.SPACING_SMALL
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
+import de.carsten.android.muzzic.ui.screens.menus.MenuItem
+import de.carsten.android.muzzic.ui.screens.menus.SortingMenu
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.ListItemLeadingShape
 import de.carsten.android.muzzic.ui.utils.formatDuration
@@ -154,31 +154,18 @@ fun PlaylistListItem(
             }
 
             // Menu Button
-            Box(modifier = Modifier.padding(end = SPACING_SMALL)) {
-                IconButton(
-                    onClick = { showMenu = true },
-                    modifier = Modifier.size(ICON_SIZE_CONTROL_SMALL),
-                ) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.options),
-                        tint = iconColor,
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.delete)) },
-                        onClick = {
-                            showMenu = false
-                            onDeleteClick()
-                        },
-                    )
-                }
-            }
+            SortingMenu(
+                icon = Icons.Default.MoreVert,
+                iconDescriptionRes = R.string.options,
+                menuItems = listOf(
+                    MenuItem(
+                        labelRes = R.string.delete,
+                        icon = Icons.Default.Delete,
+                        onClick = onDeleteClick,
+                    ),
+                ),
+                modifier = Modifier.padding(end = SPACING_SMALL),
+            )
         }
     }
 }

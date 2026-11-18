@@ -41,7 +41,7 @@ interface AlbumDao {
             MAX(s.createdAt) as addedAt
         FROM songs_enriched s
         GROUP BY s.album, s.artist
-        ORDER BY s.sort_artist ASC, s.albumYear ASC, s.album ASC
+        ORDER BY s.album COLLATE NOCASE ASC, s.sort_artist ASC
         """,
     )
     fun getAlbumAggregation(): Flow<List<AlbumAggregation>>

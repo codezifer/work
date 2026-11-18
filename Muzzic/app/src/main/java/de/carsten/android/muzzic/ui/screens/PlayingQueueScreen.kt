@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Shuffle
@@ -163,7 +164,7 @@ private fun PlayingQueueContent(
                 iconDescriptionRes = R.string.sort,
                 menuItems =
                 listOf(
-                    MenuItem(R.string.sort_metadata, Icons.AutoMirrored.Filled.Sort) {
+                    MenuItem(R.string.sort_metadata, Icons.AutoMirrored.Filled.QueueMusic) {
                         onSortByMetadata()
                     },
                     MenuItem(R.string.shuffle, Icons.Filled.Shuffle) {
