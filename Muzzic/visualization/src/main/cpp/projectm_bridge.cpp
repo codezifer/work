@@ -2,13 +2,15 @@
 
 #include <android/log.h>
 
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 
 #include <dirent.h>
 #include <sys/stat.h>
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <cmath>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -17,7 +19,9 @@
 // C symbols (projectm_*); the C++ class API has hidden visibility and must not
 // be used here, otherwise linking fails with undefined symbols.
 #ifdef HAVE_PROJECTM
+
 #include <projectM-4/projectM.h>
+
 #endif
 
 #define LOG_TAG "ProjectMBridge"
@@ -25,7 +29,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 // Suffix identifying Milkdrop preset files in the preset directory.
-static constexpr const char* PRESET_FILE_SUFFIX = ".milk";
+static constexpr const char *PRESET_FILE_SUFFIX = ".milk";
 
 // Locking model (fixed order: g_stateMutex -> g_pcmMutex, never the reverse):
 // - g_stateMutex guards the projectM instance, preset list, viewport size and
@@ -36,10 +40,30 @@ static constexpr const char* PRESET_FILE_SUFFIX = ".milk";
 //   both locks (state already held) and feeds the drained copy to projectM.
 // - g_instanceActive is atomic and read without any lock (see nativeIsActive).
 static std::mutex g_stateMutex;
+
+// Tint configuration for the final composite pass, fed by the app's color
+// source. Plain state without GL objects, so any thread may write it.
+static float g_tintRed = 1.0f;
+static float g_tintGreen = 1.0f;
+static float g_tintBlue = 1.0f;
+static float g_tintStrength = 0.0f;
+static float g_tintRotationSpeed = 0.0f; // Full hue turns per second, 0 = static.
+static float g_tintPhase = 0.0f;         // Accumulated hue rotation as a 0..1 fraction.
+
+static float clamp01(float value) {
+    return value < 0.0f ? 0.0f : (value > 1.0f ? 1.0f : value);
+}
+
 static std::mutex g_pcmMutex;
 static std::atomic<bool> g_instanceActive{false};
 static int g_viewportWidth = 800;
 static int g_viewportHeight = 600;
+
+static GLint g_compositeTintLocation = -1;
+static GLint g_compositeStrengthLocation = -1;
+static GLint g_compositePhaseLocation = -1;
+// Last rendered monotonic timestamp, used for frame-rate independent hue rotation.
+static double g_tintLastFrameSec = 0.0;
 
 #include <dlfcn.h>
 #include <EGL/egl.h>
@@ -51,16 +75,16 @@ static int g_viewportHeight = 600;
  * core OpenGL ES 2.0/3.0 functions. This loader tries eglGetProcAddress first and
  * falls back to dlsym on libGLESv3.so / libGLESv2.so for core functions.
  */
-static void* android_gl_load_proc(const char* name, void* /* user_data */) {
+static void *android_gl_load_proc(const char *name, void * /* user_data */) {
     if (name == nullptr) {
         return nullptr;
     }
-    void* proc = reinterpret_cast<void*>(eglGetProcAddress(name));
+    void *proc = reinterpret_cast<void *>(eglGetProcAddress(name));
     if (proc != nullptr) {
         return proc;
     }
     // Resolved once; the handle itself is only read afterwards.
-    static void* glesHandle = nullptr;
+    static void *glesHandle = nullptr;
     static std::once_flag glesHandleOnce;
     std::call_once(glesHandleOnce, [] {
         glesHandle = dlopen("libGLESv3.so", RTLD_NOW | RTLD_GLOBAL);
@@ -75,7 +99,8 @@ static void* android_gl_load_proc(const char* name, void* /* user_data */) {
 }
 
 #ifdef HAVE_PROJECTM
-static void projectm_log_func(const char* message, projectm_log_level /* log_level */, void* /* user_data */) {
+
+static void projectm_log_func(const char *message, projectm_log_level /* log_level */, void * /* user_data */) {
     if (message != nullptr) {
         LOGE("[projectM-Core] %s", message);
     }
@@ -105,6 +130,290 @@ static bool hasCurrentGlContext() {
     return glGetString(GL_VERSION) != nullptr;
 }
 
+// --- Composite pass -------------------------------------------------------
+// projectM renders into this FBO, then a fullscreen quad copies it tinted
+// into the window framebuffer. All resources are GL-thread only.
+static GLuint g_compositeFbo = 0;
+static GLuint g_compositeTexture = 0;
+static GLuint g_compositeProgram = 0;
+static GLuint g_compositeVao = 0;
+static GLuint g_compositeVbo = 0;
+static GLint g_compositeTextureLocation = -1;
+static int g_compositeWidth = 0;
+static int g_compositeHeight = 0;
+static bool g_compositeUnavailable = false;
+static bool g_compositeProgramUnavailable = false;
+
+static const char *kCompositeVertexShader = R"(#version 300 es
+layout(location = 0) in vec2 aPosition;
+out vec2 vUv;
+void main() {
+    vUv = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+)";
+
+static const char *kCompositeFragmentShader = R"(#version 300 es
+precision mediump float;
+in vec2 vUv;
+uniform sampler2D uTexture;
+uniform vec3 uTint;
+uniform float uStrength;
+uniform float uPhase;
+
+out vec4 fragColor;
+
+// Below this pixel saturation the tint fades out, so grays stay neutral.
+const float SATURATION_RAMP = 0.35;
+
+vec3 hueRgbToHsv(vec3 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hueHsvToRgb(vec3 c) {
+    vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+    return c.z * mix(vec3(1.0), rgb, c.y);
+}
+
+void main() {
+    vec4 scene = texture(uTexture, vUv);
+    if (uStrength <= 0.0) {
+        // Bit-exact pass-through keeps "no tint" identical to the previous frame.
+        fragColor = scene;
+        return;
+    }
+    vec3 hsv = hueRgbToHsv(scene.rgb);
+    float weight = uStrength * smoothstep(0.0, SATURATION_RAMP, hsv.y);
+    if (weight > 0.0) {
+        float targetHue = fract(hueRgbToHsv(uTint).x + uPhase);
+        // Shortest arc: moves the hue by at most half a turn, never around the long way.
+        float delta = fract(targetHue - hsv.x + 0.5) - 0.5;
+        hsv.x = fract(hsv.x + delta * weight);
+    }
+    fragColor = vec4(hueHsvToRgb(hsv), scene.a);
+}
+)";
+
+// Two triangles covering the viewport in NDC.
+static const float kCompositeQuadVertices[12] = {
+        -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
+};
+
+static GLuint compileCompositeShader(GLenum type, const char *source) {
+    const GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+    GLint compiled = GL_FALSE;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    if (compiled == GL_FALSE) {
+        char log[512] = {};
+        glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
+        LOGE("Composite shader compile failed: %s", log);
+        glDeleteShader(shader);
+        return 0;
+    }
+    return shader;
+}
+
+/** Compiles the pass-through program once. Requires a current GL context. */
+static bool ensureCompositeProgramLocked() {
+    if (g_compositeProgramUnavailable) {
+        return false;
+    }
+    if (g_compositeProgram != 0) {
+        return true;
+    }
+    const GLuint vertexShader = compileCompositeShader(GL_VERTEX_SHADER, kCompositeVertexShader);
+    const GLuint fragmentShader = compileCompositeShader(GL_FRAGMENT_SHADER, kCompositeFragmentShader);
+    if (vertexShader == 0 || fragmentShader == 0) {
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+        g_compositeProgramUnavailable = true;
+        return false;
+    }
+    const GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    GLint linked = GL_FALSE;
+    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    if (linked == GL_FALSE) {
+        char log[512] = {};
+        glGetProgramInfoLog(program, sizeof(log), nullptr, log);
+        LOGE("Composite program link failed: %s", log);
+        glDeleteProgram(program);
+        g_compositeProgramUnavailable = true;
+        return false;
+    }
+    g_compositeProgram = program;
+    g_compositeTextureLocation = glGetUniformLocation(program, "uTexture");
+    g_compositeTintLocation = glGetUniformLocation(program, "uTint");
+    g_compositeStrengthLocation = glGetUniformLocation(program, "uStrength");
+    g_compositePhaseLocation = glGetUniformLocation(program, "uPhase");
+    return true;
+}
+
+/** Creates the fullscreen quad buffers once. */
+static bool ensureCompositeGeometryLocked() {
+    if (g_compositeVao != 0) {
+        return true;
+    }
+    glGenVertexArrays(1, &g_compositeVao);
+    glGenBuffers(1, &g_compositeVbo);
+    glBindVertexArray(g_compositeVao);
+    glBindBuffer(GL_ARRAY_BUFFER, g_compositeVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(kCompositeQuadVertices), kCompositeQuadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    return true;
+}
+
+/** Releases the offscreen color target. GL thread only. */
+static void destroyCompositeTargetLocked() {
+    if (g_compositeFbo != 0) {
+        glDeleteFramebuffers(1, &g_compositeFbo);
+        g_compositeFbo = 0;
+    }
+    if (g_compositeTexture != 0) {
+        glDeleteTextures(1, &g_compositeTexture);
+        g_compositeTexture = 0;
+    }
+    g_compositeWidth = 0;
+    g_compositeHeight = 0;
+}
+
+/** Ensures an RGBA8 target matching the viewport exists. GL thread only. */
+static bool ensureCompositeTargetLocked(int width, int height) {
+    if (g_compositeUnavailable || width <= 0 || height <= 0) {
+        return false;
+    }
+    if (g_compositeFbo != 0 && g_compositeWidth == width && g_compositeHeight == height) {
+        return true;
+    }
+    destroyCompositeTargetLocked();
+
+    glGenTextures(1, &g_compositeTexture);
+    glBindTexture(GL_TEXTURE_2D, g_compositeTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenFramebuffers(1, &g_compositeFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, g_compositeFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_compositeTexture, 0);
+    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        LOGE("Composite framebuffer incomplete (0x%x), rendering without tint", status);
+        g_compositeUnavailable = true;
+        destroyCompositeTargetLocked();
+        return false;
+    }
+    g_compositeWidth = width;
+    g_compositeHeight = height;
+    return true;
+}
+
+static void releaseCompositeResourcesLocked() {
+    destroyCompositeTargetLocked();
+    if (g_compositeVbo != 0) {
+        glDeleteBuffers(1, &g_compositeVbo);
+        g_compositeVbo = 0;
+    }
+    if (g_compositeVao != 0) {
+        glDeleteVertexArrays(1, &g_compositeVao);
+        g_compositeVao = 0;
+    }
+    if (g_compositeProgram != 0) {
+        glDeleteProgram(g_compositeProgram);
+        g_compositeProgram = 0;
+    }
+    // A new surface may retry after a transient driver failure.
+    g_compositeUnavailable = false;
+    g_compositeProgramUnavailable = false;
+
+    g_compositeTextureLocation = -1;
+    g_compositeTintLocation = -1;
+    g_compositeStrengthLocation = -1;
+    g_compositePhaseLocation = -1;
+}
+
+/**
+ * Renders projectM into the offscreen target and composites it to the window.
+ *
+ * Must be called with g_stateMutex held and a current GL context.
+ *
+ * @return false when the offscreen path is unavailable; caller falls back.
+ */
+static bool renderCompositeFrameLocked() {
+    if (g_projectM == nullptr ||
+        !ensureCompositeProgramLocked() ||
+        !ensureCompositeGeometryLocked() ||
+        !ensureCompositeTargetLocked(g_viewportWidth, g_viewportHeight)) {
+        return false;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, g_compositeFbo);
+    glViewport(0, 0, g_viewportWidth, g_viewportHeight);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    projectm_opengl_render_frame_fbo(g_projectM, g_compositeFbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, g_viewportWidth, g_viewportHeight);
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_SCISSOR_TEST);
+
+    // Wall-clock delta instead of a per-frame constant: the GL thread runs
+    // continuously, so a fixed step would tie the hue speed to the frame rate.
+    if (g_tintRotationSpeed > 0.0f) {
+        const double nowSec = std::chrono::duration<double>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+        if (g_tintLastFrameSec > 0.0) {
+            g_tintPhase += static_cast<float>((nowSec - g_tintLastFrameSec) * g_tintRotationSpeed);
+            g_tintPhase -= std::floor(g_tintPhase);
+        }
+        g_tintLastFrameSec = nowSec;
+    } else {
+        g_tintPhase = 0.0f;
+        g_tintLastFrameSec = 0.0;
+    }
+
+    // Uniforms must be uploaded before the draw: the draw consumes the state
+    // bound at call time, not afterwards.
+    glUseProgram(g_compositeProgram);
+    glUniform3f(g_compositeTintLocation, g_tintRed, g_tintGreen, g_tintBlue);
+    glUniform1f(g_compositeStrengthLocation, g_tintStrength);
+    glUniform1f(g_compositePhaseLocation, g_tintPhase);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_compositeTexture);
+    glUniform1i(g_compositeTextureLocation, 0);
+    glBindVertexArray(g_compositeVao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+
+    return true;
+}
+
 // Pending PCM samples (interleaved LRLR floats) queued by the audio thread and
 // drained by the render thread. Bounded so a stalled renderer cannot grow memory
 // without limit; oldest samples are dropped on overflow.
@@ -121,13 +430,13 @@ static constexpr size_t kMaxPendingPcmSamples = 16384;
 static void scanPresetDirLocked() {
     g_presets.clear();
     g_presetIndex = 0;
-    DIR* dir = opendir(g_presetDir.c_str());
+    DIR *dir = opendir(g_presetDir.c_str());
     if (dir == nullptr) {
         LOGE("Cannot open preset directory: %s", g_presetDir.c_str());
         return;
     }
     const std::string suffix = PRESET_FILE_SUFFIX;
-    dirent* entry = nullptr;
+    dirent *entry = nullptr;
     while ((entry = readdir(dir)) != nullptr) {
         std::string name = entry->d_name;
         if (name.size() > suffix.size() &&
@@ -162,17 +471,18 @@ static void loadPresetLocked(size_t index, bool smooth) {
     g_hasPresetLoaded = true;
     LOGI("Loading preset: %s", path.c_str());
 }
+
 #endif
 
 extern "C" {
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeInit(
-        JNIEnv* env,
+        JNIEnv *env,
         jobject /* this */,
         jstring presetDirPath) {
     std::lock_guard<std::mutex> lock(g_stateMutex);
-    const char* pathStr = env->GetStringUTFChars(presetDirPath, nullptr);
+    const char *pathStr = env->GetStringUTFChars(presetDirPath, nullptr);
     // Copy the path before releasing the JNI string.
     const std::string presetDir = pathStr != nullptr ? pathStr : "";
     LOGI("nativeInit called with preset dir: %s", presetDir.c_str());
@@ -187,9 +497,9 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
             // creation without a current context fails; onSurfaceCreated retries.
             LOGE("nativeInit without current GL context, deferring instance creation");
         } else {
-            const char* glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-            const char* glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-            const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+            const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+            const char *glVendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
+            const char *glRenderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
             LOGI("GL Context Info - Version: %s, Vendor: %s, Renderer: %s",
                  glVersion ? glVersion : "NULL",
                  glVendor ? glVendor : "NULL",
@@ -211,7 +521,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
                         g_projectM,
                         static_cast<size_t>(g_viewportWidth),
                         static_cast<size_t>(g_viewportHeight));
-                const char* texturePaths[] = {g_presetDir.c_str()};
+                const char *texturePaths[] = {g_presetDir.c_str()};
                 projectm_set_texture_search_paths(g_projectM, texturePaths, 1);
                 if (!g_presets.empty()) {
                     // Load the first preset immediately without transition.
@@ -259,7 +569,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeResize(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */,
         jint width,
         jint height) {
@@ -278,7 +588,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeRender(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     std::lock_guard<std::mutex> stateLock(g_stateMutex);
 
@@ -306,7 +616,9 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
                         static_cast<projectm_channels>(channelCount));
             }
         }
-        projectm_opengl_render_frame(g_projectM);
+        if (!renderCompositeFrameLocked()) {
+            projectm_opengl_render_frame(g_projectM);
+        }
         return;
     }
 #endif
@@ -318,7 +630,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeAddPcm(
-        JNIEnv* env,
+        JNIEnv *env,
         jobject /* this */,
         jfloatArray pcmData,
         jint channels) {
@@ -331,7 +643,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
         return;
     }
 
-    jfloat* samples = env->GetFloatArrayElements(pcmData, nullptr);
+    jfloat *samples = env->GetFloatArrayElements(pcmData, nullptr);
     if (samples == nullptr) {
         return;
     }
@@ -359,7 +671,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeNextPreset(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     std::lock_guard<std::mutex> lock(g_stateMutex);
 #ifdef HAVE_PROJECTM
@@ -371,7 +683,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativePreviousPreset(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     std::lock_guard<std::mutex> lock(g_stateMutex);
 #ifdef HAVE_PROJECTM
@@ -383,7 +695,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeSelectPreset(
-        JNIEnv* env,
+        JNIEnv *env,
         jobject /* this */,
         jstring presetName) {
     if (presetName == nullptr) {
@@ -391,7 +703,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
     }
     std::lock_guard<std::mutex> lock(g_stateMutex);
 #ifdef HAVE_PROJECTM
-    const char* nameStr = env->GetStringUTFChars(presetName, nullptr);
+    const char *nameStr = env->GetStringUTFChars(presetName, nullptr);
     if (nameStr != nullptr && g_projectM != nullptr) {
         std::string name(nameStr);
         // Remember the request: if the file is missing (extraction pending),
@@ -400,25 +712,25 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
         if (!hasCurrentGlContext()) {
             LOGE("selectPreset without current GL context, deferring: %s", name.c_str());
         } else {
-        const std::string path = g_presetDir + "/" + name;
-        struct stat st;
-        if (stat(path.c_str(), &st) != 0) {
-            LOGE("Preset file not found, deferring until extraction completes: %s", path.c_str());
-        } else {
-            // First load is hard: a smooth transition out of the blank idle state
-            // crashes inside libprojectM (see loadPresetLocked).
-            const bool smooth = g_hasPresetLoaded;
-            projectm_load_preset_file(g_projectM, path.c_str(), smooth);
-            g_hasPresetLoaded = true;
-            g_pendingPreset.clear();
-            LOGI("Selecting preset by name: %s", path.c_str());
+            const std::string path = g_presetDir + "/" + name;
+            struct stat st;
+            if (stat(path.c_str(), &st) != 0) {
+                LOGE("Preset file not found, deferring until extraction completes: %s", path.c_str());
+            } else {
+                // First load is hard: a smooth transition out of the blank idle state
+                // crashes inside libprojectM (see loadPresetLocked).
+                const bool smooth = g_hasPresetLoaded;
+                projectm_load_preset_file(g_projectM, path.c_str(), smooth);
+                g_hasPresetLoaded = true;
+                g_pendingPreset.clear();
+                LOGI("Selecting preset by name: %s", path.c_str());
 
-            // Update g_presetIndex if name is in g_presets list
-            auto it = std::find(g_presets.begin(), g_presets.end(), name);
-            if (it != g_presets.end()) {
-                g_presetIndex = static_cast<size_t>(std::distance(g_presets.begin(), it));
+                // Update g_presetIndex if name is in g_presets list
+                auto it = std::find(g_presets.begin(), g_presets.end(), name);
+                if (it != g_presets.end()) {
+                    g_presetIndex = static_cast<size_t>(std::distance(g_presets.begin(), it));
+                }
             }
-        }
         }
     }
     if (nameStr != nullptr) {
@@ -429,7 +741,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT jboolean JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeIsActive(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     // Lock-free: the audio thread queries this per buffer and must never block
     // on a render frame. The flag is set on init and cleared on release.
@@ -442,7 +754,7 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 
 JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeClearPcm(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     // Short pcm lock only; never touches the instance, safe from any thread.
     std::lock_guard<std::mutex> pcmLock(g_pcmMutex);
@@ -450,8 +762,38 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
 }
 
 JNIEXPORT void JNICALL
+Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeSetTint(
+        JNIEnv * /* env */,
+        jobject /* this */,
+        jfloat red,
+        jfloat green,
+        jfloat blue,
+        jfloat strength) {
+    // GL-free: the render thread reads these on the next frame, so the caller
+    // (UI thread) never blocks on a render pass.
+    std::lock_guard<std::mutex> lock(g_stateMutex);
+    g_tintRed = clamp01(red);
+    g_tintGreen = clamp01(green);
+    g_tintBlue = clamp01(blue);
+    g_tintStrength = clamp01(strength);
+}
+
+JNIEXPORT void JNICALL
+Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeSetTintRotationSpeed(
+        JNIEnv * /* env */,
+        jobject /* this */,
+        jfloat turnsPerSecond) {
+    std::lock_guard<std::mutex> lock(g_stateMutex);
+    g_tintRotationSpeed = turnsPerSecond > 0.0f ? turnsPerSecond : 0.0f;
+    if (g_tintRotationSpeed == 0.0f) {
+        // Static tint must land on the palette hue instead of freezing mid-rotation.
+        g_tintPhase = 0.0f;
+    }
+}
+
+JNIEXPORT void JNICALL
 Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativeRelease(
-        JNIEnv* /* env */,
+        JNIEnv * /* env */,
         jobject /* this */) {
     std::lock_guard<std::mutex> stateLock(g_stateMutex);
 #ifdef HAVE_PROJECTM
@@ -468,6 +810,10 @@ Java_de_carsten_android_muzzic_visualization_projectm_ProjectMNativeBridge_nativ
     {
         std::lock_guard<std::mutex> pcmLock(g_pcmMutex);
         g_pendingPcm.clear();
+    }
+    // GL objects belong to the dying context; recreate on the next surface.
+    if (hasCurrentGlContext()) {
+        releaseCompositeResourcesLocked();
     }
 #endif
 }

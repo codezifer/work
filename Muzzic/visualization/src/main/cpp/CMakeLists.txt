@@ -29,21 +29,23 @@ if(PROJECTM_AVAILABLE)
 endif()
 
 find_library(log-lib log)
-find_library(gles2-lib GLESv2)
+# ES 3.0 entry points (VAOs, FBOs) live in the GLESv3 stub; the GLESv2 stub only
+# exports the OES-suffixed VAO variants.
+find_library(gles3-lib GLESv3)
 find_library(egl-lib EGL)
 
 if(PROJECTM_AVAILABLE)
     target_link_libraries(
         projectm_bridge
         projectM
-        ${gles2-lib}
+        ${gles3-lib}
         ${egl-lib}
         ${log-lib}
     )
 else()
     target_link_libraries(
         projectm_bridge
-        ${gles2-lib}
+        ${gles3-lib}
         ${egl-lib}
         ${log-lib}
     )

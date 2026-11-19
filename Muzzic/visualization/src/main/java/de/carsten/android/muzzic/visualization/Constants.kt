@@ -203,3 +203,6 @@ const val MAX_VIVID_LIGHTNESS = 0.65f
 
 /** Synthetic debug frame interval (~86 Hz, matching the analysis hop rate). */
 const val SYNTH_FRAME_INTERVAL_MICROS = 11600L
+
+/** Fixed tint strength of the ProjectM composite pass (no user setting). */
+const val PROJECTM_TINT_STRENGTH = 0.45f

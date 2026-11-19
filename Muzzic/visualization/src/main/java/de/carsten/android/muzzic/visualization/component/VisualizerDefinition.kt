@@ -26,11 +26,13 @@ sealed interface VisualizerDefinition {
     data class Spectrum(val config: VisualizerConfig, val theme: VisualizerTheme, val style: RenderStyle) : VisualizerDefinition
 
     /**
-     * External ProjectM rendering (no spectrum bus, no GLES shader pipeline).
+     * External ProjectM rendering on its own GL surface (no spectrum bus).
      *
      * @property presetName Name of the selected ProjectM preset, if any.
+     * @property baseColor Opaque tint target derived from the app color source.
+     * @property hueRotationSpeed Tint hue rotation in full turns per second (0 disables).
      */
-    data class ProjectM(val presetName: String? = null) : VisualizerDefinition
+    data class ProjectM(val presetName: String? = null, val baseColor: Color, val hueRotationSpeed: Float = 0f) : VisualizerDefinition
 }
 
 /**
@@ -42,11 +44,11 @@ object VisualizerFactory {
      *
      * @param engine Visualization rendering engine to use.
      * @param params Engine-specific parameters matching [engine].
-     * @param color Base accent color (album-art derived) for the BARS gradient and LED zones.
+     * @param baseColor Base accent color for the BARS gradient, the LED zones, and the ProjectM tint.
      * @return resolved [VisualizerDefinition].
      * @throws IllegalArgumentException when [params] do not match [engine].
      */
-    fun resolve(engine: VisualizerEngine, params: VisualizerParams, color: Color): VisualizerDefinition = when (engine) {
+    fun resolve(engine: VisualizerEngine, params: VisualizerParams, baseColor: Color): VisualizerDefinition = when (engine) {
         VisualizerEngine.BARS -> {
             require(params is VisualizerParams.BarsParams) { "BARS requires BarsParams" }
             VisualizerDefinition.Spectrum(
@@ -56,7 +58,7 @@ object VisualizerFactory {
                     tipGlowStrength = if (params.tipGlowEnabled) DEFAULT_TIP_GLOW_STRENGTH else 0f,
                     hueRotationSpeed = params.hueRotationSpeed,
                 ),
-                theme = VisualizerTheme.barsThemeFrom(color),
+                theme = VisualizerTheme.barsThemeFrom(baseColor),
                 style = RenderStyle.MIRRORED_BARS,
             )
         }
@@ -65,14 +67,18 @@ object VisualizerFactory {
             require(params is VisualizerParams.LedSpectrumParams) { "LED_SPECTRUM requires LedSpectrumParams" }
             VisualizerDefinition.Spectrum(
                 config = VisualizerConfig().copy(hueRotationSpeed = params.hueRotationSpeed),
-                theme = VisualizerTheme.ledThemeFrom(color),
+                theme = VisualizerTheme.ledThemeFrom(baseColor),
                 style = RenderStyle.LED,
             )
         }
 
         VisualizerEngine.PROJECT_M -> {
             require(params is VisualizerParams.ProjectMParams) { "PROJECT_M requires ProjectMParams" }
-            VisualizerDefinition.ProjectM(presetName = params.presetName)
+            VisualizerDefinition.ProjectM(
+                presetName = params.presetName,
+                baseColor = baseColor.copy(alpha = 1f),
+                hueRotationSpeed = params.hueRotationSpeed,
+            )
         }
     }
 }

@@ -27,6 +27,7 @@ sealed interface VisualizerParams {
      * Parameters for [VisualizerEngine.PROJECT_M].
      *
      * @property presetName Name of the selected ProjectM preset, if any.
+     * @property hueRotationSpeed Free hue rotation in full turns per second (0 disables).
      */
-    data class ProjectMParams(val presetName: String? = null) : VisualizerParams
+    data class ProjectMParams(val presetName: String? = null, val hueRotationSpeed: Float = 0f) : VisualizerParams
 }

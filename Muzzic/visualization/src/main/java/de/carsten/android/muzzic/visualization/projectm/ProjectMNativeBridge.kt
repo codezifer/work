@@ -137,6 +137,33 @@ object ProjectMNativeBridge {
     }
 
     /**
+     * Stores the tint color and strength applied by the native composite pass.
+     *
+     * GL-free on the native side: callable from any thread, effective on the next frame.
+     *
+     * @param red Tint red channel in 0..1.
+     * @param green Tint green channel in 0..1.
+     * @param blue Tint blue channel in 0..1.
+     * @param strength Blend weight towards the tint hue (0 = untouched, 1 = fully tinted).
+     */
+    fun setTint(red: Float, green: Float, blue: Float, strength: Float) {
+        if (isNativeLibraryLoaded) {
+            nativeSetTint(red, green, blue, strength)
+        }
+    }
+
+    /**
+     * Stores the tint hue rotation speed; `0` resets the phase to the base hue.
+     *
+     * @param turnsPerSecond Hue rotation in full turns per second.
+     */
+    fun setTintRotationSpeed(turnsPerSecond: Float) {
+        if (isNativeLibraryLoaded) {
+            nativeSetTintRotationSpeed(turnsPerSecond)
+        }
+    }
+
+    /**
      * Indicates whether the native projectM instance is active and ready to consume PCM audio.
      *
      * Lock-free on the native side (atomic flag), so the audio thread may query it per buffer.
@@ -154,4 +181,6 @@ object ProjectMNativeBridge {
     private external fun nativeIsActive(): Boolean
     private external fun nativeClearPcm()
     private external fun nativeRelease()
+    private external fun nativeSetTint(red: Float, green: Float, blue: Float, strength: Float)
+    private external fun nativeSetTintRotationSpeed(turnsPerSecond: Float)
 }

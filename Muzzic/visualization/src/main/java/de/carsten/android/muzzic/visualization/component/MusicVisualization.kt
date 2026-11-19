@@ -41,11 +41,11 @@ import kotlin.math.min
  * @param presetName Name of the selected ProjectM preset (if using [VisualizerEngine.PROJECT_M]).
  * @param spectrumBus Spectrum ring buffer instance for the GLES engines.
  * @param spectrumProcessor Audio processor instance for the GLES engines.
- * @param color The base accent color (album-art derived) for the BARS gradient and LED zones.
+ * @param baseColor Base accent color for the BARS gradient, the LED zones, and the ProjectM tint.
  * @param isPlaying Whether the visualization is currently active.
  * @param shimmerEnabled Whether lit BARS segments shimmer (no-op for other engines).
  * @param tipGlowEnabled Whether BARS tip segments get a white highlight (no-op for other engines).
- * @param hueRotationSpeed Free hue rotation in full turns per second for BARS and LED (0 disables, no-op for ProjectM).
+ * @param hueRotationSpeed Free hue rotation in full turns per second for BARS, LED, and ProjectM (0 disables).
  * Only effective with [VisualizerColorSource.ROTATING]; any other color source keeps static theme colors.
  */
 @Composable
@@ -55,7 +55,7 @@ fun MusicVisualization(
     presetName: String? = null,
     spectrumBus: SpectrumBus? = null,
     spectrumProcessor: SpectrumProcessor? = null,
-    color: Color = MaterialTheme.colorScheme.primary,
+    baseColor: Color = MaterialTheme.colorScheme.primary,
     isPlaying: Boolean = true,
     shimmerEnabled: Boolean = true,
     tipGlowEnabled: Boolean = true,
@@ -65,11 +65,12 @@ fun MusicVisualization(
         when (engine) {
             VisualizerEngine.BARS -> VisualizerParams.BarsParams(shimmerEnabled, tipGlowEnabled, hueRotationSpeed)
             VisualizerEngine.LED_SPECTRUM -> VisualizerParams.LedSpectrumParams(hueRotationSpeed)
-            VisualizerEngine.PROJECT_M -> VisualizerParams.ProjectMParams(presetName)
+            VisualizerEngine.PROJECT_M -> VisualizerParams.ProjectMParams(presetName, hueRotationSpeed)
         }
     }
-    val definition = remember(engine, params, color) {
-        VisualizerFactory.resolve(engine, params, color)
+
+    val definition = remember(engine, params, baseColor) {
+        VisualizerFactory.resolve(engine, params, baseColor)
     }
 
     when (definition) {
@@ -91,16 +92,22 @@ fun MusicVisualization(
 
         is VisualizerDefinition.ProjectM -> {
             val preset = definition.presetName
+            val tintColor = definition.baseColor
+            val rotationSpeed = definition.hueRotationSpeed
             AndroidView(
                 factory = { context ->
                     ProjectMGLSurfaceView(context).apply {
                         this.presetName = preset
                         this.isPlaying = isPlaying
+                        this.baseColor = tintColor
+                        this.hueRotationSpeed = rotationSpeed
                     }
                 },
                 update = { view ->
                     view.presetName = preset
                     view.isPlaying = isPlaying
+                    view.baseColor = tintColor
+                    view.hueRotationSpeed = rotationSpeed
                 },
                 modifier = modifier,
             )

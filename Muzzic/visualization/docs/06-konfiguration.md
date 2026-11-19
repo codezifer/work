@@ -22,22 +22,24 @@ flowchart TB
   und Theme aus der Akzentfarbe (`ledThemeFrom`: Low = Basis, Mid +20° Hue,
   High +40° Hue, **transparenter** Hintergrund) — die LED-Formen tragen
   ihr eigenes Alpha, das Host-Layout scheint durch.
-- `PROJECT_M` → `ProjectMParams(presetName)` → `ProjectM`-Definition; die
-  `GLSurfaceView` wird per `AndroidView` eingebettet, `update` reicht
-  Preset-Wechsel **und `isPlaying`** (pausiert den GL-Thread) nach.
+- `PROJECT_M` → `ProjectMParams(presetName, hueRotationSpeed)` → `ProjectM`-Definition
+  mit Preset, opaker Basisfarbe (Tint-Ziel, Alpha wird auf `1` normalisiert) und
+  Rotationsgeschwindigkeit; die `GLSurfaceView` wird per `AndroidView` eingebettet,
+  `factory`/`update` reichen Preset, `isPlaying`, Basisfarbe und Rotation nach.
 - Öffentliche Signatur (`engine`, `presetName`, `spectrumBus`,
-  `spectrumProcessor`, `color`, `isPlaying`, `shimmerEnabled`,
-  `tipGlowEnabled`, `hueRotationSpeed` — `0` = keine Farbrotation, No-op für ProjectM).
+  `spectrumProcessor`, `baseColor`, `isPlaying`, `shimmerEnabled`,
+  `tipGlowEnabled`, `hueRotationSpeed` — `0` = keine Farbrotation).
   Neue Engine = neuer `VisualizerEngine`-Eintrag + Params + Factory-Zweig
   (`VisualizerFactoryTest` sichert die Auflösung auf der JVM ab).
-- **Farbquelle:** Die Basisfarbe `color` stammt aus der App-Einstellung
+- **Farbquelle:** Die Basisfarbe `baseColor` stammt aus der App-Einstellung
   `VisualizerColorSource` (`ALBUM_ART` = Album-Art-Akzent, `ROTATING` =
   Album-Art-Akzent als Rotationsbasis für die freie Farbrotation, sonst
   Fix-Hue über den Farbkreis). Persistenz via `AppSettingsRepository`
-  (`GenericSetting`), Auswahl im Settings-Dropdown (nur bei BARS/LED),
+  (`GenericSetting`), Auswahl im Settings-Dropdown (alle Engines),
   Auflösung in `PlayerControls` (`baseColor(accent)` → `MusicVisualization`).
   Die `hueRotationSpeed` greift nur bei `ROTATING` (sonst `0`, statische Farben);
-  der Slider ist nur dann eingeblendet.
+  der Slider ist nur dann eingeblendet. ProjectM nutzt dieselbe Basisfarbe als
+  Tint-Ziel.
 - `MusicVisualizationPreview` zeigt beide Modi (hell/dunkel) als statischen Mock
   (`StaticBarsPreview`: feste Pegel, gleiche Geometrie/Zonenfarben, ohne Bus,
   Glättung oder Animation) — Previews haben keinen GL-Kontext.

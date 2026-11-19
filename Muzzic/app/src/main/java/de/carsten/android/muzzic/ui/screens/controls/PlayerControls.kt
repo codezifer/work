@@ -106,7 +106,7 @@ fun PlayerControls(
             spectrumBus = spectrumBus,
             spectrumProcessor = spectrumProcessor,
             isPlaying = isPlaying,
-            color = visualizerBaseColor.copy(alpha = 0.4f),
+            baseColor = visualizerBaseColor.copy(alpha = 0.4f),
             shimmerEnabled = barsShimmerEnabled,
             tipGlowEnabled = barsTipGlowEnabled,
             // Hue rotation only runs for the ROTATING color source; any other

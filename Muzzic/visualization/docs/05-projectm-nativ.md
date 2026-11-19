@@ -41,6 +41,10 @@ Application-Context (kein Activity-Leak):
   einzufrieren. Bei Pause wird nur gestapeltes PCM verworfen (`clearPcm`),
   damit der Auslauf sauber startet; Resume braucht nichts (nichts wurde
   angehalten). Preis: Fullscreen-Rendering bei Pause kostet weiter GPU.
+- `baseColor`/`hueRotationSpeed`-Properties: Tint-Ziel und Rotation aus der
+  App-Farbquelle. Die Setter rufen die Bridge **direkt** (kein `queueEvent`),
+  weil die nativen Setter GL-frei nur Zustand schreiben; `onSurfaceCreated`
+  wendet beide nach `recreate` erneut an.
 - Preset-Extraktion startet schon im `init` auf einem Hintergrund-Thread
   (`PresetManager.ensurePresetsExtractedAsync`); nach Abschluss wird
   `init(pfad)` per `queueEvent` wiederholt (re-scannt nur das Verzeichnis).
@@ -67,7 +71,8 @@ Application-Context (kein Activity-Leak):
   (`UnsatisfiedLinkError`), werden **alle** Aufrufe zu sicheren No-Ops —
   die GL-Fläche zeigt dann nur die Stub-Hintergrundfarbe, die App läuft weiter.
 - Öffentliche Methoden (`init`, `resize`, `render`, `addPcm`, `nextPreset`,
-  `previousPreset`, `selectPreset`, `release`, `isActive`) prüfen
+  `previousPreset`, `selectPreset`, `release`, `setTint`,
+  `setTintRotationSpeed`, `isActive`) prüfen
   `isNativeLibraryLoaded` und delegieren an `private external fun`
   (`native*`).
 - `addPcm(pcmData: FloatArray, channels)`: interleavtes Float-PCM (−1..1,
@@ -107,8 +112,18 @@ Zustand und Lock-Modell (feste Reihenfolge `g_stateMutex` → `g_pcmMutex`, nie 
   Textur-Suchpfad setzen → **erstes Preset ohne Übergang** laden
   (Folgewechsel immer mit Übergang = `smooth`).
 - `nativeResize`: `glViewport` + `projectm_set_window_size`.
-- `nativeRender`: `projectm_opengl_render_frame`; ohne Instanz nur
-  dunkelblaues Clear (Stub-Modus, z. B. wenn per CMake ohne Prebuilt gebaut).
+- `nativeRender`: rendert in ein offscreen FBO (`projectm_opengl_render_frame_fbo`)
+  und komponiert das Ergebnis per Fullscreen-Quad getönt ins Fenster-FBO; bei
+  FBO-/Shader-Fehler fällt es auf `projectm_opengl_render_frame` zurück. Ohne
+  Instanz nur dunkelblaues Clear (Stub-Modus, z. B. wenn per CMake ohne Prebuilt
+  gebaut).
+- **Tint-Pass:** `nativeSetTint`/`nativeSetTintRotationSpeed` schreiben nur Zustand
+  (`g_tint*` unter `g_stateMutex`, GL-frei, von jedem Thread aufrufbar). Der
+  Fragment-Shader zieht die Pixel-Hue auf kürzestem Bogen Richtung Basisfarbe,
+  gewichtet mit `uStrength × smoothstep(Sättigung)` — Graustufen bleiben neutral,
+  `uStrength = 0` ist bit-exakter Pass-through. Die Phase kommt aus
+  `steady_clock` (frame-rate-unabhängig) und wird bei `speed = 0` auf die
+  Basisfarbe zurückgesetzt.
 - `nativeAddPcm`: Float-Array aus JNI holen und unter dem kurzen `pcm`-Lock in
   die Pending-Queue einreihen (per `JNI_ABORT` freigeben, kein Rückkopieren
   nötig). Der Render-Thread übergibt die drainierte Kopie an

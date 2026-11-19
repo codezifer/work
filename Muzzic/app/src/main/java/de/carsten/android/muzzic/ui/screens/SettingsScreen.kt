@@ -335,47 +335,43 @@ private fun VisualizerSetting(
             )
         }
 
-        if (currentEngine == VisualizerEngine.BARS || currentEngine == VisualizerEngine.LED_SPECTRUM) {
-            Spacer(modifier = Modifier.height(SPACING_TINY))
-            Text(
-                text = stringResource(R.string.visualizer_color_source),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+        Spacer(modifier = Modifier.height(SPACING_TINY))
+        Text(
+            text = stringResource(R.string.visualizer_color_source),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
 
-            var colorExpanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
+        var colorExpanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = colorExpanded,
+            onExpandedChange = { colorExpanded = !colorExpanded },
+        ) {
+            OutlinedTextField(
+                value = colorSourceLabel(currentColorSource),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                textStyle = MaterialTheme.typography.bodyMedium,
+            )
+            ExposedDropdownMenu(
                 expanded = colorExpanded,
-                onExpandedChange = { colorExpanded = !colorExpanded },
+                onDismissRequest = { colorExpanded = false },
             ) {
-                OutlinedTextField(
-                    value = colorSourceLabel(currentColorSource),
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                )
-                ExposedDropdownMenu(
-                    expanded = colorExpanded,
-                    onDismissRequest = { colorExpanded = false },
-                ) {
-                    VisualizerColorSource.entries.forEach { source ->
-                        DropdownMenuItem(
-                            text = { Text(colorSourceLabel(source)) },
-                            onClick = {
-                                onColorSourceSelected(source)
-                                colorExpanded = false
-                            },
-                        )
-                    }
+                VisualizerColorSource.entries.forEach { source ->
+                    DropdownMenuItem(
+                        text = { Text(colorSourceLabel(source)) },
+                        onClick = {
+                            onColorSourceSelected(source)
+                            colorExpanded = false
+                        },
+                    )
                 }
             }
         }
 
-        if ((currentEngine == VisualizerEngine.BARS || currentEngine == VisualizerEngine.LED_SPECTRUM) &&
-            currentColorSource == VisualizerColorSource.ROTATING
-        ) {
+        if (currentColorSource == VisualizerColorSource.ROTATING) {
             Spacer(modifier = Modifier.height(SPACING_TINY))
             val hueRotationLabel = stringResource(R.string.visualizer_hue_rotation)
             Text(

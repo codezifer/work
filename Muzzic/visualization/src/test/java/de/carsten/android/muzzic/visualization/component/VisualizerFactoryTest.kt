@@ -87,14 +87,17 @@ class VisualizerFactoryTest {
     }
 
     @Test
-    fun `projectm carries preset name`() {
+    fun `projectm carries preset, tint color and rotation speed`() {
         val definition = VisualizerFactory.resolve(
             VisualizerEngine.PROJECT_M,
-            VisualizerParams.ProjectMParams("preset.milk"),
-            Color.Red,
+            VisualizerParams.ProjectMParams("preset.milk", hueRotationSpeed = 0.05f),
+            Color.Red.copy(alpha = 0.4f),
         ) as VisualizerDefinition.ProjectM
 
         assertThat(definition.presetName).isEqualTo("preset.milk")
+        // The resolved definition describes opaque pixels, so host alpha must not leak in.
+        assertThat(definition.baseColor.alpha).isEqualTo(1f)
+        assertThat(definition.hueRotationSpeed).isEqualTo(0.05f)
     }
 
     @Test

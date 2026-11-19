@@ -3,6 +3,8 @@ package de.carsten.android.muzzic.visualization.component
 import android.content.Context
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import androidx.compose.ui.graphics.Color
+import de.carsten.android.muzzic.visualization.PROJECTM_TINT_STRENGTH
 import de.carsten.android.muzzic.visualization.projectm.PresetManager
 import de.carsten.android.muzzic.visualization.projectm.ProjectMNativeBridge
 import javax.microedition.khronos.egl.EGLConfig
@@ -50,6 +52,22 @@ class ProjectMGLSurfaceView @JvmOverloads constructor(context: Context, attrs: A
             }
         }
 
+    var baseColor: Color? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                applyTint()
+            }
+        }
+
+    var hueRotationSpeed: Float = 0f
+        set(value) {
+            if (field != value) {
+                field = value
+                applyTint()
+            }
+        }
+
     init {
         setEGLContextClientVersion(3)
         // ProjectM renders textured fullscreen quads; no depth or stencil buffer needed.
@@ -79,6 +97,22 @@ class ProjectMGLSurfaceView @JvmOverloads constructor(context: Context, attrs: A
         super.onDetachedFromWindow()
     }
 
+    /**
+     * Pushes the tint state to the native layer.
+     *
+     * The native setters only store values (no GL work), so this runs on the
+     * calling thread and never needs [queueEvent].
+     */
+    private fun applyTint() {
+        val color = baseColor
+        if (color == null) {
+            ProjectMNativeBridge.setTint(0f, 0f, 0f, 0f)
+        } else {
+            ProjectMNativeBridge.setTint(color.red, color.green, color.blue, PROJECTM_TINT_STRENGTH)
+        }
+        ProjectMNativeBridge.setTintRotationSpeed(hueRotationSpeed)
+    }
+
     private inner class ProjectMRenderer : Renderer {
 
         override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -92,6 +126,9 @@ class ProjectMGLSurfaceView @JvmOverloads constructor(context: Context, attrs: A
                     ProjectMNativeBridge.selectPreset(name)
                 }
             }
+            // Re-apply after recreate so the view stays the source of truth
+            // for its own props instead of relying on surviving native globals.
+            applyTint()
         }
 
         override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
