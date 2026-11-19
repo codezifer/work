@@ -119,9 +119,14 @@ Zustand und Lock-Modell (feste Reihenfolge `g_stateMutex` → `g_pcmMutex`, nie 
   gebaut).
 - **Tint-Pass:** `nativeSetTint`/`nativeSetTintRotationSpeed` schreiben nur Zustand
   (`g_tint*` unter `g_stateMutex`, GL-frei, von jedem Thread aufrufbar). Der
-  Fragment-Shader zieht die Pixel-Hue auf kürzestem Bogen Richtung Basisfarbe,
-  gewichtet mit `uStrength × smoothstep(Sättigung)` — Graustufen bleiben neutral,
-  `uStrength = 0` ist bit-exakter Pass-through. Die Phase kommt aus
+  Fragment-Shader hat zwei komplementäre Terme, gewichtet mit `uStrength`:
+  einen Hue-Pull auf kürzestem Bogen Richtung Basisfarbe für **gesättigte**
+  Pixel (`smoothstep(Sättigung)`), und einen multiplikativen Farbstich für
+  **entsättigte** Pixel (`1 − smoothstep(Sättigung)`). Der Stich ist nötig, weil
+  die meisten Presets nahezu weiß rendern und Weiß keinen Hue hat — ohne ihn
+  wäre der Effekt dort unsichtbar. Die Tint-Farbe wird dafür auf den hellsten
+  Kanal normiert, damit der Stich Weiß nicht zu Grau abdunkelt; Schwarz bleibt
+  schwarz. `uStrength = 0` ist bit-exakter Pass-through. Die Phase kommt aus
   `steady_clock` (frame-rate-unabhängig) und wird bei `speed = 0` auf die
   Basisfarbe zurückgesetzt.
 - `nativeAddPcm`: Float-Array aus JNI holen und unter dem kurzen `pcm`-Lock in

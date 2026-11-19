@@ -163,7 +163,7 @@ uniform float uPhase;
 
 out vec4 fragColor;
 
-// Below this pixel saturation the tint fades out, so grays stay neutral.
+// Below this pixel saturation the hue pull fades out and the cast takes over.
 const float SATURATION_RAMP = 0.35;
 
 vec3 hueRgbToHsv(vec3 c) {
@@ -188,14 +188,26 @@ void main() {
         return;
     }
     vec3 hsv = hueRgbToHsv(scene.rgb);
-    float weight = uStrength * smoothstep(0.0, SATURATION_RAMP, hsv.y);
-    if (weight > 0.0) {
+    // Saturated pixels have a hue to pull; desaturated ones (most preset output
+    // is near-white) have none, so they get a multiplicative cast instead.
+    float colored = smoothstep(0.0, SATURATION_RAMP, hsv.y);
+    float hueWeight = uStrength * colored;
+    if (hueWeight > 0.0) {
         float targetHue = fract(hueRgbToHsv(uTint).x + uPhase);
         // Shortest arc: moves the hue by at most half a turn, never around the long way.
         float delta = fract(targetHue - hsv.x + 0.5) - 0.5;
-        hsv.x = fract(hsv.x + delta * weight);
+        hsv.x = fract(hsv.x + delta * hueWeight);
     }
-    fragColor = vec4(hueHsvToRgb(hsv), scene.a);
+    vec3 tinted = hueHsvToRgb(hsv);
+    float castWeight = uStrength * (1.0 - colored);
+    if (castWeight > 0.0) {
+        // Normalising to the brightest channel keeps white white-bright: the cast
+        // only removes the channels the tint lacks, it never darkens to grey.
+        float peak = max(uTint.r, max(uTint.g, uTint.b));
+        vec3 colour = peak > 0.0 ? uTint / peak : vec3(1.0);
+        tinted *= mix(vec3(1.0), colour, castWeight);
+    }
+    fragColor = vec4(tinted, scene.a);
 }
 )";
 
