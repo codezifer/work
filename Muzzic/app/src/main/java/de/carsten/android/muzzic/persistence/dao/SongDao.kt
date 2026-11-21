@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SongDao {
-    @Query("SELECT * FROM songs ORDER BY artist, albumYear, album, trackNumber, title")
+    @Query("SELECT s.* FROM songs_enriched s ORDER BY s.artist COLLATE NOCASE, s.albumYear, s.album, s.trackNumber, s.title")
     fun getAllSongs(): Flow<List<Song>>
 
     @Query("SELECT DISTINCT s.filePath FROM songs s ORDER BY s.filePath")

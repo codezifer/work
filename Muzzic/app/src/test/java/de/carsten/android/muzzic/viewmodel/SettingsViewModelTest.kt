@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import io.mockk.coEvery
@@ -41,6 +42,7 @@ class SettingsViewModelTest {
     private val tipGlowFlow = MutableStateFlow(true)
     private val hueRotationSpeedFlow = MutableStateFlow(0f)
     private val colorSourceFlow = MutableStateFlow(VisualizerColorSource.ALBUM_ART)
+    private val fastScrollModeFlow = MutableStateFlow(FastScrollMode.FAST_SCROLLER)
 
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -55,6 +57,7 @@ class SettingsViewModelTest {
         every { appSettingsRepository.observeBarsTipGlowEnabled() } returns tipGlowFlow
         every { appSettingsRepository.observeHueRotationSpeed() } returns hueRotationSpeedFlow
         every { appSettingsRepository.observeVisualizerColorSource() } returns colorSourceFlow
+        every { appSettingsRepository.observeFastScrollMode() } returns fastScrollModeFlow
         Dispatchers.setMain(testDispatcher)
         viewModel = SettingsViewModel(appSettingsRepository, musicRepository, application)
     }
@@ -159,6 +162,23 @@ class SettingsViewModelTest {
         testScheduler.advanceUntilIdle()
 
         coVerify { appSettingsRepository.saveHueRotationSpeed(0.05f) }
+    }
+
+    @Test
+    fun `fast scroll mode propagates to its flow and updates repository`() = runTest {
+        coEvery { appSettingsRepository.saveFastScrollMode(FastScrollMode.INDICATOR_SCREEN) } returns Unit
+
+        viewModel.fastScrollMode.test {
+            assertThat(awaitItem()).isEqualTo(FastScrollMode.FAST_SCROLLER)
+
+            fastScrollModeFlow.value = FastScrollMode.INDICATOR_SCREEN
+            assertThat(awaitItem()).isEqualTo(FastScrollMode.INDICATOR_SCREEN)
+        }
+
+        viewModel.updateFastScrollMode(FastScrollMode.INDICATOR_SCREEN)
+        testScheduler.advanceUntilIdle()
+
+        coVerify { appSettingsRepository.saveFastScrollMode(FastScrollMode.INDICATOR_SCREEN) }
     }
 
     @Test

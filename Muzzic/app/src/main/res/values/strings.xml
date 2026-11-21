@@ -81,6 +81,13 @@
     <string name="library_config">Library configuration</string>
     <string name="music_directory">Music directory</string>
     <string name="playlist_directory">Playlist directory</string>
+    <string name="fast_scroll_mode">Quick navigation</string>
+    <string name="fast_scroll_mode_bar">Side bar (FastScroller)</string>
+    <string name="fast_scroll_mode_indicator">Letter tiles</string>
+    <plurals name="indicator_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
     <string name="visualization_setting">Music visualization</string>
     <string name="visualizer_engine">Visualization engine</string>
     <string name="visualizer_engine_bars">Classic Segmented Bars</string>

@@ -1,6 +1,9 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appTargetSdk = libs.versions.appMaxSdk.get().toInt()
+val compileSdkVersion = libs.versions.compileSdk.get()
+val compileSdkMajorLevel = compileSdkVersion.substringBefore('.').toInt()
+val compileSdkMinorLevel = compileSdkVersion.substringAfter('.', "0").toInt()
 val appMinSdk = libs.versions.appMinSdk.get().toInt()
 val rootJvmVersion = libs.versions.appJvmVersion.get().toInt()
 val androidNdkVersion = libs.versions.ndk.get()
@@ -15,7 +18,11 @@ plugins {
 
 android {
     namespace = "de.carsten.android.muzzic.visualization"
-    compileSdk = appTargetSdk
+    compileSdk {
+        version = release(compileSdkMajorLevel) {
+            minorApiLevel = compileSdkMinorLevel
+        }
+    }
     ndkVersion = androidNdkVersion
 
     defaultConfig {

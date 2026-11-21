@@ -18,6 +18,7 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.ArtistCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -32,6 +33,7 @@ fun ArtistGrid(
     onArtistLongClick: (String) -> Unit = {},
     selectedArtists: Set<String> = emptySet(),
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
 ) {
     val gridState: LazyGridState = rememberLazyGridState()
 
@@ -42,8 +44,9 @@ fun ArtistGrid(
         isScrollInProgress = { gridState.isScrollInProgress },
         scrollToItem = { index -> gridState.scrollToItem(index) },
         modifier = modifier,
+        fastScrollMode = fastScrollMode,
         colorSource = colorSource,
-    ) {
+    ) { visibleArtists ->
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(AppConfig.Ui.NUM_OF_GRID_COLUMNS),
@@ -54,7 +57,7 @@ fun ArtistGrid(
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {
             items(
-                items = artists,
+                items = visibleArtists,
                 key = { it.lazyKey() },
                 contentType = { it.lazyContentType() },
             ) { artist ->

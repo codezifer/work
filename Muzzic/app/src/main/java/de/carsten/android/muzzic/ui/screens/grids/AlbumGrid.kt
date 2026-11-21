@@ -17,6 +17,7 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.AlbumCard
 import de.carsten.android.muzzic.ui.theme.AppTheme
@@ -30,6 +31,7 @@ fun AlbumGrid(
     selectedAlbums: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
 ) {
     val gridState = rememberLazyGridState()
 
@@ -40,8 +42,9 @@ fun AlbumGrid(
         isScrollInProgress = { gridState.isScrollInProgress },
         scrollToItem = { index -> gridState.scrollToItem(index) },
         modifier = modifier,
+        fastScrollMode = fastScrollMode,
         colorSource = colorSource,
-    ) {
+    ) { visibleAlbums ->
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(AppConfig.Ui.NUM_OF_GRID_COLUMNS),
@@ -52,7 +55,7 @@ fun AlbumGrid(
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {
             items(
-                items = albums,
+                items = visibleAlbums,
                 key = { it.lazyKey() },
                 contentType = { it.lazyContentType() },
             ) { album ->

@@ -44,6 +44,7 @@ import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.model.SongDto
@@ -65,6 +66,7 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (GenreDto) -> Unit = {},
@@ -98,6 +100,7 @@ fun LibraryScreen(
         genres = uiState.genres,
         playlists = uiState.playlists,
         colorSource = colorSource,
+        fastScrollMode = fastScrollMode,
         onArtistClick = { artist ->
             if (selectionState.isActive) {
                 selectionViewModel.toggleArtistSelection(artist)
@@ -151,6 +154,7 @@ private fun LibraryScreenContent(
     genres: List<GenreDto>,
     playlists: List<PlaylistDto>,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onArtistClick: (String) -> Unit = {},
     onArtistPlayClick: (String) -> Unit = {},
     onArtistLongClick: (String) -> Unit = {},
@@ -235,6 +239,7 @@ private fun LibraryScreenContent(
                     onArtistLongClick = onArtistLongClick,
                     selectedArtists = selectedArtists,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                 )
             }
 
@@ -247,6 +252,7 @@ private fun LibraryScreenContent(
                     selectedAlbums = selectedAlbums,
                     modifier = contentModifier,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                 )
             }
 
@@ -258,6 +264,7 @@ private fun LibraryScreenContent(
                     selectedSongs = selectedSongs,
                     modifier = contentModifier,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                 )
             }
 
@@ -268,6 +275,7 @@ private fun LibraryScreenContent(
                     onGenreClick = onGenreClick,
                     onGenrePlayClick = onGenrePlayClick,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                 )
             }
 

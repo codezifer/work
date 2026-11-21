@@ -18,6 +18,7 @@ object AppConfig {
 
     object Ui {
         const val NUM_OF_GRID_COLUMNS = 2
+        const val NUM_OF_INDICATOR_COLUMNS = 3
         const val NUM_OF_LETTERS = 1
         const val NUM_OF_TOP_ARTISTS = 10
         const val NUM_OF_TOP_SONGS = 10

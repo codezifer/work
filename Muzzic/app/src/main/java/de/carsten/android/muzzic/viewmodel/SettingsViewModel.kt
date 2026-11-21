@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import de.carsten.android.muzzic.persistence.repo.AppSettingsRepository
 import de.carsten.android.muzzic.persistence.repo.MusicRepository
 import de.carsten.android.muzzic.persistence.repo.observeVisualizerOptions
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.state.SettingsUiState
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import de.carsten.android.muzzic.visualization.projectm.PresetManager
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -40,6 +43,26 @@ class SettingsViewModel(private val appSettingsRepository: AppSettingsRepository
             visualizerColorSource = visualizer.colorSource,
         )
     }.asUiState(viewModelScope, SettingsUiState())
+
+    /**
+     * Quick-navigation mode for library grids, kept separate from [uiState] so the app shell
+     * only recomposes when the mode itself changes.
+     */
+    val fastScrollMode: StateFlow<FastScrollMode> = appSettingsRepository.observeFastScrollMode()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(UI_STATE_SUBSCRIPTION_TIMEOUT_MS),
+            FastScrollMode.FAST_SCROLLER,
+        )
+
+    /**
+     * Updates the quick-navigation mode.
+     */
+    fun updateFastScrollMode(mode: FastScrollMode) {
+        viewModelScope.launch {
+            appSettingsRepository.saveFastScrollMode(mode)
+        }
+    }
 
     /**
      * Updates the active visualizer engine setting.

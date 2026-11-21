@@ -27,6 +27,7 @@ import de.carsten.android.muzzic.ui.AppDestinations.QUEUE
 import de.carsten.android.muzzic.ui.AppDestinations.SETTINGS
 import de.carsten.android.muzzic.ui.AppDestinations.STATISTICS
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.PlaylistDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
@@ -52,6 +53,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     colorSource: ColorSource,
+    fastScrollMode: FastScrollMode,
     albumArtPath: String? = null,
     startDestination: String = PLAYER,
     libraryViewModel: LibraryViewModel,
@@ -147,6 +149,7 @@ fun AppNavHost(
                     modifier = modifier,
                     appState = appState,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                     onArtistClick = onArtistClick,
                     onAlbumClick = onAlbumClick,
                     onGenreClick = onGenreClick,
@@ -166,6 +169,7 @@ fun AppNavHost(
                     modifier = modifier,
                     appState = appState,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                     onAlbumClick = onAlbumClick,
                     onBackClick = onBackClick,
                     selectionViewModel = selectionViewModel,
@@ -196,6 +200,7 @@ fun AppNavHost(
                     modifier = modifier,
                     appState = appState,
                     colorSource = colorSource,
+                    fastScrollMode = fastScrollMode,
                     onArtistClick = onArtistClick,
                     onBackClick = onBackClick,
                 )
@@ -246,6 +251,7 @@ fun AppNavHost(
             GenresScreen(
                 modifier = modifier,
                 appState = appState,
+                fastScrollMode = fastScrollMode,
                 onGenreClick = onGenreClick,
             )
         }

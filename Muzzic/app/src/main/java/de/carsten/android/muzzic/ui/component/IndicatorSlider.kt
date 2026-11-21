@@ -4,13 +4,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -95,7 +95,6 @@ fun IndicatorSlider(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun IndicatorSliderContent(
     value: Float,
@@ -118,9 +117,14 @@ private fun IndicatorSliderContent(
     val displayValue = if (scrubbingProgress >= 0f) scrubbingProgress else value
     val density = LocalDensity.current
     val indicatorShape = remember(tailDirection) { IndicatorShape(direction = tailDirection) }
+    val sliderState = rememberSliderState(
+        value = displayValue,
+        trackRange = valueRange,
+    )
+    sliderState.value = displayValue
 
     Slider(
-        value = displayValue,
+        state = sliderState,
         onValueChange = {
             scrubbingProgress = it
             onValueChange(it)
@@ -131,7 +135,6 @@ private fun IndicatorSliderContent(
         },
         modifier = modifier,
         enabled = enabled,
-        valueRange = valueRange,
         colors = colors,
         interactionSource = interactionSource,
         thumb = {

@@ -9,16 +9,19 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.UNKNOWN
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.SPACING_LARGE
+import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.SongListItem
 import de.carsten.android.muzzic.ui.theme.AppTheme
+import de.carsten.android.muzzic.ui.utils.artistName
 import java.time.Instant
 import kotlin.uuid.Uuid
 
@@ -30,30 +33,42 @@ fun SongList(
     selectedSongs: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
 ) {
     val listState = rememberLazyListState()
 
     FastScrollBox(
         items = songs,
-        getLabel = { it.title.take(AppConfig.Ui.NUM_OF_LETTERS) },
+        getLabel = {
+            if (fastScrollMode == FastScrollMode.FAST_SCROLLER) {
+                it.title.take(AppConfig.Ui.NUM_OF_LETTERS)
+            } else {
+                artistName(it.artist).take(AppConfig.Ui.NUM_OF_LETTERS)
+            }
+        },
         firstVisibleItemIndex = { listState.firstVisibleItemIndex },
         isScrollInProgress = { listState.isScrollInProgress },
         scrollToItem = { index -> listState.scrollToItem(index) },
         modifier = modifier,
+        fastScrollMode = fastScrollMode,
         colorSource = colorSource,
-    ) {
+    ) { visibleSongs ->
         LazyColumn(
             state = listState,
             modifier =
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = SPACING_LARGE),
+            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM),
         ) {
             itemsIndexed(
-                items = songs,
+                items = visibleSongs,
                 key = { index, song ->
-                    if (song.id != UNKNOWN && song.id.isNotBlank()) song.id else "${song.title}_$index"
+                    if (song.id != UNKNOWN && song.id.isNotBlank()) {
+                        song.id
+                    } else {
+                        "${song.title}_$index"
+                    }
                 },
                 contentType = { _, song -> song.lazyContentType() },
             ) { _, song ->

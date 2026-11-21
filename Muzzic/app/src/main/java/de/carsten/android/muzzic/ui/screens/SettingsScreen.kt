@@ -23,6 +23,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -56,6 +57,7 @@ import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_TINY
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
@@ -67,6 +69,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBackClick: () -> Unit, settingsViewModel: SettingsViewModel = koinViewModel()) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+    val fastScrollMode by settingsViewModel.fastScrollMode.collectAsStateWithLifecycle()
 
     SettingsScreenContent(
         modifier = modifier,
@@ -79,6 +82,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, appState: MusicAppState, onBac
         barsTipGlowEnabled = uiState.barsTipGlowEnabled,
         hueRotationSpeed = uiState.hueRotationSpeed,
         visualizerColorSource = uiState.visualizerColorSource,
+        fastScrollMode = fastScrollMode,
         settingsViewModel = settingsViewModel,
         onBackClick = onBackClick,
     )
@@ -97,6 +101,7 @@ private fun SettingsScreenContent(
     barsTipGlowEnabled: Boolean = true,
     hueRotationSpeed: Float = 0f,
     visualizerColorSource: VisualizerColorSource = VisualizerColorSource.ALBUM_ART,
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     settingsViewModel: SettingsViewModel? = null,
     onBackClick: () -> Unit = {},
 ) {
@@ -188,6 +193,11 @@ private fun SettingsScreenContent(
                 label = stringResource(R.string.playlist_directory),
                 path = playlistDirectory ?: stringResource(R.string.not_set),
                 onSelect = { playlistDirLauncher.launch(null) },
+            )
+            Spacer(modifier = Modifier.height(SPACING_MEDIUM))
+            FastScrollModeSetting(
+                currentMode = fastScrollMode,
+                onModeSelected = { mode -> settingsViewModel?.updateFastScrollMode(mode) },
             )
         }
 
@@ -444,6 +454,53 @@ private fun colorSourceLabel(source: VisualizerColorSource): String = when (sour
     VisualizerColorSource.ICE_BLUE -> stringResource(R.string.visualizer_color_ice_blue)
     VisualizerColorSource.BLUE -> stringResource(R.string.visualizer_color_blue)
     VisualizerColorSource.MAGENTA -> stringResource(R.string.visualizer_color_magenta)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FastScrollModeSetting(currentMode: FastScrollMode, onModeSelected: (FastScrollMode) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
+        Text(
+            text = stringResource(R.string.fast_scroll_mode),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+        ) {
+            OutlinedTextField(
+                value = fastScrollModeLabel(currentMode),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                textStyle = MaterialTheme.typography.bodyMedium,
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                FastScrollMode.entries.forEach { mode ->
+                    DropdownMenuItem(
+                        text = { Text(fastScrollModeLabel(mode)) },
+                        onClick = {
+                            onModeSelected(mode)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun fastScrollModeLabel(mode: FastScrollMode): String = when (mode) {
+    FastScrollMode.FAST_SCROLLER -> stringResource(R.string.fast_scroll_mode_bar)
+    FastScrollMode.INDICATOR_SCREEN -> stringResource(R.string.fast_scroll_mode_indicator)
 }
 
 @Composable

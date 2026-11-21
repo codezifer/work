@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.ui.GLASS_CONTAINER_ALPHA
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.GenreGrid
@@ -24,6 +25,7 @@ fun GenresScreen(
     appState: MusicAppState,
     libraryViewModel: LibraryViewModel = koinViewModel(),
     genreViewModel: GenresViewModel = koinViewModel(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onGenreClick: (GenreDto) -> Unit = {},
 ) {
     val uiState by genreViewModel.uiState.collectAsStateWithLifecycle()
@@ -32,6 +34,7 @@ fun GenresScreen(
         modifier = modifier,
         appState = appState,
         genres = uiState.genres,
+        fastScrollMode = fastScrollMode,
         onGenreClick = onGenreClick,
         onGenrePlayClick = { genre ->
             genreViewModel.playGenre(genre.genreName)
@@ -44,6 +47,7 @@ fun GenresScreenContent(
     modifier: Modifier = Modifier,
     appState: MusicAppState? = null,
     genres: List<GenreDto>,
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onGenreClick: (GenreDto) -> Unit = {},
     onGenrePlayClick: (GenreDto) -> Unit = {},
 ) {
@@ -54,6 +58,7 @@ fun GenresScreenContent(
             .background(MaterialTheme.colorScheme.surface.copy(alpha = GLASS_CONTAINER_ALPHA)),
         onGenreClick = onGenreClick,
         onGenrePlayClick = onGenrePlayClick,
+        fastScrollMode = fastScrollMode,
     )
 }
 

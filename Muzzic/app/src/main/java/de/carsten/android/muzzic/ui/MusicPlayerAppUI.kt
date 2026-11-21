@@ -54,6 +54,7 @@ import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
 import de.carsten.android.muzzic.viewmodel.PlaylistViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
+import de.carsten.android.muzzic.viewmodel.SettingsViewModel
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
 import org.koin.androidx.compose.koinViewModel
 
@@ -68,12 +69,14 @@ fun MusicPlayerAppUI(
     playingQueueViewModel: PlayingQueueViewModel = koinViewModel(),
     playerViewModel: PlayerViewModel = koinViewModel(),
     playlistViewModel: PlaylistViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
     appState: MusicAppState = rememberMusicAppState(),
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
     val uiState = appState.getUiState(selectionState)
 
     val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val fastScrollMode by settingsViewModel.fastScrollMode.collectAsStateWithLifecycle()
     val currentSong = playerUiState.currentSong
     val palette by rememberPaletteState(currentSong?.albumArt)
     val isDark = isSystemInDarkTheme()
@@ -164,6 +167,7 @@ fun MusicPlayerAppUI(
                 modifier = Modifier.fillMaxSize(),
                 appState = appState,
                 colorSource = colorSource,
+                fastScrollMode = fastScrollMode,
                 albumArtPath = albumArtPath,
                 libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,

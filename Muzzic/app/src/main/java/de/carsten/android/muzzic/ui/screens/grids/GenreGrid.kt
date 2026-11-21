@@ -16,6 +16,7 @@ import de.carsten.android.muzzic.ui.GRID_SPACING
 import de.carsten.android.muzzic.ui.PREVIEW_DARK_MODE
 import de.carsten.android.muzzic.ui.component.fastscroll.FastScrollBox
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.GenreDto
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.screens.cards.GenreCard
@@ -28,6 +29,7 @@ fun GenreGrid(
     onGenreClick: (GenreDto) -> Unit = {},
     onGenrePlayClick: (GenreDto) -> Unit = {},
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
 ) {
     val gridState = rememberLazyGridState()
 
@@ -38,8 +40,9 @@ fun GenreGrid(
         isScrollInProgress = { gridState.isScrollInProgress },
         scrollToItem = { index -> gridState.scrollToItem(index) },
         modifier = modifier,
+        fastScrollMode = fastScrollMode,
         colorSource = colorSource,
-    ) {
+    ) { visibleGenres ->
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(AppConfig.Ui.NUM_OF_GRID_COLUMNS),
@@ -51,7 +54,7 @@ fun GenreGrid(
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
         ) {
             items(
-                items = genres,
+                items = visibleGenres,
                 key = { it.lazyKey() },
                 contentType = { it.lazyContentType() },
             ) { genre ->

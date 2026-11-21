@@ -28,6 +28,7 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.ArtistDto
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.ArtistGrid
@@ -40,6 +41,7 @@ fun GenreArtistsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onArtistClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
     genresViewModel: GenresViewModel = koinViewModel(),
@@ -53,6 +55,7 @@ fun GenreArtistsScreen(
             genreName = uiState.selectedGenreName ?: "",
             artists = uiState.artists,
             colorSource = colorSource,
+            fastScrollMode = fastScrollMode,
             onArtistClick = onArtistClick,
             onArtistPlayClick = { genresViewModel.playArtist(it) },
             onBackClick = onBackClick,
@@ -67,6 +70,7 @@ fun GenreArtistsScreenContent(
     genreName: String,
     artists: List<ArtistDto>,
     colorSource: ColorSource = composableColorSource(),
+    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onArtistClick: (String) -> Unit = {},
     onArtistPlayClick: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
@@ -105,6 +109,7 @@ fun GenreArtistsScreenContent(
             onArtistClick = onArtistClick,
             onArtistPlayClick = onArtistPlayClick,
             colorSource = colorSource,
+            fastScrollMode = fastScrollMode,
         )
     }
 }

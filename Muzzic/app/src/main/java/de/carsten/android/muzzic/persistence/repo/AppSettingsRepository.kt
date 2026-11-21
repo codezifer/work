@@ -2,6 +2,7 @@ package de.carsten.android.muzzic.persistence.repo
 
 import de.carsten.android.muzzic.persistence.dao.GenericSettingDao
 import de.carsten.android.muzzic.persistence.entity.GenericSetting
+import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.visualization.component.VisualizerColorSource
 import de.carsten.android.muzzic.visualization.component.VisualizerEngine
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
         const val KEY_BARS_TIP_GLOW_ENABLED = "bars_tip_glow_enabled"
         const val KEY_HUE_ROTATION_SPEED = "hue_rotation_speed"
         const val KEY_VISUALIZER_COLOR_SOURCE = "visualizer_color_source"
+        const val KEY_FAST_SCROLL_MODE = "fast_scroll_mode"
     }
 
     /**
@@ -162,5 +164,21 @@ class AppSettingsRepository(private val genericSettingDao: GenericSettingDao) {
      */
     suspend fun saveVisualizerColorSource(colorSource: VisualizerColorSource) {
         genericSettingDao.insertOrUpdate(GenericSetting(KEY_VISUALIZER_COLOR_SOURCE, colorSource.name))
+    }
+
+    /**
+     * Observes the quick-navigation mode (defaults to [FastScrollMode.FAST_SCROLLER]).
+     */
+    fun observeFastScrollMode(): Flow<FastScrollMode> = genericSettingDao.observeSetting(KEY_FAST_SCROLL_MODE).map { setting ->
+        setting?.value?.let { name ->
+            runCatching { FastScrollMode.valueOf(name) }.getOrNull()
+        } ?: FastScrollMode.FAST_SCROLLER
+    }
+
+    /**
+     * Saves the quick-navigation mode.
+     */
+    suspend fun saveFastScrollMode(mode: FastScrollMode) {
+        genericSettingDao.insertOrUpdate(GenericSetting(KEY_FAST_SCROLL_MODE, mode.name))
     }
 }

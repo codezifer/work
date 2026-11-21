@@ -8,6 +8,9 @@ val appVersion = libs.versions.appVersion.get()
 val appBuildTime = System.currentTimeMillis()
 val appApkName = "muzzic-$appVersion.apk"
 val appTargetSdk = libs.versions.appMaxSdk.get().toInt()
+val compileSdkVersion = libs.versions.compileSdk.get()
+val compileSdkMajorLevel = compileSdkVersion.substringBefore('.').toInt()
+val compileSdkMinorLevel = compileSdkVersion.substringAfter('.', "0").toInt()
 val appMinSdk = libs.versions.appMinSdk.get().toInt()
 val rootJvmVersion = libs.versions.appJvmVersion.get().toInt()
 val compatibility: JavaVersion = JavaVersion.toVersion(rootJvmVersion)
@@ -28,7 +31,11 @@ plugins {
 
 extensions.configure<ApplicationExtension> {
     namespace = appId
-    compileSdk = appTargetSdk
+    compileSdk {
+        version = release(compileSdkMajorLevel) {
+            minorApiLevel = compileSdkMinorLevel
+        }
+    }
 
     defaultConfig {
         applicationId = appId
