@@ -1,9 +1,10 @@
 package de.carsten.android.muzzic.ui.component.fastscroll
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import de.carsten.android.muzzic.R
 import de.carsten.android.muzzic.ui.GRID_HORIZONTAL_PADDING
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.SPACING_NORMAL
+import de.carsten.android.muzzic.ui.SPACING_TINY
 import de.carsten.android.muzzic.ui.model.ColorSource
 import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.composableColorSource
@@ -42,7 +44,8 @@ import kotlinx.coroutines.launch
  * Wraps scrollable content (list or grid) and adds quick navigation.
  *
  * [FastScrollMode.FAST_SCROLLER] overlays a [FastScroller]; [FastScrollMode.INDICATOR_SCREEN] shows an
- * [IndicatorScreen] first and filters the content once a letter is chosen.
+ * [IndicatorScreen] first: a tap filters by one letter, long-press toggles letters and a tap on a
+ * marked tile filters by all marked ones.
  *
  * Labels are mapped once in encounter order, so the caller must already deliver a label-sorted list.
  *
@@ -84,20 +87,28 @@ fun <T> FastScrollBox(
         }
     }
 
-    var selectedLetter: String? by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedLetters: List<String> by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var isBrowsing: Boolean by rememberSaveable { mutableStateOf(true) }
 
-    // Guard against letters that vanished after a data change
-    val effectiveLetter: String? = selectedLetter?.takeIf { it in itemCounts }
+    // Drop letters that vanished after a data change
+    val effectiveLetters: List<String> = remember(selectedLetters, itemCounts) {
+        selectedLetters.filter { it in itemCounts }
+    }
+    val selectedLetterSet: Set<String> = remember(effectiveLetters) { effectiveLetters.toSet() }
 
-    LaunchedEffect(alphabet, fastScrollMode) {
-        if (selectedLetter != null && effectiveLetter == null) selectedLetter = null
+    LaunchedEffect(effectiveLetters, isBrowsing) {
+        if (selectedLetters != effectiveLetters) selectedLetters = effectiveLetters
+        if (!isBrowsing && effectiveLetters.isEmpty()) isBrowsing = true
     }
 
-    BackHandler(enabled = effectiveLetter != null) { selectedLetter = null }
+    BackHandler(enabled = !isBrowsing || selectedLetters.isNotEmpty()) {
+        selectedLetters = emptyList()
+        isBrowsing = true
+    }
 
-    // O(n) once per letter choice, not per recomposition
-    val visibleItems: List<T> = remember(items, effectiveLetter) {
-        if (effectiveLetter == null) items else items.filterIndexed { index, _ -> labels[index] == effectiveLetter }
+    // O(n) once per selection change, not per recomposition
+    val visibleItems: List<T> = remember(items, effectiveLetters) {
+        if (effectiveLetters.isEmpty()) items else items.filterIndexed { index, _ -> labels[index] in effectiveLetters }
     }
 
     val activeLetter: String? by remember(labels) { derivedStateOf { labels.getOrNull(firstVisibleItemIndex()) } }
@@ -106,20 +117,32 @@ fun <T> FastScrollBox(
     val scrollJob: MutableState<Job?> = remember { mutableStateOf<Job?>(null) }
 
     Column(modifier = modifier.fillMaxSize()) {
-        if (effectiveLetter != null) {
-            LetterFilterHeader(letter = effectiveLetter, onClear = { selectedLetter = null })
+        if (!isBrowsing && effectiveLetters.isNotEmpty()) {
+            LetterFilterHeader(
+                letters = effectiveLetters,
+                onLetterRemove = { letter ->
+                    val remaining = effectiveLetters - letter
+                    selectedLetters = remaining
+                    if (remaining.isEmpty()) isBrowsing = true
+                },
+            )
         }
 
         Box(modifier = Modifier.weight(1f)) {
             when {
-                fastScrollMode == FastScrollMode.INDICATOR_SCREEN && alphabet.isNotEmpty() && effectiveLetter == null ->
+                fastScrollMode == FastScrollMode.INDICATOR_SCREEN && alphabet.isNotEmpty() && isBrowsing ->
                     IndicatorScreen(
                         letters = alphabet,
                         itemCounts = itemCounts,
+                        selectedLetters = selectedLetterSet,
                         onLetterClick = { letter ->
-                            selectedLetter = letter
+                            if (letter !in selectedLetterSet) selectedLetters = listOf(letter)
+                            isBrowsing = false
                             // Filtered content starts at the top
                             scope.launch { scrollToItem(0) }
+                        },
+                        onLetterLongClick = { letter ->
+                            selectedLetters = if (letter in selectedLetterSet) selectedLetters - letter else selectedLetters + letter
                         },
                         colorSource = colorSource,
                     )
@@ -149,23 +172,26 @@ fun <T> FastScrollBox(
 }
 
 @Composable
-private fun LetterFilterHeader(letter: String, onClear: () -> Unit) {
-    Row(
+private fun LetterFilterHeader(letters: List<String>, onLetterRemove: (String) -> Unit) {
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = GRID_HORIZONTAL_PADDING, vertical = SPACING_MEDIUM),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SPACING_TINY),
+        verticalArrangement = Arrangement.spacedBy(SPACING_TINY),
     ) {
-        FilterChip(
-            selected = true,
-            onClick = onClear,
-            label = { Text(text = letter) },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.back),
-                )
-            },
-        )
+        letters.forEach { letter ->
+            FilterChip(
+                selected = true,
+                onClick = { onLetterRemove(letter) },
+                label = { Text(text = letter) },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.indicator_remove_letter),
+                    )
+                },
+            )
+        }
     }
 }

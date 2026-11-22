@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
 import de.carsten.android.muzzic.persistence.entity.Song
 import de.carsten.android.muzzic.persistence.entity.aggregation.GenrePlayCount
 import de.carsten.android.muzzic.persistence.entity.aggregation.LibrarySummary
@@ -13,7 +14,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SongDao {
-    @Query("SELECT s.* FROM songs_enriched s ORDER BY s.artist COLLATE NOCASE, s.albumYear, s.album, s.trackNumber, s.title")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT s.* FROM songs_enriched s ORDER BY s.sort_artist COLLATE NOCASE, s.albumYear, s.album, s.trackNumber, s.title")
     fun getAllSongs(): Flow<List<Song>>
 
     @Query("SELECT DISTINCT s.filePath FROM songs s ORDER BY s.filePath")

@@ -39,13 +39,7 @@ fun SongList(
 
     FastScrollBox(
         items = songs,
-        getLabel = {
-            if (fastScrollMode == FastScrollMode.FAST_SCROLLER) {
-                it.title.take(AppConfig.Ui.NUM_OF_LETTERS)
-            } else {
-                artistName(it.artist).take(AppConfig.Ui.NUM_OF_LETTERS)
-            }
-        },
+        getLabel = { artistName(it.artist).take(AppConfig.Ui.NUM_OF_LETTERS) },
         firstVisibleItemIndex = { listState.firstVisibleItemIndex },
         isScrollInProgress = { listState.isScrollInProgress },
         scrollToItem = { index -> listState.scrollToItem(index) },

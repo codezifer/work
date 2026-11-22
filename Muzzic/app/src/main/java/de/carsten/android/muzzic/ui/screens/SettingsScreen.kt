@@ -36,6 +36,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -260,7 +261,6 @@ private fun SettingsScreenContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VisualizerSetting(
     currentEngine: VisualizerEngine,
@@ -362,7 +362,9 @@ private fun VisualizerSetting(
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
                 textStyle = MaterialTheme.typography.bodyMedium,
             )
             ExposedDropdownMenu(
@@ -382,6 +384,12 @@ private fun VisualizerSetting(
         }
 
         if (currentColorSource == VisualizerColorSource.ROTATING) {
+            val sliderState = rememberSliderState(
+                value = hueRotationSpeed.coerceIn(0f, MAX_HUE_ROTATION_SPEED),
+                trackRange = 0f..MAX_HUE_ROTATION_SPEED,
+            )
+            sliderState.value = hueRotationSpeed.coerceIn(0f, MAX_HUE_ROTATION_SPEED)
+
             Spacer(modifier = Modifier.height(SPACING_TINY))
             val hueRotationLabel = stringResource(R.string.visualizer_hue_rotation)
             Text(
@@ -390,9 +398,8 @@ private fun VisualizerSetting(
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Slider(
-                value = hueRotationSpeed.coerceIn(0f, MAX_HUE_ROTATION_SPEED),
+                state = sliderState,
                 onValueChange = onHueRotationSpeedChanged,
-                valueRange = 0f..MAX_HUE_ROTATION_SPEED,
                 modifier = Modifier.fillMaxWidth().semantics { contentDescription = hueRotationLabel },
             )
             Text(
@@ -420,7 +427,9 @@ private fun VisualizerSetting(
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = presetExpanded) },
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    modifier = Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth(),
                     textStyle = MaterialTheme.typography.bodyMedium,
                 )
                 ExposedDropdownMenu(
@@ -476,7 +485,9 @@ private fun FastScrollModeSetting(currentMode: FastScrollMode, onModeSelected: (
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
                 textStyle = MaterialTheme.typography.bodyMedium,
             )
             ExposedDropdownMenu(

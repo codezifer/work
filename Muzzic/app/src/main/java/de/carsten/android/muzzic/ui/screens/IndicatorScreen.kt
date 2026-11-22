@@ -1,7 +1,7 @@
 package de.carsten.android.muzzic.ui.screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -19,14 +19,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import de.carsten.android.muzzic.AppConfig
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.ui.BORDER_WIDTH_THICK
 import de.carsten.android.muzzic.ui.BORDER_WIDTH_THIN
 import de.carsten.android.muzzic.ui.CARD_CORNER_RADIUS
 import de.carsten.android.muzzic.ui.FONT_SIZE_HUGE_TITLE
@@ -43,7 +46,9 @@ import de.carsten.android.muzzic.ui.utils.contrastColor
  *
  * @param letters Letters in encounter order of the underlying list.
  * @param itemCounts Number of items per letter, shown as a subtitle when present.
- * @param onLetterClick Invoked with the selected letter.
+ * @param selectedLetters Letters currently marked for multi-selection.
+ * @param onLetterClick Invoked with the tapped letter.
+ * @param onLetterLongClick Invoked with the long-pressed letter to toggle its mark.
  * @param modifier Modifier for the grid layout.
  * @param colorSource Colors from the selected album art.
  */
@@ -51,7 +56,9 @@ import de.carsten.android.muzzic.ui.utils.contrastColor
 fun IndicatorScreen(
     letters: List<String>,
     itemCounts: Map<String, Int> = emptyMap(),
+    selectedLetters: Set<String> = emptySet(),
     onLetterClick: (String) -> Unit,
+    onLetterLongClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     colorSource: ColorSource = composableColorSource(),
 ) {
@@ -71,7 +78,9 @@ fun IndicatorScreen(
             IndicatorTile(
                 letter = letter,
                 itemCount = itemCounts[letter],
+                isSelected = letter in selectedLetters,
                 onClick = { onLetterClick(letter) },
+                onLongClick = { onLetterLongClick(letter) },
                 colorSource = colorSource,
             )
         }
@@ -79,18 +88,29 @@ fun IndicatorScreen(
 }
 
 @Composable
-private fun IndicatorTile(letter: String, itemCount: Int?, onClick: () -> Unit, colorSource: ColorSource) {
+private fun IndicatorTile(letter: String, itemCount: Int?, isSelected: Boolean, onClick: () -> Unit, onLongClick: () -> Unit, colorSource: ColorSource) {
     val countLabel = itemCount?.let { pluralStringResource(R.plurals.indicator_item_count, it, it) }
     val description = if (countLabel == null) letter else "$letter, $countLabel"
+    val tileColor = if (isSelected) colorSource.neutralColor else colorSource.accentColor
 
     Card(
         modifier = Modifier
             .aspectRatio(1f)
-            .clickable(onClick = onClick)
-            .semantics { contentDescription = description },
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+                onLongClickLabel = stringResource(R.string.indicator_select_letter),
+            )
+            .semantics {
+                contentDescription = description
+                selected = isSelected
+            },
         shape = RoundedCornerShape(CARD_CORNER_RADIUS),
-        colors = CardDefaults.cardColors(containerColor = colorSource.accentColor),
-        border = BorderStroke(BORDER_WIDTH_THIN, colorSource.contentColor),
+        colors = CardDefaults.cardColors(containerColor = tileColor),
+        border = BorderStroke(
+            if (isSelected) BORDER_WIDTH_THICK else BORDER_WIDTH_THIN,
+            if (isSelected) colorSource.onNeutralColor else colorSource.contentColor,
+        ),
     ) {
         Column(
             // The card already announces letter and count; keep children out of the semantics tree
@@ -102,7 +122,7 @@ private fun IndicatorTile(letter: String, itemCount: Int?, onClick: () -> Unit, 
         ) {
             Text(
                 text = letter,
-                color = colorSource.accentColor.contrastColor(),
+                color = tileColor.contrastColor(),
                 fontSize = FONT_SIZE_HUGE_TITLE,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -110,7 +130,7 @@ private fun IndicatorTile(letter: String, itemCount: Int?, onClick: () -> Unit, 
             if (countLabel != null) {
                 Text(
                     text = countLabel,
-                    color = colorSource.accentColor.contrastColor(),
+                    color = tileColor.contrastColor(),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                 )
@@ -127,7 +147,9 @@ fun IndicatorScreenPreview() {
         IndicatorScreen(
             letters = listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"),
             itemCounts = mapOf("A" to 12, "B" to 3, "C" to 1),
+            selectedLetters = setOf("A", "C"),
             onLetterClick = {},
+            onLetterLongClick = {},
         )
     }
 }

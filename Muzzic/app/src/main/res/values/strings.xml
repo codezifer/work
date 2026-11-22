@@ -88,6 +88,8 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
+    <string name="indicator_select_letter">Select letter</string>
+    <string name="indicator_remove_letter">Remove letter filter</string>
     <string name="visualization_setting">Music visualization</string>
     <string name="visualizer_engine">Visualization engine</string>
     <string name="visualizer_engine_bars">Classic Segmented Bars</string>

@@ -84,6 +84,8 @@
         <item quantity="one">%d Eintrag</item>
         <item quantity="other">%d Einträge</item>
     </plurals>
+    <string name="indicator_select_letter">Buchstaben auswählen</string>
+    <string name="indicator_remove_letter">Buchstabenfilter entfernen</string>
     <string name="visualization_setting">Musik-Visualisierung</string>
     <string name="visualizer_engine">Visualisierungs-Engine</string>
     <string name="visualizer_engine_bars">Klassische Segmentierte Balken</string>
