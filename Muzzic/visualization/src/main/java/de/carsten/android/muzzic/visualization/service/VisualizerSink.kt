@@ -25,10 +25,10 @@ import java.nio.ByteOrder
  * instead of crossing JNI per buffer.
  */
 @UnstableApi
-class VisualizerSink : TeeAudioProcessor.AudioBufferSink {
+class VisualizerSink(private val provideSpectrum: Boolean = true) : TeeAudioProcessor.AudioBufferSink {
 
     val spectrumProcessor = SpectrumProcessor()
-    val spectrumBus: SpectrumBus get() = spectrumProcessor.bus
+    val spectrumBus: SpectrumBus? get() = if (provideSpectrum) spectrumProcessor.bus else null
 
     private var currentEncoding: Int = C.ENCODING_PCM_16BIT
 

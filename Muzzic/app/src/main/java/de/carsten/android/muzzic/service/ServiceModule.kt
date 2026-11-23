@@ -5,6 +5,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import de.carsten.android.muzzic.visualization.service.VisualizerSink
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -14,11 +15,11 @@ import org.koin.dsl.module
 @OptIn(UnstableApi::class)
 val serviceModule =
     module {
-        singleOf(::VisualizerSink)
+        single { VisualizerSink() }
         factoryOf(::PlaybackManager)
         factoryOf(::QueueManager)
         factoryOf(::PlaybackAnalytics)
         singleOf(::AutomaticPlaylistManager)
-        singleOf(::MediaLibraryManager)
+        single { MediaLibraryManager(androidContext()) }
         singleOf(::CoilBitmapLoader) bind BitmapLoader::class
     }

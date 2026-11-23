@@ -11,24 +11,31 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * Bridges UI commands to the Media3 browser.
+ *
+ * @param connectToService Disabled in previews, where layoutlib cannot resolve the session token.
+ */
 @UnstableApi
-class MediaLibraryManager(context: Context) {
+class MediaLibraryManager(context: Context, connectToService: Boolean = true) {
     private val _browser = MutableStateFlow<MediaBrowser?>(null)
     val browser: StateFlow<MediaBrowser?> = _browser.asStateFlow()
 
     init {
-        val sessionToken =
-            SessionToken(
-                context,
-                ComponentName(context, MusicPlayerService::class.java),
+        if (connectToService) {
+            val sessionToken =
+                SessionToken(
+                    context,
+                    ComponentName(context, MusicPlayerService::class.java),
+                )
+            val browserFuture = MediaBrowser.Builder(context, sessionToken).buildAsync()
+            browserFuture.addListener(
+                {
+                    _browser.value = browserFuture.get()
+                },
+                MoreExecutors.directExecutor(),
             )
-        val browserFuture = MediaBrowser.Builder(context, sessionToken).buildAsync()
-        browserFuture.addListener(
-            {
-                _browser.value = browserFuture.get()
-            },
-            MoreExecutors.directExecutor(),
-        )
+        }
     }
 
     fun playContent(mediaItem: MediaItem) {

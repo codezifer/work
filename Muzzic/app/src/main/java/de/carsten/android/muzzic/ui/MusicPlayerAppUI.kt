@@ -1,5 +1,7 @@
 package de.carsten.android.muzzic.ui
 
+import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,12 +32,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.carsten.android.muzzic.R
+import de.carsten.android.muzzic.persistence.dao.PlayingQueueDao
+import de.carsten.android.muzzic.persistence.databaseModule
+import de.carsten.android.muzzic.persistence.repo.PlayingQueueRepository
+import de.carsten.android.muzzic.persistence.repoModule
+import de.carsten.android.muzzic.scanning.scanningModule
+import de.carsten.android.muzzic.service.MediaLibraryManager
+import de.carsten.android.muzzic.service.serviceModule
 import de.carsten.android.muzzic.ui.component.PlayerBackground
 import de.carsten.android.muzzic.ui.component.TextInputDialog
 import de.carsten.android.muzzic.ui.model.ColorSource
+import de.carsten.android.muzzic.ui.model.SongDto
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.navigation.NavigationEvent
 import de.carsten.android.muzzic.ui.navigation.rememberMusicAppState
@@ -45,6 +57,7 @@ import de.carsten.android.muzzic.ui.screens.controls.BottomNavigationBar
 import de.carsten.android.muzzic.ui.screens.controls.SelectionToolbar
 import de.carsten.android.muzzic.ui.screens.controls.ToolbarMode
 import de.carsten.android.muzzic.ui.state.AppUiState
+import de.carsten.android.muzzic.ui.theme.AppTheme
 import de.carsten.android.muzzic.ui.theme.CustomColors
 import de.carsten.android.muzzic.ui.utils.adjustForTheme
 import de.carsten.android.muzzic.ui.utils.ensureContrast
@@ -56,7 +69,14 @@ import de.carsten.android.muzzic.viewmodel.PlaylistViewModel
 import de.carsten.android.muzzic.viewmodel.SelectionViewModel
 import de.carsten.android.muzzic.viewmodel.SettingsViewModel
 import de.carsten.android.muzzic.viewmodel.states.SelectionState
+import de.carsten.android.muzzic.viewmodel.viewModelModule
+import de.carsten.android.muzzic.visualization.service.VisualizerSink
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.KoinApplicationPreview
+import org.koin.dsl.module
 
 /**
  * Main entry point for the Music Player application UI.
@@ -71,9 +91,10 @@ fun MusicPlayerAppUI(
     playlistViewModel: PlaylistViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel(),
     appState: MusicAppState = rememberMusicAppState(),
+    startDestination: String = AppDestinations.PLAYER,
 ) {
     val selectionState: SelectionState by selectionViewModel.selectionState.collectAsStateWithLifecycle()
-    val uiState = appState.getUiState(selectionState)
+    val appUiState = appState.getUiState(selectionState)
 
     val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
     val fastScrollMode by settingsViewModel.fastScrollMode.collectAsStateWithLifecycle()
@@ -169,6 +190,7 @@ fun MusicPlayerAppUI(
                 colorSource = colorSource,
                 fastScrollMode = fastScrollMode,
                 albumArtPath = albumArtPath,
+                startDestination = startDestination,
                 libraryViewModel = libraryViewModel,
                 selectionViewModel = selectionViewModel,
                 playingQueueViewModel = playingQueueViewModel,
@@ -202,11 +224,11 @@ fun MusicPlayerAppUI(
             )
 
             // Contextual Floating Toolbar powered by State Machine logic
-            val showSelectionToolbar by remember(uiState) {
+            val showSelectionToolbar by remember(appUiState) {
                 derivedStateOf {
-                    when (uiState) {
-                        is AppUiState.Library -> uiState.selectionActive
-                        is AppUiState.Playlists -> uiState.selectionActive
+                    when (appUiState) {
+                        is AppUiState.Library -> appUiState.selectionActive
+                        is AppUiState.Playlists -> appUiState.selectionActive
                         is AppUiState.Queue -> true
                         else -> false
                     }
@@ -223,14 +245,14 @@ fun MusicPlayerAppUI(
                     .padding(bottom = UI_OVERLAY_OFFSET),
             ) {
                 SelectionToolbar(
-                    mode = if (uiState is AppUiState.Queue) ToolbarMode.QUEUE_MGMT else ToolbarMode.SELECTION,
+                    mode = if (appUiState is AppUiState.Queue) ToolbarMode.QUEUE_MGMT else ToolbarMode.SELECTION,
                     selectedCount = selectionState.selectedSongs.size,
                     colorSource = colorSource,
-                    confirmIcon = if (uiState is AppUiState.Queue) Icons.Default.Delete else Icons.Default.Add,
-                    confirmLabel = if (uiState is AppUiState.Queue) removeFromQueueLabel else addToQueueLabel,
-                    onConfirm = remember(uiState, removedFromQueueMessage) {
+                    confirmIcon = if (appUiState is AppUiState.Queue) Icons.Default.Delete else Icons.Default.Add,
+                    confirmLabel = if (appUiState is AppUiState.Queue) removeFromQueueLabel else addToQueueLabel,
+                    onConfirm = remember(appUiState, removedFromQueueMessage) {
                         {
-                            if (uiState is AppUiState.Queue) {
+                            if (appUiState is AppUiState.Queue) {
                                 selectionViewModel.confirmRemoval {
                                     appState.showSnackbar(removedFromQueueMessage)
                                 }
@@ -263,7 +285,7 @@ fun MusicPlayerAppUI(
                         }
                     },
                     onSaveAsPlaylist = remember {
-                        { info ->
+                        {
                             showSavePlaylistDialog = true
                         }
                     },
@@ -271,4 +293,119 @@ fun MusicPlayerAppUI(
             }
         }
     }
+}
+
+private class PreviewPlayingQueueRepository(playingQueueDao: PlayingQueueDao, private val songs: List<SongDto>) : PlayingQueueRepository(playingQueueDao) {
+    override fun observePlayingQueue(): Flow<List<SongDto>> = flowOf(songs)
+}
+
+private val previewQueueSongs =
+    listOf(
+        SongDto(
+            id = "preview-1",
+            title = "Puritania",
+            artist = "Dimmu Borgir",
+            album = "Puritanical Euphoric Misantropia",
+            trackNumber = 5,
+            totalTracks = 12,
+            duration = 180_000L,
+            genre = "Black Metal",
+            queuePosition = 0,
+        ),
+        SongDto(
+            id = "preview-2",
+            title = "Nights in White Satin",
+            artist = "The Moody Blues",
+            album = "Every Good Boy Deserves Favour",
+            trackNumber = 4,
+            totalTracks = 11,
+            duration = 298_000L,
+            genre = "Progressive Rock",
+            queuePosition = 1,
+        ),
+        SongDto(
+            id = "preview-3",
+            title = "Hysteria",
+            artist = "Muse",
+            album = "Absolution",
+            trackNumber = 5,
+            totalTracks = 13,
+            duration = 229_000L,
+            genre = "Alternative Rock",
+            queuePosition = 2,
+        ),
+        SongDto(
+            id = "preview-4",
+            title = "Clair de Lune",
+            artist = "Claude Debussy",
+            album = "Suite Bergamasque",
+            trackNumber = 1,
+            totalTracks = 4,
+            duration = 300_000L,
+            genre = "Classical",
+            queuePosition = 3,
+        ),
+        SongDto(
+            id = "preview-5",
+            title = "Seven Nation Army",
+            artist = "The White Stripes",
+            album = "Elephant",
+            trackNumber = 2,
+            totalTracks = 16,
+            duration = 232_000L,
+            genre = "Garage Rock",
+            queuePosition = 4,
+        ),
+    )
+
+@SuppressLint("UnsafeOptInUsageError")
+@Composable
+private fun PreviewMusicPlayerApp(startDestination: String) {
+    val context = LocalContext.current
+
+    val previewApplication =
+        object : Application() {
+            init {
+                attachBaseContext(context)
+            }
+        }
+    val previewServiceModule =
+        module {
+            single<Application> { previewApplication }
+            single<MediaLibraryManager> { MediaLibraryManager(context, connectToService = false) }
+            single<VisualizerSink> { VisualizerSink(provideSpectrum = false) }
+            single<PlayingQueueRepository> { PreviewPlayingQueueRepository(get(), previewQueueSongs) }
+        }
+    KoinApplicationPreview(
+        application = {
+            androidContext(context.applicationContext)
+            modules(
+                databaseModule,
+                repoModule,
+                scanningModule,
+                serviceModule,
+                previewServiceModule,
+                viewModelModule,
+                uiModule,
+            )
+        },
+    ) {
+        AppTheme {
+            MusicPlayerAppUI(startDestination = startDestination)
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true, name = "Player · Light")
+@Preview(showBackground = true, uiMode = PREVIEW_DARK_MODE, name = "Player · Dark")
+fun MusicPlayerAppUIPreview() {
+    PreviewMusicPlayerApp(startDestination = AppDestinations.PLAYER)
+}
+
+@Composable
+@Preview(showBackground = true, name = "Queue · Light")
+@Preview(showBackground = true, uiMode = PREVIEW_DARK_MODE, name = "Queue · Dark")
+fun MusicPlayerAppUIQueuePreview() {
+    PreviewMusicPlayerApp(startDestination = AppDestinations.QUEUE)
 }

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.map
  * `songs` table, so reads always reflect the current library state (rating, play
  * count, metadata).
  */
-class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
+open class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
     /**
      * Loads the enqueued queue including the song's metadata.
      *
@@ -43,7 +43,7 @@ class PlayingQueueRepository(private val playingQueueDao: PlayingQueueDao) {
      *
      * @return a flow of the queue mapped to [SongDto].
      */
-    fun observePlayingQueue(): Flow<List<SongDto>> = playingQueueDao.observeAll().map { queue ->
+    open fun observePlayingQueue(): Flow<List<SongDto>> = playingQueueDao.observeAll().map { queue ->
         queue.map { it.toSongDto() }
     }
 
