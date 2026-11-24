@@ -29,7 +29,6 @@ import de.carsten.android.muzzic.ui.SPACING_LARGE
 import de.carsten.android.muzzic.ui.SPACING_MEDIUM
 import de.carsten.android.muzzic.ui.model.AlbumDto
 import de.carsten.android.muzzic.ui.model.ColorSource
-import de.carsten.android.muzzic.ui.model.FastScrollMode
 import de.carsten.android.muzzic.ui.model.composableColorSource
 import de.carsten.android.muzzic.ui.navigation.MusicAppState
 import de.carsten.android.muzzic.ui.screens.grids.AlbumGrid
@@ -44,7 +43,6 @@ fun ArtistAlbumsScreen(
     modifier: Modifier = Modifier,
     appState: MusicAppState,
     colorSource: ColorSource = composableColorSource(),
-    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
     artistAlbumsViewModel: ArtistAlbumsViewModel = koinViewModel(),
@@ -69,7 +67,6 @@ fun ArtistAlbumsScreen(
         onAlbumPlayClick = artistAlbumsViewModel::playAlbum,
         onAlbumLongClick = selectionViewModel::toggleAlbumSelection,
         colorSource = colorSource,
-        fastScrollMode = fastScrollMode,
     )
 }
 
@@ -84,7 +81,6 @@ private fun ArtistAlbumsScreenContent(
     onAlbumClick: (String, String) -> Unit = { _, _ -> },
     onAlbumLongClick: (String, String) -> Unit = { _, _ -> },
     colorSource: ColorSource = composableColorSource(),
-    fastScrollMode: FastScrollMode = FastScrollMode.FAST_SCROLLER,
 ) {
     Column(
         modifier =
@@ -122,7 +118,6 @@ private fun ArtistAlbumsScreenContent(
             onAlbumLongClick = onAlbumLongClick,
             selectedAlbums = selectionState?.selectedAlbums ?: emptySet(),
             colorSource = colorSource,
-            fastScrollMode = fastScrollMode,
         )
     }
 }

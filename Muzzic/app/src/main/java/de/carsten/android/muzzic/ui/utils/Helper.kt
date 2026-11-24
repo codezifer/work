@@ -1,5 +1,15 @@
 package de.carsten.android.muzzic.ui.utils
 
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.media3.common.StarRating
 import de.carsten.android.muzzic.MAX_STARS
 import java.time.Instant
@@ -155,3 +165,26 @@ fun getWmpRating(stars: Float): Int {
  * @return WMP9 rating in the range 0..255.
  */
 fun getWmpRating(starRating: StarRating): Int = getWmpRating(starRating.starRating)
+
+// Fades content to transparent at the bottom so the real background shows through
+fun Modifier.fadeOutBottom(height: Dp): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val h = height.toPx().coerceAtMost(size.height)
+        val steps = 10
+        drawRect(
+            brush = Brush.verticalGradient(
+                // Smoothstep easing avoids a visible kink at the start of the fade
+                colorStops = Array(steps + 1) { i ->
+                    val t = i / steps.toFloat()
+                    t to Color.Black.copy(alpha = 1f - t * t * (3f - 2f * t))
+                },
+                startY = size.height - h,
+                endY = size.height,
+            ),
+            topLeft = Offset(0f, size.height - h),
+            size = Size(size.width, h),
+            blendMode = BlendMode.DstIn,
+        )
+    }

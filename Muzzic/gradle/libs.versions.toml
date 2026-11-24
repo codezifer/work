@@ -1,6 +1,6 @@
 [versions]
 # Muzzic App Version
-appVersion = "0.13.1"
+appVersion = "0.13.2"
 appJvmVersion = "17"
 appMinSdk = "36"
 appMaxSdk = "37"
@@ -35,7 +35,7 @@ mockk = "1.14.12"
 navigation = "2.10.2"
 okhttp = "5.5.1"
 palette = "1.1.0"
-robolectric = "4.18"
+robolectric = "4.18.1"
 room = "2.8.5"
 testRunner = "1.7.0"
 turbine = "1.2.1"

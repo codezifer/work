@@ -43,6 +43,7 @@ import de.carsten.android.muzzic.ui.screens.PlaylistSongsScreen
 import de.carsten.android.muzzic.ui.screens.PlaylistsScreen
 import de.carsten.android.muzzic.ui.screens.SettingsScreen
 import de.carsten.android.muzzic.ui.screens.StatisticsScreen
+import de.carsten.android.muzzic.ui.utils.fadeOutBottom
 import de.carsten.android.muzzic.viewmodel.LibraryViewModel
 import de.carsten.android.muzzic.viewmodel.PlayerViewModel
 import de.carsten.android.muzzic.viewmodel.PlayingQueueViewModel
@@ -129,7 +130,9 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier.padding(bottom = SCREEN_CONTENT_BOTTOM_PADDING),
+        modifier = modifier
+            .padding(bottom = SCREEN_CONTENT_BOTTOM_PADDING)
+            .fadeOutBottom(SCREEN_CONTENT_BOTTOM_PADDING),
     ) {
         composable(PLAYER) {
             PlayerScreen(
@@ -169,7 +172,6 @@ fun AppNavHost(
                     modifier = modifier,
                     appState = appState,
                     colorSource = colorSource,
-                    fastScrollMode = fastScrollMode,
                     onAlbumClick = onAlbumClick,
                     onBackClick = onBackClick,
                     selectionViewModel = selectionViewModel,
